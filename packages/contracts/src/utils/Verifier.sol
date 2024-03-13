@@ -8,32 +8,33 @@ struct EmailProof {
     bytes32 publicKeyHash; // Hash of the DKIM public key used in email/proof
     uint timestamp; // Timestamp of the email
     string maskedSubject; // Masked subject of the email
-    bytes32 emailNullifier; // Nullifier of the email to prevent its reuse.
-    bytes32 accountSalt; // Create2 salt of the account
-    bool isCodeExist; // Check if the account code is exist
+    bytes32 emailNullifier; // Nullifier of email to prevent re-run
+    bytes32 accountSalt; // Salt of the account
+    bool isCodeExist; // Check if the code is exist
     bytes proof; // ZK Proof of Email
 }
 
 contract Verifier {
+
+    mapping(bytes32=>bool) usedNullifiers;
     Groth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
     uint256 public constant SUBJECT_FIELDS = 20;
     uint256 public constant SUBJECT_BYTES = 605;
-
-    constructor() {
-        groth16Verifier = new Groth16Verifier();
-    }
-
-    function verifyEmailProof(
-        EmailProof memory proof
-    ) public view returns (bool) {
-        (
-            uint256[2] memory pA,
-            uint256[2][2] memory pB,
-            uint256[2] memory pC
-        ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
+    
+    function verifyEmailProof(EmailProof memory proof) public returns (bool) {
+        if(isUsedNullifier(proof.emailNullifier)) {
+            return false;
+        } 
+        
+        usedNullifiers[proof.emailNullifier] = true;
+        
+        (uint256[2] memory pA, uint256[2][2] memory pB, uint256[2] memory pC) = abi.decode(
+            proof.proof,
+            (uint256[2], uint256[2][2], uint256[2])
+        );
 
         uint256[DOMAIN_FIELDS + SUBJECT_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
@@ -44,27 +45,26 @@ contract Verifier {
         pubSignals[DOMAIN_FIELDS] = uint256(proof.publicKeyHash);
         pubSignals[DOMAIN_FIELDS + 1] = uint256(proof.emailNullifier);
         pubSignals[DOMAIN_FIELDS + 2] = uint256(proof.timestamp);
-        stringFields = _packBytes2Fields(
-            bytes(proof.maskedSubject),
-            SUBJECT_BYTES
-        );
+        stringFields = _packBytes2Fields(bytes(proof.maskedSubject), SUBJECT_BYTES);
         for (uint256 i = 0; i < SUBJECT_FIELDS; i++) {
             pubSignals[DOMAIN_FIELDS + 3 + i] = stringFields[i];
         }
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(
-            proof.accountSalt
-        );
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist
-            ? 1
-            : 0;
-
+        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(proof.accountSalt);
+        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist ? 1 : 0;
+        
         return groth16Verifier.verifyProof(pA, pB, pC, pubSignals);
     }
+    
+    // Check if the nullifier is used
+    function isUsedNullifier(bytes32 emailNullifier) public view returns (bool) {
+        return usedNullifiers[emailNullifier];
+    }
 
-    function _packBytes2Fields(
-        bytes memory _bytes,
-        uint256 _paddedSize
-    ) public pure returns (uint256[] memory) {
+    function validateEmailProof(EmailProof memory proof) public pure returns (bool) {
+
+    }
+
+    function _packBytes2Fields(bytes memory _bytes, uint256 _paddedSize) public pure returns (uint256[] memory) {
         uint256 remain = _paddedSize % 31;
         uint256 numFields = (_paddedSize - remain) / 31;
         if (remain > 0) {
@@ -93,4 +93,6 @@ contract Verifier {
         }
         return fields;
     }
+
 }
+
