@@ -137,6 +137,25 @@ contract EmailAuth {
         );
         require(authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0), "email already authed");
         authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
+
+        // TBD
+    }
+
+    function isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4) {
+        (
+            bytes32 emailNullifier, 
+            bytes32 accountSalt, 
+            uint templateId, 
+            bool isCodeExist, 
+            bytes[] memory subjectParams
+        ) = abi.decode(_signature, (bytes32, bytes32, uint, bool, bytes[]));
+
+        bytes32 msgHash = computeMsgHash(accountSalt, isCodeExist, templateId, subjectParams);
+        if(authedHash[emailNullifier] == msgHash) {
+            return 0x1626ba7e;
+        } else {
+            return 0xffffffff;
+        }
     }
 }
 
