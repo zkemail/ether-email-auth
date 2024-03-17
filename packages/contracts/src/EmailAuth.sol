@@ -6,6 +6,7 @@ import {ECDSAOwnedDKIMRegistry} from "./utils/ECDSAOwnedDKIMRegistry.sol";
 import {Verifier} from "./utils/Verifier.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 struct EmailAuthMsg {
     uint templateId;
@@ -17,16 +18,19 @@ struct EmailAuthMsg {
 contract EmailAuth {
 
     address owner;
+    bytes32 accountSalt;
     ECDSAOwnedDKIMRegistry dkim;
     Verifier verifier;
     mapping(uint => string[]) subjectTemplates;
     mapping(bytes32 => bytes32) authedHash;
     uint lastTimestamp;
+    mapping(bytes32=>bool) usedNullifiers;
+    bool timestampCheckEnabled;
  
-    constructor(address _dkim, address _verifier) {
+    constructor(bytes32 _accountSalt) {
         owner = msg.sender;
-        dkim = ECDSAOwnedDKIMRegistry(_dkim);
-        verifier = Verifier(_verifier);
+        accountSalt = _accountSalt;
+        timestampCheckEnabled = true;
     }
 
     function dkimRegistryAddr() public view returns (address) {
@@ -69,11 +73,11 @@ contract EmailAuth {
         delete subjectTemplates[_templateId];
     }
 
-    function computeMsgHash(bytes32 accountSalt, bool isCodeExist, uint templateId, bytes[] memory subjectParams) public pure returns (bytes32) {
-        return keccak256(abi.encode(accountSalt, isCodeExist, templateId, subjectParams));
+    function computeMsgHash(bytes32 _accountSalt, bool _isCodeExist, uint _templateId, bytes[] memory _subjectParams) public pure returns (bytes32) {
+        return keccak256(abi.encode(_accountSalt, _isCodeExist, _templateId, _subjectParams));
     }
 
-    function authEmail(EmailAuthMsg memory emailAuthMsg) public returns (address, bytes32) {
+    function authEmail(EmailAuthMsg memory emailAuthMsg) public returns (bytes32) {
         require(msg.sender == owner, "only owner can auth email");
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
@@ -83,6 +87,9 @@ contract EmailAuth {
                 emailAuthMsg.proof.publicKeyHash
             ) == true, 
             "invalid dkim public key hash");
+        require(usedNullifiers[emailAuthMsg.proof.emailNullifier] == false, "email nullifier already used");
+        usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
+        require(accountSalt == emailAuthMsg.proof.accountSalt, "invalid account salt");
         require(emailAuthMsg.proof.timestamp > 0 && emailAuthMsg.proof.timestamp > lastTimestamp, "invalid timestamp");
         lastTimestamp = emailAuthMsg.proof.timestamp;
         
@@ -125,35 +132,51 @@ contract EmailAuth {
             expectedSubject = string(abi.encodePacked(expectedSubject, stringParam));
             nextParamIndex++;
         }
-        
- 
+        string memory trimmedSubject = removePrefix(emailAuthMsg.proof.maskedSubject, emailAuthMsg.skipedSubjectPrefix);
+        require(Strings.equal(expectedSubject, trimmedSubject), "invalid subject");
+        require(verifier.verifyEmailProof(emailAuthMsg.proof) == true, "invalid email proof");
+
         bytes32 msgHash = computeMsgHash(
             emailAuthMsg.proof.accountSalt, 
             emailAuthMsg.proof.isCodeExist, 
             emailAuthMsg.templateId, 
             emailAuthMsg.subjectParams
         );
+
         require(authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0), "email already authed");
         authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
 
-        // TBD
+        return msgHash;
     }
 
     function isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4) {
         (
-            bytes32 emailNullifier, 
-            bytes32 accountSalt, 
-            uint templateId, 
-            bool isCodeExist, 
-            bytes[] memory subjectParams
+            bytes32 _emailNullifier, 
+            bytes32 _accountSalt, 
+            uint _templateId, 
+            bool _isCodeExist, 
+            bytes[] memory _subjectParams
         ) = abi.decode(_signature, (bytes32, bytes32, uint, bool, bytes[]));
 
-        bytes32 msgHash = computeMsgHash(accountSalt, isCodeExist, templateId, subjectParams);
-        if(authedHash[emailNullifier] == msgHash) {
+        bytes32 msgHash = computeMsgHash(_accountSalt, _isCodeExist, _templateId, _subjectParams);
+        if(authedHash[_emailNullifier] == msgHash) {
             return 0x1626ba7e;
         } else {
             return 0xffffffff;
         }
+    }
+    
+    function removePrefix(string memory str, uint numChars) private pure returns (string memory) {
+        require(numChars <= bytes(str).length, "Invalid number of characters");
+
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(strBytes.length - numChars);
+
+        for (uint i = numChars; i < strBytes.length; i++) {
+            result[i - numChars] = strBytes[i];
+        }
+
+        return string(result);
     }
 }
 
