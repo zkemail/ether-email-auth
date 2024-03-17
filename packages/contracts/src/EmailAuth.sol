@@ -150,16 +150,8 @@ contract EmailAuth {
     }
 
     function isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4) {
-        (
-            bytes32 _emailNullifier, 
-            bytes32 _accountSalt, 
-            uint _templateId, 
-            bool _isCodeExist, 
-            bytes[] memory _subjectParams
-        ) = abi.decode(_signature, (bytes32, bytes32, uint, bool, bytes[]));
-
-        bytes32 msgHash = computeMsgHash(_accountSalt, _isCodeExist, _templateId, _subjectParams);
-        if(authedHash[_emailNullifier] == msgHash) {
+        bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
+        if(authedHash[_emailNullifier] == _hash) {
             return 0x1626ba7e;
         } else {
             return 0xffffffff;
