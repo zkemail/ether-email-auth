@@ -41,16 +41,16 @@ contract EmailAuth {
         return address(verifier);
     }
 
-    function updateVerifier(address _verifierAddr) public {
-        require(msg.sender == owner, "only owner can update verifier");
-        require(_verifierAddr != address(0), "invalid verifier address");
-        verifier = Verifier(_verifierAddr);
-    }
-
     function updateDKIMRegistry(address _dkimRegistryAddr) public {
         require(msg.sender == owner, "only owner can update dkim registry");
         require(_dkimRegistryAddr != address(0), "invalid dkim registry address");
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
+    }
+
+    function updateVerifier(address _verifierAddr) public {
+        require(msg.sender == owner, "only owner can update verifier");
+        require(_verifierAddr != address(0), "invalid verifier address");
+        verifier = Verifier(_verifierAddr);
     }
 
     function insertSubjectTemplate(uint _templateId, string[] memory _subjectTemplate) public {
