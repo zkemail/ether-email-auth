@@ -132,8 +132,8 @@ contract EmailAuth {
             expectedSubject = string(abi.encodePacked(expectedSubject, stringParam));
             nextParamIndex++;
         }
-        string memory trimmedSubject = removePrefix(emailAuthMsg.proof.maskedSubject, emailAuthMsg.skipedSubjectPrefix);
-        require(Strings.equal(expectedSubject, trimmedSubject), "invalid subject");
+        string memory trimmedMaskedSubject = removePrefix(emailAuthMsg.proof.maskedSubject, emailAuthMsg.skipedSubjectPrefix);
+        require(Strings.equal(expectedSubject, trimmedMaskedSubject), "invalid subject");
         require(verifier.verifyEmailProof(emailAuthMsg.proof) == true, "invalid email proof");
 
         bytes32 msgHash = computeMsgHash(
