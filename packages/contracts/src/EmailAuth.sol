@@ -90,7 +90,7 @@ contract EmailAuth {
         require(usedNullifiers[emailAuthMsg.proof.emailNullifier] == false, "email nullifier already used");
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
         require(accountSalt == emailAuthMsg.proof.accountSalt, "invalid account salt");
-        require(emailAuthMsg.proof.timestamp > 0 && emailAuthMsg.proof.timestamp > lastTimestamp, "invalid timestamp");
+        require(emailAuthMsg.proof.timestamp > 0 || emailAuthMsg.proof.timestamp > lastTimestamp, "invalid timestamp");
         lastTimestamp = emailAuthMsg.proof.timestamp;
         
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
