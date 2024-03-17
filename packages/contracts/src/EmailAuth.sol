@@ -43,30 +43,20 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return address(verifier);
     }
 
-    function updateDKIMRegistry(address _dkimRegistryAddr) public onlyOwner {
-        require(
-            _dkimRegistryAddr != address(0),
-            "invalid dkim registry address"
-        );
+    function updateDKIMRegistry(address _dkimRegistryAddr) public {
+        require(msg.sender == owner, "only owner can update dkim registry");
+        require(_dkimRegistryAddr != address(0), "invalid dkim registry address");
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
     }
 
-    function updateVerifier(address _verifierAddr) public onlyOwner {
+    function updateVerifier(address _verifierAddr) public {
+        require(msg.sender == owner, "only owner can update verifier");
         require(_verifierAddr != address(0), "invalid verifier address");
         verifier = Verifier(_verifierAddr);
     }
 
-    function getSubjectTemplate(
-        uint _templateId
-    ) public view returns (string[] memory) {
-        require(subjectTemplates[_templateId].length > 0, "template id not exists");
-        return subjectTemplates[_templateId];
-    }
-
-    function insertSubjectTemplate(
-        uint _templateId,
-        string[] memory _subjectTemplate
-    ) public {
+    function insertSubjectTemplate(uint _templateId, string[] memory _subjectTemplate) public {
+        require(msg.sender == owner, "only owner can insert subject template");
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length == 0,
