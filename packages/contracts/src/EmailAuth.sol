@@ -97,40 +97,39 @@ contract EmailAuth {
         string memory expectedSubject;
         uint8 nextParamIndex = 0;
         string memory stringParam;
+        bool isParamExist;
         for (uint8 i = 0; i < template.length; i++) {
-
+            isParamExist = true;
             if(Strings.equal(template[i], "{string}")) {
                 string memory param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (string));
                 stringParam = param;
-                // expectedSubject = string(abi.encodePacked(expectedSubject, param));
             } else if(Strings.equal(template[i], "{uint}")) {
                 uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
                 stringParam = Strings.toString(param);
-                // expectedSubject = string(abi.encodePacked(expectedSubject, Strings.toString(param)));
             } else if(Strings.equal(template[i], "{int}")) {
                 int256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (int256));
                 stringParam = Strings.toString(param);
-                // expectedSubject = string(abi.encodePacked(expectedSubject, Strings.toString(param)));
             } else if(Strings.equal(template[i], "{decimals}")) {
                 uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
                 stringParam = Strings.toString(param);
-                // expectedSubject = string(abi.encodePacked(expectedSubject, Strings.toString(param)));
             } else if(Strings.equal(template[i], "{decimals}")) {
                 uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
                 stringParam = Strings.toString(param);
-                // expectedSubject = string(abi.encodePacked(expectedSubject, Strings.toString(param)));
             } else if(Strings.equal(template[i], "{ethAddr}")) {
                 address param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (address));
                 stringParam = Strings.toHexString(param);
             } else {
-                continue;
+                isParamExist = false;
+                stringParam = template[i];
             }
 
             if(i > 0) {
                 expectedSubject = string(abi.encodePacked(expectedSubject, " "));
             }
             expectedSubject = string(abi.encodePacked(expectedSubject, stringParam));
-            nextParamIndex++;
+            if(isParamExist) {
+                nextParamIndex++;
+            }
         }
         string memory trimmedMaskedSubject = removePrefix(emailAuthMsg.proof.maskedSubject, emailAuthMsg.skipedSubjectPrefix);
         require(Strings.equal(expectedSubject, trimmedMaskedSubject), "invalid subject");
