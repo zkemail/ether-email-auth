@@ -120,7 +120,6 @@ contract EmailAuthTest is Test {
             proof: emailProof
         });
 
-        // TODO: This mockCall should be removed
         vm.mockCall(
             address(verifier),
             abi.encodeWithSelector(Verifier.verifyEmailProof.selector, emailProof),
