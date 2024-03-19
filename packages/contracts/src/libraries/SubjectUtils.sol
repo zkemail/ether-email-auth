@@ -75,7 +75,7 @@ library SubjectUtils {
     function computeExpectedSubject(
         bytes[] memory subjectParams,
         string[] memory template
-    ) public pure returns (string memory expectedSubject) {
+    ) public view returns (string memory expectedSubject) {
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
         uint8 nextParamIndex = 0;
         string memory stringParam;
