@@ -63,12 +63,12 @@ contract EmailAuthTest is Test {
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{string}"];
     }
 
-    function testDkimRegistryAddr() public view {
+    function testDkimRegistryAddr() public {
         address dkimAddr = emailAuth.dkimRegistryAddr();
         assertEq(dkimAddr, address(dkim));
     }
 
-    function testVerifierAddr() public view {
+    function testVerifierAddr() public {
         address verifierAddr = emailAuth.verifierAddr();
         assertEq(verifierAddr, address(verifier));
     }
@@ -99,7 +99,7 @@ contract EmailAuthTest is Test {
         emailAuth.deleteSubjectTemplate(templateId);
     }
 
-    function testComputeMsgHash() public view {
+    function testComputeMsgHash() public {
         bytes[] memory subjectParams = new bytes[](2);
         subjectParams[0] = abi.encode(1);
         subjectParams[1] = abi.encode(vm.addr(1));
