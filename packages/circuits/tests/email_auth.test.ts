@@ -37,7 +37,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(witness[1 + domainFields.length + 1]);
         const timestamp = 1694989812n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
-        const maskedSubject = "Send 0.1 ETH to alice@gmail.com";
+        const maskedSubject = "Send 0.1 ETH to ";
         const paddedMaskedSubject = emailWalletUtils.padString(maskedSubject, 605);
         const maskedSubjectFields = emailWalletUtils.bytes2Fields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
@@ -105,7 +105,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(witness[1 + domainFields.length + 1]);
         const timestamp = 1696965932n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
-        const maskedSubject = "Send 1 ETH to bob@example.com";
+        const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = emailWalletUtils.padString(maskedSubject, 605);
         const maskedSubjectFields = emailWalletUtils.bytes2Fields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
@@ -139,7 +139,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(witness[1 + domainFields.length + 1]);
         const timestamp = 1696967028n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
-        const maskedSubject = "Send 1 ETH to bob@example.com";
+        const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = emailWalletUtils.padString(maskedSubject, 605);
         const maskedSubjectFields = emailWalletUtils.bytes2Fields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
@@ -173,7 +173,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(witness[1 + domainFields.length + 1]);
         const timestamp = 1707866192n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
-        const maskedSubject = "Send 0.12 ETH to alice@gmail.com";
+        const maskedSubject = "Send 0.12 ETH to ";
         const paddedMaskedSubject = emailWalletUtils.padString(maskedSubject, 605);
         const maskedSubjectFields = emailWalletUtils.bytes2Fields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
@@ -184,42 +184,4 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(witness[1 + domainFields.length + 3 + maskedSubjectFields.length]);
         expect(1n).toEqual(witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 1]);
     });
-
-    // it("Verify an email 1 failed in v0", async () => {
-    //     const emailFilePath = path.join(__dirname, "./emails/v0_failed_test1.eml");
-    //     const emailRaw = readFileSync(emailFilePath, "utf8");
-    //     const parsedEmail = await emailWalletUtils.parseEmail(emailRaw);
-    //     console.log(parsedEmail.canonicalizedHeader);
-    //     const accountKey = await emailWalletUtils.genAccountKey();
-    //     const circuitInputs = await genEmailSenderInput(emailFilePath, accountKey);
-    //     const circuit = await wasm_tester(path.join(__dirname, "../src/email_sender.circom"), option);
-    //     const witness = await circuit.calculateWitness(circuitInputs);
-    //     await circuit.checkConstraints(witness);
-    //     const maskedSubject = "Send 100 USDC to ";
-    //     const paddedMaskedSubject = emailWalletUtils.padString(maskedSubject, 512);
-    //     const maskedSubjectFields = emailWalletUtils.bytes2Fields(paddedMaskedSubject);
-    //     for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
-    //         expect(BigInt(maskedSubjectFields[idx])).toEqual(witness[1 + idx]);
-    //     }
-    //     const domainName = "gmail.com";
-    //     const paddedDomain = emailWalletUtils.padString(domainName, 255);
-    //     const domainFields = emailWalletUtils.bytes2Fields(paddedDomain);
-    //     for (let idx = 0; idx < domainFields.length; ++idx) {
-    //         expect(BigInt(domainFields[idx])).toEqual(witness[18 + idx]);
-    //     }
-    //     const expectedPubKeyHash = emailWalletUtils.publicKeyHash(parsedEmail.publicKey);
-    //     expect(BigInt(expectedPubKeyHash)).toEqual(witness[27]);
-    //     const expectedEmailNullifier = emailWalletUtils.emailNullifier(parsedEmail.signature);
-    //     expect(BigInt(expectedEmailNullifier)).toEqual(witness[28]);
-    //     const timestamp = 1693290766n;
-    //     expect(timestamp).toEqual(witness[29]);
-    //     const senderEmailAddr = "suegamisora@gmail.com";
-    //     const walletSalt = emailWalletUtils.walletSalt(senderEmailAddr, accountKey);
-    //     expect(BigInt(walletSalt)).toEqual(witness[30]);
-    //     expect(1n).toEqual(witness[31]);
-    //     const recipientEmailAddr = "vitalik@ethereum.org"
-    //     const expectedRecipientEmailAddrCommit = emailWalletUtils.emailAddrCommitWithSignature(recipientEmailAddr, parsedEmail.signature);
-    //     expect(BigInt(expectedRecipientEmailAddrCommit)).toEqual(witness[32]);
-    // });
-
 });

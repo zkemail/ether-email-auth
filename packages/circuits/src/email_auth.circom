@@ -111,10 +111,19 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes) {
     (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_subject_bytes)(subject_all);
     is_code_exist <== IsZero()(prefixed_code_regex_out-1);
     signal removed_code[max_subject_bytes];
-    signal masked_subject_bytes[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
-        masked_subject_bytes[i] <== subject_all[i] - removed_code[i];
+    }
+    signal subject_email_addr_regex_out, subject_email_addr_regex_reveal[max_subject_bytes];
+    (subject_email_addr_regex_out, subject_email_addr_regex_reveal) <== EmailAddrRegex(max_subject_bytes)(subject_all);
+    signal is_subject_email_addr_exist <== IsZero()(subject_email_addr_regex_out-1);
+    signal removed_subject_email_addr[max_subject_bytes];
+    for(var i = 0; i < max_subject_bytes; i++) {
+        removed_subject_email_addr[i] <== is_subject_email_addr_exist * subject_email_addr_regex_reveal[i];
+    }
+    signal masked_subject_bytes[max_subject_bytes];
+    for(var i = 0; i < max_subject_bytes; i++) {
+        masked_subject_bytes[i] <== subject_all[i] - removed_code[i] - removed_subject_email_addr[i];
     }
     masked_subject <== Bytes2Ints(max_subject_bytes)(masked_subject_bytes);
 
