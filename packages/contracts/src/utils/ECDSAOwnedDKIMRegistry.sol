@@ -96,7 +96,7 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
         string memory selector,
         string memory domainName,
         bytes32 publicKeyHash
-    ) public view returns (string memory) {
+    ) public pure returns (string memory) {
         return
             string.concat(
                 prefix,
