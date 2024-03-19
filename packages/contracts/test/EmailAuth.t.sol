@@ -22,13 +22,13 @@ contract EmailAuthTest is Test {
         dkim = new ECDSAOwnedDKIMRegistry(msg.sender);
         verifier = new Verifier();
 
-        accountSalt = 0x103e3424744866f18867633cd0a8ec593f8dfab09f4cddbfaeda05414b1a5986;
-        emailAuth = new EmailAuth(accountSalt);
-
+        // Create EmailAuth
+        emailAuth = new EmailAuth();
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
 
-        templateId = 1;
+        uint templateIdx = 1;
+        templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
     }

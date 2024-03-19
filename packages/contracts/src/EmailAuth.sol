@@ -43,20 +43,23 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return address(verifier);
     }
 
-    function updateDKIMRegistry(address _dkimRegistryAddr) public {
-        require(msg.sender == owner, "only owner can update dkim registry");
-        require(_dkimRegistryAddr != address(0), "invalid dkim registry address");
+    function updateDKIMRegistry(address _dkimRegistryAddr) public onlyOwner {
+        require(
+            _dkimRegistryAddr != address(0),
+            "invalid dkim registry address"
+        );
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
     }
 
-    function updateVerifier(address _verifierAddr) public {
-        require(msg.sender == owner, "only owner can update verifier");
+    function updateVerifier(address _verifierAddr) public onlyOwner {
         require(_verifierAddr != address(0), "invalid verifier address");
         verifier = Verifier(_verifierAddr);
     }
 
-    function insertSubjectTemplate(uint _templateId, string[] memory _subjectTemplate) public {
-        require(msg.sender == owner, "only owner can insert subject template");
+    function insertSubjectTemplate(
+        uint _templateId,
+        string[] memory _subjectTemplate
+    ) public {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length == 0,
@@ -124,10 +127,11 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
         require(
             timestampCheckEnabled == false ||
-                emailAuthMsg.proof.timestamp == 0 ||
+            emailAuthMsg.proof.timestamp == 0 ||
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
+
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
         string memory expectedSubject = SubjectUtils.computeExpectedSubject(
@@ -183,9 +187,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Upgrade the implementation of the proxy
     /// @param newImplementation Address of the new implementation
-    function _authorizeUpgrade(
-        address newImplementation
-    ) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function removePrefix(
         string memory str,
