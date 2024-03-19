@@ -4,9 +4,10 @@ pragma solidity ^0.8.12;
 import {EmailProof} from "./utils/Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "./utils/ECDSAOwnedDKIMRegistry.sol";
 import {Verifier} from "./utils/Verifier.sol";
+import {SubjectUtils} from "./libraries/SubjectUtils.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 struct EmailAuthMsg {
     uint templateId;
@@ -15,19 +16,21 @@ struct EmailAuthMsg {
     EmailProof proof;
 }
 
-contract EmailAuth {
-    address owner;
-    bytes32 accountSalt;
-    ECDSAOwnedDKIMRegistry dkim;
-    Verifier verifier;
-    mapping(uint => string[]) subjectTemplates;
-    mapping(bytes32 => bytes32) authedHash;
-    uint lastTimestamp;
-    mapping(bytes32 => bool) usedNullifiers;
-    bool timestampCheckEnabled;
+contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
+    bytes32 public accountSalt;
+    ECDSAOwnedDKIMRegistry public dkim;
+    Verifier public verifier;
+    mapping(uint => string[]) public subjectTemplates;
+    mapping(bytes32 => bytes32) public authedHash;
+    uint public lastTimestamp;
+    mapping(bytes32 => bool) public usedNullifiers;
+    bool public timestampCheckEnabled;
 
-    constructor(bytes32 _accountSalt) {
-        owner = msg.sender;
+    constructor() {}
+
+    /// @notice Initialize the contract
+    function initialize(bytes32 _accountSalt) public initializer {
+        __Ownable_init();
         accountSalt = _accountSalt;
         timestampCheckEnabled = true;
     }
@@ -40,8 +43,7 @@ contract EmailAuth {
         return address(verifier);
     }
 
-    function updateDKIMRegistry(address _dkimRegistryAddr) public {
-        require(msg.sender == owner, "only owner can update dkim registry");
+    function updateDKIMRegistry(address _dkimRegistryAddr) public onlyOwner {
         require(
             _dkimRegistryAddr != address(0),
             "invalid dkim registry address"
@@ -49,8 +51,7 @@ contract EmailAuth {
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
     }
 
-    function updateVerifier(address _verifierAddr) public {
-        require(msg.sender == owner, "only owner can update verifier");
+    function updateVerifier(address _verifierAddr) public onlyOwner {
         require(_verifierAddr != address(0), "invalid verifier address");
         verifier = Verifier(_verifierAddr);
     }
@@ -59,7 +60,6 @@ contract EmailAuth {
         uint _templateId,
         string[] memory _subjectTemplate
     ) public {
-        require(msg.sender == owner, "only owner can insert subject template");
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length == 0,
@@ -71,8 +71,7 @@ contract EmailAuth {
     function updateSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
-    ) public {
-        require(msg.sender == owner, "only owner can update subject template");
+    ) public onlyOwner {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length > 0,
@@ -81,8 +80,7 @@ contract EmailAuth {
         subjectTemplates[_templateId] = _subjectTemplate;
     }
 
-    function deleteSubjectTemplate(uint _templateId) public {
-        require(msg.sender == owner, "only owner can delete subject template");
+    function deleteSubjectTemplate(uint _templateId) public onlyOwner {
         require(
             subjectTemplates[_templateId].length > 0,
             "template id not exists"
@@ -109,8 +107,7 @@ contract EmailAuth {
 
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
-    ) public returns (bytes32) {
-        require(msg.sender == owner, "only owner can auth email");
+    ) public onlyOwner returns (bytes32) {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
@@ -124,78 +121,23 @@ contract EmailAuth {
             usedNullifiers[emailAuthMsg.proof.emailNullifier] == false,
             "email nullifier already used"
         );
-        usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
         require(
             accountSalt == emailAuthMsg.proof.accountSalt,
             "invalid account salt"
         );
         require(
-            emailAuthMsg.proof.timestamp > 0 ||
+            timestampCheckEnabled == false ||
+            emailAuthMsg.proof.timestamp == 0 ||
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
-        lastTimestamp = emailAuthMsg.proof.timestamp;
+
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
-        string memory expectedSubject;
-        uint8 nextParamIndex = 0;
-        string memory stringParam;
-        bool isParamExist;
-        for (uint8 i = 0; i < template.length; i++) {
-            isParamExist = true;
-            if (Strings.equal(template[i], "{string}")) {
-                string memory param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (string)
-                );
-                stringParam = param;
-            } else if (Strings.equal(template[i], "{uint}")) {
-                uint256 param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (uint256)
-                );
-                stringParam = Strings.toString(param);
-            } else if (Strings.equal(template[i], "{int}")) {
-                int256 param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (int256)
-                );
-                stringParam = Strings.toString(param);
-            } else if (Strings.equal(template[i], "{decimals}")) {
-                uint256 param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (uint256)
-                );
-                stringParam = Strings.toString(param);
-            } else if (Strings.equal(template[i], "{decimals}")) {
-                uint256 param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (uint256)
-                );
-                stringParam = Strings.toString(param);
-            } else if (Strings.equal(template[i], "{ethAddr}")) {
-                address param = abi.decode(
-                    emailAuthMsg.subjectParams[nextParamIndex],
-                    (address)
-                );
-                stringParam = Strings.toHexString(param);
-            } else {
-                isParamExist = false;
-                stringParam = template[i];
-            }
-
-            if (i > 0) {
-                expectedSubject = string(
-                    abi.encodePacked(expectedSubject, " ")
-                );
-            }
-            expectedSubject = string(
-                abi.encodePacked(expectedSubject, stringParam)
-            );
-            if (isParamExist) {
-                nextParamIndex++;
-            }
-        }
+        string memory expectedSubject = SubjectUtils.computeExpectedSubject(
+            emailAuthMsg.subjectParams,
+            template
+        );
         string memory trimmedMaskedSubject = removePrefix(
             emailAuthMsg.proof.maskedSubject,
             emailAuthMsg.skipedSubjectPrefix
@@ -220,6 +162,8 @@ contract EmailAuth {
             authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0),
             "email already authed"
         );
+        usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
+        lastTimestamp = emailAuthMsg.proof.timestamp;
         authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
 
         return msgHash;
@@ -236,6 +180,14 @@ contract EmailAuth {
             return 0xffffffff;
         }
     }
+
+    function setTimestampCheckEnabled(bool _enabled) public onlyOwner {
+        timestampCheckEnabled = _enabled;
+    }
+
+    /// @notice Upgrade the implementation of the proxy
+    /// @param newImplementation Address of the new implementation
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     function removePrefix(
         string memory str,

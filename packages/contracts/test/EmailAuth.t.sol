@@ -54,13 +54,14 @@ contract EmailAuthTest is Test {
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
         // Create EmailAuth
-        emailAuth = new EmailAuth(accountSalt);
+        emailAuth = new EmailAuth();
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
 
-        templateId = 1;
-        subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{string}"];
-        newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{string}"];
+        uint templateIdx = 1;
+        templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
+        subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
+        newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
     }
 
     function testDkimRegistryAddr() public {

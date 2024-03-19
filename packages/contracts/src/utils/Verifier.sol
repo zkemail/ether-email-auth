@@ -22,6 +22,10 @@ contract Verifier {
     uint256 public constant SUBJECT_FIELDS = 20;
     uint256 public constant SUBJECT_BYTES = 605;
 
+    constructor() {
+        groth16Verifier = new Groth16Verifier();
+    }
+
     function verifyEmailProof(
         EmailProof memory proof
     ) public view returns (bool) {
