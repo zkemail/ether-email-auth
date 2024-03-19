@@ -20,43 +20,51 @@ contract Deploy is Script {
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        if (deployerPrivateKey == 0) {
-            console.log("PRIVATE_KEY env var not set");
-            return;
-        }
-        address signer = vm.envAddress("SIGNER");
-        if (signer == address(0)) {
-            console.log("SIGNER env var not set");
-            return;
-        }
-
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(
-            signer
+        ECDSAOwnedDKIMRegistry dkim = new ECDSAOwnedDKIMRegistry(
+            vm.addr(deployerPrivateKey)
         );
-        console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
-        vm.setEnv("DKIM", vm.toString(address(dkim)));
+        string memory selector = vm.envString("SELECTOR");
+        string memory domainName = vm.envString("DOMAIN_NAME");
+        bytes32 publicKeyHash = vm.envBytes32("PUBLIC_KEY_HASH");
 
-        // Deploy Verifier
-        verifier = new Verifier();
-        console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(verifier));
-        vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(deployerPrivateKey, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
 
-        // Deploy EmailAuth Implementation
-        {
-            emailAuthImpl = new EmailAuth();
-            console.log("EmailAuth implementation deployed at: %s", address(emailAuthImpl));
-            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
-        }
+        // Create Verifier
+        Verifier verifier = new Verifier();
+        bytes32 accountSalt = vm.envBytes32("ACCOUNT_SALT");
 
-        // Deploy SimpleWallet Implementation
-        {
-            simpleWalletImpl = new SimpleWallet();
-            console.log("SimpleWallet implementation deployed at: %s", address(simpleWalletImpl));
-            vm.setEnv("SIMPLE_WALLET_IMPL", vm.toString(address(simpleWalletImpl)));
-        }
+        // Create EmailAuth
+        EmailAuth emailAuth = new EmailAuth(accountSalt);
+        emailAuth.updateVerifier(address(verifier));
+        emailAuth.updateDKIMRegistry(address(dkim));
+
+        // Insert first subject template
+        uint256 templateId = 1;
+        string[] memory subjectTemplate = new string[](5);
+        subjectTemplate[0] = "Send";
+        subjectTemplate[1] = "{decimals}";
+        subjectTemplate[2] = "ETH";
+        subjectTemplate[3] = "to";
+        subjectTemplate[4] = "{string}";
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+
         vm.stopBroadcast();
     }
 }
