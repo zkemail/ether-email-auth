@@ -16,7 +16,6 @@ struct EmailAuthMsg {
 }
 
 contract EmailAuth {
-
     address owner;
     bytes32 accountSalt;
     ECDSAOwnedDKIMRegistry dkim;
@@ -24,9 +23,9 @@ contract EmailAuth {
     mapping(uint => string[]) subjectTemplates;
     mapping(bytes32 => bytes32) authedHash;
     uint lastTimestamp;
-    mapping(bytes32=>bool) usedNullifiers;
+    mapping(bytes32 => bool) usedNullifiers;
     bool timestampCheckEnabled;
- 
+
     constructor(bytes32 _accountSalt) {
         owner = msg.sender;
         accountSalt = _accountSalt;
@@ -43,7 +42,10 @@ contract EmailAuth {
 
     function updateDKIMRegistry(address _dkimRegistryAddr) public {
         require(msg.sender == owner, "only owner can update dkim registry");
-        require(_dkimRegistryAddr != address(0), "invalid dkim registry address");
+        require(
+            _dkimRegistryAddr != address(0),
+            "invalid dkim registry address"
+        );
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
     }
 
@@ -53,46 +55,87 @@ contract EmailAuth {
         verifier = Verifier(_verifierAddr);
     }
 
-    function insertSubjectTemplate(uint _templateId, string[] memory _subjectTemplate) public {
+    function insertSubjectTemplate(
+        uint _templateId,
+        string[] memory _subjectTemplate
+    ) public {
         require(msg.sender == owner, "only owner can insert subject template");
         require(_subjectTemplate.length > 0, "subject template is empty");
-        require(subjectTemplates[_templateId].length == 0, "template id already exists");
+        require(
+            subjectTemplates[_templateId].length == 0,
+            "template id already exists"
+        );
         subjectTemplates[_templateId] = _subjectTemplate;
     }
 
-    function updateSubjectTemplate(uint _templateId, string[] memory _subjectTemplate) public {
+    function updateSubjectTemplate(
+        uint _templateId,
+        string[] memory _subjectTemplate
+    ) public {
         require(msg.sender == owner, "only owner can update subject template");
         require(_subjectTemplate.length > 0, "subject template is empty");
-        require(subjectTemplates[_templateId].length > 0, "template id not exists");
+        require(
+            subjectTemplates[_templateId].length > 0,
+            "template id not exists"
+        );
         subjectTemplates[_templateId] = _subjectTemplate;
     }
 
     function deleteSubjectTemplate(uint _templateId) public {
         require(msg.sender == owner, "only owner can delete subject template");
-        require(subjectTemplates[_templateId].length > 0, "template id not exists");
+        require(
+            subjectTemplates[_templateId].length > 0,
+            "template id not exists"
+        );
         delete subjectTemplates[_templateId];
     }
 
-    function computeMsgHash(bytes32 _accountSalt, bool _isCodeExist, uint _templateId, bytes[] memory _subjectParams) public pure returns (bytes32) {
-        return keccak256(abi.encode(_accountSalt, _isCodeExist, _templateId, _subjectParams));
+    function computeMsgHash(
+        bytes32 _accountSalt,
+        bool _isCodeExist,
+        uint _templateId,
+        bytes[] memory _subjectParams
+    ) public pure returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    _accountSalt,
+                    _isCodeExist,
+                    _templateId,
+                    _subjectParams
+                )
+            );
     }
 
-    function authEmail(EmailAuthMsg memory emailAuthMsg) public returns (bytes32) {
+    function authEmail(
+        EmailAuthMsg memory emailAuthMsg
+    ) public returns (bytes32) {
         require(msg.sender == owner, "only owner can auth email");
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
             dkim.isDKIMPublicKeyHashValid(
-                emailAuthMsg.proof.domainName, 
+                emailAuthMsg.proof.domainName,
                 emailAuthMsg.proof.publicKeyHash
-            ) == true, 
-            "invalid dkim public key hash");
-        require(usedNullifiers[emailAuthMsg.proof.emailNullifier] == false, "email nullifier already used");
+            ) == true,
+            "invalid dkim public key hash"
+        );
+        require(
+            usedNullifiers[emailAuthMsg.proof.emailNullifier] == false,
+            "email nullifier already used"
+        );
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        require(accountSalt == emailAuthMsg.proof.accountSalt, "invalid account salt");
-        require(emailAuthMsg.proof.timestamp > 0 || emailAuthMsg.proof.timestamp > lastTimestamp, "invalid timestamp");
+        require(
+            accountSalt == emailAuthMsg.proof.accountSalt,
+            "invalid account salt"
+        );
+        require(
+            emailAuthMsg.proof.timestamp > 0 ||
+                emailAuthMsg.proof.timestamp > lastTimestamp,
+            "invalid timestamp"
+        );
         lastTimestamp = emailAuthMsg.proof.timestamp;
-        
+
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
         string memory expectedSubject;
         uint8 nextParamIndex = 0;
@@ -100,64 +143,104 @@ contract EmailAuth {
         bool isParamExist;
         for (uint8 i = 0; i < template.length; i++) {
             isParamExist = true;
-            if(Strings.equal(template[i], "{string}")) {
-                string memory param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (string));
+            if (Strings.equal(template[i], "{string}")) {
+                string memory param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (string)
+                );
                 stringParam = param;
-            } else if(Strings.equal(template[i], "{uint}")) {
-                uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
+            } else if (Strings.equal(template[i], "{uint}")) {
+                uint256 param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (uint256)
+                );
                 stringParam = Strings.toString(param);
-            } else if(Strings.equal(template[i], "{int}")) {
-                int256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (int256));
+            } else if (Strings.equal(template[i], "{int}")) {
+                int256 param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (int256)
+                );
                 stringParam = Strings.toString(param);
-            } else if(Strings.equal(template[i], "{decimals}")) {
-                uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
+            } else if (Strings.equal(template[i], "{decimals}")) {
+                uint256 param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (uint256)
+                );
                 stringParam = Strings.toString(param);
-            } else if(Strings.equal(template[i], "{decimals}")) {
-                uint256 param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (uint256));
+            } else if (Strings.equal(template[i], "{decimals}")) {
+                uint256 param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (uint256)
+                );
                 stringParam = Strings.toString(param);
-            } else if(Strings.equal(template[i], "{ethAddr}")) {
-                address param = abi.decode(emailAuthMsg.subjectParams[nextParamIndex], (address));
+            } else if (Strings.equal(template[i], "{ethAddr}")) {
+                address param = abi.decode(
+                    emailAuthMsg.subjectParams[nextParamIndex],
+                    (address)
+                );
                 stringParam = Strings.toHexString(param);
             } else {
                 isParamExist = false;
                 stringParam = template[i];
             }
 
-            if(i > 0) {
-                expectedSubject = string(abi.encodePacked(expectedSubject, " "));
+            if (i > 0) {
+                expectedSubject = string(
+                    abi.encodePacked(expectedSubject, " ")
+                );
             }
-            expectedSubject = string(abi.encodePacked(expectedSubject, stringParam));
-            if(isParamExist) {
+            expectedSubject = string(
+                abi.encodePacked(expectedSubject, stringParam)
+            );
+            if (isParamExist) {
                 nextParamIndex++;
             }
         }
-        string memory trimmedMaskedSubject = removePrefix(emailAuthMsg.proof.maskedSubject, emailAuthMsg.skipedSubjectPrefix);
-        require(Strings.equal(expectedSubject, trimmedMaskedSubject), "invalid subject");
-        require(verifier.verifyEmailProof(emailAuthMsg.proof) == true, "invalid email proof");
+        string memory trimmedMaskedSubject = removePrefix(
+            emailAuthMsg.proof.maskedSubject,
+            emailAuthMsg.skipedSubjectPrefix
+        );
+        require(
+            Strings.equal(expectedSubject, trimmedMaskedSubject),
+            "invalid subject"
+        );
+        require(
+            verifier.verifyEmailProof(emailAuthMsg.proof) == true,
+            "invalid email proof"
+        );
 
         bytes32 msgHash = computeMsgHash(
-            emailAuthMsg.proof.accountSalt, 
-            emailAuthMsg.proof.isCodeExist, 
-            emailAuthMsg.templateId, 
+            emailAuthMsg.proof.accountSalt,
+            emailAuthMsg.proof.isCodeExist,
+            emailAuthMsg.templateId,
             emailAuthMsg.subjectParams
         );
 
-        require(authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0), "email already authed");
+        require(
+            authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0),
+            "email already authed"
+        );
         authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
 
         return msgHash;
     }
 
-    function isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4) {
+    function isValidSignature(
+        bytes32 _hash,
+        bytes memory _signature
+    ) public view returns (bytes4) {
         bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
-        if(authedHash[_emailNullifier] == _hash) {
+        if (authedHash[_emailNullifier] == _hash) {
             return 0x1626ba7e;
         } else {
             return 0xffffffff;
         }
     }
-    
-    function removePrefix(string memory str, uint numChars) private pure returns (string memory) {
+
+    function removePrefix(
+        string memory str,
+        uint numChars
+    ) private pure returns (string memory) {
         require(numChars <= bytes(str).length, "Invalid number of characters");
 
         bytes memory strBytes = bytes(str);
@@ -170,4 +253,3 @@ contract EmailAuth {
         return string(result);
     }
 }
-
