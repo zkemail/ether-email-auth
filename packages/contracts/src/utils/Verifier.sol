@@ -15,19 +15,21 @@ struct EmailProof {
 }
 
 contract Verifier {
-
     Groth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
     uint256 public constant SUBJECT_FIELDS = 20;
     uint256 public constant SUBJECT_BYTES = 605;
-    
-    function verifyEmailProof(EmailProof memory proof) public view returns (bool) {        
-        (uint256[2] memory pA, uint256[2][2] memory pB, uint256[2] memory pC) = abi.decode(
-            proof.proof,
-            (uint256[2], uint256[2][2], uint256[2])
-        );
+
+    function verifyEmailProof(
+        EmailProof memory proof
+    ) public view returns (bool) {
+        (
+            uint256[2] memory pA,
+            uint256[2][2] memory pB,
+            uint256[2] memory pC
+        ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
 
         uint256[DOMAIN_FIELDS + SUBJECT_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
@@ -38,17 +40,27 @@ contract Verifier {
         pubSignals[DOMAIN_FIELDS] = uint256(proof.publicKeyHash);
         pubSignals[DOMAIN_FIELDS + 1] = uint256(proof.emailNullifier);
         pubSignals[DOMAIN_FIELDS + 2] = uint256(proof.timestamp);
-        stringFields = _packBytes2Fields(bytes(proof.maskedSubject), SUBJECT_BYTES);
+        stringFields = _packBytes2Fields(
+            bytes(proof.maskedSubject),
+            SUBJECT_BYTES
+        );
         for (uint256 i = 0; i < SUBJECT_FIELDS; i++) {
             pubSignals[DOMAIN_FIELDS + 3 + i] = stringFields[i];
         }
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(proof.accountSalt);
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist ? 1 : 0;
-        
+        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(
+            proof.accountSalt
+        );
+        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist
+            ? 1
+            : 0;
+
         return groth16Verifier.verifyProof(pA, pB, pC, pubSignals);
     }
-    
-    function _packBytes2Fields(bytes memory _bytes, uint256 _paddedSize) public pure returns (uint256[] memory) {
+
+    function _packBytes2Fields(
+        bytes memory _bytes,
+        uint256 _paddedSize
+    ) public pure returns (uint256[] memory) {
         uint256 remain = _paddedSize % 31;
         uint256 numFields = (_paddedSize - remain) / 31;
         if (remain > 0) {
@@ -77,6 +89,4 @@ contract Verifier {
         }
         return fields;
     }
-
 }
-
