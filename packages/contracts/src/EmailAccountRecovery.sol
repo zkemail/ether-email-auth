@@ -8,17 +8,20 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 abstract contract EmailAccountRecovery {
     uint8 constant EMAIL_ACCOUNT_RECOVERY_VERSION_ID = 1;
+    address public verifierAddr;
+    address public dkimAddr;
+    address public emailAuthImplementationAddr;
 
     function verifier() public view virtual returns (address) {
-        return 0x0000000000000000000000000000000000000000;
+        return verifierAddr;
     }
 
     function dkim() public view virtual returns (address) {
-        return 0x0000000000000000000000000000000000000000;
+        return dkimAddr;
     }
 
     function emailAuthImplementation() public view virtual returns (address) {
-        return 0x0000000000000000000000000000000000000000;
+        return emailAuthImplementationAddr;
     }
 
     function acceptanceSubjectTemplates()
@@ -38,14 +41,14 @@ abstract contract EmailAccountRecovery {
         uint templateIdx,
         bytes[] memory subjectParams,
         bytes32 emailNullifier
-    ) public virtual;
+    ) internal virtual;
 
     function recoverWallet(
         address guardian,
         uint templateIdx,
         bytes[] memory subjectParams,
         bytes32 emailNullifier
-    ) public virtual;
+    ) internal virtual;
 
     function computeEmailAuthAddress(bytes32 accountSalt)
         public
@@ -136,10 +139,7 @@ abstract contract EmailAccountRecovery {
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
-        address guardian = Create2.computeAddress(
-            emailAuthMsg.proof.accountSalt,
-            bytes32(bytes20(emailAuthImplementation()))
-        );
+        address guardian = computeEmailAuthAddress(emailAuthMsg.proof.accountSalt);
         require(Address.isContract(guardian), "guardian is not deployed");
         uint templateId = uint256(
             keccak256(
