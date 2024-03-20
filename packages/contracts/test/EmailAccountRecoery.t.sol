@@ -5,41 +5,65 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import "./helpers/DeploymentHelper.sol";
 
-contract EmailAccountRecoveryTest is DeploymentHelper {
+contract EmailAccountRecoveryTest is SimpleWallet, Test {
+    address deployer = vm.addr(1);
+    address receiver = vm.addr(2);
+    address guardian = vm.addr(3);
+    address newSigner = vm.addr(4);
 
-    function setUp() public override {
-        super.setUp();
+    constructor() SimpleWallet(address(0x0), address(0x0), address(0x0)) {}
+
+    function setUpForInternal() public {
+        vm.startPrank(deployer);
+        initialize();
+        vm.deal(address(this), 1 ether);
+        vm.stopPrank();
+    }
+
+    function setUpForPublic() public {
+        vm.startPrank(deployer);
+        this.initialize();
+        vm.deal(address(this), 1 ether);
+        vm.stopPrank();
     }
 
     function testTransfer() public {
-        
+        setUpForPublic();
         vm.startPrank(deployer);
         assertEq(receiver.balance, 0 ether);
-        simpleWallet.transfer(receiver, 1 ether);
+        this.transfer(receiver, 1 ether);
         assertEq(receiver.balance, 1 ether);
         vm.stopPrank();
     }
 
     function testFailTransfer() public {
+        setUpForPublic();
+        vm.startPrank(receiver);
         assertEq(receiver.balance, 0 ether);
-        simpleWallet.transfer(receiver, 1 ether);
+        this.transfer(receiver, 1 ether);
+        vm.stopPrank();
     }
 
     function testWithdraw() public {
+        setUpForPublic();
         vm.startPrank(deployer);
         assertEq(deployer.balance, 0 ether);
-        simpleWallet.withdraw(1 ether);
+        this.withdraw(1 ether);
         assertEq(deployer.balance, 1 ether);
         vm.stopPrank();
-    }   
+    }
 
-   function testFailWithdraw() public {
+    function testFailWithdraw() public {
+        setUpForPublic();
+        vm.startPrank(receiver);
         assertEq(deployer.balance, 0 ether);
-        simpleWallet.withdraw(1 ether);
-    }   
+        this.withdraw(1 ether);
+        vm.stopPrank();
+    }
 
     function testAcceptanceSubjectTemplates() public {
-        string[][] memory res = simpleWallet.acceptanceSubjectTemplates();
+        setUpForPublic();
+        string[][] memory res = acceptanceSubjectTemplates();
         assertEq(res[0][0], "Accept");
         assertEq(res[0][1], "guardian");
         assertEq(res[0][2], "request");
@@ -48,7 +72,8 @@ contract EmailAccountRecoveryTest is DeploymentHelper {
     }
 
     function testRecoverySubjectTemplates() public {
-        string[][] memory res = simpleWallet.recoverySubjectTemplates();
+        setUpForPublic();
+        string[][] memory res = recoverySubjectTemplates();
         assertEq(res[0][0], "Set");
         assertEq(res[0][1], "the");
         assertEq(res[0][2], "new");
@@ -60,13 +85,78 @@ contract EmailAccountRecoveryTest is DeploymentHelper {
     }
 
     function testRequestGuardian() public {
+        setUpForInternal();
+
         vm.startPrank(deployer);
-        simpleWallet.requestGuardian(guardian);
+        requestGuardian(guardian);
         vm.stopPrank();
     }
 
     function testFailRequestGuardian() public {
-        simpleWallet.requestGuardian(guardian);
+        setUpForPublic();
+
+        vm.startPrank(receiver);
+        this.requestGuardian(guardian);
+        vm.stopPrank();
+    }
+
+    function testAcceptGuardian() public {
+        testRequestGuardian();
+
+        vm.startPrank(deployer);
+        uint templateIdx = 0;
+        bytes[] memory subjectParams = new bytes[](1);
+        subjectParams[0] = abi.encode(guardian);
+        acceptGuardian(guardian, templateIdx, subjectParams, 0x0);
+        vm.stopPrank();
+    }
+
+    function testRecoverWallet() public {
+        testAcceptGuardian();
+
+        vm.startPrank(deployer);
+        uint templateIdx = 0;
+        bytes[] memory subjectParams = new bytes[](2);
+        subjectParams[0] = abi.encode(guardian, newSigner);
+        subjectParams[1] = abi.encode(newSigner);
+        recoverWallet(guardian, templateIdx, subjectParams, 0x0);
+        vm.stopPrank();
+    }
+
+    function testRejectRecovery() public {
+        testRecoverWallet();
+
+        vm.startPrank(deployer);
+        rejectRecovery();
+        vm.stopPrank();
+    }
+
+    function testExpectRevertRejectRecovery() public {
+        testRecoverWallet();
+
+        vm.startPrank(deployer);
+        vm.warp(4 days);
+        vm.expectRevert(bytes("timelock expired"));
+        rejectRecovery();
+
+        vm.stopPrank();
+    }
+
+    function testCompleteRecovery() public {
+        testRecoverWallet();
+
+        vm.startPrank(deployer);
+        vm.warp(4 days);
+        completeRecovery();
+        vm.stopPrank();
+    }
+
+    function testExpectRevertCompleteRecovery() public {
+        testRecoverWallet();
+
+        vm.startPrank(deployer);
+        vm.expectRevert(bytes("timelock not expired"));
+        completeRecovery();
+        vm.stopPrank();
     }
 }
-
