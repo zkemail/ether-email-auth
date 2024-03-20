@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "./SimpleWallet.sol";
+
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeploymentHelper is Test {
@@ -15,6 +17,7 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    SimpleWallet simpleWallet;
 
     bytes32 accountSalt;
     uint templateId;
@@ -56,18 +59,29 @@ contract DeploymentHelper is Test {
 
         // Create EmailAuth
         EmailAuth emailAuthImpl = new EmailAuth();
-        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(address(emailAuthImpl), abi.encodeCall(emailAuthImpl.initialize, 
-                accountSalt
-            ));
+        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(
+            address(emailAuthImpl),
+            abi.encodeWithSelector(emailAuthImpl.initialize.selector, accountSalt)
+        );
         emailAuth = EmailAuth(payable(address(emailAuthProxy)));
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
-
-        
 
         uint templateIdx = 1;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
+
+        // Create SimpleWallet as EmailAccountRecovery implementation
+        SimpleWallet simpleWalletImpl = new SimpleWallet(
+            address(verifier),
+            address(dkim),
+            address(emailAuth)
+        );
+        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+            address(simpleWalletImpl),
+            abi.encodeWithSelector(simpleWalletImpl.initialize.selector)
+        );
+        simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
     }
 }
