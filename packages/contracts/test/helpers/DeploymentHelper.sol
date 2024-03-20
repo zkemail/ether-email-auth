@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "./SimpleWallet.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeploymentHelper is Test {
@@ -17,11 +15,6 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
-    SimpleWallet simpleWallet;
-
-    address deployer = vm.addr(1);
-    address receiver = vm.addr(2);
-    address guardian = vm.addr(3);
 
     bytes32 accountSalt;
     uint templateId;
@@ -37,8 +30,7 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     function setUp() public virtual {
-        vm.startPrank(deployer);
-        address signer = deployer;
+        address signer = vm.addr(1);
 
         // Create DKIM registry
         dkim = new ECDSAOwnedDKIMRegistry(signer);
@@ -64,35 +56,18 @@ contract DeploymentHelper is Test {
 
         // Create EmailAuth
         EmailAuth emailAuthImpl = new EmailAuth();
-        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(
-            address(emailAuthImpl),
-            abi.encodeWithSelector(
-                emailAuthImpl.initialize.selector,
+        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(address(emailAuthImpl), abi.encodeCall(emailAuthImpl.initialize, 
                 accountSalt
-            )
-        );
+            ));
         emailAuth = EmailAuth(payable(address(emailAuthProxy)));
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
+
+        
 
         uint templateIdx = 1;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
-
-        // Create SimpleWallet as EmailAccountRecovery implementation
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-            address(simpleWalletImpl),
-            abi.encodeWithSelector(
-                simpleWalletImpl.initialize.selector,
-                address(verifier),
-                address(dkim),
-                address(emailAuth)
-            )
-        );
-        simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-        vm.deal(address(simpleWallet), 1 ether);
-        vm.stopPrank();
     }
 }
