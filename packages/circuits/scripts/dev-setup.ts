@@ -140,47 +140,14 @@ async function exec() {
   await downloadPhase1(phase1Path);
   log("✓ Phase 1:", phase1Path);
 
-  const accountCreationR1csPath = path.join(buildDir, "account_creation/account_creation.r1cs");
-  if (!fs.existsSync(accountCreationR1csPath)) {
-    throw new Error(`${accountCreationR1csPath} does not exist.`);
+  const emailAuthR1csPath = path.join(buildDir, "email_auth.r1cs");
+  if (!fs.existsSync(emailAuthR1csPath)) {
+    throw new Error(`${emailAuthR1csPath} does not exist.`);
   }
-  await generateKeys(phase1Path, accountCreationR1csPath, path.join(buildDir, "account_creation.zkey"), path.join(buildDir, "account_creation.vkey"), path.join(buildDir, "AccountCreationVerifier.sol"));
-  log("✓ Keys for account creation circuit generated");
+  await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth.zkey"), path.join(buildDir, "email_auth.vkey"), path.join(buildDir, "Groth16Verifier.sol"));
+  log("✓ Keys for email auth circuit generated");
 
-  // const accountInitR1csPath = path.join(buildDir, "account_init/account_init.r1cs");
-  // if (!fs.existsSync(accountInitR1csPath)) {
-  //   throw new Error(`${accountInitR1csPath} does not exist.`);
-  // }
-  // await generateKeys(phase1Path, accountInitR1csPath, path.join(buildDir, "account_init.zkey"), path.join(buildDir, "account_init.vkey"), path.join(buildDir, "AccountInitVerifier.sol"));
-  // log("✓ Keys for account init circuit generated");
-
-  // const accountTransportR1csPath = path.join(buildDir, "account_transport/account_transport.r1cs");
-  // if (!fs.existsSync(accountTransportR1csPath)) {
-  //   throw new Error(`${accountTransportR1csPath} does not exist.`);
-  // }
-  // await generateKeys(phase1Path, accountTransportR1csPath, path.join(buildDir, "account_transport.zkey"), path.join(buildDir, "account_transport.vkey"), path.join(buildDir, "AccountTransportVerifier.sol"));
-  // log("✓ Keys for account transport circuit generated");
-
-  const claimR1csPath = path.join(buildDir, "claim/claim.r1cs");
-  if (!fs.existsSync(claimR1csPath)) {
-    throw new Error(`${claimR1csPath} does not exist.`);
-  }
-  await generateKeys(phase1Path, claimR1csPath, path.join(buildDir, "claim.zkey"), path.join(buildDir, "claim.vkey"), path.join(buildDir, "ClaimVerifier.sol"));
-  log("✓ Keys for claim circuit generated");
-
-  const emailSenderR1csPath = path.join(buildDir, "email_sender/email_sender.r1cs");
-  if (!fs.existsSync(emailSenderR1csPath)) {
-    throw new Error(`${emailSenderR1csPath} does not exist.`);
-  }
-  await generateKeys(phase1Path, emailSenderR1csPath, path.join(buildDir, "email_sender.zkey"), path.join(buildDir, "email_sender.vkey"), path.join(buildDir, "EmailSenderVerifier.sol"));
-  log("✓ Keys for email sender circuit generated");
-
-  const announcementR1csPath = path.join(buildDir, "announcement/announcement.r1cs");
-  if (!fs.existsSync(announcementR1csPath)) {
-    throw new Error(`${announcementR1csPath} does not exist.`);
-  }
-  await generateKeys(phase1Path, announcementR1csPath, path.join(buildDir, "announcement.zkey"), path.join(buildDir, "announcement.vkey"), path.join(buildDir, "AnnouncementVerifier.sol"));
-  log("✓ Keys for announcement circuit generated");
+  
 }
 
 
