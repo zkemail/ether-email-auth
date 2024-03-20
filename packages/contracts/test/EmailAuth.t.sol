@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract EmailAuthTest is Test {
     using ECDSA for *;
@@ -54,9 +55,15 @@ contract EmailAuthTest is Test {
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
         // Create EmailAuth
-        emailAuth = new EmailAuth();
+        EmailAuth emailAuthImpl = new EmailAuth();
+        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(address(emailAuthImpl), abi.encodeCall(emailAuthImpl.initialize, 
+                accountSalt
+            ));
+        emailAuth = EmailAuth(payable(address(emailAuthProxy)));
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
+
+        
 
         uint templateIdx = 1;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
@@ -112,7 +119,7 @@ contract EmailAuthTest is Test {
         );
         assertEq(
             msgHash,
-            0xe7f92de45c5ad2716ecefebf444d57aba480764d104b92d2a1bb7820f344bb22
+            0x8fa6859241092e7cf73d038bc981b370be69b49dc7bfcd91015308ed2c72d979
         );
     }
 
@@ -120,14 +127,14 @@ contract EmailAuthTest is Test {
         this.testInsertSubjectTemplate();
 
         bytes[] memory subjectParams = new bytes[](2);
-        subjectParams[0] = abi.encode(1);
-        subjectParams[1] = abi.encode("alice@gmail.com");
+        subjectParams[0] = abi.encode(1 ether);
+        subjectParams[1] = abi.encode("0x0000000000000000000000000000000000000020");
 
         EmailProof memory emailProof = EmailProof({
             domainName: "gmail.com",
             publicKeyHash: publicKeyHash,
             timestamp: 1694989812,
-            maskedSubject: "Send 1 ETH to alice@gmail.com",
+            maskedSubject: "Send 1 ETH to 0x0000000000000000000000000000000000000020",
             emailNullifier: emailNullifier,
             accountSalt: accountSalt,
             isCodeExist: true,
@@ -152,13 +159,13 @@ contract EmailAuthTest is Test {
         bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
         assertEq(
             msgHash,
-            0x8f11137c4bc94c224197349b9ebc44da5e5b9786d4a0117ea5794b5a90d51968
+            0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb
         );
     }
 
     function testIsValidSignature() public {
         testAuthEmail();
-        bytes32 msgHash = 0x8f11137c4bc94c224197349b9ebc44da5e5b9786d4a0117ea5794b5a90d51968;
+        bytes32 msgHash = 0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb;
         bytes memory signature = abi.encodePacked(emailNullifier);
         bytes4 result = emailAuth.isValidSignature(msgHash, signature);
         assertEq(result, bytes4(0x1626ba7e));
