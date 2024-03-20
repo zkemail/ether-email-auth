@@ -19,6 +19,10 @@ contract DeploymentHelper is Test {
     ECDSAOwnedDKIMRegistry dkim;
     SimpleWallet simpleWallet;
 
+    address deployer = vm.addr(1);
+    address receiver = vm.addr(2);
+    address guardian = vm.addr(3);
+
     bytes32 accountSalt;
     uint templateId;
     string[] subjectTemplate;
@@ -33,7 +37,8 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     function setUp() public virtual {
-        address signer = vm.addr(1);
+        vm.startPrank(deployer);
+        address signer = deployer;
 
         // Create DKIM registry
         dkim = new ECDSAOwnedDKIMRegistry(signer);
@@ -83,5 +88,7 @@ contract DeploymentHelper is Test {
             abi.encodeWithSelector(simpleWalletImpl.initialize.selector)
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
+        vm.deal(address(simpleWallet), 1 ether);
+        vm.stopPrank();
     }
 }

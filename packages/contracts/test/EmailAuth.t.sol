@@ -28,15 +28,19 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testUpdateDKIMRegistry() public {
+        vm.startPrank(deployer);
         ECDSAOwnedDKIMRegistry newDKIM = new ECDSAOwnedDKIMRegistry(msg.sender);
         emailAuth.updateDKIMRegistry(address(newDKIM));
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
+        vm.stopPrank();
     }
 
     function testUpdateVerifier() public {
+        vm.startPrank(deployer);
         Verifier newVerifier = new Verifier();
         emailAuth.updateVerifier(address(newVerifier));
         assertEq(emailAuth.verifierAddr(), address(newVerifier));
+        vm.stopPrank();
     }
 
     function testInsertSubjectTemplate() public {
@@ -44,13 +48,17 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testUpdateSubjectTemplate() public {
+        vm.startPrank(deployer);
         this.testInsertSubjectTemplate();
         emailAuth.updateSubjectTemplate(templateId, newSubjectTemplate);
+        vm.stopPrank();
     }
 
     function testDeleteSubjectTemplate() public {
+        vm.startPrank(deployer);
         this.testInsertSubjectTemplate();
         emailAuth.deleteSubjectTemplate(templateId);
+        vm.stopPrank();
     }
 
     function testComputeMsgHash() public {
@@ -70,6 +78,7 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testAuthEmail() public {
+        vm.startPrank(deployer);
         this.testInsertSubjectTemplate();
 
         bytes[] memory subjectParams = new bytes[](2);
@@ -107,6 +116,7 @@ contract EmailAuthTest is DeploymentHelper {
             msgHash,
             0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb
         );
+        vm.stopPrank();
     }
 
     function testIsValidSignature() public {

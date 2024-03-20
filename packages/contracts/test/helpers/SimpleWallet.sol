@@ -55,13 +55,14 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         override
         returns (string[][] memory) {
         string[][] memory templates = new string[][](1);
+        templates[0] = new string[](5);
         templates[0][0] = "Accept";
         templates[0][1] = "guardian";
         templates[0][2] = "request";
         templates[0][3] = "for";
         templates[0][4] = "{ethAddr}";
         return templates;
-        }
+    }
 
     function recoverySubjectTemplates()
         public
@@ -69,6 +70,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         override
         returns (string[][] memory) {
         string[][] memory templates = new string[][](1);
+        templates[0] = new string[](8);
         templates[0][0] = "Set";
         templates[0][1] = "the";
         templates[0][2] = "new";
