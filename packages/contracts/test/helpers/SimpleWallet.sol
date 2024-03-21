@@ -103,7 +103,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 
-    function recoverWallet(
+    function processRecovery(
         address guardian,
         uint templateIdx,
         bytes[] memory subjectParams,
@@ -130,7 +130,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         timelock = 0;
     }
 
-    function completeRecovery() public {
+    function completeRecovery() public override {
         require(isRecovering, "recovery not in progress");
         require(timelock <= block.timestamp, "timelock not expired");
         isRecovering = false;
