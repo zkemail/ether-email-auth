@@ -117,7 +117,7 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         vm.startPrank(deployer);
         uint templateIdx = 0;
         bytes[] memory subjectParams = new bytes[](2);
-        subjectParams[0] = abi.encode(guardian, newSigner);
+        subjectParams[0] = abi.encode(address(this));
         subjectParams[1] = abi.encode(newSigner);
         recoverWallet(guardian, templateIdx, subjectParams, 0x0);
         vm.stopPrank();
