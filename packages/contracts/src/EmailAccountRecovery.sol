@@ -43,12 +43,14 @@ abstract contract EmailAccountRecovery {
         bytes32 emailNullifier
     ) internal virtual;
 
-    function recoverWallet(
+    function processRecovery(
         address guardian,
         uint templateIdx,
         bytes[] memory subjectParams,
         bytes32 emailNullifier
     ) internal virtual;
+
+    function completeRecovery() external virtual;
 
     function computeEmailAuthAddress(bytes32 accountSalt)
         public
@@ -158,7 +160,7 @@ abstract contract EmailAccountRecovery {
         // and does not return an error.
         guardianEmailAuth.authEmail(emailAuthMsg);
 
-        recoverWallet(
+        processRecovery(
             guardian,
             templateIdx,
             emailAuthMsg.subjectParams,
