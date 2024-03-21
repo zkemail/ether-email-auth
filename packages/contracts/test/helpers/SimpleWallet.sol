@@ -113,12 +113,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardians[guardian] == GuardianStatus.ACCEPTED, "invalid guardian status");
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 2, "invalid subject params");
-        // TODO Is the following implementation correct?
-        (address guardianInEmail, address newSigner) = abi.decode(subjectParams[0], (address, address));
-        require(guardianInEmail == guardian, "invalid guardian in email");
-        require(newSigner != address(0), "invalid new signer");
+        (address walletAddrInEmail) = abi.decode(subjectParams[0], (address));
+        (address newSignerInEmail) = abi.decode(subjectParams[1], (address));
+        require(walletAddrInEmail == address(this), "invalid guardian in email");
+        require(newSignerInEmail != address(0), "invalid new signer");
         isRecovering = true;
-        newSignerCandidate = newSigner;
+        newSignerCandidate = newSignerInEmail;
         timelock = block.timestamp + TIMELOCK_PERIOD;
     }
 
