@@ -38,5 +38,11 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
     cx.export_function("accountSalt", account_salt_node)?;
     cx.export_function("publicKeyHash", public_key_hash_node)?;
     cx.export_function("emailNullifier", email_nullifier_node)?;
+    cx.export_function("emailAddrCommit", email_addr_commit_node)?;
+    cx.export_function(
+        "emailAddrCommitWithSignature",
+        email_addr_commit_with_signature_node,
+    )?;
+    cx.export_function("extractRandFromSignature", extract_rand_from_signature_node)?;
     Ok(())
 }

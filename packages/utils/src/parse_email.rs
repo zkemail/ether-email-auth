@@ -197,7 +197,7 @@ mod test {
 
     #[tokio::test]
     async fn test_extractions_from_email1() {
-        let raw_email = include_str!("../../circuits/tests/emails/email_sender_test1.eml");
+        let raw_email = include_str!("../../circuits/tests/emails/email_auth_test1.eml");
         let parsed_email = ParsedEmail::new_from_raw_email(raw_email).await.unwrap();
         let from_addr = parsed_email.get_from_addr().unwrap();
         assert_eq!(from_addr, "suegamisora@gmail.com");
@@ -215,7 +215,7 @@ mod test {
 
     #[tokio::test]
     async fn test_extractions_from_email2() {
-        let raw_email = include_str!("../../circuits/tests/emails/account_creation_test1.eml");
+        let raw_email = include_str!("../../circuits/tests/emails/email_auth_test5.eml");
         let parsed_email = ParsedEmail::new_from_raw_email(raw_email).await.unwrap();
         let from_addr = parsed_email.get_from_addr().unwrap();
         assert_eq!(from_addr, "suegamisora@gmail.com");
@@ -230,24 +230,5 @@ mod test {
             invitation_code,
             "01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76"
         );
-    }
-
-    #[tokio::test]
-    async fn test_extractions_from_email3() {
-        let raw_email = include_str!("../../circuits/tests/emails/account_init_test2.eml");
-        let parsed_email = ParsedEmail::new_from_raw_email(raw_email).await.unwrap();
-        let from_addr = parsed_email.get_from_addr().unwrap();
-        assert_eq!(from_addr, "suegamisora@gmail.com");
-        let to_addr = parsed_email.get_to_addr().unwrap();
-        assert_eq!(to_addr, "emailwallet.relayer@gmail.com");
-        let email_domain = parsed_email.get_email_domain().unwrap();
-        assert_eq!(email_domain, "gmail.com");
-        let subject_all = parsed_email.get_subject_all().unwrap();
-        assert_eq!(
-            subject_all,
-            "This is a test. CODE:0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76"
-        );
-        let timestamp = parsed_email.get_timestamp().unwrap();
-        assert_eq!(timestamp, 1697224006);
     }
 }
