@@ -116,7 +116,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 if int_match.start() != 0 || int_match.end() != input_decomposed[input_idx].len() {
                     return Err(anyhow!("Int must be the whole word"));
                 }
-                let int_str = int_match.as_str();
                 let int = I256::from_dec_str(int_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Int(int));
                 input_idx += 1;
