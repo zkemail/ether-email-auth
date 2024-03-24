@@ -1,1 +1,2 @@
 use relayer::*;
+fn main() {}
