@@ -32,7 +32,7 @@ impl TemplateValue {
             Self::Uint(uint) => Ok(Bytes::from(abi::encode(&[Token::Uint(*uint)]))),
             Self::Int(int) => Ok(Bytes::from(abi::encode(&[Token::Int(int.into_raw())]))),
             Self::Decimals(string) => Ok(Bytes::from(abi::encode(&[Token::Uint(
-                Self::decimals_str_to_uint(&string, decimal_size),
+                Self::decimals_str_to_uint(&string, decimal_size.unwrap_or(18)),
             )]))),
             Self::EthAddr(address) => Ok(Bytes::from(abi::encode(&[Token::Address(*address)]))),
             Self::Fixed(string) => Err(anyhow!("Fixed value must not be passed to abi_encode")),
@@ -146,7 +146,7 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                     return Err(anyhow!("Address must be the whole word"));
                 }
                 let address = address_match.as_str().parse::<Address>().unwrap();
-                template_vals.push(TemplateValue::Address(address));
+                template_vals.push(TemplateValue::EthAddr(address));
                 input_idx += 1;
             }
             _ => {
@@ -215,7 +215,7 @@ pub fn uint_to_decimal_string(uint: u128, decimal: usize) -> String {
         }
         // If we find non-zero decimal for the first time (trailing zeros are skipped)
         else if uint_str.chars().nth(i - delta).unwrap() != '0' {
-            result[i] = amount_str.chars().nth(i - delta).unwrap();
+            result[i] = uint_str.chars().nth(i - delta).unwrap();
             actual_result_len += 1;
             found_non_zero_decimal = true;
         }

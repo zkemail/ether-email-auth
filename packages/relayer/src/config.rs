@@ -1,4 +1,6 @@
 use crate::*;
+use ethers::types::U256;
+use std::sync::OnceLock;
 
 pub static CIRCUITS_DIR_PATH: OnceLock<PathBuf> = OnceLock::new();
 pub static WEB_SERVER_ADDRESS: OnceLock<String> = OnceLock::new();

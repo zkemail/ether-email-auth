@@ -6,7 +6,7 @@ use itertools::Itertools;
 use neon::prelude::*;
 use poseidon_rs::*;
 
-pub use zk_regex_apis::padding::{pad_string, pad_string_node};
+pub use zk_regex_apis::padding::pad_string;
 
 pub fn hex2field(input_hex: &str) -> anyhow::Result<Fr> {
     if &input_hex[0..2] != "0x" {

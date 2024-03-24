@@ -4,7 +4,7 @@ use halo2curves::ff::Field;
 use neon::prelude::*;
 use poseidon_rs::*;
 use rand_core::{OsRng, RngCore};
-pub use zk_regex_apis::padding::{pad_string, pad_string_node};
+pub use zk_regex_apis::padding::pad_string;
 
 pub const MAX_EMAIL_ADDR_BYTES: usize = 256;
 
@@ -19,7 +19,7 @@ impl PaddedEmailAddr {
         let email_addr_len = email_addr.as_bytes().len();
         // let mut padded_bytes = email_addr.as_bytes().to_vec();
         // padded_bytes.append(&mut vec![0; MAX_EMAIL_ADDR_BYTES - email_addr_len]);
-        let padded_bytes = pad_string(email_addr, MAX_EMAIL_ADDR_BYTES);
+        let padded_bytes = pad_string(email_addr, MAX_EMAIL_ADDR_BYTES).to_vec();
         Self {
             padded_bytes,
             email_addr_len,

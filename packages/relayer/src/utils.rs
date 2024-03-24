@@ -3,13 +3,13 @@
 
 use crate::*;
 use chrono::{DateTime, Local};
-use email_wallet_utils::*;
-use ethers::abi::Token;
+use ethers::abi::{self, Token};
 use ethers::types::{Bytes, U256};
-
 use serde::Deserialize;
+use std::hash::{Hash,Hasher};
 
-use std::path::Path;
+use std::collections::hash_map::DefaultHasher;
+use std::path::{Path, PathBuf};
 
 use tokio::{
     fs::{read_to_string, remove_file, File},
@@ -89,7 +89,7 @@ pub(crate) async fn generate_email_auth_input(
     email: &str,
     account_code: &str,
 ) -> Result<String> {
-    let email_hash = calculate_default_hash(email);
+    let email_hash = calculate_email_hash(email);
     let email_file_name = PathBuf::new()
         .join(INPUT_FILES_DIR.get().unwrap())
         .join(email_hash.to_string() + ".email");
@@ -182,4 +182,12 @@ pub(crate) fn bytes32_to_fr(bytes32: &[u8; 32]) -> Result<Fr> {
 pub(crate) fn now() -> i64 {
     let dt: DateTime<Local> = Local::now();
     dt.timestamp()
+}
+
+pub(crate) fn calculate_email_hash(input: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    input.hash(&mut hasher);
+    let hash_code = hasher.finish();
+
+    hash_code.to_string()
 }
