@@ -27,52 +27,52 @@ use dotenv::dotenv;
 
 pub fn setup_configs() -> Result<()> {
     let relayer_rand = env::var("RELAYER_RAND").unwrap();
-    RELAYER_RAND.set(relayer_rand);
+    RELAYER_RAND.set(relayer_rand).unwrap();
 
     let web_server_address = env::var("WEB_SERVER_ADDRESS").unwrap();
-    WEB_SERVER_ADDRESS.set(web_server_address);
+    WEB_SERVER_ADDRESS.set(web_server_address).unwrap();
 
     let prover_address = env::var("PROVER_ADDRESS").unwrap();
-    PROVER_ADDRESS.set(prover_address);
+    PROVER_ADDRESS.set(prover_address).unwrap();
 
     let private_key = env::var("PRIVATE_KEY").unwrap();
-    PRIVATE_KEY.set(private_key);
+    PRIVATE_KEY.set(private_key).unwrap();
 
     let chain_id = env::var("CHAIN_ID").unwrap().parse().unwrap();
-    CHAIN_ID.set(chain_id);
+    CHAIN_ID.set(chain_id).unwrap();
 
     let chain_rpc_provider = env::var("CHAIN_RPC_PROVIDER").unwrap();
-    CHAIN_RPC_PROVIDER.set(chain_rpc_provider);
+    CHAIN_RPC_PROVIDER.set(chain_rpc_provider).unwrap();
 
     let chain_rpc_explorer = env::var("CHAIN_RPC_EXPLORER").unwrap();
-    CHAIN_RPC_EXPLORER.set(chain_rpc_explorer);
+    CHAIN_RPC_EXPLORER.set(chain_rpc_explorer).unwrap();
 
     let core_contract_address = env::var("CORE_CONTRACT_ADDRESS").unwrap();
-    CORE_CONTRACT_ADDRESS.set(core_contract_address);
+    CORE_CONTRACT_ADDRESS.set(core_contract_address).unwrap();
 
     let fee_per_gas = env::var("FEE_PER_GAS").unwrap();
     let fee_per_gas = U256::from_dec_str(&fee_per_gas).unwrap();
-    FEE_PER_GAS.set(fee_per_gas);
+    FEE_PER_GAS.set(fee_per_gas).unwrap();
 
     let input_files_dir = env::var("INPUT_FILES_DIR").unwrap();
-    INPUT_FILES_DIR.set(input_files_dir);
+    INPUT_FILES_DIR.set(input_files_dir).unwrap();
 
     let received_emails_dir = env::var("RECEIVED_EMAILS_DIR").unwrap();
-    RECEIVED_EMAILS_DIR.set(received_emails_dir);
+    RECEIVED_EMAILS_DIR.set(received_emails_dir).unwrap();
 
     let email_templates = env::var("EMAIL_TEMPLATES").unwrap();
-    EMAIL_TEMPLATES.set(email_templates);
+    EMAIL_TEMPLATES.set(email_templates).unwrap();
 
     let relayer_email_address = env::var("RELAYER_EMAIL_ADDRESS").unwrap();
-    RELAYER_EMAIL_ADDRESS.set(relayer_email_address);
+    RELAYER_EMAIL_ADDRESS.set(relayer_email_address).unwrap();
 
     let canister_id = env::var("CANISTER_ID").unwrap();
-    CANISTER_ID.set(canister_id);
+    CANISTER_ID.set(canister_id).unwrap();
 
     let ic_pem_path = env::var("IC_PEM_PATH").unwrap();
-    IC_PEM_PATH.set(ic_pem_path);
+    IC_PEM_PATH.set(ic_pem_path).unwrap();
 
     let ic_replica_url = env::var("IC_REPLICA_URL").unwrap();
-    IC_REPLICA_URL.set(ic_replica_url);
+    IC_REPLICA_URL.set(ic_replica_url).unwrap();
     Ok(())
 }
