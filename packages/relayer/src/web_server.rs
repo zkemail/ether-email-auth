@@ -7,40 +7,108 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc::UnboundedSender;
 use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 
-// #[derive(Serialize, Deserialize)]
-// pub struct EmailAddrCommitRequest {
-//     pub email_address: String,
-//     pub random: String,
-// }
+#[derive(Serialize, Deserialize)]
+pub struct RequestStatusRequest {
+    pub request_id: i64,
+}
 
-// #[derive(Serialize, Deserialize)]
-// pub struct UnclaimRequest {
-//     pub email_address: String,
-//     pub random: String,
-//     pub expiry_time: i64,
-//     pub is_fund: bool,
-//     pub tx_hash: String,
-// }
+#[derive(Serialize, Deserialize)]
+pub enum RequestStatus {
+    NotExist = 0,
+    Pending = 1,
+    Processed = 2,
+}
 
-// #[derive(Serialize, Deserialize)]
-// pub struct AccountRegistrationRequest {
-//     pub email_address: String,
-//     pub account_key: String,
-// }
+#[derive(Serialize, Deserialize)]
+pub struct RequestStatusResponse {
+    pub request_id: i64,
+    pub status: RequestStatus,
+    pub is_success: bool,
+    pub email_nullifier: Option<String>,
+    pub account_salt: Option<String>,
+    pub is_code_exist: Option<bool>,
+}
 
-// #[derive(Serialize, Deserialize)]
-// pub struct AccountRegistrationResponse {
-//     pub account_key: String,
-//     pub wallet_addr: String,
-//     pub tx_hash: String,
-// }
+#[derive(Serialize, Deserialize)]
+pub struct AcceptanceRequest {
+    pub wallet_eth_addr: String,
+    pub guardian_email_addr: String,
+    pub account_code: String,
+    pub template_idx: u64,
+    pub subject: String,
+}
 
-// #[derive(Serialize, Deserialize)]
-// pub struct StatResponse {
-//     pub onboarding_tokens_distributed: u32,
-//     pub onboarding_tokens_left: u32,
-// }
+#[derive(Serialize, Deserialize)]
+pub struct AcceptanceResponse {
+    pub request_id: i64,
+    pub subject_params: Vec<String>,
+}
 
+#[derive(Serialize, Deserialize)]
+pub struct RecoveryRequest {
+    pub wallet_eth_addr: String,
+    pub guardian_email_addr: String,
+    pub template_idx: u64,
+    pub subject: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RecoveryResponse {
+    pub request_id: i64,
+    pub subject_params: Vec<String>,
+}
+
+#[named]
+async fn requestStatus(payload: String, db: Arc<Database>) -> Result<RequestStatusResponse> {
+    let req = serde_json::from_str::<RequestStatusRequest>(&payload)
+        .map_err(|_| anyhow!("Invalid payload json".to_string()))?;
+    let request_id = req.request_id;
+    let row = db.get_requests_row(request_id).await?;
+    match row {
+        None => Ok(RequestStatusResponse {
+            request_id,
+            status: RequestStatus::NotExist,
+            is_success: false,
+            email_nullifier: None,
+            account_salt: None,
+            is_code_exist: None,
+        }),
+        Some(row) => {
+            let status = if row.is_processed {
+                RequestStatus::Processed
+            } else {
+                RequestStatus::Pending
+            };
+            Ok(RequestStatusResponse {
+                request_id,
+                status,
+                is_success: row.is_success.unwrap_or(false),
+                email_nullifier: if row.is_processed {
+                    row.email_nullifier
+                } else {
+                    None
+                },
+                account_salt: if row.is_processed {
+                    row.account_salt
+                } else {
+                    None
+                },
+                is_code_exist: if row.is_processed {
+                    row.is_code_exist
+                } else {
+                    None
+                },
+            })
+        }
+    }
+}
+
+// #[named]
+// async fn acceptanceRequest(payload: String, db: Arc<Database>) -> Result<RequestStatusResponse> {
+//     let req = serde_json::from_str::<AcceptanceRequest>(&payload)
+//         .map_err(|_| anyhow!("Invalid payload json".to_string()))?;
+
+// }
 // #[named]
 // async fn unclaim(
 //     payload: UnclaimRequest,

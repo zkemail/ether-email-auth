@@ -20,6 +20,7 @@ pub(crate) use imap_client::*;
 pub(crate) use logger::*;
 pub(crate) use slog::*;
 pub(crate) use smtp_client::*;
+pub(crate) use std::sync::{Arc, OnceLock};
 pub(crate) use subject_templates::*;
 pub(crate) use utils::*;
 pub(crate) use web_server::*;
