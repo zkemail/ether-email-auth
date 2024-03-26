@@ -8,69 +8,46 @@ use regex::Regex;
 
 #[derive(Debug, Clone)]
 pub enum TemplateValue {
-    TokenAmount {
-        token_name: String,
-        amount: String,
-    },
-    Amount(String),
     String(String),
     Uint(U256),
     Int(I256),
-    Address(Address),
-    Recipient {
-        is_email: bool,
-        email_addr: Option<String>,
-        eth_addr: Option<Address>,
-    },
+    Decimals(String),
+    EthAddr(Address),
     Fixed(String),
 }
 
+pub(crate) const STRING_RGEX: &str = ".+";
+pub(crate) const UINT_REGEX: &str = "[0-9]+";
+pub(crate) const INT_REGEX: &str = "-?[0-9]+";
+pub(crate) const DECIMALS_REGEX: &str = "[0-9]+(\\.[0-9]+)?";
+pub(crate) const ETH_ADDR_REGEX: &str = "0x[0-9a-fA-F]{40}";
+// pub(crate) const EMAIL_ADDR_REGEX: &str =
+//     "[a-zA-Z0-9!#$%&'\\*\\+-/=\\?^_`{\\|}~\\.]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9\\.-]+";
+
 impl TemplateValue {
     #[named]
-    pub fn abi_encode(&self, amount_decimal_size: Option<u8>) -> Result<Bytes> {
+    pub fn abi_encode(&self, decimal_size: Option<u8>) -> Result<Bytes> {
         match self {
-            Self::TokenAmount { token_name, amount } => {
-                let amount_u256 = Self::amount_to_uint(amount, amount_decimal_size.unwrap());
-                info!(LOG, "amount_u256: {}", amount_u256; "func" => function_name!());
-                Ok(Bytes::from(abi::encode(&[
-                    Token::Uint(amount_u256),
-                    Token::String(token_name.clone()),
-                ])))
-            }
-            Self::Amount(amount) => {
-                let amount_u256 = Self::amount_to_uint(amount, amount_decimal_size.unwrap());
-                Ok(Bytes::from(abi::encode(&[Token::Uint(amount_u256)])))
-            }
             Self::String(string) => Ok(Bytes::from(abi::encode(&[Token::String(string.clone())]))),
             Self::Uint(uint) => Ok(Bytes::from(abi::encode(&[Token::Uint(*uint)]))),
             Self::Int(int) => Ok(Bytes::from(abi::encode(&[Token::Int(int.into_raw())]))),
-            Self::Address(address) => Ok(Bytes::from(abi::encode(&[Token::Address(*address)]))),
-            Self::Recipient {
-                is_email,
-                email_addr,
-                eth_addr,
-            } => {
-                if *is_email {
-                    Ok(Bytes::default())
-                } else {
-                    Ok(Bytes::from(abi::encode(&[Token::Address(
-                        eth_addr.unwrap(),
-                    )])))
-                }
-            }
+            Self::Decimals(string) => Ok(Bytes::from(abi::encode(&[Token::Uint(
+                Self::decimals_str_to_uint(&string, decimal_size.unwrap_or(18)),
+            )]))),
+            Self::EthAddr(address) => Ok(Bytes::from(abi::encode(&[Token::Address(*address)]))),
             Self::Fixed(string) => Err(anyhow!("Fixed value must not be passed to abi_encode")),
         }
     }
 
-    pub fn amount_to_uint(amount_str: &str, decimal_size: u8) -> U256 {
+    pub fn decimals_str_to_uint(str: &str, decimal_size: u8) -> U256 {
         let decimal_size = decimal_size as usize;
-        let dot = Regex::new("\\.").unwrap().find(amount_str);
+        let dot = Regex::new("\\.").unwrap().find(str);
         let (before_dot_str, mut after_dot_str) = match dot {
             Some(dot_match) => (
-                amount_str[0..dot_match.start()].to_string(),
-                amount_str[dot_match.end()..].to_string(),
+                str[0..dot_match.start()].to_string(),
+                str[dot_match.end()..].to_string(),
             ),
-            None => (amount_str.to_string(), "".to_string()),
+            None => (str.to_string(), "".to_string()),
         };
         assert!(after_dot_str.len() <= decimal_size);
         let num_leading_zeros = decimal_size - after_dot_str.len();
@@ -78,103 +55,6 @@ impl TemplateValue {
         U256::from_dec_str(&(before_dot_str + &after_dot_str))
             .expect("composed amount string is not valid decimal")
     }
-}
-
-pub async fn extract_command_from_subject(
-    subject: &str,
-    chain_client: &Arc<ChainClient>,
-    wallet_salt: &WalletSalt,
-) -> Result<(String, usize)> {
-    for word in subject.split_whitespace() {
-        let position = subject.find(word).unwrap();
-        if word == SEND_COMMAND
-            || word == EXECUTE_COMMAND
-            || word == INSTALL_COMMAND
-            || word == UNINSTALL_COMMAND
-            || word == EXIT_COMMAND
-            || word == DKIM_COMMAND
-        {
-            return Ok((word.to_string(), position));
-        } else if chain_client
-            .query_user_extension_for_command(wallet_salt, word)
-            .await?
-            != Address::zero()
-        {
-            return Ok((word.to_string(), position));
-        }
-    }
-    Err(anyhow!("No command found"))
-}
-
-pub fn extract_template_vals_send(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![
-        SEND_COMMAND.to_string(),
-        "{tokenAmount}".to_string(),
-        "to".to_string(),
-        "{recipient}".to_string(),
-    ];
-    extract_template_vals(input, templates)
-}
-
-pub fn extract_template_vals_execute(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![EXECUTE_COMMAND.to_string(), "{string}".to_string()];
-    let vals = extract_template_vals(input, templates)?;
-    if let TemplateValue::String(hex) = &vals[0] {
-        let hex_match = Regex::new("0x[0-9a-fA-F]+")
-            .unwrap()
-            .find(hex)
-            .ok_or(anyhow!(
-                "No hex found in the string of execute command subject"
-            ))?;
-        if hex_match.start() != 0 || hex_match.end() != hex.len() {
-            return Err(anyhow!("Hex must be the whole word"));
-        }
-    } else {
-        return Err(anyhow!("No string found in the execute command subject"));
-    }
-    Ok(vals)
-}
-
-pub fn extract_template_vals_install(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![
-        INSTALL_COMMAND.to_string(),
-        "extension".to_string(),
-        "{string}".to_string(),
-    ];
-    extract_template_vals(input, templates)
-}
-
-pub fn extract_template_vals_uninstall(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![
-        UNINSTALL_COMMAND.to_string(),
-        "extension".to_string(),
-        "{string}".to_string(),
-    ];
-    extract_template_vals(input, templates)
-}
-
-pub fn extract_template_vals_exit(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![
-        EXIT_COMMAND.to_string(),
-        "Email".to_string(),
-        "Wallet".to_string(),
-        "Change".to_string(),
-        "Ownership".to_string(),
-        "to".to_string(),
-        "{address}".to_string(),
-    ];
-    extract_template_vals(input, templates)
-}
-
-pub fn extract_template_vals_dkim(input: &str) -> Result<Vec<TemplateValue>> {
-    let templates = vec![
-        DKIM_COMMAND.to_string(),
-        "registry".to_string(),
-        "set".to_string(),
-        "to".to_string(),
-        "{address}".to_string(),
-    ];
-    extract_template_vals(input, templates)
 }
 
 pub fn extract_template_vals_and_idx(
@@ -195,50 +75,12 @@ pub fn extract_template_vals_and_idx(
     Ok((None, Vec::new()))
 }
 
-fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {
+pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {
     let input_decomposed: Vec<&str> = input.split(' ').collect();
     let mut template_vals = Vec::new();
     let mut input_idx = 0;
     for template in templates.iter() {
         match template.as_str() {
-            "{tokenAmount}" => {
-                let amount_match = Regex::new(AMOUNT_REGEX)
-                    .unwrap()
-                    .find(input_decomposed[input_idx])
-                    .ok_or(anyhow!("No amount found"))?;
-                if amount_match.start() != 0
-                    || amount_match.end() != input_decomposed[input_idx].len()
-                {
-                    return Err(anyhow!("Amount must be the whole word"));
-                }
-                let amount = amount_match.as_str().to_string();
-                let token_name_match = Regex::new(TOKEN_NAME_REGEX)
-                    .unwrap()
-                    .find(input_decomposed[input_idx + 1])
-                    .ok_or(anyhow!("No token name found"))?;
-                if token_name_match.start() != 0
-                    || token_name_match.end() != input_decomposed[input_idx + 1].len()
-                {
-                    return Err(anyhow!("Token name must be the whole word"));
-                }
-                let token_name = token_name_match.as_str().to_string();
-                template_vals.push(TemplateValue::TokenAmount { token_name, amount });
-                input_idx += 2;
-            }
-            "{amount}" => {
-                let amount_match = Regex::new(AMOUNT_REGEX)
-                    .unwrap()
-                    .find(input_decomposed[input_idx])
-                    .ok_or(anyhow!("No amount found"))?;
-                if amount_match.start() != 0
-                    || amount_match.end() != input_decomposed[input_idx].len()
-                {
-                    return Err(anyhow!("Amount must be the whole word"));
-                }
-                let amount = amount_match.as_str().to_string();
-                template_vals.push(TemplateValue::Amount(amount));
-                input_idx += 1;
-            }
             "{string}" => {
                 let string_match = Regex::new(STRING_RGEX)
                     .unwrap()
@@ -274,12 +116,25 @@ fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<Temp
                 if int_match.start() != 0 || int_match.end() != input_decomposed[input_idx].len() {
                     return Err(anyhow!("Int must be the whole word"));
                 }
-                let int_str = int_match.as_str();
                 let int = I256::from_dec_str(int_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Int(int));
                 input_idx += 1;
             }
-            "{address}" => {
+            "{decimals}" => {
+                let decimals_match = Regex::new(DECIMALS_REGEX)
+                    .unwrap()
+                    .find(input_decomposed[input_idx])
+                    .ok_or(anyhow!("No amount found"))?;
+                if decimals_match.start() != 0
+                    || decimals_match.end() != input_decomposed[input_idx].len()
+                {
+                    return Err(anyhow!("Amount must be the whole word"));
+                }
+                let decimals = decimals_match.as_str().to_string();
+                template_vals.push(TemplateValue::Decimals(decimals));
+                input_idx += 1;
+            }
+            "{ethAddr}" => {
                 let address_match = Regex::new(ETH_ADDR_REGEX)
                     .unwrap()
                     .find(input_decomposed[input_idx])
@@ -290,46 +145,7 @@ fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<Temp
                     return Err(anyhow!("Address must be the whole word"));
                 }
                 let address = address_match.as_str().parse::<Address>().unwrap();
-                template_vals.push(TemplateValue::Address(address));
-                input_idx += 1;
-            }
-            "{recipient}" => {
-                let email_addr_match = Regex::new(EMAIL_ADDR_REGEX)
-                    .unwrap()
-                    .find(input_decomposed[input_idx]);
-                let eth_addr_match = Regex::new(ETH_ADDR_REGEX)
-                    .unwrap()
-                    .find(input_decomposed[input_idx]);
-                let is_email = if let Some(email_addr_match) = email_addr_match {
-                    if email_addr_match.start() != 0
-                        || email_addr_match.end() != input_decomposed[input_idx].len()
-                    {
-                        return Err(anyhow!("Email address must be the whole word"));
-                    }
-                    true
-                } else if let Some(eth_addr_match) = eth_addr_match {
-                    if eth_addr_match.start() != 0
-                        || eth_addr_match.end() != input_decomposed[input_idx].len()
-                    {
-                        return Err(anyhow!("Eth address must be the whole word"));
-                    }
-                    false
-                } else {
-                    return Err(anyhow!("No recipient found"));
-                };
-                let (email_addr, eth_addr) = if is_email {
-                    (Some(email_addr_match.unwrap().as_str().to_string()), None)
-                } else {
-                    (
-                        None,
-                        Some(eth_addr_match.unwrap().as_str().parse::<Address>().unwrap()),
-                    )
-                };
-                template_vals.push(TemplateValue::Recipient {
-                    is_email,
-                    email_addr,
-                    eth_addr,
-                });
+                template_vals.push(TemplateValue::EthAddr(address));
                 input_idx += 1;
             }
             _ => {
@@ -344,17 +160,17 @@ fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<Temp
 }
 
 // Generated by Github Copilot!
-pub fn uint_to_decimal_string(amount: u128, decimal: usize) -> String {
+pub fn uint_to_decimal_string(uint: u128, decimal: usize) -> String {
     // Convert amount to string in wei format (no decimals)
-    let amount_str = amount.to_string();
-    let amount_length = amount_str.len();
+    let uint_str = uint.to_string();
+    let uint_length = uint_str.len();
 
     // Create result vector with max length
     // If less than 18 decimals, then 2 extra for "0.", otherwise one extra for "."
     let mut result = vec![
         '0';
-        if amount_length > decimal {
-            amount_length + 1
+        if uint_length > decimal {
+            uint_length + 1
         } else {
             decimal + 2
         }
@@ -363,10 +179,10 @@ pub fn uint_to_decimal_string(amount: u128, decimal: usize) -> String {
 
     // Difference between result and amount array index when copying
     // If more than 18, then 1 index diff for ".", otherwise actual diff in length
-    let mut delta = if amount_length > decimal {
+    let mut delta = if uint_length > decimal {
         1
     } else {
-        result_length - amount_length
+        result_length - uint_length
     };
 
     // Boolean to indicate if we found a non-zero digit when scanning from last to first index
@@ -387,18 +203,18 @@ pub fn uint_to_decimal_string(amount: u128, decimal: usize) -> String {
             delta = 0;
         }
         // If amountLength < 18 and we have copied everything, fill zeros
-        else if amount_length <= decimal && i < result_length - amount_length {
+        else if uint_length <= decimal && i < result_length - uint_length {
             result[i] = '0';
             actual_result_len += 1;
         }
         // If non-zero decimal is found, or decimal point inserted (delta == 0), copy from amount array
         else if found_non_zero_decimal || delta == 0 {
-            result[i] = amount_str.chars().nth(i - delta).unwrap();
+            result[i] = uint_str.chars().nth(i - delta).unwrap();
             actual_result_len += 1;
         }
         // If we find non-zero decimal for the first time (trailing zeros are skipped)
-        else if amount_str.chars().nth(i - delta).unwrap() != '0' {
-            result[i] = amount_str.chars().nth(i - delta).unwrap();
+        else if uint_str.chars().nth(i - delta).unwrap() != '0' {
+            result[i] = uint_str.chars().nth(i - delta).unwrap();
             actual_result_len += 1;
             found_non_zero_decimal = true;
         }
