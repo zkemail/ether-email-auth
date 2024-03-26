@@ -10,7 +10,7 @@ use serde::Deserialize;
 
 #[derive(Debug, Clone)]
 pub struct DkimOracleClient<'a> {
-    pub(crate) canister: Canister<'a>,
+    pub canister: Canister<'a>,
 }
 
 #[derive(Default, CandidType, Deserialize, Debug, Clone)]
@@ -56,7 +56,6 @@ impl<'a> DkimOracleClient<'a> {
             .await?
             .map_err(|e| anyhow!(format!("Error from canister: {:?}", e)))?;
 
-        // let result = Decode!(&response, String)?;
         Ok(response)
     }
 }

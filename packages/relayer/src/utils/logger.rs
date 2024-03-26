@@ -10,6 +10,8 @@ use slog_json;
 use slog_term;
 use std::env;
 
+use crate::strings::JSON_LOGGER_KEY;
+
 lazy_static! {
     pub static ref LOG: slog::Logger = init_logger();
 }
@@ -28,7 +30,7 @@ fn init_logger() -> slog::Logger {
     let log_file_drain = slog_json::Json::default(file_rotate).fuse();
 
     // Check if LOGGER env var is set and true or True or TRUE, if not, set false
-    let terminal_json_output = match env::var("JSON_LOGGER") {
+    let terminal_json_output = match env::var(JSON_LOGGER_KEY) {
         Ok(val) => val.eq_ignore_ascii_case("true"),
         Err(_) => false,
     };
@@ -48,6 +50,8 @@ fn init_logger() -> slog::Logger {
     }
     let log_drain =
         slog_async::Async::new(slog::Duplicate(log_terminal_drain, log_file_drain).fuse())
+            .chan_size(10_000) // Increase the channel size
+            .overflow_strategy(slog_async::OverflowStrategy::Block) // Change overflow strategy to block
             .build()
             .fuse();
     slog::Logger::root(log_drain, o!("version" => env!("CARGO_PKG_VERSION")))
