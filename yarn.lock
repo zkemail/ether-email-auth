@@ -1962,10 +1962,10 @@
     "@uniswap/v3-core" "^1.0.0"
     base64-sol "1.0.1"
 
-"@zk-email/circuits@^3.2.3":
-  version "3.2.3"
-  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-3.2.3.tgz#24e16706bc1f46eab5b6e51185faf8d8afe28175"
-  integrity sha512-dAOaEul2iq86f69FFaXK/u3ec+Lk6B3vpbapyJ9oKGgWeINilWJQaEP1WSJyeVV52zPRVE5uDkIVhIguU7jk2g==
+"@zk-email/circuits@^3.2.4":
+  version "3.2.4"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-3.2.4.tgz#10fcc5f997a2f65285f51ab03625e4f8fb300f7d"
+  integrity sha512-MCF1TfaN02wUOUnZxO/DfKd5cqsLmoCBbGwmjEwhFtntlTbVo8ZW+QpzlosRHSR/jNE/pGbhBuyQICcujkJ3Ig==
   dependencies:
     "@zk-email/zk-regex-circom" "^1.1.1"
 
@@ -2003,10 +2003,10 @@
     commander "^11.0.0"
     snarkjs "^0.7.0"
 
-"@zk-email/zk-regex-circom@^1.2.2":
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-1.2.2.tgz#d1ea2731b4308e8f7c7b08ca2ff2d41934c6ce5e"
-  integrity sha512-IZy1xAG9EDELlPyoWNBswHVSKt2X311ZybVLv4sRTtrhaS+W3wQMEE7T+hlgtP6lJioeJrGLBS4Xp30HSazb/Q==
+"@zk-email/zk-regex-circom@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.0.1.tgz#588eaefb4b04ec099089539f39e35cafd9f2d52e"
+  integrity sha512-FwXpnTIh6TtFKYsF0yr1u6uwWipFYz42kH/jRE9FkLQ3QkrgZ3pdx65wuhUTOTH1i8IXS6Gs1x6l8quko9sx3w==
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.0"
