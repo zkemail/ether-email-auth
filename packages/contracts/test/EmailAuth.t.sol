@@ -73,7 +73,7 @@ contract EmailAuthTest is DeploymentHelper {
         );
         assertEq(
             msgHash,
-            0xa1cb9e60072a3f949d2dda5912f1285c5b6acbf5bbff2013f723b345f1103ec2
+            0x8fa6859241092e7cf73d038bc981b370be69b49dc7bfcd91015308ed2c72d979
         );
     }
 
@@ -114,14 +114,14 @@ contract EmailAuthTest is DeploymentHelper {
         bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
         assertEq(
             msgHash,
-            0x9e288817af47043777650e858a595796e8ecf234eea355776d985165eb59b599
+            0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb
         );
         vm.stopPrank();
     }
 
     function testIsValidSignature() public {
         testAuthEmail();
-        bytes32 msgHash = 0x9e288817af47043777650e858a595796e8ecf234eea355776d985165eb59b599;
+        bytes32 msgHash = 0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb;
         bytes memory signature = abi.encodePacked(emailNullifier);
         bytes4 result = emailAuth.isValidSignature(msgHash, signature);
         assertEq(result, bytes4(0x1626ba7e));
