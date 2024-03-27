@@ -72,7 +72,19 @@ contract DeploymentHelper is Test {
         emailAuth.updateVerifier(address(verifier));
         emailAuth.updateDKIMRegistry(address(dkim));
 
+        // For integration testing we need to insert two templates
         uint templateIdx = 1;
+        templateId = uint256(keccak256(abi.encodePacked("ACCEPT", templateIdx)));
+        subjectTemplate = ["Accept", "guardian", "request", "for", "{ethAddr}"];
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+
+        templateIdx = 2;
+        templateId = uint256(keccak256(abi.encodePacked("RECOVERY", templateIdx)));
+        subjectTemplate = ["Set", "the", "new", "signer", "of", "{ethAddr}", "to", "{ethAddr}"];
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+
+        // For unit testing
+        templateIdx = 3;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
