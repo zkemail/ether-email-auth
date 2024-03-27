@@ -71,7 +71,6 @@ contract IntegrationTest is Test {
 
         // Create Verifier
         verifier = new Verifier();
-        // accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
         accountSalt = 0x0e3edbf1c5f3d1bd33504e7d71fc62134c2e92d56675eda1e2d515b6eb68021c;
 
         // Create EmailAuth
@@ -124,9 +123,6 @@ contract IntegrationTest is Test {
         string[] memory inputGenerationInput = new string[](3);
         inputGenerationInput[0] = string.concat(vm.projectRoot(), "/test/bin/accept.sh");
         inputGenerationInput[1] = string.concat(vm.projectRoot(), "/test/emails/accept.eml");
-        // console.logString("function genEmailOpPartial");
-        // console.logString("emailFile");
-        // console.logString(emailFile);
         bytes32 accountCode = 0x1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54;
         inputGenerationInput[2] = uint256(accountCode).toHexString(32);
         vm.ffi(inputGenerationInput);
@@ -135,8 +131,7 @@ contract IntegrationTest is Test {
             string.concat(vm.projectRoot(), "/test/build_integration/email_auth_public.json")
         );
         string[] memory pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
-    
-    
+        
         EmailProof memory emailProof;
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
@@ -148,14 +143,14 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(vm.projectRoot(), "/test/build_integration/email_auth_proof.json")
         );
-        console.log("dkim public key hash: ");
-        console.logBytes32(bytes32(vm.parseUint(pubSignals[9])));
-        console.log("email nullifier: ");
-        console.logBytes32(bytes32(vm.parseUint(pubSignals[10])));
-        console.log("timestamp: ", vm.parseUint(pubSignals[11]));
-        console.log("account salt: ");
-        console.logBytes32(bytes32(vm.parseUint(pubSignals[32])));
-        console.log("is code exist: ", vm.parseUint(pubSignals[33]));
+        // console.log("dkim public key hash: ");
+        // console.logBytes32(bytes32(vm.parseUint(pubSignals[9])));
+        // console.log("email nullifier: ");
+        // console.logBytes32(bytes32(vm.parseUint(pubSignals[10])));
+        // console.log("timestamp: ", vm.parseUint(pubSignals[11]));
+        // console.log("account salt: ");
+        // console.logBytes32(bytes32(vm.parseUint(pubSignals[32])));
+        // console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call Request guardian -> GuardianStatus.REQUESTED
         simpleWallet.requestGuardian(address(0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4));
@@ -173,11 +168,6 @@ contract IntegrationTest is Test {
         bytes32 messageHash = emailAuth.authEmail(emailAuthMsg);
         console.logBytes32(messageHash);
         assertEq(messageHash, 0x055636a81af06b90e75410636780ce041741567c7d8aef8e3bae3f5ee8d43102);
-
-        // vm.removeFile(
-        //     string.concat(vm.projectRoot(), "/test/build_integration/email_auth_public.json")
-        // );
-        // vm.removeFile(string.concat(vm.projectRoot(), "/test/build_integration/email_auth_proof.json"));
 
         // TODO: Accept guardian request -> GuardianStatus.ACCEPTED
         // simpleWallet.acceptGuardian(address(0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4), templateIdForAccept, subjectParams, 0x0);
@@ -232,6 +222,9 @@ contract IntegrationTest is Test {
         messageHash = emailAuth.authEmail(emailAuthMsg);
         console.logBytes32(messageHash);
         assertEq(messageHash, 0x821374d786567df697f06246fb43c9d4d92998988733230baeb5ced4e7da7544);
+
+        // TODO: Call completeRecovery
+        // simpleWallet.completeRecovery(address(0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4), address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720));
 
         vm.stopPrank();
     }
