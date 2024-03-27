@@ -22,7 +22,7 @@ $ yarn test
 Run integration tests
 
 Before running integration tests, you need to make a `packages/contracts/test/build_integration` directory, download the zip file from the following link, and place its unziped files under that directory.
-https://drive.google.com/file/d/14J9Dhu3sJ_hd19HiVUeN3DHnlCqcrDPh/view?usp=sharing
+https://drive.google.com/file/d/1TUMhCp1cGqxQLZPQIwAcx4qMEJ5PkEjm/view?usp=sharing
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
