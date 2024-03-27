@@ -185,53 +185,53 @@ contract IntegrationTest is Test {
         // 
         // TODO: Process recovery 
 
-        // // Verify the email proof for recovery
-        // string[] memory inputGenerationInput = new string[](3);
-        // inputGenerationInput[0] = string.concat(vm.projectRoot(), "/test/bin/recovery.sh");
-        // inputGenerationInput[1] = string.concat(vm.projectRoot(), "/test/emails/recovery.eml");
-        // bytes32 accountCode = 0x19bb7551cb17351553986bbe17375b02510d5bd75c8d3b9e07c5a78dd74a9644;
-        // inputGenerationInput[2] = uint256(accountCode).toHexString(32);
-        // vm.ffi(inputGenerationInput);
+        // Verify the email proof for recovery
+        inputGenerationInput = new string[](3);
+        inputGenerationInput[0] = string.concat(vm.projectRoot(), "/test/bin/recovery.sh");
+        inputGenerationInput[1] = string.concat(vm.projectRoot(), "/test/emails/recovery.eml");
+        accountCode = 0x1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54;
+        inputGenerationInput[2] = uint256(accountCode).toHexString(32);
+        vm.ffi(inputGenerationInput);
 
-        // publicInputFile = vm.readFile(
-        //     string.concat(vm.projectRoot(), "/test/build_integration/email_auth_public.json")
-        // );
-        // pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
+        publicInputFile = vm.readFile(
+            string.concat(vm.projectRoot(), "/test/build_integration/email_auth_public.json")
+        );
+        pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
 
-        // emailProof.domainName = "gmail.com";
-        // emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
-        // emailProof.timestamp = vm.parseUint(pubSignals[11]);
-        // emailProof.maskedSubject = "Set the new signer of 0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
-        // emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
-        // emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
-        // emailProof.isCodeExist = vm.parseUint(pubSignals[33]) == 1;
-        // emailProof.proof = proofToBytes(
-        //     string.concat(vm.projectRoot(), "/test/build_integration/email_auth_proof.json")
-        // );
+        emailProof.domainName = "gmail.com";
+        emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
+        emailProof.timestamp = vm.parseUint(pubSignals[11]);
+        emailProof.maskedSubject = "Set the new signer of 0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+        emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
+        emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
+        emailProof.isCodeExist = vm.parseUint(pubSignals[33]) == 1;
+        emailProof.proof = proofToBytes(
+            string.concat(vm.projectRoot(), "/test/build_integration/email_auth_proof.json")
+        );
 
-        // console.log("dkim public key hash: ");
-        // console.logBytes32(bytes32(vm.parseUint(pubSignals[9])));
-        // console.log("email nullifier: ");
-        // console.logBytes32(bytes32(vm.parseUint(pubSignals[10])));
-        // console.log("timestamp: ", vm.parseUint(pubSignals[11]));
-        // console.log("account salt: ");
-        // console.logBytes32(bytes32(vm.parseUint(pubSignals[32])));
-        // console.log("is code exist: ", vm.parseUint(pubSignals[33]));
+        console.log("dkim public key hash: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[9])));
+        console.log("email nullifier: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[10])));
+        console.log("timestamp: ", vm.parseUint(pubSignals[11]));
+        console.log("account salt: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[32])));
+        console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
-        // // Call authEmail
-        // bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        // subjectParamsForRecovery[0] = abi.encode(address(0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4));
-        // subjectParamsForRecovery[1] = abi.encode(address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720));
-        // emailAuthMsg = EmailAuthMsg({
-        //     templateId: templateIdForRecovery,
-        //     subjectParams: subjectParamsForRecovery,
-        //     skipedSubjectPrefix: 0,
-        //     proof: emailProof
-        // });
+        // Call authEmail
+        bytes[] memory subjectParamsForRecovery = new bytes[](2);
+        subjectParamsForRecovery[0] = abi.encode(address(0xaC361518Bb9535D0E3172DC45a4e56d71a7FDFc4));
+        subjectParamsForRecovery[1] = abi.encode(address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720));
+        emailAuthMsg = EmailAuthMsg({
+            templateId: templateIdForRecovery,
+            subjectParams: subjectParamsForRecovery,
+            skipedSubjectPrefix: 0,
+            proof: emailProof
+        });
 
-        // messageHash = emailAuth.authEmail(emailAuthMsg);
-        // console.logBytes32(messageHash);
-        // assertEq(messageHash, 0x055636a81af06b90e75410636780ce041741567c7d8aef8e3bae3f5ee8d43102);
+        messageHash = emailAuth.authEmail(emailAuthMsg);
+        console.logBytes32(messageHash);
+        assertEq(messageHash, 0x821374d786567df697f06246fb43c9d4d92998988733230baeb5ced4e7da7544);
 
         vm.stopPrank();
     }
