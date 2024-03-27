@@ -89,11 +89,11 @@ contract IntegrationTest is Test {
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-        console.log(
-            "emailAuthImplementation",
-            simpleWallet.emailAuthImplementation()
-        );
-        vm.deal(address(simpleWallet), 1 ether); // TODO: remove later
+        // console.log(
+        //     "emailAuthImplementation",
+        //     simpleWallet.emailAuthImplementation()
+        // );
+
         vm.stopPrank();
     }
 
@@ -111,7 +111,7 @@ contract IntegrationTest is Test {
             address(simpleWallet),
             0x91eB86019FD8D7c5a9E31143D422850A13F670A3
         );
-
+        address simpleWalletOwner = simpleWallet.owner();
         // Verify the email proof for acceptance
         string[] memory inputGenerationInput = new string[](3);
         inputGenerationInput[0] = string.concat(
@@ -156,6 +156,12 @@ contract IntegrationTest is Test {
         simpleWallet.requestGuardian(
             simpleWallet.computeEmailAuthAddress(accountSalt)
         );
+        require(
+            simpleWallet.guardians(
+                simpleWallet.computeEmailAuthAddress(accountSalt)
+            ) == SimpleWallet.GuardianStatus.REQUESTED,
+            "GuardianStatus should be REQUESTED"
+        );
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
@@ -169,6 +175,12 @@ contract IntegrationTest is Test {
             proof: emailProof
         });
         simpleWallet.handleAcceptance(emailAuthMsg, templateIdx);
+        require(
+            simpleWallet.guardians(
+                simpleWallet.computeEmailAuthAddress(accountSalt)
+            ) == SimpleWallet.GuardianStatus.ACCEPTED,
+            "GuardianStatus should be ACCEPTED"
+        );
 
         // Verify the email proof for recovery
         inputGenerationInput = new string[](3);
@@ -234,7 +246,11 @@ contract IntegrationTest is Test {
         // Warp at 3 days + 10 seconds later
         vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
         simpleWallet.completeRecovery();
-
+        console.log("simpleWallet owner: ", simpleWallet.owner());
+        require(
+            simpleWallet.owner() != simpleWalletOwner,
+            "simpleWallet owner should be changed"
+        );
         vm.stopPrank();
     }
 
