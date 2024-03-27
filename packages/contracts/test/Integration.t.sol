@@ -112,6 +112,7 @@ contract IntegrationTest is Test {
             0x91eB86019FD8D7c5a9E31143D422850A13F670A3
         );
         address simpleWalletOwner = simpleWallet.owner();
+
         // Verify the email proof for acceptance
         string[] memory inputGenerationInput = new string[](3);
         inputGenerationInput[0] = string.concat(
