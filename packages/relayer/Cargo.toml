@@ -54,6 +54,7 @@ file-rotate = "0.7.5"
 function_name = "0.3.0"
 base64 = "0.21.7"
 uuid = "1.8.0"
+http = "1.1.0"
 
 [build-dependencies]
 ethers = "2.0.10"

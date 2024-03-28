@@ -19,54 +19,6 @@ use serde_json::Value;
 use tokio::fs::read_to_string;
 
 #[derive(Debug, Clone)]
-pub enum EmailWalletEvent {
-    AccountCreated {
-        email_addr: String,
-        account_key: AccountKey,
-        // is_faucet: bool,
-        tx_hash: String,
-    },
-    EmailHandled {
-        sender_email_addr: String,
-        account_key: AccountKey,
-        recipient_email_addr: Option<String>,
-        original_subject: String,
-        message_id: String,
-        email_op: EmailOp,
-        tx_hash: String,
-    },
-    AccountNotCreated {
-        email_addr: String,
-        account_key: AccountKey,
-        // claim: Claim,
-        is_first: bool,
-        tx_hash: String,
-    },
-    Claimed {
-        // claim: Claim,
-        unclaimed_fund: Option<UnclaimedFund>,
-        unclaimed_state: Option<UnclaimedState>,
-        email_addr: String,
-        is_fund: bool,
-        is_announced: bool,
-        recipient_account_key: AccountKey,
-        tx_hash: String,
-    },
-    Voided {
-        claim: Claim,
-        tx_hash: String,
-    },
-    Error {
-        email_addr: String,
-        error: String,
-    },
-    Ack {
-        email_addr: String,
-        subject: String,
-    },
-}
-
-#[derive(Debug, Clone)]
 pub struct EmailForwardSender(UnboundedSender<EmailMessage>);
 
 impl EmailForwardSender {

@@ -23,8 +23,7 @@ pub async fn handle_email<P: EmailsPool>(
     db: Arc<Database>,
     chain_client: Arc<ChainClient>,
     emails_pool: P,
-    tx_claimer: UnboundedSender<Claim>,
-) -> Result<EmailWalletEvent> {
+) -> Result<EmailAuthEvent> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     trace!(LOG, "email: {}", email; "func" => function_name!());
     let from_addr = parsed_email.get_from_addr()?;

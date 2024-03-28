@@ -1,6 +1,6 @@
 use crate::*;
 use anyhow::Result;
-use axum::{response::IntoResponse, Json};
+use axum::{body::Body, response::Response, Json};
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -79,16 +79,19 @@ pub async fn request_status_api(payload: RequestStatusRequest) -> Result<Request
 }
 
 pub async fn handle_acceptance_request(
-    Json(payload): Json<AcceptanceRequest>,
+    payload: AcceptanceRequest,
     db: Arc<Database>,
     email_sender: EmailForwardSender,
     chain_client: Arc<ChainClient>,
-) -> impl IntoResponse {
+) -> Response<Body> {
     if !chain_client
         .is_wallet_deployed(&payload.wallet_eth_addr)
         .await
     {
-        return (StatusCode::BAD_REQUEST, "Contract not deployed").into_response();
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
     }
 
     let subject_template = chain_client
@@ -100,17 +103,24 @@ pub async fn handle_acceptance_request(
         parse_subject_with_template(&payload.subject, subject_template);
 
     if !is_valid {
-        return (StatusCode::BAD_REQUEST, "Invalid subject").into_response();
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Invalid subject"))
+            .unwrap();
     }
 
     if let Ok(Some(creds)) = db.get_credentials(&payload.account_code).await {
-        return (StatusCode::BAD_REQUEST, "Account code already exists").into_response();
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Account code already used"))
+            .unwrap();
     }
 
-    let mut request_id = Uuid::new_v4().to_string();
-    while let Ok(Some(request)) = db.get_request(&request_id).await {
-        request_id = Uuid::new_v4().to_string(); // Regenerate request_id if it already exists
-    }
+    // let mut request_id = Uuid::new_v4().to_string();
+    let mut request_id = "ad".to_string();
+    // while let Ok(Some(request)) = db.get_request(&request_id).await {
+    //     request_id = Uuid::new_v4().to_string(); // Regenerate request_id if it already exists
+    // }
 
     if db
         .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
@@ -128,12 +138,12 @@ pub async fn handle_acceptance_request(
             account_salt: None,
         })
         .await;
-        send_error_email(
-            &email_sender,
-            &payload.guardian_email_addr,
-            &payload.wallet_eth_addr,
-        )
-        .await;
+        // send_error_email(
+        //     &email_sender,
+        //     &payload.guardian_email_addr,
+        //     &payload.wallet_eth_addr,
+        // )
+        // .await;
     } else {
         db.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
@@ -155,17 +165,19 @@ pub async fn handle_acceptance_request(
             account_salt: None,
         });
 
-        send_guardian_email(&email_sender, &payload, &request_id).await;
+        // send_guardian_email(&email_sender, &payload, &request_id).await;
     }
 
-    (
-        StatusCode::OK,
-        Json(AcceptanceResponse {
-            request_id,
-            subject_params,
-        }),
-    )
-        .into_response()
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(
+            serde_json::to_string(&AcceptanceResponse {
+                request_id,
+                subject_params,
+            })
+            .unwrap(),
+        ))
+        .unwrap()
 }
 
 fn parse_subject_with_template(subject: &str, template: Vec<String>) -> (bool, Vec<String>) {

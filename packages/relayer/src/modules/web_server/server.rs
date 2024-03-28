@@ -9,8 +9,7 @@ pub async fn run_server(
     chain_client: Arc<ChainClient>,
     email_sender: EmailForwardSender,
 ) -> Result<()> {
-    let chain_client_check_clone = Arc::clone(&chain_client);
-    let chain_client_reveal_clone = Arc::clone(&chain_client);
+    let chain_client = Arc::clone(&chain_client);
 
     let mut app = Router::new()
         .route(
@@ -58,7 +57,31 @@ pub async fn run_server(
         )
         .route(
             "/api/acceptanceRequest",
-            axum::routing::post(handle_acceptance_request),
+            axum::routing::post(move |payload: String| async move {
+                let payload: Result<AcceptanceRequest> =
+                    serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));
+                match payload {
+                    Ok(payload) => {
+                        let acceptance_response = handle_acceptance_request(
+                            payload,
+                            db.clone(),
+                            email_sender.clone(),
+                            chain_client.clone(),
+                        )
+                        .await;
+                        Ok::<_, axum::response::Response>(acceptance_response)
+                    }
+                    Err(e) => {
+                        let error_message = serde_json::to_string(&e.to_string())
+                            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .unwrap();
+                        Ok(axum::http::Response::builder()
+                            .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(serde_json::to_string(&e.to_string()).unwrap().into())
+                            .unwrap())
+                    }
+                }
+            }),
         );
 
     app = app.layer(
