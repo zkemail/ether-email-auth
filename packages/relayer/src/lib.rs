@@ -79,36 +79,6 @@ lazy_static! {
 pub type EventConsumer =
     fn(EmailWalletEvent, EmailForwardSender) -> Pin<Box<dyn Future<Output = ()> + Send>>;
 
-pub async fn setup() -> Result<()> {
-    dotenv().ok();
-    PRIVATE_KEY.set(env::var(PRIVATE_KEY_KEY).unwrap()).unwrap();
-    CHAIN_ID
-        .set(env::var(CHAIN_ID_KEY).unwrap().parse().unwrap())
-        .unwrap();
-    CHAIN_RPC_PROVIDER
-        .set(env::var(CHAIN_RPC_PROVIDER_KEY).unwrap())
-        .unwrap();
-    CHAIN_RPC_EXPLORER
-        .set(env::var(CHAIN_RPC_EXPLORER_KEY).unwrap())
-        .unwrap();
-    CORE_CONTRACT_ADDRESS
-        .set(env::var(CORE_CONTRACT_ADDRESS_KEY).unwrap())
-        .unwrap();
-
-    let rng = OsRng;
-    let relayer_rand = derive_relayer_rand(PRIVATE_KEY.get().unwrap())?;
-
-    let client = ChainClient::setup().await?;
-    let tx_hash = client
-        .register_relayer(
-            env::var(RELAYER_EMAIL_ADDR_KEY).unwrap(),
-            env::var(RELAYER_HOSTNAME_KEY).unwrap(),
-        )
-        .await?;
-    println!("Register relayer in {}", tx_hash);
-    Ok(())
-}
-
 #[named]
 pub async fn run(
     config: RelayerConfig,

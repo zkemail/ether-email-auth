@@ -18,6 +18,7 @@ impl ChainClient {
     pub async fn setup() -> Result<Self> {
         let wallet: LocalWallet = PRIVATE_KEY.get().unwrap().parse()?;
         let provider = Provider::<Http>::try_from(CHAIN_RPC_PROVIDER.get().unwrap())?;
+
         let client = Arc::new(SignerMiddleware::new(
             provider,
             wallet.with_chain_id(*CHAIN_ID.get().unwrap()),
@@ -28,6 +29,7 @@ impl ChainClient {
         );
         let ecdsa_owned_dkim_registry =
             ECDSAOwnedDKIMRegistry::new(email_auth.dkim_registry_addr().await?, client.clone());
+
         Ok(Self {
             client,
             email_auth,
@@ -38,23 +40,6 @@ impl ChainClient {
     pub fn self_eth_addr(&self) -> Address {
         self.client.address()
     }
-
-    // pub async fn register_relayer(&self, email_addr: String, hostname: String) -> Result<String> {
-    //     // Mutex is used to prevent nonce conflicts.
-    //     let mut mutex = SHARED_MUTEX.lock().await;
-    //     *mutex += 1;
-
-    //     let call = self.relayer_handler.register_relayer(email_addr, hostname);
-    //     let tx = call.send().await?;
-    //     let receipt = tx
-    //         .log()
-    //         .confirmations(CONFIRMATIONS)
-    //         .await?
-    //         .ok_or(anyhow!("No receipt"))?;
-    //     let tx_hash = receipt.transaction_hash;
-    //     let tx_hash = format!("0x{}", hex::encode(tx_hash.as_bytes()));
-    //     Ok(tx_hash)
-    // }
 
     pub async fn set_dkim_public_key_hash(
         &self,
@@ -104,5 +89,20 @@ impl ChainClient {
 
     pub async fn get_latest_block_number(&self) -> U64 {
         self.client.get_block_number().await.unwrap()
+    }
+
+    pub async fn is_wallet_deployed(&self, wallet_addr: &String) -> bool {
+        // Check the bytecode of the contract
+        let code = self.client.get_code(wallet_addr, None).await.unwrap();
+        !code.is_empty()
+    }
+
+    pub async fn get_subject_template(&self, template_idx: u64) -> Result<Vec<String>> {
+        let template = self
+            .email_auth
+            .get_subject_template(template_idx.into())
+            .call()
+            .await?;
+        Ok(template)
     }
 }

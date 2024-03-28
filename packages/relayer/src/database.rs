@@ -73,7 +73,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn get_codes_row(&self, account_code: &str) -> Result<Option<Credentials>> {
+    pub(crate) async fn get_credentials(&self, account_code: &str) -> Result<Option<Credentials>> {
         let row = sqlx::query("SELECT * FROM codes WHERE account_code = $1")
             .bind(account_code)
             .fetch_optional(&self.db)
@@ -99,7 +99,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn insert_codes_row(&self, row: &Credentials) -> Result<()> {
+    pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO users (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
@@ -118,8 +118,22 @@ impl Database {
         Ok(())
     }
 
+    pub async fn is_guardian_set(&self, wallet_eth_addr: &str, guardian_email_addr: &str) -> bool {
+        let row = sqlx::query("SELECT * FROM codes WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
+            .bind(wallet_eth_addr)
+            .bind(guardian_email_addr)
+            .fetch_optional(&self.db)
+            .await
+            .unwrap();
+
+        match row {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
     #[named]
-    pub async fn set_guardian_in_codes(&self, account_code: &str) -> Result<()> {
+    pub async fn set_guardian_in_credentials(&self, account_code: &str) -> Result<()> {
         info!(LOG, "account_code {}", account_code; "func" => function_name!());
         let res = sqlx::query("UPDATE users SET is_set = TRUE WHERE account_code = $1")
             .bind(account_code)
@@ -170,7 +184,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn insert_requests_row(&self, row: &Request) -> Result<()> {
+    pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO requests (request_id, wallet_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",

@@ -249,6 +249,40 @@ pub mod email_auth {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("getSubjectTemplate"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("getSubjectTemplate"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
+                                        ::std::boxed::Box::new(
+                                            ::ethers::core::abi::ethabi::ParamType::String,
+                                        ),
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("string[]"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("initialize"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -928,6 +962,18 @@ pub mod email_auth {
                 .method_hash([27, 192, 27, 131], ())
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `getSubjectTemplate` (0x1e05a028) function
+        pub fn get_subject_template(
+            &self,
+            template_id: ::ethers::core::types::U256,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::std::vec::Vec<::std::string::String>,
+        > {
+            self.0
+                .method_hash([30, 5, 160, 40], template_id)
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `initialize` (0x9498bd71) function
         pub fn initialize(
             &self,
@@ -1431,6 +1477,21 @@ pub mod email_auth {
     )]
     #[ethcall(name = "dkimRegistryAddr", abi = "dkimRegistryAddr()")]
     pub struct DkimRegistryAddrCall;
+    ///Container type for all input parameters for the `getSubjectTemplate` function with signature `getSubjectTemplate(uint256)` and selector `0x1e05a028`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "getSubjectTemplate", abi = "getSubjectTemplate(uint256)")]
+    pub struct GetSubjectTemplateCall {
+        pub template_id: ::ethers::core::types::U256,
+    }
     ///Container type for all input parameters for the `initialize` function with signature `initialize(bytes32)` and selector `0x9498bd71`
     #[derive(
         Clone,
@@ -1721,6 +1782,7 @@ pub mod email_auth {
         DeleteSubjectTemplate(DeleteSubjectTemplateCall),
         Dkim(DkimCall),
         DkimRegistryAddr(DkimRegistryAddrCall),
+        GetSubjectTemplate(GetSubjectTemplateCall),
         Initialize(InitializeCall),
         InsertSubjectTemplate(InsertSubjectTemplateCall),
         IsValidSignature(IsValidSignatureCall),
@@ -1780,6 +1842,11 @@ pub mod email_auth {
                 data,
             ) {
                 return Ok(Self::DkimRegistryAddr(decoded));
+            }
+            if let Ok(decoded) = <GetSubjectTemplateCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::GetSubjectTemplate(decoded));
             }
             if let Ok(decoded) = <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1901,6 +1968,9 @@ pub mod email_auth {
                 Self::DkimRegistryAddr(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::GetSubjectTemplate(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Initialize(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1971,6 +2041,9 @@ pub mod email_auth {
                 }
                 Self::Dkim(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DkimRegistryAddr(element) => ::core::fmt::Display::fmt(element, f),
+                Self::GetSubjectTemplate(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Initialize(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InsertSubjectTemplate(element) => {
                     ::core::fmt::Display::fmt(element, f)
@@ -2036,6 +2109,11 @@ pub mod email_auth {
     impl ::core::convert::From<DkimRegistryAddrCall> for EmailAuthCalls {
         fn from(value: DkimRegistryAddrCall) -> Self {
             Self::DkimRegistryAddr(value)
+        }
+    }
+    impl ::core::convert::From<GetSubjectTemplateCall> for EmailAuthCalls {
+        fn from(value: GetSubjectTemplateCall) -> Self {
+            Self::GetSubjectTemplate(value)
         }
     }
     impl ::core::convert::From<InitializeCall> for EmailAuthCalls {
@@ -2205,6 +2283,18 @@ pub mod email_auth {
         Hash
     )]
     pub struct DkimRegistryAddrReturn(pub ::ethers::core::types::Address);
+    ///Container type for all return fields from the `getSubjectTemplate` function with signature `getSubjectTemplate(uint256)` and selector `0x1e05a028`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthAbiType,
+        ::ethers::contract::EthAbiCodec,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    pub struct GetSubjectTemplateReturn(pub ::std::vec::Vec<::std::string::String>);
     ///Container type for all return fields from the `isValidSignature` function with signature `isValidSignature(bytes32,bytes)` and selector `0x1626ba7e`
     #[derive(
         Clone,
