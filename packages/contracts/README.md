@@ -4,6 +4,9 @@
 yarn install
 ```
 
+## Requirements
+- Newer than or equal to `forge 0.2.0 (b174c3a)`.
+
 ## Build and Test
 
 Make sure you have [Foundry](https://github.com/foundry-rs/foundry) installed

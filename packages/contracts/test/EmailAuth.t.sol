@@ -12,7 +12,6 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import "./helpers/DeploymentHelper.sol";
 
 contract EmailAuthTest is DeploymentHelper {
-
     function setUp() public override {
         super.setUp();
     }
@@ -41,6 +40,17 @@ contract EmailAuthTest is DeploymentHelper {
         emailAuth.updateVerifier(address(newVerifier));
         assertEq(emailAuth.verifierAddr(), address(newVerifier));
         vm.stopPrank();
+    }
+
+    function testGetSubjectTemplate() public {
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
+    }
+
+    function testExpectRevertGetSubjectTemplate() public {
+        vm.expectRevert(bytes("template id not exists"));
+        emailAuth.getSubjectTemplate(templateId);
     }
 
     function testInsertSubjectTemplate() public {
@@ -83,7 +93,9 @@ contract EmailAuthTest is DeploymentHelper {
 
         bytes[] memory subjectParams = new bytes[](2);
         subjectParams[0] = abi.encode(1 ether);
-        subjectParams[1] = abi.encode("0x0000000000000000000000000000000000000020");
+        subjectParams[1] = abi.encode(
+            "0x0000000000000000000000000000000000000020"
+        );
 
         EmailProof memory emailProof = EmailProof({
             domainName: "gmail.com",
