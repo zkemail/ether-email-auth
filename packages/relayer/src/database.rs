@@ -12,7 +12,7 @@ pub struct Credentials {
 
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub request_id: i64,
+    pub request_id: String,
     pub wallet_eth_addr: String,
     pub guardian_email_addr: String,
     pub is_for_recovery: bool,
@@ -54,7 +54,7 @@ impl Database {
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS requests (
-                request_id INT PRIMARY KEY,
+                request_id TEXT PRIMARY KEY,
                 wallet_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
                 random TEXT NOT NULL,
@@ -134,7 +134,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn get_request(&self, request_id: i64) -> Result<Option<Request>> {
+    pub(crate) async fn get_request(&self, request_id: String) -> Result<Option<Request>> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
             .bind(request_id)
             .fetch_optional(&self.db)
@@ -142,7 +142,7 @@ impl Database {
 
         match row {
             Some(row) => {
-                let request_id: i64 = row.get("request_id");
+                let request_id: String = row.get("request_id");
                 let wallet_eth_addr: String = row.get("wallet_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
@@ -197,7 +197,7 @@ impl Database {
     #[named]
     pub(crate) async fn request_completed(
         &self,
-        request_id: i64,
+        request_id: &str,
         email_nullifier: &str,
         account_salt: &str,
     ) -> Result<()> {
@@ -217,7 +217,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn request_failed(&self, request_id: i64) -> Result<()> {
+    pub(crate) async fn request_failed(&self, request_id: &str) -> Result<()> {
         info!(LOG, "request_id {}", request_id; "func" => function_name!());
         let res = sqlx::query(
             "UPDATE requests SET is_processed = TRUE, is_success = FALSE WHERE request_id = $1",

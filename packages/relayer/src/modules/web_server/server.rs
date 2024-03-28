@@ -1,5 +1,4 @@
 use crate::*;
-
 use axum::Router;
 use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 
@@ -13,49 +12,54 @@ pub async fn run_server(
     let chain_client_check_clone = Arc::clone(&chain_client);
     let chain_client_reveal_clone = Arc::clone(&chain_client);
 
-    let mut app = Router::new().route(
-        "/api/requestStatus",
-        axum::routing::post(move |payload: String| async move {
-            let payload: Result<RequestStatusRequest> =
-                serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));
-            match payload {
-                Ok(payload) => {
-                    let response = request_status_api(payload).await;
-                    match response {
-                        Ok(response) => {
-                            let body = serde_json::to_string(&response)
-                                .map_err(|e| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
-                                .unwrap();
-                            Ok::<_, axum::response::Response>(
-                                axum::http::Response::builder()
-                                    .status(axum::http::StatusCode::OK)
-                                    .body(axum::body::Body::from(body))
-                                    .unwrap(),
-                            )
-                        }
-                        Err(e) => {
-                            let error_message = serde_json::to_string(&e.to_string())
-                                .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
-                                .unwrap();
-                            Ok(axum::http::Response::builder()
-                                .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
-                                .body(serde_json::to_string(&e.to_string()).unwrap().into())
-                                .unwrap())
+    let mut app = Router::new()
+        .route(
+            "/api/requestStatus",
+            axum::routing::get(move |payload: String| async move {
+                let payload: Result<RequestStatusRequest> =
+                    serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));
+                match payload {
+                    Ok(payload) => {
+                        let response = request_status_api(payload).await;
+                        match response {
+                            Ok(response) => {
+                                let body = serde_json::to_string(&response)
+                                    .map_err(|e| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                                    .unwrap();
+                                Ok::<_, axum::response::Response>(
+                                    axum::http::Response::builder()
+                                        .status(axum::http::StatusCode::OK)
+                                        .body(axum::body::Body::from(body))
+                                        .unwrap(),
+                                )
+                            }
+                            Err(e) => {
+                                let error_message = serde_json::to_string(&e.to_string())
+                                    .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                                    .unwrap();
+                                Ok(axum::http::Response::builder()
+                                    .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                                    .body(serde_json::to_string(&e.to_string()).unwrap().into())
+                                    .unwrap())
+                            }
                         }
                     }
+                    Err(e) => {
+                        let error_message = serde_json::to_string(&e.to_string())
+                            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .unwrap();
+                        Ok(axum::http::Response::builder()
+                            .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(serde_json::to_string(&e.to_string()).unwrap().into())
+                            .unwrap())
+                    }
                 }
-                Err(e) => {
-                    let error_message = serde_json::to_string(&e.to_string())
-                        .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
-                        .unwrap();
-                    Ok(axum::http::Response::builder()
-                        .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
-                        .body(serde_json::to_string(&e.to_string()).unwrap().into())
-                        .unwrap())
-                }
-            }
-        }),
-    );
+            }),
+        )
+        .route(
+            "/api/acceptanceRequest",
+            axum::routing::post(handle_acceptance_request),
+        );
 
     app = app.layer(
         CorsLayer::new()
