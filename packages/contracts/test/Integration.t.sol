@@ -242,15 +242,25 @@ contract IntegrationTest is Test {
             proof: emailProof
         });
         simpleWallet.handleRecovery(emailAuthMsg, templateIdx);
+        require(simpleWallet.isRecovering(), "isRecovering should be set");
+        require(simpleWallet.newSignerCandidate() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720, "newSignerCandidate should be set");
+        require(simpleWallet.timelock() > 0, "timelock should be set");
+        require(
+            simpleWallet.owner() == simpleWalletOwner,
+            "simpleWallet owner should be old one"
+        );
 
         // Call completeRecovery
         // Warp at 3 days + 10 seconds later
         vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
         simpleWallet.completeRecovery();
         console.log("simpleWallet owner: ", simpleWallet.owner());
+        require(!simpleWallet.isRecovering(), "isRecovering should be reset");
+        require(simpleWallet.newSignerCandidate() == address(0), "newSignerCandidate should be reset");
+        require(simpleWallet.timelock() == 0, "timelock should be reset");
         require(
-            simpleWallet.owner() != simpleWalletOwner,
-            "simpleWallet owner should be changed"
+            simpleWallet.owner() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
+            "simpleWallet owner should be new one"
         );
         vm.stopPrank();
     }

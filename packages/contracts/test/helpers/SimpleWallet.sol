@@ -12,10 +12,10 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
     }
     uint public constant TIMELOCK_PERIOD = 3 days;
 
-    bool isRecovering;
-    address newSignerCandidate;
+    bool public isRecovering;
+    address public newSignerCandidate;
     mapping(address => GuardianStatus) public guardians;
-    uint timelock;
+    uint public timelock;
 
     modifier onlyNotRecoveringOwner() {
         require(msg.sender == owner(), "only owner");
