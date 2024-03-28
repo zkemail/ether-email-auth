@@ -11,8 +11,6 @@ use ethers::utils::hex::FromHex;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-use tokio::sync::mpsc::UnboundedSender;
-
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
@@ -30,10 +28,10 @@ pub async fn handle_email<P: EmailsPool>(
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&from_addr);
     trace!(LOG, "From address: {}", from_addr; "func" => function_name!());
     check_and_update_dkim(&email, &parsed_email, &chain_client).await?;
-    if let Ok(invitation_code) = parsed_email.get_invitation_code() {
-        trace!(LOG, "Email with invitation code"; "func" => function_name!());
-        let account_key = AccountKey::from(hex2field(&format!("0x{}", invitation_code))?);
-        let stored_account_key = db.get_account_key(&from_addr).await?;
+    if let Ok(account_code) = parsed_email.get_account_code() {
+        trace!(LOG, "Email with account code"; "func" => function_name!());
+        let account_key = AccountKey::from(hex2field(&format!("0x{}", account_code))?);
+        let stored_account_key = db.get_account_code_from_email(&from_addr).await?;
         if let Some(stored_account_key) = stored_account_key.as_ref() {
             if stored_account_key != &field2hex(&account_key.0) {
                 return Err(anyhow!(
@@ -413,42 +411,6 @@ pub fn calculate_default_hash(input: &str) -> String {
     let hash_code = hasher.finish();
 
     hash_code.to_string()
-}
-
-pub async fn select_fee_token(
-    wallet_salt: &WalletSalt,
-    chain_client: &Arc<ChainClient>,
-) -> Result<String> {
-    let eth_balance = match chain_client
-        .query_user_erc20_balance(wallet_salt, "ETH")
-        .await
-    {
-        Ok(balance) => balance,
-        Err(_) => U256::from(0),
-    };
-    let dai_balance = match chain_client
-        .query_user_erc20_balance(wallet_salt, "DAI")
-        .await
-    {
-        Ok(balance) => balance,
-        Err(_) => U256::from(0),
-    };
-    let usdc_balance = match chain_client
-        .query_user_erc20_balance(wallet_salt, "USDC")
-        .await
-    {
-        Ok(balance) => balance,
-        Err(_) => U256::from(0),
-    };
-    let usdc_balance = usdc_balance * (10u64.pow(18 - 6));
-    let max = eth_balance.max(dai_balance).max(usdc_balance);
-    if max == eth_balance {
-        Ok("ETH".to_string())
-    } else if max == dai_balance {
-        Ok("DAI".to_string())
-    } else {
-        Ok("USDC".to_string())
-    }
 }
 
 #[named]

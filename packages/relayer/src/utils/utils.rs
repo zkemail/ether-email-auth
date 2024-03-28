@@ -156,7 +156,7 @@ pub async fn generate_account_creation_input(
     let sender_email_idx = parsed_email.get_from_addr_idxes().unwrap();
     let domain_idx = parsed_email.get_email_domain_idxes().unwrap();
     let subject_idx = parsed_email.get_subject_all_idxes().unwrap();
-    let code_idx = parsed_email.get_invitation_code_idxes().unwrap();
+    let code_idx = parsed_email.get_account_code_idxes().unwrap();
     let timestamp_idx = parsed_email.get_timestamp_idxes().unwrap();
 
     let account_creation_input = AccountCreationInput {

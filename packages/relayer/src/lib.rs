@@ -107,7 +107,7 @@ pub async fn run(
 
     let (tx_handler, mut rx_handler) = tokio::sync::mpsc::unbounded_channel::<String>();
     let (tx_sender, mut rx_sender) = tokio::sync::mpsc::unbounded_channel::<EmailMessage>();
-    let (tx_event_consumer, mut rx_event_consumer) = tokio::sync::mpsc::unbounded_channel();
+    let (event_consumer, mut rx_event_consumer) = tokio::sync::mpsc::unbounded_channel();
     let db = DB.clone();
     let client = CLIENT.clone();
 
@@ -157,7 +157,7 @@ pub async fn run(
         anyhow::Ok(())
     });
 
-    let tx_event_consumer_for_email_task = tx_event_consumer.clone();
+    let event_consumer_for_email_task = event_consumer.clone();
     let db_clone = Arc::clone(&db);
     let client_clone = Arc::clone(&client);
     let email_handler_task = tokio::task::spawn(async move {
@@ -166,7 +166,7 @@ pub async fn run(
                 &mut rx_handler,
                 Arc::clone(&db_clone),
                 Arc::clone(&client_clone),
-                tx_event_consumer_for_email_task.clone(),
+                event_consumer_for_email_task.clone(),
             )
             .await
             {
@@ -180,12 +180,14 @@ pub async fn run(
         anyhow::Ok(())
     });
 
+    let event_consumer_for_api_server = event_consumer.clone();
     let api_server_task = tokio::task::spawn(
         run_server(
             WEB_SERVER_ADDRESS.get().unwrap(),
             Arc::clone(&db),
             Arc::clone(&client),
             email_forward_sender.clone(),
+            event_consumer_for_api_server,
         )
         .map_err(|err| error!(LOG, "Error api server: {}", err; "func" => function_name!())),
     );
@@ -274,7 +276,7 @@ async fn email_handler_fn(
     rx_handler: &mut UnboundedReceiver<String>,
     db_clone: Arc<Database>,
     client_clone: Arc<ChainClient>,
-    tx_event_consumer: UnboundedSender<EmailAuthEvent>,
+    event_consumer: UnboundedSender<EmailAuthEvent>,
     // tx_creator_for_email_task: &UnboundedSender<(String, Option<AccountKey>)>,
 ) -> Result<()> {
     let email_hash = rx_handler
@@ -302,7 +304,7 @@ async fn email_handler_fn(
             EmailAuthEvent::Error { email_addr, error }
         }
     };
-    tx_event_consumer.send(event)?;
+    event_consumer.send(event)?;
     anyhow::Ok(())
 }
 

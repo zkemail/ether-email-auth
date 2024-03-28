@@ -183,6 +183,21 @@ impl Database {
         }
     }
 
+    pub(crate) async fn get_account_code_from_email(&self, email: &str) -> Result<Option<String>> {
+        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
+            .bind(email)
+            .fetch_optional(&self.db)
+            .await?;
+
+        match row {
+            Some(row) => {
+                let account_code: String = row.get("account_code");
+                Ok(Some(account_code))
+            }
+            None => Ok(None),
+        }
+    }
+
     #[named]
     pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());

@@ -99,21 +99,19 @@ impl ParsedEmail {
         Ok(idxes)
     }
 
-    pub fn get_invitation_code(&self) -> Result<String> {
-        let regex_config = serde_json::from_str(include_str!(
-            "../../circuits/src/regexes/invitation_code.json"
-        ))
-        .unwrap();
+    pub fn get_account_code(&self) -> Result<String> {
+        let regex_config =
+            serde_json::from_str(include_str!("../../circuits/src/regexes/account_code.json"))
+                .unwrap();
         let idxes = extract_substr_idxes(&self.canonicalized_header, &regex_config)?[0];
         let str = self.canonicalized_header[idxes.0..idxes.1].to_string();
         Ok(str)
     }
 
-    pub fn get_invitation_code_idxes(&self) -> Result<(usize, usize)> {
-        let regex_config = serde_json::from_str(include_str!(
-            "../../circuits/src/regexes/invitation_code.json"
-        ))
-        .unwrap();
+    pub fn get_account_code_idxes(&self) -> Result<(usize, usize)> {
+        let regex_config =
+            serde_json::from_str(include_str!("../../circuits/src/regexes/account_code.json"))
+                .unwrap();
         let idxes = extract_substr_idxes(&self.canonicalized_header, &regex_config)?[0];
         Ok(idxes)
     }

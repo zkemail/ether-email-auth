@@ -8,6 +8,7 @@ pub async fn run_server(
     db: Arc<Database>,
     chain_client: Arc<ChainClient>,
     email_sender: EmailForwardSender,
+    event_consumer: UnboundedSender<EmailAuthEvent>,
 ) -> Result<()> {
     let chain_client = Arc::clone(&chain_client);
 
@@ -67,6 +68,7 @@ pub async fn run_server(
                             db.clone(),
                             email_sender.clone(),
                             chain_client.clone(),
+                            event_consumer.clone(),
                         )
                         .await;
                         Ok::<_, axum::response::Response>(acceptance_response)

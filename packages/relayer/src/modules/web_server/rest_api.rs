@@ -83,6 +83,7 @@ pub async fn handle_acceptance_request(
     db: Arc<Database>,
     email_sender: EmailForwardSender,
     chain_client: Arc<ChainClient>,
+    event_consumer: UnboundedSender<EmailAuthEvent>,
 ) -> Response<Body> {
     if !chain_client
         .is_wallet_deployed(&payload.wallet_eth_addr)
@@ -138,12 +139,11 @@ pub async fn handle_acceptance_request(
             account_salt: None,
         })
         .await;
-        // send_error_email(
-        //     &email_sender,
-        //     &payload.guardian_email_addr,
-        //     &payload.wallet_eth_addr,
-        // )
-        // .await;
+
+        event_consumer.send(EmailAuthEvent::GuardianAlreadyExists {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+        });
     } else {
         db.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
@@ -165,7 +165,11 @@ pub async fn handle_acceptance_request(
             account_salt: None,
         });
 
-        // send_guardian_email(&email_sender, &payload, &request_id).await;
+        event_consumer.send(EmailAuthEvent::Acceptance {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id: request_id.clone(),
+        });
     }
 
     Response::builder()
