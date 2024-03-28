@@ -6,7 +6,7 @@ use chrono::{DateTime, Local};
 use ethers::abi::{self, Token};
 use ethers::types::{Bytes, U256};
 use serde::Deserialize;
-use std::hash::{Hash,Hasher};
+use std::hash::{Hash, Hasher};
 
 use std::collections::hash_map::DefaultHasher;
 use std::path::{Path, PathBuf};
