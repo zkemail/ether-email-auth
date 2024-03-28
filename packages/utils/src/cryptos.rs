@@ -4,7 +4,7 @@ use halo2curves::ff::Field;
 use neon::prelude::*;
 use poseidon_rs::*;
 use rand_core::{OsRng, RngCore};
-pub use zk_regex_apis::padding::{pad_string, pad_string_node};
+pub use zk_regex_apis::padding::pad_string;
 
 pub const MAX_EMAIL_ADDR_BYTES: usize = 256;
 
@@ -19,7 +19,7 @@ impl PaddedEmailAddr {
         let email_addr_len = email_addr.as_bytes().len();
         // let mut padded_bytes = email_addr.as_bytes().to_vec();
         // padded_bytes.append(&mut vec![0; MAX_EMAIL_ADDR_BYTES - email_addr_len]);
-        let padded_bytes = pad_string(email_addr, MAX_EMAIL_ADDR_BYTES);
+        let padded_bytes = pad_string(email_addr, MAX_EMAIL_ADDR_BYTES).to_vec();
         Self {
             padded_bytes,
             email_addr_len,
@@ -29,6 +29,26 @@ impl PaddedEmailAddr {
     pub fn to_email_addr_fields(&self) -> Vec<Fr> {
         bytes2fields(&self.padded_bytes)
     }
+
+    pub fn to_commitment(&self, rand: &Fr) -> Result<Fr, PoseidonError> {
+        let mut inputs = vec![*rand];
+        inputs.append(&mut self.to_email_addr_fields());
+        poseidon_fields(&inputs)
+    }
+
+    pub fn to_commitment_with_signature(&self, signature: &[u8]) -> Result<Fr, PoseidonError> {
+        let cm_rand = extract_rand_from_signature(signature)?;
+        poseidon_fields(&[vec![cm_rand], self.to_email_addr_fields()].concat())
+    }
+}
+
+pub fn extract_rand_from_signature(signature: &[u8]) -> Result<Fr, PoseidonError> {
+    let mut signature = signature.to_vec();
+    signature.reverse();
+    let mut inputs = bytes_chunk_fields(&signature, 121, 2);
+    inputs.push(Fr::one());
+    let cm_rand = poseidon_fields(&inputs)?;
+    Ok(cm_rand)
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -132,4 +152,49 @@ pub fn email_nullifier_node(mut cx: FunctionContext) -> JsResult<JsString> {
     };
     let nullifier_str = field2hex(&nullifier);
     Ok(cx.string(nullifier_str))
+}
+
+pub fn email_addr_commit_node(mut cx: FunctionContext) -> JsResult<JsString> {
+    let email_addr = cx.argument::<JsString>(0)?.value(&mut cx);
+    let rand = cx.argument::<JsString>(1)?.value(&mut cx);
+    let rand = hex2field_node(&mut cx, &rand)?;
+    let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
+    let email_addr_commit = match padded_email_addr.to_commitment(&rand) {
+        Ok(fr) => fr,
+        Err(e) => return cx.throw_error(&format!("EmailAddrCommit failed: {}", e)),
+    };
+    let email_addr_commit_str = field2hex(&email_addr_commit);
+    Ok(cx.string(email_addr_commit_str))
+}
+
+pub fn email_addr_commit_with_signature_node(mut cx: FunctionContext) -> JsResult<JsString> {
+    let email_addr = cx.argument::<JsString>(0)?.value(&mut cx);
+    let signature = cx.argument::<JsString>(1)?.value(&mut cx);
+    let signature = match hex::decode(&signature[2..]) {
+        Ok(bytes) => bytes,
+        Err(e) => return cx.throw_error(&format!("signature is an invalid hex string: {}", e)),
+    };
+    // signature.reverse();
+    let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
+    let email_addr_commit = match padded_email_addr.to_commitment_with_signature(&signature) {
+        Ok(fr) => fr,
+        Err(e) => return cx.throw_error(&format!("EmailAddrCommit failed: {}", e)),
+    };
+    let email_addr_commit_str = field2hex(&email_addr_commit);
+    Ok(cx.string(email_addr_commit_str))
+}
+
+pub fn extract_rand_from_signature_node(mut cx: FunctionContext) -> JsResult<JsString> {
+    let signature = cx.argument::<JsString>(0)?.value(&mut cx);
+    let signature = match hex::decode(&signature[2..]) {
+        Ok(bytes) => bytes,
+        Err(e) => return cx.throw_error(&format!("signature is an invalid hex string: {}", e)),
+    };
+    // signature.reverse();
+    let rand = match extract_rand_from_signature(&signature) {
+        Ok(fr) => fr,
+        Err(e) => return cx.throw_error(&format!("extract_rand_from_signature failed: {}", e)),
+    };
+    let rand_str = field2hex(&rand);
+    Ok(cx.string(rand_str))
 }
