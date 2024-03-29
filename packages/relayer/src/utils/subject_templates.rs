@@ -5,8 +5,9 @@ use crate::*;
 use ethers::abi::{self, Token};
 use ethers::types::{Address, Bytes, I256, U256};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TemplateValue {
     String(String),
     Uint(U256),

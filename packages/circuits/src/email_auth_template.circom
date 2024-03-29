@@ -14,8 +14,8 @@ include "./utils/bytes2ints.circom";
 include "./utils/digit2int.circom";
 include "./utils/hex2int.circom";
 include "./utils/email_addr_commit.circom";
-include "./regexes/account_code_with_prefix_regex.circom";
-include "./regexes/account_code_regex.circom";
+include "./regexes/invitation_code_with_prefix_regex.circom";
+include "./regexes/invitation_code_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/from_addr_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/email_addr_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/email_domain_regex.circom";
@@ -52,7 +52,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
         k2_chunked_size += 1;
     }
     var timestamp_len = timestamp_len_const();
-    var code_len = account_code_len_const();
+    var code_len = invitation_code_len_const();
 
 
     signal output domain_name[domain_filed_len];
@@ -110,7 +110,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     timestamp <== timestamp_regex_out * raw_timestamp;
     
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_subject_bytes];
-    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== AccountCodeWithPrefixRegex(max_subject_bytes)(subject_all);
+    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_subject_bytes)(subject_all);
     is_code_exist <== IsZero()(prefixed_code_regex_out-1);
     signal removed_code[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
@@ -131,7 +131,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
 
     // INVITATION CODE REGEX
     signal code_regex_out, code_regex_reveal[max_header_bytes];
-    (code_regex_out, code_regex_reveal) <== AccountCodeRegex(max_header_bytes)(padded_header);
+    (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_header_bytes)(padded_header);
     signal code_consistency <== IsZero()(is_code_exist * (1 - code_regex_out));
     code_consistency === 1;
     signal replaced_code_regex_reveal[max_header_bytes];
@@ -143,11 +143,11 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
         }
     }
     signal shifted_code_hex[code_len] <== VarShiftMaskedStr(max_header_bytes, code_len)(replaced_code_regex_reveal, code_idx);
-    signal account_code_hex[code_len];
+    signal invitation_code_hex[code_len];
     for(var i=0; i<code_len; i++) {
-        account_code_hex[i] <== is_code_exist * (shifted_code_hex[i] - 48) + 48;
+        invitation_code_hex[i] <== is_code_exist * (shifted_code_hex[i] - 48) + 48;
     }
-    signal embedded_account_code <== Hex2Field()(account_code_hex);
+    signal embedded_account_code <== Hex2Field()(invitation_code_hex);
     is_code_exist * (embedded_account_code - account_code) === 0;
 
     // Account salt

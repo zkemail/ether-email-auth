@@ -97,12 +97,18 @@ impl ChainClient {
         !code.is_empty()
     }
 
-    pub async fn get_subject_template(&self, template_idx: u64) -> Result<Vec<String>> {
-        let template = self
-            .email_auth
-            .get_subject_template(template_idx.into())
+    pub async fn get_acceptance_subject_templates(
+        &self,
+        wallet_addr: &String,
+        template_idx: u64,
+    ) -> Result<Vec<String>, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let templates = contract
+            .acceptance_subject_templates()
             .call()
-            .await?;
-        Ok(template)
+            .await
+            .map_err(|e| anyhow::Error::from(e))?;
+        Ok(templates[template_idx as usize].clone())
     }
 }

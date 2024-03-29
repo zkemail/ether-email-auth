@@ -102,7 +102,32 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
 
             sender.send(email)?;
         }
-        EmailAuthEvent::Error { email_addr, error } => todo!(),
+        EmailAuthEvent::Error { email_addr, error } => {
+            let subject = "Error";
+            let body_plain = format!(
+                "An error occurred while processing your request. \
+                If you did not initiate this request, please contact us immediately. \
+                Error: {}",
+                error
+            );
+
+            let render_data = serde_json::json!({
+                "error": error,
+            });
+            let body_html = render_html("error.html", render_data).await?;
+
+            let email = EmailMessage {
+                to: email_addr,
+                subject: subject.to_string(),
+                reference: None,
+                reply_to: None,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
+
+            sender.send(email)?;
+        }
         EmailAuthEvent::GuardianAlreadyExists {
             wallet_eth_addr,
             guardian_email_addr,

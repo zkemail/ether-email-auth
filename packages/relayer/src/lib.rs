@@ -38,7 +38,6 @@ use tokio::time::{sleep, Duration};
 
 pub static CIRCUITS_DIR_PATH: OnceLock<PathBuf> = OnceLock::new();
 pub static WEB_SERVER_ADDRESS: OnceLock<String> = OnceLock::new();
-pub static RELAYER_RAND: OnceLock<String> = OnceLock::new();
 pub static PROVER_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static PRIVATE_KEY: OnceLock<String> = OnceLock::new();
 pub static CHAIN_ID: OnceLock<u32> = OnceLock::new();
@@ -102,12 +101,9 @@ pub async fn run(
         .set(config.smtp_config.id.clone())
         .unwrap();
 
-    let relayer_rand = derive_relayer_rand(PRIVATE_KEY.get().unwrap())?;
-    RELAYER_RAND.set(field2hex(&relayer_rand.0)).unwrap();
-
     let (tx_handler, mut rx_handler) = tokio::sync::mpsc::unbounded_channel::<String>();
     let (tx_sender, mut rx_sender) = tokio::sync::mpsc::unbounded_channel::<EmailMessage>();
-    let (event_consumer, mut rx_event_consumer) = tokio::sync::mpsc::unbounded_channel();
+    let (tx_event_consumer, mut rx_event_consumer) = tokio::sync::mpsc::unbounded_channel();
     let db = DB.clone();
     let client = CLIENT.clone();
 
@@ -157,7 +153,7 @@ pub async fn run(
         anyhow::Ok(())
     });
 
-    let event_consumer_for_email_task = event_consumer.clone();
+    let tx_event_consumer_for_email_task = tx_event_consumer.clone();
     let db_clone = Arc::clone(&db);
     let client_clone = Arc::clone(&client);
     let email_handler_task = tokio::task::spawn(async move {
@@ -166,7 +162,7 @@ pub async fn run(
                 &mut rx_handler,
                 Arc::clone(&db_clone),
                 Arc::clone(&client_clone),
-                event_consumer_for_email_task.clone(),
+                tx_event_consumer_for_email_task.clone(),
             )
             .await
             {
@@ -180,14 +176,14 @@ pub async fn run(
         anyhow::Ok(())
     });
 
-    let event_consumer_for_api_server = event_consumer.clone();
+    let tx_event_consumer_for_api_server = tx_event_consumer.clone();
     let api_server_task = tokio::task::spawn(
         run_server(
             WEB_SERVER_ADDRESS.get().unwrap(),
             Arc::clone(&db),
             Arc::clone(&client),
             email_forward_sender.clone(),
-            event_consumer_for_api_server,
+            tx_event_consumer_for_api_server,
         )
         .map_err(|err| error!(LOG, "Error api server: {}", err; "func" => function_name!())),
     );

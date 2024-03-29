@@ -8,7 +8,7 @@ function domain_len_const() {
     return 255;
 }
 
-function account_code_len_const() {
+function invitation_code_len_const() {
     return 64;
 }
 

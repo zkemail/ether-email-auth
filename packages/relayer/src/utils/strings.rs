@@ -1,4 +1,5 @@
 // Config strings
+pub const EMAIL_ACCOUNT_RECOVERY_VERSION_ID: &str = env!("CARGO_PKG_VERSION");
 pub const IMAP_DOMAIN_NAME_KEY: &str = "IMAP_DOMAIN_NAME";
 pub const IMAP_PORT_KEY: &str = "IMAP_PORT";
 pub const IMAP_AUTH_TYPE_KEY: &str = "AUTH_TYPE";

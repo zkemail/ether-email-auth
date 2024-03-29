@@ -223,6 +223,40 @@ impl Database {
         Ok(())
     }
 
+    pub(crate) async fn get_request_status(&self, request_id: &str) -> Result<Option<Request>> {
+        let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
+            .bind(request_id)
+            .fetch_optional(&self.db)
+            .await?;
+
+        match row {
+            Some(row) => {
+                let request_id: String = row.get("request_id");
+                let wallet_eth_addr: String = row.get("wallet_eth_addr");
+                let guardian_email_addr: String = row.get("guardian_email_addr");
+                let is_for_recovery: bool = row.get("is_for_recovery");
+                let template_idx: u64 = row.get::<i64, _>("template_idx") as u64;
+                let is_processed: bool = row.get("is_processed");
+                let is_success: Option<bool> = row.get("is_success");
+                let email_nullifier: Option<String> = row.get("email_nullifier");
+                let account_salt: Option<String> = row.get("account_salt");
+                let requests_row = Request {
+                    request_id,
+                    wallet_eth_addr,
+                    guardian_email_addr,
+                    is_for_recovery,
+                    template_idx,
+                    is_processed,
+                    is_success,
+                    email_nullifier,
+                    account_salt,
+                };
+                Ok(Some(requests_row))
+            }
+            None => Ok(None),
+        }
+    }
+
     #[named]
     pub(crate) async fn request_completed(
         &self,

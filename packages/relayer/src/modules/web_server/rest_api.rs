@@ -38,7 +38,7 @@ pub struct AcceptanceRequest {
 #[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
     pub request_id: String,
-    pub subject_params: Vec<String>,
+    pub subject_params: Vec<TemplateValue>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -52,7 +52,7 @@ pub struct RecoveryRequest {
 #[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
     pub request_id: String,
-    pub subject_params: Vec<String>,
+    pub subject_params: Vec<TemplateValue>,
 }
 
 // Create request status API
@@ -83,7 +83,7 @@ pub async fn handle_acceptance_request(
     db: Arc<Database>,
     email_sender: EmailForwardSender,
     chain_client: Arc<ChainClient>,
-    event_consumer: UnboundedSender<EmailAuthEvent>,
+    tx_event_consumer: UnboundedSender<EmailAuthEvent>,
 ) -> Response<Body> {
     if !chain_client
         .is_wallet_deployed(&payload.wallet_eth_addr)
@@ -96,14 +96,13 @@ pub async fn handle_acceptance_request(
     }
 
     let subject_template = chain_client
-        .get_subject_template(payload.template_idx)
+        .get_acceptance_subject_templates(&payload.wallet_eth_addr, payload.template_idx)
         .await
         .unwrap();
 
-    let (is_valid, subject_params) =
-        parse_subject_with_template(&payload.subject, subject_template);
+    let subject_params = extract_template_vals(&payload.subject, subject_template);
 
-    if !is_valid {
+    if subject_params.is_err() {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Invalid subject"))
@@ -140,7 +139,7 @@ pub async fn handle_acceptance_request(
         })
         .await;
 
-        event_consumer.send(EmailAuthEvent::GuardianAlreadyExists {
+        tx_event_consumer.send(EmailAuthEvent::GuardianAlreadyExists {
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
         });
@@ -165,7 +164,7 @@ pub async fn handle_acceptance_request(
             account_salt: None,
         });
 
-        event_consumer.send(EmailAuthEvent::Acceptance {
+        tx_event_consumer.send(EmailAuthEvent::Acceptance {
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id: request_id.clone(),
@@ -177,38 +176,9 @@ pub async fn handle_acceptance_request(
         .body(Body::from(
             serde_json::to_string(&AcceptanceResponse {
                 request_id,
-                subject_params,
+                subject_params: subject_params.unwrap(),
             })
             .unwrap(),
         ))
         .unwrap()
-}
-
-fn parse_subject_with_template(subject: &str, template: Vec<String>) -> (bool, Vec<String>) {
-    let mut parsed_values = Vec::new();
-    let subject_parts: Vec<&str> = subject.split_whitespace().collect();
-    let mut template_index = 0;
-    let mut subject_index = 0;
-
-    while template_index < template.len() && subject_index < subject_parts.len() {
-        if template[template_index].starts_with('{') && template[template_index].ends_with('}') {
-            // Extract the parameter value and add it to the vector
-            parsed_values.push(subject_parts[subject_index].to_string());
-            template_index += 1;
-            subject_index += 1;
-        } else if template[template_index] == subject_parts[subject_index] {
-            template_index += 1;
-            subject_index += 1;
-        } else {
-            // If a non-parameter part of the template doesn't match the subject part, return false
-            return (false, Vec::new());
-        }
-    }
-
-    // If we've matched all parts of the template and the subject, return true and the parsed values
-    if template_index == template.len() && subject_index == subject_parts.len() {
-        (true, parsed_values)
-    } else {
-        (false, Vec::new())
-    }
 }

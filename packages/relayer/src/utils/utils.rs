@@ -156,7 +156,7 @@ pub async fn generate_account_creation_input(
     let sender_email_idx = parsed_email.get_from_addr_idxes().unwrap();
     let domain_idx = parsed_email.get_email_domain_idxes().unwrap();
     let subject_idx = parsed_email.get_subject_all_idxes().unwrap();
-    let code_idx = parsed_email.get_account_code_idxes().unwrap();
+    let code_idx = parsed_email.get_invitation_code_idxes().unwrap();
     let timestamp_idx = parsed_email.get_timestamp_idxes().unwrap();
 
     let account_creation_input = AccountCreationInput {
@@ -226,10 +226,6 @@ pub async fn generate_proof(
     Ok((proof, pub_signals))
 }
 
-pub fn get_psi_point_bytes(x: U256, y: U256) -> Bytes {
-    Bytes::from(abi::encode(&[Token::Uint(x), Token::Uint(y)]))
-}
-
 pub fn u256_to_bytes32(x: &U256) -> [u8; 32] {
     let mut bytes = [0u8; 32];
     x.to_big_endian(&mut bytes);
@@ -259,15 +255,4 @@ pub fn bytes32_to_fr(bytes32: &[u8; 32]) -> Result<Fr> {
     let hex: String = "0x".to_string() + &hex::encode(bytes32);
     let field = hex2field(&hex)?;
     Ok(field)
-}
-
-pub fn now() -> i64 {
-    let dt: DateTime<Local> = Local::now();
-    dt.timestamp()
-}
-
-pub fn derive_relayer_rand(private_key: &str) -> Result<RelayerRand> {
-    let mut seed = hex::decode(&private_key[2..])?;
-    seed.append(&mut b"EMAIL WALLET RELAYER RAND".to_vec());
-    Ok(RelayerRand::new_from_seed(&seed)?)
 }
