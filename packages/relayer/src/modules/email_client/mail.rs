@@ -81,15 +81,16 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             }
 
             let body_plain = format!(
-                "You have received an acceptance request from the wallet address {}. \
-                Your request ID is {}. \
+                "You have received an guardian request from the wallet address {}. \
+                Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
                 wallet_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
-                "wallet_eth_addr": wallet_eth_addr,
-                "request_id": request_id,
+                "userEmailAddr": guardian_email_addr,
+                "walletAddress": wallet_eth_addr,
+                "requestId": request_id,
             });
             let body_html = render_html("acceptance_request.html", render_data).await?;
 
@@ -109,13 +110,13 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             let subject = "Error";
             let body_plain = format!(
                 "An error occurred while processing your request. \
-                If you did not initiate this request, please contact us immediately. \
                 Error: {}",
                 error
             );
 
             let render_data = serde_json::json!({
                 "error": error,
+                "userEmailAddr": email_addr,
             });
             let body_html = render_html("error.html", render_data).await?;
 
@@ -143,8 +144,8 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             );
 
             let render_data = serde_json::json!({
-                "wallet_eth_addr": wallet_eth_addr,
-                "guardian_email_addr": guardian_email_addr,
+                "walletAddress": wallet_eth_addr,
+                "userEmailAddr": guardian_email_addr,
             });
             let body_html = render_html("guardian_already_exists.html", render_data).await?;
 

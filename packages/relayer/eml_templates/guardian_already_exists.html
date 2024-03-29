@@ -3,7 +3,7 @@
   <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Email Wallet</title>
+    <title>Email Auth</title>
   </head>
   <body
     style="
@@ -31,7 +31,7 @@
         visibility: hidden;
         width: 0;
       "
-      >Confirm Your Email Wallet Account Creation</span
+      >Guardian Already Set</span
     >
     <table
       role="presentation"
@@ -155,7 +155,7 @@
                             margin-bottom: 15px;
                           "
                         >
-                          Welcome, {{userEmailAddr}}!
+                          Hi, {{userEmailAddr}}!
                         </p>
                         <p
                           style="
@@ -166,8 +166,9 @@
                             margin-bottom: 15px;
                           "
                         >
-                          To create your email wallet, <strong> you must reply "confirm" to this email. </strong> If you
-                          did not make this request, feel free to ignore this email.
+                        The guardian email address <strong>{{userEmailAddr}}</strong> is already associated with the wallet address <strong>{{walletAddress}}</strong>.
+                        <br><br>
+                        If you did not initiate this request, please contact us immediately.
                         </p>
                       </td>
                     </tr>
