@@ -47,7 +47,6 @@ pub static CHAIN_RPC_EXPLORER: OnceLock<String> = OnceLock::new();
 pub static CORE_CONTRACT_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static INPUT_FILES_DIR: OnceLock<String> = OnceLock::new();
 pub static EMAIL_TEMPLATES: OnceLock<String> = OnceLock::new();
-pub static SUBGRAPH_URL: OnceLock<String> = OnceLock::new();
 pub static RELAYER_EMAIL_ADDRESS: OnceLock<String> = OnceLock::new();
 
 lazy_static! {
@@ -96,7 +95,6 @@ pub async fn run(
     EMAIL_AUTH_ADDRESS.set(config.email_auth_address).unwrap();
     INPUT_FILES_DIR.set(config.input_files_dir).unwrap();
     EMAIL_TEMPLATES.set(config.email_templates).unwrap();
-    SUBGRAPH_URL.set(config.subgraph_url).unwrap();
     RELAYER_EMAIL_ADDRESS
         .set(config.smtp_config.id.clone())
         .unwrap();

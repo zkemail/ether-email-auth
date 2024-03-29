@@ -6,12 +6,6 @@ use crate::*;
 use ethers::utils::keccak256;
 use relayer_utils::*;
 
-use ethers::types::{Address, Bytes, U256};
-use ethers::utils::hex::FromHex;
-
-use std::collections::hash_map::DefaultHasher;
-use std::hash::{Hash, Hasher};
-
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
@@ -28,7 +22,8 @@ pub async fn handle_email<P: EmailsPool>(
     let guardian_email_addr = parsed_email.get_from_addr()?;
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let subject = parsed_email.get_subject_all()?;
-    let request_decomposed_def = serde_json::from_str(include_str!("./request_def.json"))?;
+    let request_decomposed_def =
+        serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
     let request_idxes = extract_substr_idxes(&subject, &request_decomposed_def)?;
     if request_idxes.is_empty() {
         bail!(WRONG_SUBJECT_FORMAT);
@@ -126,63 +121,4 @@ pub async fn handle_email<P: EmailsPool>(
             });
         }
     }
-}
-
-pub fn calculate_default_hash(input: &str) -> String {
-    let mut hasher = DefaultHasher::new();
-    input.hash(&mut hasher);
-    let hash_code = hasher.finish();
-
-    hash_code.to_string()
-}
-
-#[named]
-pub async fn check_and_update_dkim(
-    email: &str,
-    parsed_email: &ParsedEmail,
-    chain_client: &Arc<ChainClient>,
-) -> Result<()> {
-    let mut public_key_n = parsed_email.public_key.clone();
-    public_key_n.reverse();
-    let public_key_hash = public_key_hash(&public_key_n)?;
-    info!(LOG, "public_key_hash {:?}", public_key_hash; "func" => function_name!());
-    let domain = parsed_email.get_email_domain()?;
-    info!(LOG, "domain {:?}", domain; "func" => function_name!());
-    if chain_client
-        .check_if_dkim_public_key_hash_valid(domain.clone(), fr_to_bytes32(&public_key_hash)?)
-        .await?
-    {
-        info!(LOG, "public key registered"; "func" => function_name!());
-        return Ok(());
-    }
-    let selector_decomposed_def =
-        serde_json::from_str(include_str!("./selector_def.json")).unwrap();
-    let selector = {
-        let idxes =
-            extract_substr_idxes(&parsed_email.canonicalized_header, &selector_decomposed_def)?[0];
-        let str = parsed_email.canonicalized_header[idxes.0..idxes.1].to_string();
-        str
-    };
-    info!(LOG, "selector {}", selector; "func" => function_name!());
-    let ic_agent = DkimOracleClient::gen_agent(
-        &env::var(PEM_PATH_KEY).unwrap(),
-        &env::var(IC_REPLICA_URL_KEY).unwrap(),
-    )?;
-    let oracle_client = DkimOracleClient::new(&env::var(CANISTER_ID_KEY).unwrap(), &ic_agent)?;
-    let oracle_result = oracle_client.request_signature(&selector, &domain).await?;
-    info!(LOG, "DKIM oracle result {:?}", oracle_result; "func" => function_name!());
-    let public_key_hash = hex::decode(&oracle_result.public_key_hash[2..])?;
-    info!(LOG, "public_key_hash from oracle {:?}", public_key_hash; "func" => function_name!());
-    let signature = Bytes::from_hex(&oracle_result.signature[2..])?;
-    info!(LOG, "signature {:?}", signature; "func" => function_name!());
-    let tx_hash = chain_client
-        .set_dkim_public_key_hash(
-            selector,
-            domain,
-            TryInto::<[u8; 32]>::try_into(public_key_hash).unwrap(),
-            signature,
-        )
-        .await?;
-    info!(LOG, "DKIM registry updated {:?}", tx_hash; "func" => function_name!());
-    Ok(())
 }

@@ -17,16 +17,7 @@ pub enum TemplateValue {
     Fixed(String),
 }
 
-pub(crate) const STRING_RGEX: &str = ".+";
-pub(crate) const UINT_REGEX: &str = "[0-9]+";
-pub(crate) const INT_REGEX: &str = "-?[0-9]+";
-pub(crate) const DECIMALS_REGEX: &str = "[0-9]+(\\.[0-9]+)?";
-pub(crate) const ETH_ADDR_REGEX: &str = "0x[0-9a-fA-F]{40}";
-// pub(crate) const EMAIL_ADDR_REGEX: &str =
-//     "[a-zA-Z0-9!#$%&'\\*\\+-/=\\?^_`{\\|}~\\.]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9\\.-]+";
-
 impl TemplateValue {
-    #[named]
     pub fn abi_encode(&self, decimal_size: Option<u8>) -> Result<Bytes> {
         match self {
             Self::String(string) => Ok(Bytes::from(abi::encode(&[Token::String(string.clone())]))),

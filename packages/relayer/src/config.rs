@@ -19,7 +19,6 @@ pub struct RelayerConfig {
     pub email_auth_address: String,
     pub input_files_dir: String,
     pub email_templates: String,
-    pub subgraph_url: String,
 }
 
 impl RelayerConfig {
@@ -58,8 +57,6 @@ impl RelayerConfig {
 
         let input_files_dir = env::var(INPUT_FILES_DIR_KEY).unwrap();
 
-        let subgraph_url = env::var(SUBGRAPH_URL_KEY).unwrap();
-
         Self {
             imap_config,
             smtp_config,
@@ -74,7 +71,6 @@ impl RelayerConfig {
             email_auth_address: env::var(EMAIL_AUTH_ADDRESS_KEY).unwrap(),
             input_files_dir,
             email_templates: env::var(EMAIL_TEMPLATES_PATH_KEY).unwrap(),
-            subgraph_url,
         }
     }
 }

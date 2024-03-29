@@ -76,28 +76,14 @@ impl SmtpClient {
     }
 
     pub async fn send_new_email(&self, email: EmailMessage) -> Result<()> {
-        self.send_inner(
-            email.to,
-            email.subject,
-            email.reference,
-            email.reply_to,
-            email.body_plain,
-            email.body_html,
-            email.body_attachments,
-        )
-        .await
-    }
+        let to = email.to;
+        let subject = email.subject;
+        let reference = email.reference;
+        let reply_to = email.reply_to;
+        let body_plain = email.body_plain;
+        let body_html = email.body_html;
+        let body_attachments = email.body_attachments;
 
-    async fn send_inner(
-        &self,
-        to: String,
-        subject: String,
-        reference: Option<String>,
-        reply_to: Option<String>,
-        body_plain: String,
-        body_html: String,
-        body_attachments: Option<Vec<EmailAttachment>>,
-    ) -> Result<()> {
         let from_mbox = Mailbox::new(None, self.config.id.parse::<Address>()?);
         let to_mbox = Mailbox::new(None, to.parse::<Address>()?);
 

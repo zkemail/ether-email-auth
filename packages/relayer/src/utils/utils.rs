@@ -9,6 +9,8 @@ use relayer_utils::*;
 
 use ::serde::{Deserialize, Serialize};
 
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
 use std::path::Path;
 
 use tokio::fs::{read_to_string, remove_file};
@@ -255,4 +257,12 @@ pub fn bytes32_to_fr(bytes32: &[u8; 32]) -> Result<Fr> {
     let hex: String = "0x".to_string() + &hex::encode(bytes32);
     let field = hex2field(&hex)?;
     Ok(field)
+}
+
+pub fn calculate_default_hash(input: &str) -> String {
+    let mut hasher = DefaultHasher::new();
+    input.hash(&mut hasher);
+    let hash_code = hasher.finish();
+
+    hash_code.to_string()
 }
