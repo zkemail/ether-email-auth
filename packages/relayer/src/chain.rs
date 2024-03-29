@@ -111,4 +111,36 @@ impl ChainClient {
             .map_err(|e| anyhow::Error::from(e))?;
         Ok(templates[template_idx as usize].clone())
     }
+
+    pub async fn get_recovery_subject_templates(
+        &self,
+        wallet_addr: &String,
+        template_idx: u64,
+    ) -> Result<Vec<String>, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let templates = contract
+            .recovery_subject_templates()
+            .call()
+            .await
+            .map_err(|e| anyhow::Error::from(e))?;
+        Ok(templates[template_idx as usize].clone())
+    }
+
+    pub async fn complete_recovery(&self, wallet_addr: &String) -> Result<bool, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let call = contract.complete_recovery();
+        let tx = call.send().await?;
+        // If the transaction is successful, the function will return true and false otherwise.
+        let receipt = tx
+            .log()
+            .confirmations(CONFIRMATIONS)
+            .await?
+            .ok_or(anyhow!("No receipt"))?;
+        Ok(receipt
+            .status
+            .map(|status| status == U64::from(1))
+            .unwrap_or(false))
+    }
 }

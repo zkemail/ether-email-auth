@@ -1,18 +1,16 @@
 use crate::{
-    check_domain_sign_reply_to, error, hex2field, parse_error, render_html, split_email_address,
-    AccountKey, EmailForwardSender, EmailMessage, Future, RelayerConfig, Result,
-    CHAIN_RPC_EXPLORER, CLIENT, DB, LOG, RELAYER_EMAIL_ADDRESS,
+    check_domain_sign_reply_to, error, render_html, split_email_address, EmailForwardSender,
+    EmailMessage, Future, Result, DB, LOG, RELAYER_EMAIL_ADDRESS,
 };
 use anyhow::anyhow;
-use relayer_utils::cryptos::{PaddedEmailAddr, WalletSalt};
-use std::{pin::Pin, sync::atomic::Ordering};
+use std::pin::Pin;
 
 #[derive(Debug, Clone)]
 pub enum EmailAuthEvent {
     Acceptance {
         wallet_eth_addr: String,
         guardian_email_addr: String,
-        request_id: String,
+        request_id: u64,
     },
     GuardianAlreadyExists {
         wallet_eth_addr: String,
@@ -21,6 +19,11 @@ pub enum EmailAuthEvent {
     Error {
         email_addr: String,
         error: String,
+    },
+    Recovery {
+        wallet_eth_addr: String,
+        guardian_email_addr: String,
+        request_id: u64,
     },
 }
 
@@ -45,12 +48,12 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             guardian_email_addr,
             request_id,
         } => {
-            let account_code = DB.get_account_code_from_email(&wallet_eth_addr).await?;
-            let mut hex_account_code = String::new();
-            if let Some(code_str) = account_code {
+            let invitation_code = DB.get_invitation_code_from_email(&wallet_eth_addr).await?;
+            let mut hex_invitation_code = String::new();
+            if let Some(code_str) = invitation_code {
                 if let Ok(code) = u64::from_str_radix(&code_str, 16) {
                     // Assuming the code is in hexadecimal string form
-                    hex_account_code = format!("{:x}", code);
+                    hex_invitation_code = format!("{:x}", code);
                 } else {
                     return Err(anyhow!("Failed to parse account code"));
                 }
@@ -60,7 +63,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
 
             let mut subject = format!(
                 "Acceptance Request for {}. Code {}",
-                wallet_eth_addr, hex_account_code
+                wallet_eth_addr, hex_invitation_code
             );
             let relayer_email = split_email_address(RELAYER_EMAIL_ADDRESS.get().unwrap());
 
@@ -69,7 +72,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             if check_domain_sign_reply_to(&guardian_email_addr) {
                 if let Some((local_part, domain_part)) = relayer_email {
                     reply_to = Some(
-                        local_part.to_string() + "+code" + &hex_account_code + "@" + domain_part,
+                        local_part.to_string() + "+code" + &hex_invitation_code + "@" + domain_part,
                     );
                     subject = format!("Acceptance Request for {}", wallet_eth_addr);
                 } else {
@@ -157,6 +160,11 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
 
             sender.send(email)?;
         }
+        EmailAuthEvent::Recovery {
+            wallet_eth_addr,
+            guardian_email_addr,
+            request_id,
+        } => todo!(),
     }
 
     Ok(())

@@ -1,13 +1,13 @@
 use crate::*;
 use anyhow::Result;
-use axum::{body::Body, response::Response, Json};
+use axum::{body::Body, response::Response};
+use rand::Rng;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusRequest {
-    pub request_id: String,
+    pub request_id: u64,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -19,7 +19,7 @@ pub enum RequestStatus {
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusResponse {
-    pub request_id: String,
+    pub request_id: u64,
     pub status: RequestStatus,
     pub is_success: bool,
     pub email_nullifier: Option<String>,
@@ -37,7 +37,7 @@ pub struct AcceptanceRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
-    pub request_id: String,
+    pub request_id: u64,
     pub subject_params: Vec<TemplateValue>,
 }
 
@@ -51,13 +51,18 @@ pub struct RecoveryRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
-    pub request_id: String,
+    pub request_id: u64,
     pub subject_params: Vec<TemplateValue>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CompleteRecoveryRequest {
+    pub wallet_eth_addr: String,
 }
 
 // Create request status API
 pub async fn request_status_api(payload: RequestStatusRequest) -> Result<RequestStatusResponse> {
-    let row = DB.get_request(payload.request_id.clone()).await?;
+    let row = DB.get_request(payload.request_id).await?;
     let status = if let Some(ref row) = row {
         if row.is_processed {
             RequestStatus::Processed
@@ -116,11 +121,10 @@ pub async fn handle_acceptance_request(
             .unwrap();
     }
 
-    // let mut request_id = Uuid::new_v4().to_string();
-    let mut request_id = "ad".to_string();
-    // while let Ok(Some(request)) = db.get_request(&request_id).await {
-    //     request_id = Uuid::new_v4().to_string(); // Regenerate request_id if it already exists
-    // }
+    let mut request_id = rand::thread_rng().gen::<u64>();
+    while let Ok(Some(request)) = db.get_request(request_id).await {
+        request_id = rand::thread_rng().gen::<u64>();
+    }
 
     if db
         .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
@@ -137,12 +141,15 @@ pub async fn handle_acceptance_request(
             email_nullifier: None,
             account_salt: None,
         })
-        .await;
+        .await
+        .expect("Failed to insert request");
 
-        tx_event_consumer.send(EmailAuthEvent::GuardianAlreadyExists {
-            wallet_eth_addr: payload.wallet_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-        });
+        tx_event_consumer
+            .send(EmailAuthEvent::GuardianAlreadyExists {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+            })
+            .expect("Failed to send GuardianAlreadyExists event");
     } else {
         db.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
@@ -150,7 +157,8 @@ pub async fn handle_acceptance_request(
             guardian_email_addr: payload.guardian_email_addr.clone(),
             is_set: false,
         })
-        .await;
+        .await
+        .expect("Failed to insert credentials");
 
         db.insert_request(&Request {
             request_id: request_id.clone(),
@@ -162,13 +170,17 @@ pub async fn handle_acceptance_request(
             is_success: None,
             email_nullifier: None,
             account_salt: None,
-        });
+        })
+        .await
+        .expect("Failed to insert request");
 
-        tx_event_consumer.send(EmailAuthEvent::Acceptance {
-            wallet_eth_addr: payload.wallet_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            request_id: request_id.clone(),
-        });
+        tx_event_consumer
+            .send(EmailAuthEvent::Acceptance {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+                request_id,
+            })
+            .expect("Failed to send Acceptance event");
     }
 
     Response::builder()
@@ -181,4 +193,134 @@ pub async fn handle_acceptance_request(
             .unwrap(),
         ))
         .unwrap()
+}
+
+pub async fn handle_recovery_request(
+    payload: RecoveryRequest,
+    db: Arc<Database>,
+    email_sender: EmailForwardSender,
+    chain_client: Arc<ChainClient>,
+    tx_event_consumer: UnboundedSender<EmailAuthEvent>,
+) -> Response<Body> {
+    if !chain_client
+        .is_wallet_deployed(&payload.wallet_eth_addr)
+        .await
+    {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
+    }
+
+    let subject_template = chain_client
+        .get_recovery_subject_templates(&payload.wallet_eth_addr, payload.template_idx)
+        .await
+        .unwrap();
+
+    let subject_params = extract_template_vals(&payload.subject, subject_template);
+
+    if subject_params.is_err() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Invalid subject"))
+            .unwrap();
+    }
+
+    let mut request_id = rand::thread_rng().gen::<u64>();
+    while let Ok(Some(request)) = db.get_request(request_id).await {
+        request_id = rand::thread_rng().gen::<u64>();
+    }
+
+    if db
+        .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
+        .await
+    {
+        db.insert_request(&Request {
+            request_id: request_id.clone(),
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: true,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        tx_event_consumer
+            .send(EmailAuthEvent::GuardianAlreadyExists {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+            })
+            .expect("Failed to send GuardianAlreadyExists event");
+    } else {
+        db.insert_request(&Request {
+            request_id: request_id.clone(),
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: true,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        tx_event_consumer
+            .send(EmailAuthEvent::Recovery {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+                request_id,
+            })
+            .expect("Failed to send Recovery event");
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(
+            serde_json::to_string(&RecoveryResponse {
+                request_id,
+                subject_params: subject_params.unwrap(),
+            })
+            .unwrap(),
+        ))
+        .unwrap()
+}
+
+pub async fn handle_complete_recovery_request(
+    payload: CompleteRecoveryRequest,
+    db: Arc<Database>,
+    chain_client: Arc<ChainClient>,
+) -> Response<Body> {
+    if !chain_client
+        .is_wallet_deployed(&payload.wallet_eth_addr)
+        .await
+    {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
+    }
+
+    match chain_client
+        .complete_recovery(&payload.wallet_eth_addr)
+        .await
+    {
+        Ok(true) => Response::builder()
+            .status(StatusCode::OK)
+            .body(Body::from("Recovery completed"))
+            .unwrap(),
+        Ok(false) => Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Recovery failed"))
+            .unwrap(),
+        Err(_) => Response::builder()
+            .status(StatusCode::INTERNAL_SERVER_ERROR)
+            .body(Body::from("Internal server error"))
+            .unwrap(),
+    }
 }

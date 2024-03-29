@@ -34,7 +34,10 @@ pub async fn handle_email<P: EmailsPool>(
         bail!(WRONG_SUBJECT_FORMAT);
     }
     let request_id = &subject[request_idxes[0].0..request_idxes[0].1];
-    let request_record = db.get_request(request_id.to_string()).await?;
+    let request_id_u64 = request_id
+        .parse::<u64>()
+        .map_err(|e| anyhow!("Failed to parse request_id to u64: {}", e))?;
+    let request_record = db.get_request(request_id_u64).await?;
     if request_record.is_none() {
         return Ok(EmailAuthEvent::Error {
             email_addr: guardian_email_addr,
@@ -88,7 +91,7 @@ pub async fn handle_email<P: EmailsPool>(
             Ok(EmailAuthEvent::Acceptance {
                 wallet_eth_addr: request.wallet_eth_addr,
                 guardian_email_addr,
-                request_id: request_id.to_string(),
+                request_id: request_id_u64,
             })
         } else {
             return Ok(EmailAuthEvent::Error {
@@ -114,7 +117,7 @@ pub async fn handle_email<P: EmailsPool>(
             Ok(EmailAuthEvent::Acceptance {
                 wallet_eth_addr: request.wallet_eth_addr,
                 guardian_email_addr,
-                request_id: request_id.to_string(),
+                request_id: request_id_u64,
             })
         } else {
             return Ok(EmailAuthEvent::Error {

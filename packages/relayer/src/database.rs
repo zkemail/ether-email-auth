@@ -12,7 +12,7 @@ pub struct Credentials {
 
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub request_id: String,
+    pub request_id: u64,
     pub wallet_eth_addr: String,
     pub guardian_email_addr: String,
     pub is_for_recovery: bool,
@@ -54,7 +54,7 @@ impl Database {
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS requests (
-                request_id TEXT PRIMARY KEY,
+                request_id INT PRIMARY KEY,
                 wallet_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
                 random TEXT NOT NULL,
@@ -148,15 +148,15 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn get_request(&self, request_id: String) -> Result<Option<Request>> {
+    pub(crate) async fn get_request(&self, request_id: u64) -> Result<Option<Request>> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
-            .bind(request_id)
+            .bind(request_id as i64)
             .fetch_optional(&self.db)
             .await?;
 
         match row {
             Some(row) => {
-                let request_id: String = row.get("request_id");
+                let request_id: i64 = row.get("request_id");
                 let wallet_eth_addr: String = row.get("wallet_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
@@ -166,7 +166,7 @@ impl Database {
                 let email_nullifier: Option<String> = row.get("email_nullifier");
                 let account_salt: Option<String> = row.get("account_salt");
                 let requests_row = Request {
-                    request_id,
+                    request_id: request_id as u64,
                     wallet_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,
@@ -183,7 +183,10 @@ impl Database {
         }
     }
 
-    pub(crate) async fn get_account_code_from_email(&self, email: &str) -> Result<Option<String>> {
+    pub(crate) async fn get_invitation_code_from_email(
+        &self,
+        email: &str,
+    ) -> Result<Option<String>> {
         let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
             .bind(email)
             .fetch_optional(&self.db)
@@ -204,7 +207,7 @@ impl Database {
         let row = sqlx::query(
             "INSERT INTO requests (request_id, wallet_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
         )
-        .bind(&row.request_id)
+        .bind(row.request_id as i64)
         .bind(&row.wallet_eth_addr)
         .bind(&row.guardian_email_addr)
         .bind(row.is_for_recovery)
@@ -223,15 +226,15 @@ impl Database {
         Ok(())
     }
 
-    pub(crate) async fn get_request_status(&self, request_id: &str) -> Result<Option<Request>> {
+    pub(crate) async fn get_request_status(&self, request_id: u64) -> Result<Option<Request>> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
-            .bind(request_id)
+            .bind(request_id as i64)
             .fetch_optional(&self.db)
             .await?;
 
         match row {
             Some(row) => {
-                let request_id: String = row.get("request_id");
+                let request_id: i64 = row.get("request_id");
                 let wallet_eth_addr: String = row.get("wallet_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
@@ -241,7 +244,7 @@ impl Database {
                 let email_nullifier: Option<String> = row.get("email_nullifier");
                 let account_salt: Option<String> = row.get("account_salt");
                 let requests_row = Request {
-                    request_id,
+                    request_id: request_id as u64,
                     wallet_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,
@@ -260,7 +263,7 @@ impl Database {
     #[named]
     pub(crate) async fn request_completed(
         &self,
-        request_id: &str,
+        request_id: u64,
         email_nullifier: &str,
         account_salt: &str,
     ) -> Result<()> {
@@ -268,7 +271,7 @@ impl Database {
         let res = sqlx::query("UPDATE requests SET is_processed = TRUE, is_success = TRUE, email_nullifier = $1, account_salt = $2, WHERE request_id = $3")
             .bind(email_nullifier)
             .bind(account_salt)
-            .bind(request_id)
+            .bind(request_id as i64)
             .execute(&self.db)
             .await?;
         info!(
@@ -280,12 +283,12 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn request_failed(&self, request_id: &str) -> Result<()> {
+    pub(crate) async fn request_failed(&self, request_id: u64) -> Result<()> {
         info!(LOG, "request_id {}", request_id; "func" => function_name!());
         let res = sqlx::query(
             "UPDATE requests SET is_processed = TRUE, is_success = FALSE WHERE request_id = $1",
         )
-        .bind(request_id)
+        .bind(request_id as i64)
         .execute(&self.db)
         .await?;
         info!(
