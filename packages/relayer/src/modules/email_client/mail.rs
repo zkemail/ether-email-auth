@@ -25,6 +25,16 @@ pub enum EmailAuthEvent {
         guardian_email_addr: String,
         request_id: u64,
     },
+    AcceptanceSuccess {
+        wallet_eth_addr: String,
+        guardian_email_addr: String,
+        request_id: u64,
+    },
+    RecoverySuccess {
+        wallet_eth_addr: String,
+        guardian_email_addr: String,
+        request_id: u64,
+    },
 }
 
 pub fn event_consumer(
@@ -165,7 +175,96 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             wallet_eth_addr,
             guardian_email_addr,
             request_id,
-        } => todo!(),
+        } => {
+            let subject = "Recovery Request";
+            let body_plain = format!(
+                "You have received a recovery request from the wallet address {}. \
+                Your request ID is #{}. \
+                If you did not initiate this request, please contact us immediately.",
+                wallet_eth_addr, request_id
+            );
+
+            let render_data = serde_json::json!({
+                "userEmailAddr": guardian_email_addr,
+                "walletAddress": wallet_eth_addr,
+                "requestId": request_id,
+            });
+            let body_html = render_html("recovery_request.html", render_data).await?;
+
+            let email = EmailMessage {
+                to: guardian_email_addr,
+                subject: subject.to_string(),
+                reference: None,
+                reply_to: None,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
+
+            sender.send(email)?;
+        }
+        EmailAuthEvent::AcceptanceSuccess {
+            wallet_eth_addr,
+            guardian_email_addr,
+            request_id,
+        } => {
+            let subject = "Acceptance Success";
+            let body_plain = format!(
+                "Your guardian request for the wallet address {} has been set. \
+                Your request ID is #{} is now complete.",
+                wallet_eth_addr, request_id
+            );
+
+            let render_data = serde_json::json!({
+                "walletAddress": wallet_eth_addr,
+                "userEmailAddr": guardian_email_addr,
+                "requestId": request_id,
+            });
+            let body_html = render_html("acceptance_success.html", render_data).await?;
+
+            let email = EmailMessage {
+                to: guardian_email_addr,
+                subject: subject.to_string(),
+                reference: None,
+                reply_to: None,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
+
+            sender.send(email)?;
+        }
+        EmailAuthEvent::RecoverySuccess {
+            wallet_eth_addr,
+            guardian_email_addr,
+            request_id,
+        } => {
+            let subject = "Recovery Success";
+            let body_plain = format!(
+                "Your recovery request for the wallet address {} is successful. \
+                Your request ID is #{}.",
+                wallet_eth_addr, request_id
+            );
+
+            let render_data = serde_json::json!({
+                "walletAddress": wallet_eth_addr,
+                "userEmailAddr": guardian_email_addr,
+                "requestId": request_id,
+            });
+            let body_html = render_html("recovery_success.html", render_data).await?;
+
+            let email = EmailMessage {
+                to: guardian_email_addr,
+                subject: subject.to_string(),
+                reference: None,
+                reply_to: None,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
+
+            sender.send(email)?;
+        }
     }
 
     Ok(())

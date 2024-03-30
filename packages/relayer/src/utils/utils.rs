@@ -2,7 +2,6 @@
 #![allow(clippy::identity_op)]
 
 use crate::*;
-use chrono::{DateTime, Local};
 use ethers::abi::Token;
 use ethers::types::{Bytes, U256};
 use relayer_utils::*;
@@ -12,8 +11,6 @@ use ::serde::{Deserialize, Serialize};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
-
-use tokio::fs::{read_to_string, remove_file};
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 17;
@@ -47,23 +44,17 @@ struct EmailSenderInput {
 }
 
 #[derive(Serialize, Deserialize)]
-struct AccountCreationInput {
-    in_padded: Vec<String>,
-    pubkey: Vec<String>,
+struct EmailAuthInput {
+    padded_header: Vec<String>,
+    public_key: Vec<String>,
     signature: Vec<String>,
-    in_padded_len: String,
-    relayer_rand: String,
-    sender_email_idx: usize,
-    code_idx: usize,
+    padded_header_len: String,
+    account_code: String,
+    from_addr_idx: usize,
+    subject_idx: usize,
     domain_idx: usize,
     timestamp_idx: usize,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ClaimInput {
-    email_addr: Vec<u8>,
-    cm_rand: String,
-    account_key: String,
+    code_idx: usize,
 }
 
 impl ProofJson {
@@ -136,11 +127,7 @@ pub async fn generate_email_sender_input(
     Ok(serde_json::to_string(&email_sender_input)?)
 }
 
-pub async fn generate_account_creation_input(
-    circuits_dir_path: &Path,
-    email: &str,
-    relayer_rand: &str,
-) -> Result<String> {
+pub async fn generate_email_auth_input(email: &str, account_key: &str) -> Result<String> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     let circuit_input_params = circuit::CircuitInputParams::new(
         vec![],
@@ -155,52 +142,26 @@ pub async fn generate_account_creation_input(
     );
     let email_circuit_inputs = circuit::generate_circuit_inputs(circuit_input_params);
 
-    let sender_email_idx = parsed_email.get_from_addr_idxes().unwrap();
+    let from_addr_idx = parsed_email.get_from_addr_idxes().unwrap();
     let domain_idx = parsed_email.get_email_domain_idxes().unwrap();
     let subject_idx = parsed_email.get_subject_all_idxes().unwrap();
     let code_idx = parsed_email.get_invitation_code_idxes().unwrap();
     let timestamp_idx = parsed_email.get_timestamp_idxes().unwrap();
 
-    let account_creation_input = AccountCreationInput {
-        in_padded: email_circuit_inputs.in_padded,
-        pubkey: email_circuit_inputs.pubkey,
+    let email_auth_input = EmailAuthInput {
+        padded_header: email_circuit_inputs.in_padded,
+        public_key: email_circuit_inputs.pubkey,
         signature: email_circuit_inputs.signature,
-        in_padded_len: email_circuit_inputs.in_len_padded_bytes,
-        relayer_rand: relayer_rand.to_string(),
-        sender_email_idx: sender_email_idx.0,
-        code_idx: code_idx.0,
+        padded_header_len: email_circuit_inputs.in_len_padded_bytes,
+        account_code: account_key.to_string(),
+        from_addr_idx: from_addr_idx.0,
+        subject_idx: subject_idx.0,
         domain_idx: domain_idx.0,
         timestamp_idx: timestamp_idx.0,
+        code_idx: code_idx.0,
     };
 
-    Ok(serde_json::to_string(&account_creation_input)?)
-}
-
-pub async fn generate_claim_input(
-    circuits_dir_path: &Path,
-    email_address: &str,
-    email_address_rand: &str,
-    account_key: &str,
-) -> Result<String> {
-    let padded_email_address = PaddedEmailAddr::from_email_addr(email_address);
-    let mut padded_email_addr_bytes = vec![];
-
-    for byte in padded_email_address.padded_bytes.into_iter() {
-        padded_email_addr_bytes.push(byte);
-    }
-
-    let claim_input = ClaimInput {
-        email_addr: padded_email_addr_bytes,
-        cm_rand: email_address_rand.to_string(),
-        account_key: account_key.to_string(),
-    };
-
-    Ok(serde_json::to_string(&claim_input)?)
-}
-
-pub fn calculate_addr_commitment(email_address: &str, rand: Fr) -> Fr {
-    let padded_email_address = PaddedEmailAddr::from_email_addr(email_address);
-    padded_email_address.to_commitment(&rand).unwrap()
+    Ok(serde_json::to_string(&email_auth_input)?)
 }
 
 #[named]

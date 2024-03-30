@@ -49,22 +49,27 @@ impl TemplateValue {
     }
 }
 
-pub fn extract_template_vals_and_idx(
+pub fn extract_template_vals_and_skipped_subject_idx(
     input: &str,
-    templates_array: Vec<Vec<String>>,
-) -> Result<(Option<usize>, Vec<TemplateValue>)> {
-    for (idx, templates) in templates_array.into_iter().enumerate() {
-        let template_vals = extract_template_vals(input, templates);
-        match template_vals {
-            Ok(vals) => {
-                return Ok((Some(idx), vals));
-            }
+    templates: Vec<String>,
+) -> Result<(Vec<TemplateValue>, usize), anyhow::Error> {
+    let mut skipped_bytes = 0usize;
+    let mut current_input = input;
+
+    loop {
+        match extract_template_vals(current_input, templates.clone()) {
+            Ok(vals) => return Ok((vals, skipped_bytes)),
             Err(_) => {
-                continue;
+                if let Some(next_start) = current_input.char_indices().nth(1) {
+                    skipped_bytes += next_start.0;
+                    current_input = &current_input[next_start.0..];
+                } else {
+                    // If there's no more input to skip, return the error
+                    return Err(anyhow!("Unable to match templates with input"));
+                }
             }
         }
     }
-    Ok((None, Vec::new()))
 }
 
 pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {

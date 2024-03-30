@@ -143,4 +143,48 @@ impl ChainClient {
             .map(|status| status == U64::from(1))
             .unwrap_or(false))
     }
+
+    pub async fn handle_acceptance(
+        &self,
+        wallet_addr: &String,
+        email_auth_msg: EmailAuthMsg,
+        template_idx: u64,
+    ) -> Result<bool, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let call = contract.handle_acceptance(email_auth_msg, template_idx.into());
+        let tx = call.send().await?;
+        // If the transaction is successful, the function will return true and false otherwise.
+        let receipt = tx
+            .log()
+            .confirmations(CONFIRMATIONS)
+            .await?
+            .ok_or(anyhow!("No receipt"))?;
+        Ok(receipt
+            .status
+            .map(|status| status == U64::from(1))
+            .unwrap_or(false))
+    }
+
+    pub async fn handle_recovery(
+        &self,
+        wallet_addr: &String,
+        email_auth_msg: EmailAuthMsg,
+        template_idx: u64,
+    ) -> Result<bool, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let call = contract.handle_recovery(email_auth_msg, template_idx.into());
+        let tx = call.send().await?;
+        // If the transaction is successful, the function will return true and false otherwise.
+        let receipt = tx
+            .log()
+            .confirmations(CONFIRMATIONS)
+            .await?
+            .ok_or(anyhow!("No receipt"))?;
+        Ok(receipt
+            .status
+            .map(|status| status == U64::from(1))
+            .unwrap_or(false))
+    }
 }

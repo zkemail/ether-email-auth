@@ -98,6 +98,32 @@ impl Database {
         }
     }
 
+    pub(crate) async fn update_credentials(&self, row: &Credentials) -> Result<()> {
+        let res = sqlx::query("UPDATE codes SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
+            .bind(&row.wallet_eth_addr)
+            .bind(&row.guardian_email_addr)
+            .bind(row.is_set)
+            .bind(&row.account_code)
+            .execute(&self.db)
+            .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn get_account_key(&self, email: &str) -> Result<Option<String>> {
+        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
+            .bind(email)
+            .fetch_optional(&self.db)
+            .await?;
+
+        match row {
+            Some(row) => {
+                let account_code: String = row.get("account_code");
+                Ok(Some(account_code))
+            }
+            None => Ok(None),
+        }
+    }
+
     #[named]
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
@@ -181,6 +207,22 @@ impl Database {
             }
             None => Ok(None),
         }
+    }
+
+    pub(crate) async fn update_request(&self, row: &Request) -> Result<()> {
+        let res = sqlx::query("UPDATE requests SET wallet_eth_addr = $1, guardian_email_addr = $2, is_for_recovery = $3, template_idx = $4, is_processed = $5, is_success = $6, email_nullifier = $7, account_salt = $8 WHERE request_id = $9")
+            .bind(&row.wallet_eth_addr)
+            .bind(&row.guardian_email_addr)
+            .bind(row.is_for_recovery)
+            .bind(row.template_idx as i64)
+            .bind(row.is_processed)
+            .bind(row.is_success)
+            .bind(&row.email_nullifier)
+            .bind(&row.account_salt)
+            .bind(row.request_id as i64)
+            .execute(&self.db)
+            .await?;
+        Ok(())
     }
 
     pub(crate) async fn get_invitation_code_from_email(
