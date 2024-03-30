@@ -24,29 +24,39 @@ contract Deploy is Script {
             console.log("PRIVATE_KEY env var not set");
             return;
         }
-        vm.startBroadcast(deployerPrivateKey);
-
-        // Deploy DKIM registry
         address signer = vm.envAddress("SIGNER");
         if (signer == address(0)) {
             console.log("SIGNER env var not set");
             return;
         }
-        ECDSAOwnedDKIMRegistry dkim = new ECDSAOwnedDKIMRegistry(
+
+        vm.startBroadcast(deployerPrivateKey);
+
+        // Deploy DKIM registry
+        dkim = new ECDSAOwnedDKIMRegistry(
             signer
         );
         console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
+        vm.setEnv("DKIM", vm.toString(address(dkim)));
 
         // Deploy Verifier
-        Verifier verifier = new Verifier();
+        verifier = new Verifier();
         console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(verifier));
+        vm.setEnv("VERIFIER", vm.toString(address(verifier)));
 
+        // Deploy EmailAuth Implementation
+        {
+            emailAuthImpl = new EmailAuth();
+            console.log("EmailAuth implementation deployed at: %s", address(emailAuthImpl));
+            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
+        }
 
-        // Deploy EmailAuth
-        EmailAuth emailAuth = new EmailAuth();
-        console.log("EmailAuth deployed at: %s", address(emailAuth));
-        emailAuth.updateVerifier(address(verifier));
-        emailAuth.updateDKIMRegistry(address(dkim));
+        // Deploy SimpleWallet Implementation
+        {
+            simpleWalletImpl = new SimpleWallet();
+            console.log("SimpleWallet implementation deployed at: %s", address(simpleWalletImpl));
+            vm.setEnv("SIMPLE_WALLET_IMPL", vm.toString(address(simpleWalletImpl)));
+        }
         vm.stopBroadcast();
     }
 }
