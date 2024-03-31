@@ -69,6 +69,7 @@ pub async fn check_and_update_dkim(
     email: &str,
     parsed_email: &ParsedEmail,
     chain_client: &Arc<ChainClient>,
+    wallet_addr: &str,
 ) -> Result<()> {
     let mut public_key_n = parsed_email.public_key.clone();
     public_key_n.reverse();
@@ -76,8 +77,16 @@ pub async fn check_and_update_dkim(
     info!(LOG, "public_key_hash {:?}", public_key_hash; "func" => function_name!());
     let domain = parsed_email.get_email_domain()?;
     info!(LOG, "domain {:?}", domain; "func" => function_name!());
+    let dkim = chain_client
+        .get_dkim_from_wallet(&wallet_addr.to_string())
+        .await?;
+    info!(LOG, "dkim {:?}", dkim; "func" => function_name!());
     if chain_client
-        .check_if_dkim_public_key_hash_valid(domain.clone(), fr_to_bytes32(&public_key_hash)?)
+        .check_if_dkim_public_key_hash_valid(
+            domain.clone(),
+            fr_to_bytes32(&public_key_hash)?,
+            dkim.clone(),
+        )
         .await?
     {
         info!(LOG, "public key registered"; "func" => function_name!());
@@ -109,6 +118,7 @@ pub async fn check_and_update_dkim(
             domain,
             TryInto::<[u8; 32]>::try_into(public_key_hash).unwrap(),
             signature,
+            dkim,
         )
         .await?;
     info!(LOG, "DKIM registry updated {:?}", tx_hash; "func" => function_name!());

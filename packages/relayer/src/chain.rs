@@ -24,7 +24,7 @@ impl ChainClient {
             wallet.with_chain_id(*CHAIN_ID.get().unwrap()),
         ));
         let email_auth = EmailAuth::new(
-            CORE_CONTRACT_ADDRESS.get().unwrap().parse::<Address>()?,
+            EMAIL_AUTH_ADDRESS.get().unwrap().parse::<Address>()?,
             client.clone(),
         );
         let ecdsa_owned_dkim_registry =
@@ -47,17 +47,15 @@ impl ChainClient {
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,
+        dkim: H160,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
-        let call = self.ecdsa_owned_dkim_registry.set_dkim_public_key_hash(
-            selector,
-            domain_name,
-            public_key_hash,
-            signature,
-        );
+        let contract = ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone());
+        let call =
+            contract.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
         let tx = call.send().await?;
         let receipt = tx
             .log()
@@ -69,32 +67,41 @@ impl ChainClient {
         Ok(tx_hash)
     }
 
-    #[named]
     pub async fn check_if_dkim_public_key_hash_valid(
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
+        dkim: H160,
     ) -> Result<bool> {
-        let is_valid = self
-            .ecdsa_owned_dkim_registry
-            .is_dkim_public_key_hash_valid(domain_name.clone(), public_key_hash)
+        let contract = ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone());
+        let is_valid = contract
+            .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
             .call()
             .await?;
-        info!(
-            LOG,
-            "{:?} for {} is already registered: {}", public_key_hash, domain_name, is_valid; "func" => function_name!()
-        );
         Ok(is_valid)
+    }
+
+    pub async fn get_dkim_from_wallet(&self, wallet_addr: &String) -> Result<H160> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let dkim = contract.dkim().call().await?;
+        Ok(dkim)
     }
 
     pub async fn get_latest_block_number(&self) -> U64 {
         self.client.get_block_number().await.unwrap()
     }
 
-    pub async fn is_wallet_deployed(&self, wallet_addr: &String) -> bool {
-        // Check the bytecode of the contract
-        let code = self.client.get_code(wallet_addr, None).await.unwrap();
-        !code.is_empty()
+    pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> bool {
+        let wallet_addr: H160 = wallet_addr_str.parse().unwrap();
+        match self.client.get_code(wallet_addr, None).await {
+            Ok(code) => !code.is_empty(),
+            Err(e) => {
+                // Log the error or handle it as needed
+                eprintln!("Error querying contract code: {:?}", e);
+                false
+            }
+        }
     }
 
     pub async fn get_acceptance_subject_templates(

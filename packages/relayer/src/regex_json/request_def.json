@@ -7,6 +7,10 @@
     {
       "is_public": true,
       "regex_def": "[0-9]+"
+    },
+    {
+      "is_public": false,
+      "regex_def": "."
     }
   ]
 }

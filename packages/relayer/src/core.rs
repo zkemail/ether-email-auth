@@ -23,24 +23,25 @@ pub async fn handle_email<P: EmailsPool>(
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&guardian_email_addr);
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let subject = parsed_email.get_subject_all()?;
-
+    
     let account_key_str = db
-        .get_account_key(&guardian_email_addr)
+        .get_invitation_code_from_email_addr(&guardian_email_addr)
         .await?
         .ok_or(anyhow!(
             "The user of email address {} is not registered.",
             guardian_email_addr
         ))?;
-    let account_key = AccountKey(hex2field(&account_key_str)?);
+    let account_key = AccountKey(hex2field(&format!("0x{}", account_key_str))?);
     let wallet_salt = WalletSalt::new(&padded_from_addr, account_key)?;
 
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
-    let request_idxes = extract_substr_idxes(&subject, &request_decomposed_def)?;
+    let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
     if request_idxes.is_empty() {
         bail!(WRONG_SUBJECT_FORMAT);
     }
-    let request_id = &subject[request_idxes[0].0..request_idxes[0].1];
+    info!(LOG, "Request idxes: {:?}", request_idxes; "func" => function_name!());
+    let request_id = &email[request_idxes[0].0..request_idxes[0].1];
     let request_id_u64 = request_id
         .parse::<u64>()
         .map_err(|e| anyhow!("Failed to parse request_id to u64: {}", e))?;
@@ -52,7 +53,7 @@ pub async fn handle_email<P: EmailsPool>(
         });
     }
     let request = request_record.unwrap();
-    check_and_update_dkim(&email, &parsed_email, &chain_client).await?;
+    check_and_update_dkim(&email, &parsed_email, &chain_client, &request.wallet_eth_addr).await?;
     let subject_template = chain_client
         .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
         .await?;
@@ -76,7 +77,7 @@ pub async fn handle_email<P: EmailsPool>(
         trace!(LOG, "Email with account code"; "func" => function_name!());
         let account_key = AccountKey::from(hex2field(&format!("0x{}", invitation_code))?);
         let stored_account_key = db
-            .get_invitation_code_from_email(&guardian_email_addr)
+            .get_invitation_code_from_email_addr(&guardian_email_addr)
             .await?;
         if let Some(stored_account_key) = stored_account_key.as_ref() {
             if stored_account_key != &field2hex(&account_key.0) {

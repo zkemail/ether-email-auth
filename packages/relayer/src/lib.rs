@@ -44,7 +44,6 @@ pub static CHAIN_ID: OnceLock<u32> = OnceLock::new();
 pub static EMAIL_AUTH_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static CHAIN_RPC_PROVIDER: OnceLock<String> = OnceLock::new();
 pub static CHAIN_RPC_EXPLORER: OnceLock<String> = OnceLock::new();
-pub static CORE_CONTRACT_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static INPUT_FILES_DIR: OnceLock<String> = OnceLock::new();
 pub static EMAIL_TEMPLATES: OnceLock<String> = OnceLock::new();
 pub static RELAYER_EMAIL_ADDRESS: OnceLock<String> = OnceLock::new();

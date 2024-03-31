@@ -58,15 +58,11 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             guardian_email_addr,
             request_id,
         } => {
-            let invitation_code = DB.get_invitation_code_from_email(&wallet_eth_addr).await?;
+            let invitation_code = DB.get_invitation_code_from_email_addr(&guardian_email_addr).await?;
+            println!("Invitation code: {:?}", invitation_code);
             let mut hex_invitation_code = String::new();
             if let Some(code_str) = invitation_code {
-                if let Ok(code) = u64::from_str_radix(&code_str, 16) {
-                    // Assuming the code is in hexadecimal string form
-                    hex_invitation_code = format!("{:x}", code);
-                } else {
-                    return Err(anyhow!("Failed to parse account code"));
-                }
+                hex_invitation_code = code_str.to_string();
             } else {
                 return Err(anyhow!("Account code not found"));
             }

@@ -54,11 +54,9 @@ impl Database {
 
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS requests (
-                request_id INT PRIMARY KEY,
+                request_id BIGINT PRIMARY KEY,
                 wallet_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
-                random TEXT NOT NULL,
-                email_addr_commit TEXT NOT NULL,
                 is_for_recovery BOOLEAN NOT NULL DEFAULT FALSE,
                 template_idx INT NOT NULL,
                 is_processed BOOLEAN NOT NULL DEFAULT FALSE,
@@ -109,26 +107,11 @@ impl Database {
         Ok(())
     }
 
-    pub(crate) async fn get_account_key(&self, email: &str) -> Result<Option<String>> {
-        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
-            .bind(email)
-            .fetch_optional(&self.db)
-            .await?;
-
-        match row {
-            Some(row) => {
-                let account_code: String = row.get("account_code");
-                Ok(Some(account_code))
-            }
-            None => Ok(None),
-        }
-    }
-
     #[named]
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
-            "INSERT INTO users (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
+            "INSERT INTO codes (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
         .bind(&row.account_code)
         .bind(&row.wallet_eth_addr)
@@ -161,7 +144,7 @@ impl Database {
     #[named]
     pub async fn set_guardian_in_credentials(&self, account_code: &str) -> Result<()> {
         info!(LOG, "account_code {}", account_code; "func" => function_name!());
-        let res = sqlx::query("UPDATE users SET is_set = TRUE WHERE account_code = $1")
+        let res = sqlx::query("UPDATE codes SET is_set = TRUE WHERE account_code = $1")
             .bind(account_code)
             .execute(&self.db)
             .await?;
@@ -186,7 +169,7 @@ impl Database {
                 let wallet_eth_addr: String = row.get("wallet_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
-                let template_idx: u64 = row.get::<i64, _>("template_idx") as u64;
+                let template_idx: i32 = row.get("template_idx");
                 let is_processed: bool = row.get("is_processed");
                 let is_success: Option<bool> = row.get("is_success");
                 let email_nullifier: Option<String> = row.get("email_nullifier");
@@ -196,7 +179,7 @@ impl Database {
                     wallet_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,
-                    template_idx,
+                    template_idx: template_idx as u64,
                     is_processed,
                     is_success,
                     email_nullifier,
@@ -225,12 +208,13 @@ impl Database {
         Ok(())
     }
 
-    pub(crate) async fn get_invitation_code_from_email(
+    pub(crate) async fn get_invitation_code_from_email_addr(
         &self,
-        email: &str,
+        email_addr: &str,
     ) -> Result<Option<String>> {
+        println!("email_addr: {}", email_addr);
         let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
-            .bind(email)
+            .bind(email_addr)
             .fetch_optional(&self.db)
             .await?;
 
@@ -280,7 +264,7 @@ impl Database {
                 let wallet_eth_addr: String = row.get("wallet_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
-                let template_idx: u64 = row.get::<i64, _>("template_idx") as u64;
+                let template_idx: i32 = row.get("template_idx");
                 let is_processed: bool = row.get("is_processed");
                 let is_success: Option<bool> = row.get("is_success");
                 let email_nullifier: Option<String> = row.get("email_nullifier");
@@ -290,7 +274,7 @@ impl Database {
                     wallet_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,
-                    template_idx,
+                    template_idx: template_idx as u64,
                     is_processed,
                     is_success,
                     email_nullifier,
