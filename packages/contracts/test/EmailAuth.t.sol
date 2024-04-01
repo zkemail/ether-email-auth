@@ -28,17 +28,43 @@ contract EmailAuthTest is DeploymentHelper {
 
     function testUpdateDKIMRegistry() public {
         vm.startPrank(deployer);
+
+        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
         ECDSAOwnedDKIMRegistry newDKIM = new ECDSAOwnedDKIMRegistry(msg.sender);
         emailAuth.updateDKIMRegistry(address(newDKIM));
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertUpdateDKIMRegistryInvalidDkimRegistryAddress()
+        public
+    {
+        vm.startPrank(deployer);
+
+        vm.expectRevert(bytes("invalid dkim registry address"));
+        emailAuth.updateDKIMRegistry(address(0));
+
         vm.stopPrank();
     }
 
     function testUpdateVerifier() public {
         vm.startPrank(deployer);
+
+        assertEq(emailAuth.verifierAddr(), address(verifier));
         Verifier newVerifier = new Verifier();
         emailAuth.updateVerifier(address(newVerifier));
         assertEq(emailAuth.verifierAddr(), address(newVerifier));
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertUpdateVerifierInvalidVerifierAddress() public {
+        vm.startPrank(deployer);
+
+        vm.expectRevert(bytes("invalid verifier address"));
+        emailAuth.updateVerifier(address(0));
+
         vm.stopPrank();
     }
 
@@ -48,7 +74,7 @@ contract EmailAuthTest is DeploymentHelper {
         assertEq(result, subjectTemplate);
     }
 
-    function testExpectRevertGetSubjectTemplate() public {
+    function testExpectRevertGetSubjectTemplateTemplateIdNotExists() public {
         vm.expectRevert(bytes("template id not exists"));
         emailAuth.getSubjectTemplate(templateId);
     }
@@ -57,17 +83,77 @@ contract EmailAuthTest is DeploymentHelper {
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
     }
 
+    function testExpectRevertInsertSubjectTemplateSubjectTemplateIsEmpty()
+        public
+    {
+        string[] memory emptySubjectTemplate = new string[](0);
+        vm.expectRevert(bytes("subject template is empty"));
+        emailAuth.insertSubjectTemplate(templateId, emptySubjectTemplate);
+    }
+
+    function testExpectRevertInsertSubjectTemplateTemplateIdAlreadyExists()
+        public
+    {
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        vm.expectRevert(bytes("template id already exists"));
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+    }
+
     function testUpdateSubjectTemplate() public {
         vm.startPrank(deployer);
+
         this.testInsertSubjectTemplate();
         emailAuth.updateSubjectTemplate(templateId, newSubjectTemplate);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertUpdateSubjectTemplateCallerIsNotTheOwner() public {
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
+    }
+
+    function testExpectRevertUpdateSubjectTemplateSubjectTemplateIsEmpty()
+        public
+    {
+        vm.startPrank(deployer);
+
+        string[] memory emptySubjectTemplate = new string[](0);
+        vm.expectRevert(bytes("subject template is empty"));
+        emailAuth.updateSubjectTemplate(templateId, emptySubjectTemplate);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertUpdateSubjectTemplateTemplateIdNotExists() public {
+        vm.startPrank(deployer);
+
+        vm.expectRevert(bytes("template id not exists"));
+        emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
+
         vm.stopPrank();
     }
 
     function testDeleteSubjectTemplate() public {
         vm.startPrank(deployer);
+
         this.testInsertSubjectTemplate();
         emailAuth.deleteSubjectTemplate(templateId);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertDeleteSubjectTemplateCallerIsNotTheOwner() public {
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        emailAuth.deleteSubjectTemplate(templateId);
+    }
+
+    function testExpectRevertDeleteSubjectTemplateTemplateIdNotExists() public {
+        vm.startPrank(deployer);
+
+        vm.expectRevert(bytes("template id not exists"));
+        emailAuth.deleteSubjectTemplate(templateId);
+
         vm.stopPrank();
     }
 
@@ -87,10 +173,10 @@ contract EmailAuthTest is DeploymentHelper {
         );
     }
 
-    function testAuthEmail() public {
-        vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
-
+    function buildEmailAuthMsg()
+        internal
+        returns (EmailAuthMsg memory emailAuthMsg)
+    {
         bytes[] memory subjectParams = new bytes[](2);
         subjectParams[0] = abi.encode(1 ether);
         subjectParams[1] = abi.encode(
@@ -108,7 +194,7 @@ contract EmailAuthTest is DeploymentHelper {
             proof: mockProof
         });
 
-        EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
+        emailAuthMsg = EmailAuthMsg({
             templateId: templateId,
             subjectParams: subjectParams,
             skipedSubjectPrefix: 0,
@@ -123,11 +209,120 @@ contract EmailAuthTest is DeploymentHelper {
             ),
             abi.encode(true)
         );
+    }
+
+    function testAuthEmail() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
         assertEq(
             msgHash,
             0x97728a843151c01762d4f116e4d630f769faceda03589271805006ab8c512bcb
         );
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailCallerIsNotTheOwner() public {
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        emailAuth.authEmail(emailAuthMsg);
+    }
+
+    function testExpectRevertAuthEmailTemplateIdNotExists() public {
+        vm.startPrank(deployer);
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.expectRevert(bytes("template id not exists"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidDkimPublicKeyHash() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.proof.domainName = "invalid.com";
+        vm.expectRevert(bytes("invalid dkim public key hash"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailEmailNullifierAlreadyUsed() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuth.authEmail(emailAuthMsg);
+        vm.expectRevert(bytes("email nullifier already used"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidAccountSalt() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.proof.accountSalt = bytes32(uint256(1234));
+        vm.expectRevert(bytes("invalid account salt"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidTimestamp() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuth.authEmail(emailAuthMsg);
+
+        emailAuthMsg.proof.emailNullifier = 0x0;
+        emailAuthMsg.proof.timestamp = 1694989812;
+        vm.expectRevert(bytes("invalid timestamp"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidSubject() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.subjectParams[0] = abi.encode(2 ether);
+        vm.expectRevert(bytes("invalid subject"));
+        emailAuth.authEmail(emailAuthMsg);
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidEmailProof() public {
+        vm.startPrank(deployer);
+
+        this.testInsertSubjectTemplate();
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.mockCall(
+            address(verifier),
+            abi.encodeWithSelector(
+                Verifier.verifyEmailProof.selector,
+                emailAuthMsg.proof
+            ),
+            abi.encode(false)
+        );
+        vm.expectRevert(bytes("invalid email proof"));
+        emailAuth.authEmail(emailAuthMsg);
+
         vm.stopPrank();
     }
 
@@ -145,5 +340,20 @@ contract EmailAuthTest is DeploymentHelper {
         bytes memory signature = abi.encodePacked(emailNullifier);
         bytes4 result = emailAuth.isValidSignature(msgHash, signature);
         assertEq(result, bytes4(0xffffffff));
+    }
+
+    function testSetTimestampCheckEnabled() public {
+        vm.startPrank(deployer);
+
+        assertTrue(emailAuth.timestampCheckEnabled());
+        emailAuth.setTimestampCheckEnabled(false);
+        assertFalse(emailAuth.timestampCheckEnabled());
+
+        vm.stopPrank();
+    }
+
+    function testExpectRevertSetTimestampCheckEnabled() public {
+        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        emailAuth.setTimestampCheckEnabled(false);
     }
 }
