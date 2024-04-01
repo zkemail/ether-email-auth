@@ -35,6 +35,10 @@ fn main(mut cx: ModuleContext) -> NeonResult<()> {
         "extractInvitationCodeIdxes",
         extract_invitation_code_idxes_node,
     )?;
+    cx.export_function(
+        "extractInvitationCodeWithPrefixIdxes",
+        extract_invitation_code_with_prefix_idxes_node,
+    )?;
     cx.export_function("padEmailAddr", pad_email_addr_node)?;
     cx.export_function("genAccountCode", gen_account_code_node)?;
     cx.export_function("accountSalt", account_salt_node)?;
