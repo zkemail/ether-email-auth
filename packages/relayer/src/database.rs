@@ -212,7 +212,6 @@ impl Database {
         &self,
         email_addr: &str,
     ) -> Result<Option<String>> {
-        println!("email_addr: {}", email_addr);
         let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
             .bind(email_addr)
             .fetch_optional(&self.db)

@@ -11,6 +11,8 @@ pub enum EmailAuthEvent {
         wallet_eth_addr: String,
         guardian_email_addr: String,
         request_id: u64,
+        subject: String,
+        account_code: String,
     },
     GuardianAlreadyExists {
         wallet_eth_addr: String,
@@ -57,34 +59,35 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
             wallet_eth_addr,
             guardian_email_addr,
             request_id,
+            subject,
+            account_code,
         } => {
-            let invitation_code = DB.get_invitation_code_from_email_addr(&guardian_email_addr).await?;
-            println!("Invitation code: {:?}", invitation_code);
-            let mut hex_invitation_code = String::new();
-            if let Some(code_str) = invitation_code {
-                hex_invitation_code = code_str.to_string();
-            } else {
-                return Err(anyhow!("Account code not found"));
-            }
+            // let invitation_code = DB
+            //     .get_invitation_code_from_email_addr(&guardian_email_addr)
+            //     .await?;
+            // println!("Invitation code: {:?}", invitation_code);
+            // let mut hex_invitation_code = String::new();
+            // if let Some(code_str) = invitation_code {
+            //     hex_invitation_code = code_str.to_string();
+            // } else {
+            //     return Err(anyhow!("Account code not found"));
+            // }
 
-            let mut subject = format!(
-                "Acceptance Request for {}. Code {}",
-                wallet_eth_addr, hex_invitation_code
-            );
-            let relayer_email = split_email_address(RELAYER_EMAIL_ADDRESS.get().unwrap());
+            let mut subject = format!("{} Code {}", subject, account_code);
+            // let relayer_email = split_email_address(RELAYER_EMAIL_ADDRESS.get().unwrap());
 
-            let mut reply_to = None;
+            // let mut reply_to = None;
 
-            if check_domain_sign_reply_to(&guardian_email_addr) {
-                if let Some((local_part, domain_part)) = relayer_email {
-                    reply_to = Some(
-                        local_part.to_string() + "+code" + &hex_invitation_code + "@" + domain_part,
-                    );
-                    subject = format!("Acceptance Request for {}", wallet_eth_addr);
-                } else {
-                    return Err(anyhow!("Failed to parse relayer email"));
-                }
-            }
+            // if check_domain_sign_reply_to(&guardian_email_addr) {
+            //     if let Some((local_part, domain_part)) = relayer_email {
+            //         reply_to = Some(
+            //             local_part.to_string() + "+code" + &hex_invitation_code + "@" + domain_part,
+            //         );
+            //         subject = format!("Acceptance Request for {}", wallet_eth_addr);
+            //     } else {
+            //         return Err(anyhow!("Failed to parse relayer email"));
+            //     }
+            // }
 
             let body_plain = format!(
                 "You have received an guardian request from the wallet address {}. \
@@ -104,7 +107,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 to: guardian_email_addr,
                 subject,
                 reference: None,
-                reply_to,
+                reply_to: None,
                 body_plain,
                 body_html,
                 body_attachments: None,

@@ -3,7 +3,11 @@
 
 use crate::*;
 
-use ethers::utils::keccak256;
+use ethers::{
+    abi::{encode, Token},
+    utils::keccak256,
+};
+use num_traits::ToBytes;
 use relayer_utils::*;
 
 const DOMAIN_FIELDS: usize = 9;
@@ -23,7 +27,7 @@ pub async fn handle_email<P: EmailsPool>(
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&guardian_email_addr);
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let subject = parsed_email.get_subject_all()?;
-    
+
     let account_key_str = db
         .get_invitation_code_from_email_addr(&guardian_email_addr)
         .await?
@@ -53,7 +57,13 @@ pub async fn handle_email<P: EmailsPool>(
         });
     }
     let request = request_record.unwrap();
-    check_and_update_dkim(&email, &parsed_email, &chain_client, &request.wallet_eth_addr).await?;
+    check_and_update_dkim(
+        &email,
+        &parsed_email,
+        &chain_client,
+        &request.wallet_eth_addr,
+    )
+    .await?;
     let subject_template = chain_client
         .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
         .await?;
@@ -68,6 +78,10 @@ pub async fn handle_email<P: EmailsPool>(
             });
         }
     };
+
+    println!("subject_params: {:?}", subject_params);
+    println!("skipped_subject_prefix: {:?}", skipped_subject_prefix);
+
     let subject_params_encoded: Vec<Bytes> = subject_params
         .iter()
         .map(|param| param.abi_encode(None).unwrap())
@@ -75,12 +89,11 @@ pub async fn handle_email<P: EmailsPool>(
 
     if let Ok(invitation_code) = parsed_email.get_invitation_code() {
         trace!(LOG, "Email with account code"; "func" => function_name!());
-        let account_key = AccountKey::from(hex2field(&format!("0x{}", invitation_code))?);
         let stored_account_key = db
             .get_invitation_code_from_email_addr(&guardian_email_addr)
             .await?;
         if let Some(stored_account_key) = stored_account_key.as_ref() {
-            if stored_account_key != &field2hex(&account_key.0) {
+            if stored_account_key != &invitation_code {
                 return Err(anyhow!(
                     "Stored account key is not equal to one in the email: {} != {}",
                     stored_account_key,
@@ -89,14 +102,13 @@ pub async fn handle_email<P: EmailsPool>(
             }
         }
         if !request.is_for_recovery {
-            let template_id = keccak256(
-                &[
-                    EMAIL_ACCOUNT_RECOVERY_VERSION_ID.as_bytes(),
-                    b"ACCEPTANCE",
-                    request.template_idx.to_string().as_bytes(),
-                ]
-                .concat(),
-            );
+            let tokens = vec![
+                Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
+                Token::String("ACCEPTANCE".to_string()),
+                Token::Uint(request.template_idx.into()),
+            ];
+
+            let template_id = keccak256(encode(&tokens));
 
             let circuit_input = generate_email_auth_input(&email, &invitation_code).await?;
 
@@ -104,7 +116,9 @@ pub async fn handle_email<P: EmailsPool>(
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let (masked_subject, num_recipient_email_addr_bytes) = get_masked_subject(&subject)?;
+            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+
+            println!("masked_subject: {:?}", masked_subject);
 
             let email_proof = EmailProof {
                 proof: proof,
@@ -196,14 +210,13 @@ pub async fn handle_email<P: EmailsPool>(
         }
     } else {
         if request.is_for_recovery {
-            let template_id = keccak256(
-                &[
-                    EMAIL_ACCOUNT_RECOVERY_VERSION_ID.as_bytes(),
-                    b"RECOVERY",
-                    request.template_idx.to_string().as_bytes(),
-                ]
-                .concat(),
-            );
+            let tokens = vec![
+                Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
+                Token::String("RECOVERY".to_string()),
+                Token::Uint(request.template_idx.into()),
+            ];
+
+            let template_id = keccak256(encode(&tokens));
 
             let circuit_input = generate_email_auth_input(&email, &account_key_str).await?;
 
@@ -211,7 +224,7 @@ pub async fn handle_email<P: EmailsPool>(
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let (masked_subject, num_recipient_email_addr_bytes) = get_masked_subject(&subject)?;
+            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
                 proof: proof,
@@ -295,28 +308,21 @@ pub async fn handle_email<P: EmailsPool>(
     }
 }
 
-#[named]
-pub fn get_masked_subject(subject: &str) -> Result<(String, usize)> {
-    match extract_email_addr_idxes(subject) {
-        Ok(extracts) => {
-            if extracts.len() != 1 {
-                return Err(anyhow!(
-                    "Recipient address in the subject must appear only once."
-                ));
-            }
-            let (start, end) = extracts[0];
-            info!(LOG, "start: {}, end: {}", start, end; "func" => function_name!());
-            if end == subject.len() {
-                Ok((subject[0..start].to_string(), 0))
-            } else {
-                let mut masked_subject_bytes = subject.as_bytes().to_vec();
-                masked_subject_bytes[start..end].copy_from_slice(vec![0u8; end - start].as_ref());
-                Ok((String::from_utf8(masked_subject_bytes)?, end - start))
-            }
+pub fn get_masked_subject(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
+    // Gather signals from start_idx to start_idx + SUBJECT_FIELDS
+    let mut subject_bytes = Vec::new();
+    for i in start_idx..start_idx + SUBJECT_FIELDS {
+        let signal = public_signals[i as usize];
+        if signal == U256::zero() {
+            break;
         }
-        Err(err) => {
-            info!(LOG, "Recipient address not found in the subject: {}", err; "func" => function_name!());
-            Ok((subject.to_string(), 0))
-        }
+        let bytes = u256_to_bytes32_little(&signal);
+        subject_bytes.extend_from_slice(&bytes);
     }
+
+    // Bytes to string, removing null bytes
+    let subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
+        .map_err(|e| anyhow!("Failed to convert bytes to string: {}", e))?;
+
+    Ok(subject)
 }
