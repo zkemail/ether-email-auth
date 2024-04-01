@@ -53,22 +53,36 @@ pub fn extract_template_vals_and_skipped_subject_idx(
     input: &str,
     templates: Vec<String>,
 ) -> Result<(Vec<TemplateValue>, usize), anyhow::Error> {
-    let mut skipped_bytes = 0usize;
-    let mut current_input = input;
+    // Convert the template to a regex pattern, escaping necessary characters and replacing placeholders
+    let pattern = templates
+        .iter()
+        .map(|template| match template.as_str() {
+            "{string}" => STRING_REGEX.to_string(),
+            "{uint}" => UINT_REGEX.to_string(),
+            "{int}" => INT_REGEX.to_string(),
+            "{decimals}" => DECIMALS_REGEX.to_string(),
+            "{ethAddr}" => ETH_ADDR_REGEX.to_string(),
+            _ => regex::escape(template),
+        })
+        .collect::<Vec<String>>()
+        .join("\\s+");
 
-    loop {
-        match extract_template_vals(current_input, templates.clone()) {
-            Ok(vals) => return Ok((vals, skipped_bytes)),
-            Err(_) => {
-                if let Some(next_start) = current_input.char_indices().nth(1) {
-                    skipped_bytes += next_start.0;
-                    current_input = &current_input[next_start.0..];
-                } else {
-                    // If there's no more input to skip, return the error
-                    return Err(anyhow!("Unable to match templates with input"));
-                }
-            }
+    let regex = Regex::new(&pattern).map_err(|e| anyhow!("Regex compilation failed: {}", e))?;
+
+    // Attempt to find the pattern in the input
+    if let Some(matched) = regex.find(input) {
+        // Calculate the number of bytes to skip before the match
+        let skipped_bytes = matched.start();
+
+        // Extract the values based on the matched pattern
+        let current_input = &input[skipped_bytes..];
+        match extract_template_vals(current_input, templates) {
+            Ok(vals) => Ok((vals, skipped_bytes)),
+            Err(e) => Err(e),
         }
+    } else {
+        // If there's no match, return an error indicating no match was found
+        Err(anyhow!("Unable to match templates with input"))
     }
 }
 
@@ -84,7 +98,7 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
 
         match template.as_str() {
             "{string}" => {
-                let string_match = Regex::new(STRING_RGEX)
+                let string_match = Regex::new(STRING_REGEX)
                     .unwrap()
                     .find(input_decomposed[input_idx])
                     .ok_or(anyhow!("No string found"))?;
@@ -149,10 +163,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
         }
 
         input_idx += 1; // Move to the next piece of input
-    }
-
-    if input_idx != input_decomposed.len() {
-        return Err(anyhow!("Input is not fully consumed"));
     }
 
     Ok(template_vals)
