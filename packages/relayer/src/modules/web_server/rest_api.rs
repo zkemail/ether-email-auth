@@ -179,6 +179,8 @@ pub async fn handle_acceptance_request(
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),
                 guardian_email_addr: payload.guardian_email_addr.clone(),
                 request_id,
+                subject: payload.subject.clone(),
+                account_code: payload.account_code.clone(),
             })
             .expect("Failed to send Acceptance event");
     }

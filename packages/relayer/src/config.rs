@@ -16,7 +16,7 @@ pub struct RelayerConfig {
     pub chain_rpc_explorer: String,
     pub chain_id: u32,
     pub private_key: String,
-    pub email_auth_address: String,
+    pub email_account_recovery_version_id: u8,
     pub input_files_dir: String,
     pub email_templates: String,
 }
@@ -68,7 +68,10 @@ impl RelayerConfig {
             chain_rpc_explorer: env::var(CHAIN_RPC_EXPLORER_KEY).unwrap(),
             chain_id: env::var(CHAIN_ID_KEY).unwrap().parse().unwrap(),
             private_key: env::var(PRIVATE_KEY_KEY).unwrap(),
-            email_auth_address: env::var(EMAIL_AUTH_ADDRESS_KEY).unwrap(),
+            email_account_recovery_version_id: env::var(EMAIL_ACCOUNT_RECOVERY_VERSION_ID_KEY)
+                .unwrap()
+                .parse()
+                .unwrap(),
             input_files_dir,
             email_templates: env::var(EMAIL_TEMPLATES_PATH_KEY).unwrap(),
         }

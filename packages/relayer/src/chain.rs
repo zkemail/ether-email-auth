@@ -10,8 +10,6 @@ type SignerM = SignerMiddleware<Provider<Http>, LocalWallet>;
 #[derive(Debug, Clone)]
 pub struct ChainClient {
     pub client: Arc<SignerM>,
-    pub email_auth: EmailAuth<SignerM>,
-    pub ecdsa_owned_dkim_registry: ECDSAOwnedDKIMRegistry<SignerM>,
 }
 
 impl ChainClient {
@@ -23,22 +21,28 @@ impl ChainClient {
             provider,
             wallet.with_chain_id(*CHAIN_ID.get().unwrap()),
         ));
-        let email_auth = EmailAuth::new(
-            EMAIL_AUTH_ADDRESS.get().unwrap().parse::<Address>()?,
-            client.clone(),
-        );
-        let ecdsa_owned_dkim_registry =
-            ECDSAOwnedDKIMRegistry::new(email_auth.dkim_registry_addr().await?, client.clone());
 
-        Ok(Self {
-            client,
-            email_auth,
-            ecdsa_owned_dkim_registry,
-        })
+        Ok(Self { client })
     }
 
     pub fn self_eth_addr(&self) -> Address {
         self.client.address()
+    }
+
+    pub async fn get_email_auth(
+        &self,
+        wallet_addr: &String,
+        account_key: &String,
+    ) -> Result<EmailAuth<SignerM>, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let account_salt: H256 = account_key.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let email_auth = contract
+            .compute_email_auth_address(account_salt.into())
+            .call()
+            .await?;
+
+        Ok(EmailAuth::new(email_auth, self.client.clone()))
     }
 
     pub async fn set_dkim_public_key_hash(
@@ -47,15 +51,13 @@ impl ChainClient {
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,
-        dkim: H160,
+        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
-        let contract = ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone());
-        let call =
-            contract.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
+        let call = dkim.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
         let tx = call.send().await?;
         let receipt = tx
             .log()
@@ -71,21 +73,24 @@ impl ChainClient {
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
-        dkim: H160,
+        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
     ) -> Result<bool> {
-        let contract = ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone());
-        let is_valid = contract
+        let is_valid = dkim
             .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
             .call()
             .await?;
         Ok(is_valid)
     }
 
-    pub async fn get_dkim_from_wallet(&self, wallet_addr: &String) -> Result<H160> {
+    pub async fn get_dkim_from_wallet(
+        &self,
+        wallet_addr: &String,
+    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
         let wallet_address: H160 = wallet_addr.parse()?;
         let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
         let dkim = contract.dkim().call().await?;
-        Ok(dkim)
+
+        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
     pub async fn get_latest_block_number(&self) -> U64 {

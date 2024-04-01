@@ -73,10 +73,15 @@ pub fn extract_template_vals_and_skipped_subject_idx(
 }
 
 pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {
-    let input_decomposed: Vec<&str> = input.split(' ').collect();
+    let input_decomposed: Vec<&str> = input.split_whitespace().collect();
     let mut template_vals = Vec::new();
     let mut input_idx = 0;
+
     for template in templates.iter() {
+        if input_idx >= input_decomposed.len() {
+            break; // Prevents index out of bounds if input is shorter than template
+        }
+
         match template.as_str() {
             "{string}" => {
                 let string_match = Regex::new(STRING_RGEX)
@@ -90,7 +95,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let string = string_match.as_str().to_string();
                 template_vals.push(TemplateValue::String(string));
-                input_idx += 1;
             }
             "{uint}" => {
                 let uint_match = Regex::new(UINT_REGEX)
@@ -103,7 +107,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let uint = U256::from_dec_str(uint_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Uint(uint));
-                input_idx += 1;
             }
             "{int}" => {
                 let int_match = Regex::new(INT_REGEX)
@@ -115,21 +118,19 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let int = I256::from_dec_str(int_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Int(int));
-                input_idx += 1;
             }
             "{decimals}" => {
                 let decimals_match = Regex::new(DECIMALS_REGEX)
                     .unwrap()
                     .find(input_decomposed[input_idx])
-                    .ok_or(anyhow!("No amount found"))?;
+                    .ok_or(anyhow!("No decimals found"))?;
                 if decimals_match.start() != 0
                     || decimals_match.end() != input_decomposed[input_idx].len()
                 {
-                    return Err(anyhow!("Amount must be the whole word"));
+                    return Err(anyhow!("Decimals must be the whole word"));
                 }
                 let decimals = decimals_match.as_str().to_string();
                 template_vals.push(TemplateValue::Decimals(decimals));
-                input_idx += 1;
             }
             "{ethAddr}" => {
                 let address_match = Regex::new(ETH_ADDR_REGEX)
@@ -143,16 +144,17 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let address = address_match.as_str().parse::<Address>().unwrap();
                 template_vals.push(TemplateValue::EthAddr(address));
-                input_idx += 1;
             }
-            _ => {
-                input_idx += 1;
-            }
+            _ => {} // Skip unknown placeholders
         }
+
+        input_idx += 1; // Move to the next piece of input
     }
+
     if input_idx != input_decomposed.len() {
         return Err(anyhow!("Input is not fully consumed"));
     }
+
     Ok(template_vals)
 }
 

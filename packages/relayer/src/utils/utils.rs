@@ -153,7 +153,7 @@ pub async fn generate_email_auth_input(email: &str, account_key: &str) -> Result
         public_key: email_circuit_inputs.pubkey,
         signature: email_circuit_inputs.signature,
         padded_header_len: email_circuit_inputs.in_len_padded_bytes,
-        account_code: account_key.to_string(),
+        account_code: format!("0x{}", account_key.to_string()),
         from_addr_idx: from_addr_idx.0,
         subject_idx: subject_idx.0,
         domain_idx: domain_idx.0,
@@ -192,6 +192,12 @@ pub async fn generate_proof(
 pub fn u256_to_bytes32(x: &U256) -> [u8; 32] {
     let mut bytes = [0u8; 32];
     x.to_big_endian(&mut bytes);
+    bytes
+}
+
+pub fn u256_to_bytes32_little(x: &U256) -> [u8; 32] {
+    let mut bytes = [0u8; 32];
+    x.to_little_endian(&mut bytes);
     bytes
 }
 
