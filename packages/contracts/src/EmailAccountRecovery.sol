@@ -52,62 +52,75 @@ abstract contract EmailAccountRecovery {
 
     function completeRecovery() external virtual;
 
-    function computeEmailAuthAddress(bytes32 accountSalt)
-        public
-        view
-        returns (address)
-    {
-        return Create2.computeAddress(
-            accountSalt,
-            keccak256(abi.encodePacked(
-                type(ERC1967Proxy).creationCode,
-                abi.encode(emailAuthImplementation(), abi.encodeCall(EmailAuth.initialize, (accountSalt)))
-            ))
-        );
+    function computeEmailAuthAddress(
+        bytes32 accountSalt
+    ) public view returns (address) {
+        return
+            Create2.computeAddress(
+                accountSalt,
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
+                        abi.encode(
+                            emailAuthImplementation(),
+                            abi.encodeCall(EmailAuth.initialize, (accountSalt))
+                        )
+                    )
+                )
+            );
     }
 
     function computeAcceptanceTemplateId(
         uint templateIdx
     ) public pure returns (uint) {
-        return uint256(
-            keccak256(
-                abi.encode(
-                    EMAIL_ACCOUNT_RECOVERY_VERSION_ID,
-                    "ACCEPTANCE",
-                    templateIdx
+        return
+            uint256(
+                keccak256(
+                    abi.encode(
+                        EMAIL_ACCOUNT_RECOVERY_VERSION_ID,
+                        "ACCEPTANCE",
+                        templateIdx
+                    )
                 )
-            )
-        );
+            );
     }
 
     function computeRecoveryTemplateId(
         uint templateIdx
     ) public pure returns (uint) {
-        return uint256(
-            keccak256(
-                abi.encode(
-                    EMAIL_ACCOUNT_RECOVERY_VERSION_ID,
-                    "RECOVERY",
-                    templateIdx
+        return
+            uint256(
+                keccak256(
+                    abi.encode(
+                        EMAIL_ACCOUNT_RECOVERY_VERSION_ID,
+                        "RECOVERY",
+                        templateIdx
+                    )
                 )
-            )
-        );
+            );
     }
 
     function handleAcceptance(
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
-        address guardian = computeEmailAuthAddress(emailAuthMsg.proof.accountSalt);
+        address guardian = computeEmailAuthAddress(
+            emailAuthMsg.proof.accountSalt
+        );
         require(!Address.isContract(guardian), "guardian is already deployed");
         uint templateId = computeAcceptanceTemplateId(templateIdx);
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");
 
         // Deploy proxy of the guardian's EmailAuth contract
-        ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
+        ERC1967Proxy proxy = new ERC1967Proxy{
+            salt: emailAuthMsg.proof.accountSalt
+        }(
             emailAuthImplementation(),
-            abi.encodeCall(EmailAuth.initialize, (emailAuthMsg.proof.accountSalt))
+            abi.encodeCall(
+                EmailAuth.initialize,
+                (emailAuthMsg.proof.accountSalt)
+            )
         );
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.updateDKIMRegistry(dkim());
@@ -121,7 +134,7 @@ abstract contract EmailAccountRecovery {
         for (uint idx = 0; idx < recoverySubjectTemplates().length; idx++) {
             guardianEmailAuth.insertSubjectTemplate(
                 computeRecoveryTemplateId(idx),
-                acceptanceSubjectTemplates()[idx]
+                recoverySubjectTemplates()[idx]
             );
         }
 
@@ -141,7 +154,9 @@ abstract contract EmailAccountRecovery {
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
-        address guardian = computeEmailAuthAddress(emailAuthMsg.proof.accountSalt);
+        address guardian = computeEmailAuthAddress(
+            emailAuthMsg.proof.accountSalt
+        );
         require(Address.isContract(guardian), "guardian is not deployed");
         uint templateId = uint256(
             keccak256(
@@ -167,5 +182,4 @@ abstract contract EmailAccountRecovery {
             emailAuthMsg.proof.emailNullifier
         );
     }
-    
 }

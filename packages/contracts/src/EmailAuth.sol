@@ -56,6 +56,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         verifier = Verifier(_verifierAddr);
     }
 
+    function getSubjectTemplate(
+        uint _templateId
+    ) public view returns (string[] memory) {
+        require(subjectTemplates[_templateId].length > 0, "template id not exists");
+        return subjectTemplates[_templateId];
+    }
+
     function insertSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
@@ -127,11 +134,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
         require(
             timestampCheckEnabled == false ||
-            emailAuthMsg.proof.timestamp == 0 ||
+                emailAuthMsg.proof.timestamp == 0 ||
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
-
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
         string memory expectedSubject = SubjectUtils.computeExpectedSubject(
@@ -187,7 +193,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Upgrade the implementation of the proxy
     /// @param newImplementation Address of the new implementation
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 
     function removePrefix(
         string memory str,

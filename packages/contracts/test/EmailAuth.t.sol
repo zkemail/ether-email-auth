@@ -12,17 +12,16 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import "./helpers/DeploymentHelper.sol";
 
 contract EmailAuthTest is DeploymentHelper {
-
-    function setUp() public override{
+    function setUp() public override {
         super.setUp();
     }
 
-    function testDkimRegistryAddr() public {
+    function testDkimRegistryAddr() public view {
         address dkimAddr = emailAuth.dkimRegistryAddr();
         assertEq(dkimAddr, address(dkim));
     }
 
-    function testVerifierAddr() public {
+    function testVerifierAddr() public view {
         address verifierAddr = emailAuth.verifierAddr();
         assertEq(verifierAddr, address(verifier));
     }
@@ -43,6 +42,17 @@ contract EmailAuthTest is DeploymentHelper {
         vm.stopPrank();
     }
 
+    function testGetSubjectTemplate() public {
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
+    }
+
+    function testExpectRevertGetSubjectTemplate() public {
+        vm.expectRevert(bytes("template id not exists"));
+        emailAuth.getSubjectTemplate(templateId);
+    }
+
     function testInsertSubjectTemplate() public {
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
     }
@@ -61,7 +71,7 @@ contract EmailAuthTest is DeploymentHelper {
         vm.stopPrank();
     }
 
-    function testComputeMsgHash() public {
+    function testComputeMsgHash() public view {
         bytes[] memory subjectParams = new bytes[](2);
         subjectParams[0] = abi.encode(1);
         subjectParams[1] = abi.encode(vm.addr(1));
@@ -83,7 +93,9 @@ contract EmailAuthTest is DeploymentHelper {
 
         bytes[] memory subjectParams = new bytes[](2);
         subjectParams[0] = abi.encode(1 ether);
-        subjectParams[1] = abi.encode("0x0000000000000000000000000000000000000020");
+        subjectParams[1] = abi.encode(
+            "0x0000000000000000000000000000000000000020"
+        );
 
         EmailProof memory emailProof = EmailProof({
             domainName: "gmail.com",

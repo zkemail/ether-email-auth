@@ -66,7 +66,10 @@ contract DeploymentHelper is Test {
         EmailAuth emailAuthImpl = new EmailAuth();
         ERC1967Proxy emailAuthProxy = new ERC1967Proxy(
             address(emailAuthImpl),
-            abi.encodeWithSelector(emailAuthImpl.initialize.selector, accountSalt)
+            abi.encodeWithSelector(
+                emailAuthImpl.initialize.selector,
+                accountSalt
+            )
         );
         emailAuth = EmailAuth(payable(address(emailAuthProxy)));
         emailAuth.updateVerifier(address(verifier));
@@ -78,14 +81,15 @@ contract DeploymentHelper is Test {
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
         // Create SimpleWallet as EmailAccountRecovery implementation
-        SimpleWallet simpleWalletImpl = new SimpleWallet(
-            address(verifier),
-            address(dkim),
-            address(emailAuth)
-        );
+        SimpleWallet simpleWalletImpl = new SimpleWallet();
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
-            abi.encodeWithSelector(simpleWalletImpl.initialize.selector)
+            abi.encodeWithSelector(
+                simpleWalletImpl.initialize.selector,
+                address(verifier),
+                address(dkim),
+                address(emailAuth)
+            )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
         vm.deal(address(simpleWallet), 1 ether);
