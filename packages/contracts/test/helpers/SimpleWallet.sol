@@ -98,7 +98,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.NONE,
-            "guardian status mutt be NONE"
+            "guardian status must be NONE"
         );
         guardians[guardian] = GuardianStatus.REQUESTED;
     }
