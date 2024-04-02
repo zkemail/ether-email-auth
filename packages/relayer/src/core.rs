@@ -1,14 +1,14 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::identity_op)]
 
+use crate::abis::email_account_recovery::{EmailAuthMsg, EmailProof};
 use crate::*;
 
 use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use num_traits::ToBytes;
-use relayer_utils::*;
+use relayer_utils::extract_substr_idxes;
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
@@ -35,8 +35,6 @@ pub async fn handle_email<P: EmailsPool>(
             "The user of email address {} is not registered.",
             guardian_email_addr
         ))?;
-    let account_key = AccountKey(hex2field(&format!("0x{}", account_key_str))?);
-    let wallet_salt = WalletSalt::new(&padded_from_addr, account_key)?;
 
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
@@ -89,18 +87,15 @@ pub async fn handle_email<P: EmailsPool>(
 
     if let Ok(invitation_code) = parsed_email.get_invitation_code() {
         trace!(LOG, "Email with account code"; "func" => function_name!());
-        let stored_account_key = db
-            .get_invitation_code_from_email_addr(&guardian_email_addr)
-            .await?;
-        if let Some(stored_account_key) = stored_account_key.as_ref() {
-            if stored_account_key != &invitation_code {
-                return Err(anyhow!(
-                    "Stored account key is not equal to one in the email: {} != {}",
-                    stored_account_key,
-                    field2hex(&account_key.0)
-                ));
-            }
+
+        if account_key_str != invitation_code {
+            return Err(anyhow!(
+                "Stored account key is not equal to one in the email. Stored: {}, Email: {}",
+                account_key_str,
+                invitation_code
+            ));
         }
+
         if !request.is_for_recovery {
             let tokens = vec![
                 Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
@@ -115,6 +110,7 @@ pub async fn handle_email<P: EmailsPool>(
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
+            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
             let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
@@ -127,7 +123,7 @@ pub async fn handle_email<P: EmailsPool>(
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
                 masked_subject,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
-                account_salt: fr_to_bytes32(&wallet_salt.0)?,
+                account_salt,
                 is_code_exist,
             };
 
@@ -170,7 +166,7 @@ pub async fn handle_email<P: EmailsPool>(
                         email_nullifier: Some(field2hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
-                        account_salt: Some(field2hex(&wallet_salt.0)),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
                     db.update_request(&updated_request).await?;
@@ -193,7 +189,7 @@ pub async fn handle_email<P: EmailsPool>(
                         email_nullifier: Some(field2hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
-                        account_salt: Some(field2hex(&wallet_salt.0)),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
                     db.update_request(&updated_request).await?;
@@ -226,6 +222,7 @@ pub async fn handle_email<P: EmailsPool>(
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
+            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
             let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
@@ -236,7 +233,7 @@ pub async fn handle_email<P: EmailsPool>(
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
                 masked_subject,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
-                account_salt: fr_to_bytes32(&wallet_salt.0)?,
+                account_salt,
                 is_code_exist,
             };
 
@@ -270,7 +267,7 @@ pub async fn handle_email<P: EmailsPool>(
                         email_nullifier: Some(field2hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
-                        account_salt: Some(field2hex(&wallet_salt.0)),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
                     db.update_request(&updated_request).await?;
@@ -293,7 +290,7 @@ pub async fn handle_email<P: EmailsPool>(
                         email_nullifier: Some(field2hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
-                        account_salt: Some(field2hex(&wallet_salt.0)),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
                     db.update_request(&updated_request).await?;
@@ -327,11 +324,8 @@ pub fn get_masked_subject(public_signals: Vec<U256>, start_idx: usize) -> Result
     }
 
     // Bytes to string, removing null bytes
-    let mut subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
+    let subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
         .map_err(|e| anyhow!("Failed to convert bytes to string: {}", e))?;
-
-    // Remove trailing whitespace
-    subject = subject.trim_end().to_string();
 
     Ok(subject)
 }

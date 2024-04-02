@@ -174,6 +174,15 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert request");
 
+        let email_auth_address = chain_client
+            .get_email_auth(
+                &"0xF43E7C0236A750eDE0823c71f45caeE11EF78386".to_string(),
+                &"12c68bae81cd4ca6616ddc8392a27476f3d2450068fb7e703d4f7f662348b438".to_string(),
+            )
+            .await
+            .unwrap();
+        println!("Email auth address: {:?}", email_auth_address);
+
         tx_event_consumer
             .send(EmailAuthEvent::Acceptance {
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),

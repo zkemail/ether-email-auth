@@ -98,7 +98,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.NONE,
-            "invalid guardian status"
+            "guardian status must be NONE"
         );
         guardians[guardian] = GuardianStatus.REQUESTED;
     }
@@ -112,12 +112,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.REQUESTED,
-            "invalid guardian status"
+            "guardian status must be REQUESTED"
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 1, "invalid subject params");
-        address guardianInEmail = abi.decode(subjectParams[0], (address));
-        require(guardianInEmail == guardian, "invalid guardian in email");
+        address walletAddrInEmail = abi.decode(subjectParams[0], (address));
+        require(walletAddrInEmail == address(this), "invalid wallet address in email");
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 
@@ -130,7 +130,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.ACCEPTED,
-            "invalid guardian status"
+            "guardian status must be ACCEPTED"
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 2, "invalid subject params");

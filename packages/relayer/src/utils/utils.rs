@@ -30,20 +30,6 @@ pub struct ProofJson {
 }
 
 #[derive(Serialize, Deserialize)]
-struct EmailSenderInput {
-    in_padded: Vec<String>,
-    pubkey: Vec<String>,
-    signature: Vec<String>,
-    in_padded_len: String,
-    sender_account_key: String,
-    sender_email_idx: usize,
-    subject_idx: usize,
-    recipient_email_idx: usize,
-    domain_idx: usize,
-    timestamp_idx: usize,
-}
-
-#[derive(Serialize, Deserialize)]
 struct EmailAuthInput {
     padded_header: Vec<String>,
     public_key: Vec<String>,
@@ -79,52 +65,6 @@ impl ProofJson {
         ]);
         Ok(Bytes::from(abi::encode(&[pi_a, pi_b, pi_c])))
     }
-}
-
-#[named]
-pub async fn generate_email_sender_input(
-    circuits_dir_path: &Path,
-    email: &str,
-    account_key: &str,
-) -> Result<String> {
-    let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
-    let circuit_input_params = circuit::CircuitInputParams::new(
-        vec![],
-        parsed_email.canonicalized_header.as_bytes().to_vec(),
-        "".to_string(),
-        vec_u8_to_bigint(parsed_email.clone().signature),
-        vec_u8_to_bigint(parsed_email.clone().public_key),
-        None,
-        Some(1024),
-        Some(64),
-        Some(true),
-    );
-    let email_circuit_inputs = circuit::generate_circuit_inputs(circuit_input_params);
-
-    let sender_email_idx = parsed_email.get_from_addr_idxes().unwrap();
-    let domain_idx = parsed_email.get_email_domain_idxes().unwrap();
-    let subject_idx = parsed_email.get_subject_all_idxes().unwrap();
-    let mut recipient_email_idx = 0;
-    match parsed_email.get_email_addr_in_subject_idxes() {
-        Ok(idx) => recipient_email_idx = idx.0,
-        Err(_) => error!(LOG, "no email addr in subject"; "func" => function_name!()),
-    }
-    let timestamp_idx = parsed_email.get_timestamp_idxes().unwrap();
-
-    let email_sender_input = EmailSenderInput {
-        in_padded: email_circuit_inputs.in_padded,
-        pubkey: email_circuit_inputs.pubkey,
-        signature: email_circuit_inputs.signature,
-        in_padded_len: email_circuit_inputs.in_len_padded_bytes,
-        sender_account_key: account_key.to_string(),
-        sender_email_idx: sender_email_idx.0,
-        subject_idx: subject_idx.0,
-        recipient_email_idx: recipient_email_idx,
-        domain_idx: domain_idx.0,
-        timestamp_idx: timestamp_idx.0,
-    };
-
-    Ok(serde_json::to_string(&email_sender_input)?)
 }
 
 pub async fn generate_email_auth_input(email: &str, account_key: &str) -> Result<String> {
@@ -203,6 +143,10 @@ pub fn u256_to_bytes32_little(x: &U256) -> [u8; 32] {
 
 pub fn u256_to_hex(x: &U256) -> String {
     "0x".to_string() + &hex::encode(u256_to_bytes32(x))
+}
+
+pub fn bytes32_to_hex(bytes: &[u8; 32]) -> String {
+    "0x".to_string() + &hex::encode(bytes)
 }
 
 pub fn hex_to_u256(hex: &str) -> Result<U256> {
