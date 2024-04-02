@@ -71,10 +71,10 @@ pub async fn handle_email<P: EmailsPool>(
     let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
     let (subject_params, skipped_subject_prefix) = match result {
         Ok((subject_params, skipped_subject_prefix)) => (subject_params, skipped_subject_prefix),
-        Err(_) => {
+        Err(e) => {
             return Ok(EmailAuthEvent::Error {
                 email_addr: guardian_email_addr,
-                error: format!("Invalid Subject"),
+                error: format!("Invalid Subject, {}", e),
             });
         }
     };
@@ -137,6 +137,9 @@ pub async fn handle_email<P: EmailsPool>(
                 skiped_subject_prefix: skipped_subject_prefix.into(),
                 proof: email_proof.clone(),
             };
+
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
+            info!(LOG, "Request: {:?}", request; "func" => function_name!());
 
             match chain_client
                 .handle_acceptance(
@@ -244,6 +247,9 @@ pub async fn handle_email<P: EmailsPool>(
                 proof: email_proof.clone(),
             };
 
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
+            info!(LOG, "Request: {:?}", request; "func" => function_name!());
+
             match chain_client
                 .handle_recovery(
                     &request.wallet_eth_addr,
@@ -321,8 +327,11 @@ pub fn get_masked_subject(public_signals: Vec<U256>, start_idx: usize) -> Result
     }
 
     // Bytes to string, removing null bytes
-    let subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
+    let mut subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
         .map_err(|e| anyhow!("Failed to convert bytes to string: {}", e))?;
+
+    // Remove trailing whitespace
+    subject = subject.trim_end().to_string();
 
     Ok(subject)
 }

@@ -34,11 +34,11 @@ pub const NOT_MY_SENDER: &str = "NOT_MY_SENDER";
 pub const WRONG_SUBJECT_FORMAT: &str = "Wrong subject format";
 
 // Core REGEX'es and Commands
-pub const STRING_RGEX: &str = ".+";
-pub const UINT_REGEX: &str = "[0-9]+";
-pub const INT_REGEX: &str = "-?[0-9]+";
-pub const ETH_ADDR_REGEX: &str = "0x[0-9a-fA-F]{40}";
-pub const DECIMALS_REGEX: &str = "[0-9]+(\\.[0-9]+)?";
+pub const STRING_REGEX: &str = r"\S+";
+pub const UINT_REGEX: &str = r"\d+";
+pub const INT_REGEX: &str = r"-?\d+";
+pub const ETH_ADDR_REGEX: &str = r"0x[a-fA-F0-9]{40}";
+pub const DECIMALS_REGEX: &str = r"\d+\.\d+";
 
 // DKIM ORACLE ARGS
 pub const CANISTER_ID_KEY: &str = "CANISTER_ID";
