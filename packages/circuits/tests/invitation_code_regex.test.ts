@@ -50,8 +50,6 @@ describe("Invitation Code Regex", () => {
         // const revealedStartIdx = emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8"))[0][0];
         // console.log(emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8")));
         for (let idx = 0; idx < 256; ++idx) {
-            console.log(paddedStr[idx]);
-            console.log(witness[2 + idx]);
             if (idx >= prefixIdxes[0] && idx < prefixIdxes[1]) {
                 expect(BigInt(paddedStr[idx])).toEqual(witness[2 + idx]);
             } else {
@@ -127,8 +125,31 @@ describe("Invitation Code Regex", () => {
         // const revealedStartIdx = emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8"))[0][0];
         // console.log(emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8")));
         for (let idx = 0; idx < 256; ++idx) {
-            console.log(paddedStr[idx]);
-            console.log(witness[2 + idx]);
+            if (idx >= prefixIdxes[0] && idx < prefixIdxes[1]) {
+                expect(BigInt(paddedStr[idx])).toEqual(witness[2 + idx]);
+            } else {
+                expect(0n).toEqual(witness[2 + idx]);
+            }
+        }
+    });
+
+    it("prefix + invitation code in the subject 2", async () => {
+        const codeStr = "Re: Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC Code 01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
+        // const revealed = "123abc";
+        const paddedStr = emailWalletUtils.padString(codeStr, 256);
+        const circuitInputs = {
+            msg: paddedStr,
+        };
+        const circuit = await wasm_tester(path.join(__dirname, "./circuits/test_invitation_code_with_prefix_regex.circom"), option);
+        const witness = await circuit.calculateWitness(circuitInputs);
+        await circuit.checkConstraints(witness);
+        // console.log(witness);
+        expect(1n).toEqual(witness[1]);
+        const prefixIdxes = emailWalletUtils.extractInvitationCodeWithPrefixIdxes(codeStr)[0];
+        // const revealedStartIdx = emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8"))[0][0];
+        // console.log(emailWalletUtils.extractSubstrIdxes(codeStr, readFileSync(path.join(__dirname, "../src/regexes/invitation_code.json"), "utf8")));
+        for (let idx = 0; idx < 256; ++idx) {
             if (idx >= prefixIdxes[0] && idx < prefixIdxes[1]) {
                 expect(BigInt(paddedStr[idx])).toEqual(witness[2 + idx]);
             } else {
