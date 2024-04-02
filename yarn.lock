@@ -2003,10 +2003,10 @@
     commander "^11.0.0"
     snarkjs "^0.7.0"
 
-"@zk-email/zk-regex-circom@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.0.1.tgz#588eaefb4b04ec099089539f39e35cafd9f2d52e"
-  integrity sha512-FwXpnTIh6TtFKYsF0yr1u6uwWipFYz42kH/jRE9FkLQ3QkrgZ3pdx65wuhUTOTH1i8IXS6Gs1x6l8quko9sx3w==
+"@zk-email/zk-regex-circom@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.0.2.tgz#be7a8c0b59de726f5b978a879c40ad37d402487a"
+  integrity sha512-xqq33NT1nSnY00cFk3o+Q607XUIJqN1DwYBjMxkv2jWp9PsS/fsBtdqLhN1I0oRnKqEf3LblAVwDdr9aJC+Eng==
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.0"
