@@ -36,6 +36,21 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         vm.stopPrank();
     }
 
+    function testExpectRevertTransferOnlyOwner() public {
+        setUpForPublic();
+        vm.expectRevert(bytes("only owner"));
+        this.transfer(receiver, 1 ether);
+    }
+
+    function testExpectRevertTransferOnlyOwnerInsufficientBalance() public {
+        setUpForPublic();
+        vm.startPrank(deployer);
+        assertEq(receiver.balance, 0 ether);
+        vm.expectRevert(bytes("insufficient balance"));
+        this.transfer(receiver, 2 ether);
+        vm.stopPrank();
+    }
+
     function testFailTransfer() public {
         setUpForPublic();
         vm.startPrank(receiver);
