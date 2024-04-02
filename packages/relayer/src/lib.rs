@@ -26,7 +26,7 @@ use anyhow::{anyhow, bail, Result};
 use dotenv::dotenv;
 use ethers::prelude::*;
 use lazy_static::lazy_static;
-use relayer_utils::{converters::*, cryptos::*, parse_email::ParsedEmail, Fr};
+use relayer_utils::{converters::*, cryptos::*, parse_email::ParsedEmail};
 use slog::{error, info, trace};
 use std::env;
 use std::future::Future;

@@ -25,26 +25,6 @@ impl ChainClient {
         Ok(Self { client })
     }
 
-    pub fn self_eth_addr(&self) -> Address {
-        self.client.address()
-    }
-
-    pub async fn get_email_auth(
-        &self,
-        wallet_addr: &String,
-        account_key: &String,
-    ) -> Result<EmailAuth<SignerM>, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let account_salt: H256 = account_key.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
-        let email_auth = contract
-            .compute_email_auth_address(account_salt.into())
-            .call()
-            .await?;
-
-        Ok(EmailAuth::new(email_auth, self.client.clone()))
-    }
-
     pub async fn set_dkim_public_key_hash(
         &self,
         selector: String,
@@ -91,10 +71,6 @@ impl ChainClient {
         let dkim = contract.dkim().call().await?;
 
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
-    }
-
-    pub async fn get_latest_block_number(&self) -> U64 {
-        self.client.get_block_number().await.unwrap()
     }
 
     pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> bool {

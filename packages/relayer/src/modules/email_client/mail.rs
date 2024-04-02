@@ -1,8 +1,8 @@
 use crate::{
-    check_domain_sign_reply_to, error, render_html, split_email_address, EmailForwardSender,
-    EmailMessage, Future, Result, DB, LOG, RELAYER_EMAIL_ADDRESS,
+    error, render_html, EmailForwardSender,
+    EmailMessage, Future, Result, LOG,
 };
-use anyhow::anyhow;
+
 use std::pin::Pin;
 
 #[derive(Debug, Clone)]

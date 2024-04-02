@@ -96,7 +96,6 @@ impl Database {
         }
     }
 
-    #[named]
     pub(crate) async fn is_email_registered(&self, email_addr: &str) -> bool {
         let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
             .bind(email_addr)
@@ -153,21 +152,6 @@ impl Database {
             Some(_) => true,
             None => false,
         }
-    }
-
-    #[named]
-    pub async fn set_guardian_in_credentials(&self, account_code: &str) -> Result<()> {
-        info!(LOG, "account_code {}", account_code; "func" => function_name!());
-        let res = sqlx::query("UPDATE codes SET is_set = TRUE WHERE account_code = $1")
-            .bind(account_code)
-            .execute(&self.db)
-            .await?;
-        info!(
-            LOG,
-            "updated result: {:?}",
-            res; "func" => function_name!()
-        );
-        Ok(())
     }
 
     #[named]
@@ -261,79 +245,6 @@ impl Database {
             LOG,
             "{} row inserted",
             row.len(); "func" => function_name!()
-        );
-        Ok(())
-    }
-
-    pub(crate) async fn get_request_status(&self, request_id: u64) -> Result<Option<Request>> {
-        let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
-            .bind(request_id as i64)
-            .fetch_optional(&self.db)
-            .await?;
-
-        match row {
-            Some(row) => {
-                let request_id: i64 = row.get("request_id");
-                let wallet_eth_addr: String = row.get("wallet_eth_addr");
-                let guardian_email_addr: String = row.get("guardian_email_addr");
-                let is_for_recovery: bool = row.get("is_for_recovery");
-                let template_idx: i32 = row.get("template_idx");
-                let is_processed: bool = row.get("is_processed");
-                let is_success: Option<bool> = row.get("is_success");
-                let email_nullifier: Option<String> = row.get("email_nullifier");
-                let account_salt: Option<String> = row.get("account_salt");
-                let requests_row = Request {
-                    request_id: request_id as u64,
-                    wallet_eth_addr,
-                    guardian_email_addr,
-                    is_for_recovery,
-                    template_idx: template_idx as u64,
-                    is_processed,
-                    is_success,
-                    email_nullifier,
-                    account_salt,
-                };
-                Ok(Some(requests_row))
-            }
-            None => Ok(None),
-        }
-    }
-
-    #[named]
-    pub(crate) async fn request_completed(
-        &self,
-        request_id: u64,
-        email_nullifier: &str,
-        account_salt: &str,
-    ) -> Result<()> {
-        info!(LOG, "request_id {}", request_id; "func" => function_name!());
-        let res = sqlx::query("UPDATE requests SET is_processed = TRUE, is_success = TRUE, email_nullifier = $1, account_salt = $2, WHERE request_id = $3")
-            .bind(email_nullifier)
-            .bind(account_salt)
-            .bind(request_id as i64)
-            .execute(&self.db)
-            .await?;
-        info!(
-            LOG,
-            "updated result: {:?}",
-            res; "func" => function_name!()
-        );
-        Ok(())
-    }
-
-    #[named]
-    pub(crate) async fn request_failed(&self, request_id: u64) -> Result<()> {
-        info!(LOG, "request_id {}", request_id; "func" => function_name!());
-        let res = sqlx::query(
-            "UPDATE requests SET is_processed = TRUE, is_success = FALSE WHERE request_id = $1",
-        )
-        .bind(request_id as i64)
-        .execute(&self.db)
-        .await?;
-        info!(
-            LOG,
-            "updated result: {:?}",
-            res; "func" => function_name!()
         );
         Ok(())
     }

@@ -10,7 +10,6 @@ use ::serde::{Deserialize, Serialize};
 
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
-use std::path::Path;
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 17;
@@ -133,47 +132,6 @@ pub async fn generate_proof(
         .map(|str| U256::from_dec_str(&str).expect("pub signal should be u256"))
         .collect();
     Ok((proof, pub_signals))
-}
-
-pub fn u256_to_bytes32(x: &U256) -> [u8; 32] {
-    let mut bytes = [0u8; 32];
-    x.to_big_endian(&mut bytes);
-    bytes
-}
-
-pub fn u256_to_bytes32_little(x: &U256) -> [u8; 32] {
-    let mut bytes = [0u8; 32];
-    x.to_little_endian(&mut bytes);
-    bytes
-}
-
-pub fn u256_to_hex(x: &U256) -> String {
-    "0x".to_string() + &hex::encode(u256_to_bytes32(x))
-}
-
-pub fn bytes32_to_hex(bytes: &[u8; 32]) -> String {
-    "0x".to_string() + &hex::encode(bytes)
-}
-
-pub fn hex_to_u256(hex: &str) -> Result<U256> {
-    let bytes: Vec<u8> = hex::decode(&hex[2..])?;
-    let mut array = [0u8; 32];
-    array.copy_from_slice(&bytes);
-    Ok(U256::from_big_endian(&array))
-}
-
-pub fn fr_to_bytes32(fr: &Fr) -> Result<[u8; 32]> {
-    let hex = field2hex(fr);
-    let bytes = hex::decode(&hex[2..])?;
-    let mut result = [0u8; 32];
-    result.copy_from_slice(&bytes);
-    Ok(result)
-}
-
-pub fn bytes32_to_fr(bytes32: &[u8; 32]) -> Result<Fr> {
-    let hex: String = "0x".to_string() + &hex::encode(bytes32);
-    let field = hex2field(&hex)?;
-    Ok(field)
 }
 
 pub fn calculate_default_hash(input: &str) -> String {
