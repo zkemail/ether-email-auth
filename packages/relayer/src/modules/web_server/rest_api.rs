@@ -1,9 +1,11 @@
 use crate::*;
 use anyhow::Result;
 use axum::{body::Body, response::Response};
+use hex::decode;
 use rand::Rng;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use std::str;
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusRequest {
@@ -174,17 +176,8 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert request");
 
-        let email_auth_address = chain_client
-            .get_email_auth(
-                &"0xF43E7C0236A750eDE0823c71f45caeE11EF78386".to_string(),
-                &"12c68bae81cd4ca6616ddc8392a27476f3d2450068fb7e703d4f7f662348b438".to_string(),
-            )
-            .await
-            .unwrap();
-        println!("Email auth address: {:?}", email_auth_address);
-
         tx_event_consumer
-            .send(EmailAuthEvent::Acceptance {
+            .send(EmailAuthEvent::AcceptanceRequest {
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),
                 guardian_email_addr: payload.guardian_email_addr.clone(),
                 request_id,
@@ -242,6 +235,42 @@ pub async fn handle_recovery_request(
         request_id = rand::thread_rng().gen::<u64>();
     }
 
+    if !db.is_email_registered(&payload.guardian_email_addr).await {
+        db.insert_request(&Request {
+            request_id: request_id.clone(),
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: true,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        tx_event_consumer
+            .send(EmailAuthEvent::GuardianNotRegistered {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+                subject: payload.subject.clone(),
+                request_id,
+            })
+            .expect("Failed to send GuardianNotRegistered event");
+
+        return Response::builder()
+            .status(StatusCode::OK)
+            .body(Body::from(
+                serde_json::to_string(&RecoveryResponse {
+                    request_id,
+                    subject_params: subject_params.unwrap(),
+                })
+                .unwrap(),
+            ))
+            .unwrap();
+    }
+
     if db
         .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
@@ -261,11 +290,13 @@ pub async fn handle_recovery_request(
         .expect("Failed to insert request");
 
         tx_event_consumer
-            .send(EmailAuthEvent::GuardianAlreadyExists {
+            .send(EmailAuthEvent::RecoveryRequest {
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),
                 guardian_email_addr: payload.guardian_email_addr.clone(),
+                request_id,
+                subject: payload.subject.clone(),
             })
-            .expect("Failed to send GuardianAlreadyExists event");
+            .expect("Failed to send Recovery event");
     } else {
         db.insert_request(&Request {
             request_id: request_id.clone(),
@@ -282,10 +313,11 @@ pub async fn handle_recovery_request(
         .expect("Failed to insert request");
 
         tx_event_consumer
-            .send(EmailAuthEvent::Recovery {
+            .send(EmailAuthEvent::RecoveryRequest {
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),
                 guardian_email_addr: payload.guardian_email_addr.clone(),
                 request_id,
+                subject: payload.subject.clone(),
             })
             .expect("Failed to send Recovery event");
     }
@@ -329,9 +361,39 @@ pub async fn handle_complete_recovery_request(
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Recovery failed"))
             .unwrap(),
-        Err(_) => Response::builder()
-            .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .body(Body::from("Internal server error"))
-            .unwrap(),
+        Err(e) => {
+            // Parse the error message if it follows the known format
+            let error_message = if e
+                .to_string()
+                .starts_with("Contract call reverted with data:")
+            {
+                parse_error_message(e.to_string())
+            } else {
+                "Internal server error".to_string()
+            };
+            // Remove all non printable characters
+            let error_message = error_message
+                .chars()
+                .filter(|c| c.is_ascii())
+                .collect::<String>();
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(error_message))
+                .unwrap()
+        }
     }
+}
+
+fn parse_error_message(error_data: String) -> String {
+    // Attempt to extract and decode the error message
+    if let Some(hex_error) = error_data.split(" ").last() {
+        if hex_error.len() > 138 {
+            // Check if the length is sufficient for a message
+            let error_bytes = decode(&hex_error[138..]).unwrap_or_else(|_| vec![]);
+            if let Ok(message) = str::from_utf8(&error_bytes) {
+                return message.to_string();
+            }
+        }
+    }
+    "Failed to parse contract error".to_string()
 }

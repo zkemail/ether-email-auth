@@ -103,7 +103,7 @@ impl ChainClient {
             Ok(code) => !code.is_empty(),
             Err(e) => {
                 // Log the error or handle it as needed
-                eprintln!("Error querying contract code: {:?}", e);
+                error!(LOG, "Error querying contract code: {:?}", e);
                 false
             }
         }

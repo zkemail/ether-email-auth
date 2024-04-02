@@ -62,28 +62,6 @@ pub async fn handle_email<P: EmailsPool>(
         &request.wallet_eth_addr,
     )
     .await?;
-    let subject_template = chain_client
-        .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
-        .await?;
-
-    let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
-    let (subject_params, skipped_subject_prefix) = match result {
-        Ok((subject_params, skipped_subject_prefix)) => (subject_params, skipped_subject_prefix),
-        Err(e) => {
-            return Ok(EmailAuthEvent::Error {
-                email_addr: guardian_email_addr,
-                error: format!("Invalid Subject, {}", e),
-            });
-        }
-    };
-
-    println!("subject_params: {:?}", subject_params);
-    println!("skipped_subject_prefix: {:?}", skipped_subject_prefix);
-
-    let subject_params_encoded: Vec<Bytes> = subject_params
-        .iter()
-        .map(|param| param.abi_encode(None).unwrap())
-        .collect();
 
     if let Ok(invitation_code) = parsed_email.get_invitation_code() {
         trace!(LOG, "Email with account code"; "func" => function_name!());
@@ -97,6 +75,28 @@ pub async fn handle_email<P: EmailsPool>(
         }
 
         if !request.is_for_recovery {
+            let subject_template = chain_client
+                .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .await?;
+
+            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            let (subject_params, skipped_subject_prefix) = match result {
+                Ok((subject_params, skipped_subject_prefix)) => {
+                    (subject_params, skipped_subject_prefix)
+                }
+                Err(e) => {
+                    return Ok(EmailAuthEvent::Error {
+                        email_addr: guardian_email_addr,
+                        error: format!("Invalid Subject, {}", e),
+                    });
+                }
+            };
+
+            let subject_params_encoded: Vec<Bytes> = subject_params
+                .iter()
+                .map(|param| param.abi_encode(None).unwrap())
+                .collect();
+
             let tokens = vec![
                 Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
                 Token::String("ACCEPTANCE".to_string()),
@@ -113,8 +113,6 @@ pub async fn handle_email<P: EmailsPool>(
             let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
             let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
-
-            println!("masked_subject: {:?}", masked_subject);
 
             let email_proof = EmailProof {
                 proof: proof,
@@ -202,13 +200,146 @@ pub async fn handle_email<P: EmailsPool>(
                 Err(e) => Err(anyhow!("Failed to handle acceptance: {}", e)),
             }
         } else {
-            return Ok(EmailAuthEvent::Error {
-                email_addr: guardian_email_addr,
-                error: "Request is for recovery".to_string(),
-            });
+            let subject_template = chain_client
+                .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .await?;
+
+            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            let (subject_params, skipped_subject_prefix) = match result {
+                Ok((subject_params, skipped_subject_prefix)) => {
+                    (subject_params, skipped_subject_prefix)
+                }
+                Err(e) => {
+                    return Ok(EmailAuthEvent::Error {
+                        email_addr: guardian_email_addr,
+                        error: format!("Invalid Subject, {}", e),
+                    });
+                }
+            };
+
+            let subject_params_encoded: Vec<Bytes> = subject_params
+                .iter()
+                .map(|param| param.abi_encode(None).unwrap())
+                .collect();
+
+            let tokens = vec![
+                Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
+                Token::String("RECOVERY".to_string()),
+                Token::Uint(request.template_idx.into()),
+            ];
+
+            let template_id = keccak256(encode(&tokens));
+
+            let circuit_input = generate_email_auth_input(&email, &account_key_str).await?;
+
+            let (proof, public_signals) =
+                generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
+
+            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
+            let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
+            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+
+            let email_proof = EmailProof {
+                proof: proof,
+                domain_name: parsed_email.get_email_domain()?,
+                public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
+                timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
+                masked_subject,
+                email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
+                account_salt,
+                is_code_exist,
+            };
+
+            let email_auth_msg = EmailAuthMsg {
+                template_id: template_id.into(),
+                subject_params: subject_params_encoded,
+                skiped_subject_prefix: skipped_subject_prefix.into(),
+                proof: email_proof.clone(),
+            };
+
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
+            info!(LOG, "Request: {:?}", request; "func" => function_name!());
+
+            match chain_client
+                .handle_recovery(
+                    &request.wallet_eth_addr,
+                    email_auth_msg,
+                    request.template_idx,
+                )
+                .await
+            {
+                Ok(true) => {
+                    let updated_request = Request {
+                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        guardian_email_addr: guardian_email_addr.clone(),
+                        template_idx: request.template_idx,
+                        is_for_recovery: request.is_for_recovery,
+                        is_processed: true,
+                        request_id: request.request_id,
+                        is_success: Some(true),
+                        email_nullifier: Some(field2hex(
+                            &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
+                        )),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
+                    };
+
+                    db.update_request(&updated_request).await?;
+
+                    Ok(EmailAuthEvent::RecoverySuccess {
+                        wallet_eth_addr: request.wallet_eth_addr,
+                        guardian_email_addr,
+                        request_id: request_id_u64,
+                    })
+                }
+                Ok(false) => {
+                    let updated_request = Request {
+                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        guardian_email_addr: guardian_email_addr.clone(),
+                        template_idx: request.template_idx,
+                        is_for_recovery: request.is_for_recovery,
+                        is_processed: true,
+                        request_id: request.request_id,
+                        is_success: Some(false),
+                        email_nullifier: Some(field2hex(
+                            &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
+                        )),
+                        account_salt: Some(bytes32_to_hex(&account_salt)),
+                    };
+
+                    db.update_request(&updated_request).await?;
+
+                    Ok(EmailAuthEvent::Error {
+                        email_addr: guardian_email_addr,
+                        error: "Failed to handle recovery".to_string(),
+                    })
+                }
+                Err(e) => Err(anyhow!("Failed to handle recovery: {}", e)),
+            }
         }
     } else {
         if request.is_for_recovery {
+            let subject_template = chain_client
+                .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .await?;
+
+            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            let (subject_params, skipped_subject_prefix) = match result {
+                Ok((subject_params, skipped_subject_prefix)) => {
+                    (subject_params, skipped_subject_prefix)
+                }
+                Err(e) => {
+                    return Ok(EmailAuthEvent::Error {
+                        email_addr: guardian_email_addr,
+                        error: format!("Invalid Subject, {}", e),
+                    });
+                }
+            };
+
+            let subject_params_encoded: Vec<Bytes> = subject_params
+                .iter()
+                .map(|param| param.abi_encode(None).unwrap())
+                .collect();
+
             let tokens = vec![
                 Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
                 Token::String("RECOVERY".to_string()),

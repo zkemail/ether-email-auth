@@ -85,7 +85,13 @@ pub async fn generate_email_auth_input(email: &str, account_key: &str) -> Result
     let from_addr_idx = parsed_email.get_from_addr_idxes().unwrap();
     let domain_idx = parsed_email.get_email_domain_idxes().unwrap();
     let subject_idx = parsed_email.get_subject_all_idxes().unwrap();
-    let code_idx = parsed_email.get_invitation_code_idxes().unwrap();
+    let code_idx = match parsed_email.get_invitation_code_idxes() {
+        Ok(indexes) => indexes.0,
+        Err(_) => {
+            info!(LOG, "No invitation code in header");
+            0
+        }
+    };
     let timestamp_idx = parsed_email.get_timestamp_idxes().unwrap();
 
     let email_auth_input = EmailAuthInput {
@@ -98,7 +104,7 @@ pub async fn generate_email_auth_input(email: &str, account_key: &str) -> Result
         subject_idx: subject_idx.0,
         domain_idx: domain_idx.0,
         timestamp_idx: timestamp_idx.0,
-        code_idx: code_idx.0,
+        code_idx,
     };
 
     Ok(serde_json::to_string(&email_auth_input)?)

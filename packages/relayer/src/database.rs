@@ -96,6 +96,20 @@ impl Database {
         }
     }
 
+    #[named]
+    pub(crate) async fn is_email_registered(&self, email_addr: &str) -> bool {
+        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
+            .bind(email_addr)
+            .fetch_optional(&self.db)
+            .await
+            .unwrap();
+
+        match row {
+            Some(_) => true,
+            None => false,
+        }
+    }
+
     pub(crate) async fn update_credentials(&self, row: &Credentials) -> Result<()> {
         let res = sqlx::query("UPDATE codes SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
             .bind(&row.wallet_eth_addr)
