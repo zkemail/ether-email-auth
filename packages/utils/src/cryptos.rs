@@ -4,7 +4,7 @@ use crate::converters::*;
 
 use halo2curves::ff::Field;
 use poseidon_rs::*;
-use rand_core::{OsRng, RngCore};
+use rand_core::RngCore;
 use rsa::sha2::{Digest, Sha256};
 pub use zk_regex_apis::padding::pad_string;
 
@@ -22,10 +22,6 @@ impl RelayerRand {
         let value = poseidon_bytes(seed)?;
         Ok(Self(value))
     }
-
-    // pub fn hash(&self) -> Result<Fr, PoseidonError> {
-    //     poseidon_fields(&[self.0])
-    // }
 }
 
 #[derive(Debug, Clone)]

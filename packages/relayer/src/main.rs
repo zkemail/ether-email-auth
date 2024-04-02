@@ -1,6 +1,5 @@
 use anyhow::Result;
 use relayer::*;
-use std::env;
 
 #[tokio::main]
 async fn main() -> Result<()> {

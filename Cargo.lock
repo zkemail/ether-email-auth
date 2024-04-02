@@ -3985,6 +3985,7 @@ dependencies = [
  "anyhow",
  "base64 0.21.7",
  "cfdkim",
+ "ethers",
  "fancy-regex",
  "halo2curves 0.4.0",
  "hex",
