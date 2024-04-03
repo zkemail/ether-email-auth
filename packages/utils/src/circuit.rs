@@ -1,8 +1,9 @@
 use std::cmp;
 
+use crate::*;
+use anyhow::Result;
 use num_bigint::BigInt;
-
-use crate::{generate_partial_sha, sha256_pad, to_circom_bigint_bytes, uint8_array_to_char_array};
+use serde::{Deserialize, Serialize};
 
 pub const MAX_HEADER_PADDED_BYTES: usize = 1024;
 pub const MAX_BODY_PADDED_BYTES: usize = 1536;

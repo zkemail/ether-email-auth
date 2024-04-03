@@ -8,7 +8,7 @@ use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use relayer_utils::extract_substr_idxes;
+use relayer_utils::{extract_substr_idxes, generate_email_auth_input};
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
@@ -28,7 +28,7 @@ pub async fn handle_email<P: EmailsPool>(
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let subject = parsed_email.get_subject_all()?;
 
-    let account_key_str = db
+    let account_code_str = db
         .get_invitation_code_from_email_addr(&guardian_email_addr)
         .await?
         .ok_or(anyhow!(
@@ -66,10 +66,10 @@ pub async fn handle_email<P: EmailsPool>(
     if let Ok(invitation_code) = parsed_email.get_invitation_code() {
         trace!(LOG, "Email with account code"; "func" => function_name!());
 
-        if account_key_str != invitation_code {
+        if account_code_str != invitation_code {
             return Err(anyhow!(
-                "Stored account key is not equal to one in the email. Stored: {}, Email: {}",
-                account_key_str,
+                "Stored account code is not equal to one in the email. Stored: {}, Email: {}",
+                account_code_str,
                 invitation_code
             ));
         }
@@ -105,7 +105,11 @@ pub async fn handle_email<P: EmailsPool>(
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(&email, &invitation_code).await?;
+            let circuit_input = generate_email_auth_input(
+                &email,
+                &AccountCode::from(hex2field(&account_code_str)?),
+            )
+            .await?;
 
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
@@ -230,7 +234,11 @@ pub async fn handle_email<P: EmailsPool>(
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(&email, &account_key_str).await?;
+            let circuit_input = generate_email_auth_input(
+                &email,
+                &AccountCode::from(hex2field(&account_code_str)?),
+            )
+            .await?;
 
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
@@ -348,7 +356,11 @@ pub async fn handle_email<P: EmailsPool>(
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(&email, &account_key_str).await?;
+            let circuit_input = generate_email_auth_input(
+                &email,
+                &AccountCode::from(hex2field(&account_code_str)?),
+            )
+            .await?;
 
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
