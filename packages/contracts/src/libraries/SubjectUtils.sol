@@ -15,7 +15,9 @@ library SubjectUtils {
     string public constant DECIMALS_MATCHER = "{decimals}";
     string public constant ETH_ADDR_MATCHER = "{ethAddr}";
 
-    function addressToChecksumHexString(address addr) internal pure returns (string memory) {
+    function addressToChecksumHexString(
+        address addr
+    ) internal pure returns (string memory) {
         string memory lowerCaseAddrWithOx = Strings.toHexString(addr);
 
         bytes memory lowerCaseAddr = new bytes(40); // Remove 0x added by the OZ lib
@@ -24,7 +26,9 @@ library SubjectUtils {
         }
 
         // Hash of lowercase addr
-        uint256 lowerCaseHash = uint256(keccak256(abi.encodePacked(lowerCaseAddr)));
+        uint256 lowerCaseHash = uint256(
+            keccak256(abi.encodePacked(lowerCaseAddr))
+        );
 
         // Result hex = 42 chars with 0x prefix
         bytes memory result = new bytes(42);
@@ -56,7 +60,9 @@ library SubjectUtils {
 
     /// @notice Convert bytes to hex string without 0x prefix
     /// @param data bytes to convert
-    function bytesToHexString(bytes memory data) public pure returns (string memory) {
+    function bytesToHexString(
+        bytes memory data
+    ) public pure returns (string memory) {
         bytes memory hexChars = "0123456789abcdef";
         bytes memory hexString = new bytes(2 * data.length);
 
@@ -70,7 +76,7 @@ library SubjectUtils {
     }
 
     /// @notice Calculate the expected subject.
-   /// @param subjectParams Params to be used in the subject
+    /// @param subjectParams Params to be used in the subject
     /// @param template Template to be used for the subject
     function computeExpectedSubject(
         bytes[] memory subjectParams,
@@ -99,7 +105,7 @@ library SubjectUtils {
                     subjectParams[nextParamIndex],
                     (int256)
                 );
-                stringParam = Strings.toString(param);
+                stringParam = Strings.toStringSigned(param);
             } else if (Strings.equal(template[i], DECIMALS_MATCHER)) {
                 uint256 param = abi.decode(
                     subjectParams[nextParamIndex],

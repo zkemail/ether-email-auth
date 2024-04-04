@@ -29,8 +29,11 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     constructor() {}
 
     /// @notice Initialize the contract
-    function initialize(bytes32 _accountSalt) public initializer {
-        __Ownable_init();
+    function initialize(
+        address _initialOwner,
+        bytes32 _accountSalt
+    ) public initializer {
+        __Ownable_init(_initialOwner);
         accountSalt = _accountSalt;
         timestampCheckEnabled = true;
     }
@@ -59,7 +62,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function getSubjectTemplate(
         uint _templateId
     ) public view returns (string[] memory) {
-        require(subjectTemplates[_templateId].length > 0, "template id not exists");
+        require(
+            subjectTemplates[_templateId].length > 0,
+            "template id not exists"
+        );
         return subjectTemplates[_templateId];
     }
 

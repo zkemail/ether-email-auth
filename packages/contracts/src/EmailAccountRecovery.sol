@@ -2,7 +2,6 @@
 pragma solidity ^0.8.12;
 
 import "./EmailAuth.sol";
-import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -63,7 +62,10 @@ abstract contract EmailAccountRecovery {
                         type(ERC1967Proxy).creationCode,
                         abi.encode(
                             emailAuthImplementation(),
-                            abi.encodeCall(EmailAuth.initialize, (accountSalt))
+                            abi.encodeCall(
+                                EmailAuth.initialize,
+                                (address(this), accountSalt)
+                            )
                         )
                     )
                 )
@@ -107,7 +109,10 @@ abstract contract EmailAccountRecovery {
         address guardian = computeEmailAuthAddress(
             emailAuthMsg.proof.accountSalt
         );
-        require(!Address.isContract(guardian), "guardian is already deployed");
+        require(
+            address(guardian).code.length == 0,
+            "guardian is already deployed"
+        );
         uint templateId = computeAcceptanceTemplateId(templateIdx);
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");
@@ -119,7 +124,7 @@ abstract contract EmailAccountRecovery {
             emailAuthImplementation(),
             abi.encodeCall(
                 EmailAuth.initialize,
-                (emailAuthMsg.proof.accountSalt)
+                (address(this), emailAuthMsg.proof.accountSalt)
             )
         );
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
@@ -157,7 +162,7 @@ abstract contract EmailAccountRecovery {
         address guardian = computeEmailAuthAddress(
             emailAuthMsg.proof.accountSalt
         );
-        require(Address.isContract(guardian), "guardian is not deployed");
+        require(address(guardian).code.length > 0, "guardian is not deployed");
         uint templateId = uint256(
             keccak256(
                 abi.encode(
