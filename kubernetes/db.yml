@@ -65,7 +65,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: postgres-email-auth
+  name: postgres-svc-email-auth
   namespace: email-auth
   labels:
     app: postgres-email-auth
