@@ -4,6 +4,7 @@ use anyhow;
 use ethers::types::U256;
 use halo2curves::ff::PrimeField;
 use itertools::Itertools;
+use neon::prelude::*;
 use num_bigint::BigInt;
 use poseidon_rs::*;
 
@@ -190,4 +191,31 @@ pub fn hex_to_u256(hex: &str) -> Result<U256, hex::FromHexError> {
     let mut array = [0u8; 32];
     array.copy_from_slice(&bytes);
     Ok(U256::from_big_endian(&array))
+}
+
+pub fn hex2field_node(cx: &mut FunctionContext, input_strs: &str) -> NeonResult<Fr> {
+    match hex2field(input_strs) {
+        Ok(field) => Ok(field),
+        Err(e) => cx.throw_error(e.to_string()),
+    }
+}
+
+pub fn bytes2fields_node(mut cx: FunctionContext) -> JsResult<JsArray> {
+    let input_str = cx.argument::<JsArray>(0)?;
+    let input_vec = input_str.to_vec(&mut cx)?;
+    let mut input_bytes = vec![];
+    for val in input_vec.into_iter() {
+        let val = match val.downcast::<JsNumber, _>(&mut cx) {
+            Ok(v) => v.value(&mut cx),
+            Err(e) => return cx.throw_error(e.to_string()),
+        };
+        input_bytes.push(val as u8);
+    }
+    let fields = bytes2fields(&input_bytes);
+    let js_array = JsArray::new(&mut cx, fields.len() as u32);
+    for (i, field) in fields.into_iter().enumerate() {
+        let field = cx.string(&field2hex(&field));
+        js_array.set(&mut cx, i as u32, field)?;
+    }
+    Ok(js_array)
 }
