@@ -43,7 +43,7 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
         bytes memory data = abi.encodeWithSelector(
             SimpleWallet(payable(simpleWalletImpl)).initialize.selector,
-            msg.sender,
+            vm.addr(deployerPrivateKey),
             verifier,
             dkim,
             emailAuthImpl
