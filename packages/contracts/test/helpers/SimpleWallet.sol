@@ -36,11 +36,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
     constructor() {}
 
     function initialize(
+        address _initialOwner,
         address _verifier,
         address _dkim,
         address _emailAuthImplementation
     ) public initializer {
-        __Ownable_init();
+        __Ownable_init(_initialOwner);
         isRecovering = false;
         verifierAddr = _verifier;
         dkimAddr = _dkim;
@@ -117,7 +118,10 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 1, "invalid subject params");
         address walletAddrInEmail = abi.decode(subjectParams[0], (address));
-        require(walletAddrInEmail == address(this), "invalid wallet address in email");
+        require(
+            walletAddrInEmail == address(this),
+            "invalid wallet address in email"
+        );
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 

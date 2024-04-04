@@ -24,14 +24,15 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
     }
 
     function test_SetDKIMPublicKeyHash() public {
-        // vm.chainId(1);
         string memory signedMsg = registry.computeSignedMsg(
             registry.SET_PREFIX(),
             selector,
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -54,7 +55,9 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -77,7 +80,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        digest = bytes(signedMsg).toEthSignedMessageHash();
+        digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
         (v, r, s) = vm.sign(1, digest);
         signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -100,7 +103,9 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -119,7 +124,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         );
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(
             1,
-            bytes(revokeMsg).toEthSignedMessageHash()
+            MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg))
         );
         bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
         registry.revokeDKIMPublicKeyHash(
@@ -140,7 +145,9 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -173,7 +180,9 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         registry.setDKIMPublicKeyHash(
@@ -196,7 +205,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         );
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(
             1,
-            bytes(revokeMsg).toEthSignedMessageHash()
+            MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg))
         );
         bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
         registry.revokeDKIMPublicKeyHash(
@@ -232,7 +241,9 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(2, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         vm.expectRevert("Invalid signature");
@@ -243,7 +254,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             signature
         );
     }
-
 
     function test_Dfinity_Oracle_Response() public {
         vm.chainId(1);

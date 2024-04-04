@@ -15,14 +15,13 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
 
     function setUpForInternal() public {
         vm.startPrank(deployer);
-        initialize(address(0x0), address(0x0), address(0x0));
-        vm.deal(address(this), 1 ether);
+        initialize(msg.sender, address(0x0), address(0x0), address(0x0));
         vm.stopPrank();
     }
 
     function setUpForPublic() public {
         vm.startPrank(deployer);
-        this.initialize(address(0x0), address(0x0), address(0x0));
+        this.initialize(deployer, address(0x0), address(0x0), address(0x0));
         vm.deal(address(this), 1 ether);
         vm.stopPrank();
     }
