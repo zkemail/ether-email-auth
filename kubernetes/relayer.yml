@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: relayer-config-email-auth
+  labels:
+    app: relayer-email-auth
+data:
+  EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ""
+  CHAIN_RPC_PROVIDER: ""
+  CHAIN_RPC_EXPLORER: ""
+  CHAIN_ID: ""
+  WEB_SERVER_ADDRESS: ""
+  CIRCUITS_DIR_PATH: ""
+  EMAIL_TEMPLATES_PATH: ""
+  CANISTER_ID: ""
+  IC_REPLICA_URL: ""
+  JSON_LOGGER: ""
+  PEM_PATH: ""
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-secret-email-auth
+  labels:
+    app: relayer-email-auth
+type: Opaque
+data:
+  PRIVATE_KEY:
+  DATABASE_URL:
+  IMAP_DOMAIN_NAME:
+  IMAP_PORT:
+  AUTH_TYPE:
+  SMTP_DOMAIN_NAME:
+  LOGIN_ID:
+  LOGIN_PASSWORD:
+  PROVER_ADDRESS:
+  ICPEM:
+
+---
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: relayer-email-auth
+  labels:
+    app: relayer-email-auth
+spec:
+  replicas: 1 # Number of initial replicas
+  selector:
+    matchLabels:
+      app: relayer-email-auth
+  template:
+    metadata:
+      labels:
+        app: relayer-email-auth
+    spec:
+      containers:
+        - name: relayer-container-email-auth
+          image: bisht13/relayer:latest
+          ports:
+            - containerPort: 4500
+          envFrom:
+            - configMapRef:
+                name: relayer-config-email-auth
+            - secretRef:
+                name: relayer-secret-email-auth
+          resources:
+            requests:
+              memory: "8Gi"
+              cpu: "4"
+            limits:
+              memory: "16Gi"
+              cpu: "8"
+          livenessProbe:
+            httpGet:
+              path: /api/echo
+              port: 4500
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /api/echo
+              port: 4500
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          volumeMounts:
+            - name: pem-volume
+              mountPath: "/relayer/packages/relayer/.ic.pem"
+              subPath: ".ic.pem"
+          command: ["/bin/sh", "-c", "sleep infinity"]
+      volumes:
+        - name: pem-volume
+          secret:
+            secretName: relayer-secret-email-auth
+            items:
+              - key: ICPEM
+                path: ".ic.pem"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relayer-svc-email-auth
+spec:
+  selector:
+    app: relayer-email-auth
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 4500
+  type: ClusterIP

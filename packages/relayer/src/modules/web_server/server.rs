@@ -23,6 +23,10 @@ pub async fn run_server(
 
     let mut app = Router::new()
         .route(
+            "/api/echo",
+            axum::routing::get(move || async move { "Hello, world!" }),
+        )
+        .route(
             "/api/requestStatus",
             axum::routing::get(move |payload: String| async move {
                 let payload: Result<RequestStatusRequest> =
