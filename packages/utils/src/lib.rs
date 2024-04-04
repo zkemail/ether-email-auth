@@ -1,13 +1,12 @@
 pub mod circuit;
 pub mod converters;
 pub mod cryptos;
-pub mod email_auth;
 pub mod parse_email;
 pub mod regex;
 pub mod statics;
+pub use circuit::*;
 pub(crate) use converters::*;
 pub(crate) use cryptos::*;
-pub use email_auth::*;
 pub(crate) use neon::prelude::*;
 pub(crate) use parse_email::*;
 pub use poseidon_rs::*;

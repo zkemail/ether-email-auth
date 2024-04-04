@@ -42,7 +42,7 @@ impl Database {
 
     pub async fn setup_database(&self) -> Result<()> {
         sqlx::query(
-            "CREATE TABLE IF NOT EXISTS codes (
+            "CREATE TABLE IF NOT EXISTS credentials (
                 account_code TEXT PRIMARY KEY,
                 wallet_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
@@ -72,7 +72,7 @@ impl Database {
 
     #[named]
     pub(crate) async fn get_credentials(&self, account_code: &str) -> Result<Option<Credentials>> {
-        let row = sqlx::query("SELECT * FROM codes WHERE account_code = $1")
+        let row = sqlx::query("SELECT * FROM credentials WHERE account_code = $1")
             .bind(account_code)
             .fetch_optional(&self.db)
             .await?;
@@ -97,7 +97,7 @@ impl Database {
     }
 
     pub(crate) async fn is_email_registered(&self, email_addr: &str) -> bool {
-        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
+        let row = sqlx::query("SELECT * FROM credentials WHERE guardian_email_addr = $1")
             .bind(email_addr)
             .fetch_optional(&self.db)
             .await
@@ -110,7 +110,7 @@ impl Database {
     }
 
     pub(crate) async fn update_credentials(&self, row: &Credentials) -> Result<()> {
-        let res = sqlx::query("UPDATE codes SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
+        let res = sqlx::query("UPDATE credentials SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
             .bind(&row.wallet_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_set)
@@ -124,7 +124,7 @@ impl Database {
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
-            "INSERT INTO codes (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
+            "INSERT INTO credentials (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
         .bind(&row.account_code)
         .bind(&row.wallet_eth_addr)
@@ -141,7 +141,7 @@ impl Database {
     }
 
     pub async fn is_guardian_set(&self, wallet_eth_addr: &str, guardian_email_addr: &str) -> bool {
-        let row = sqlx::query("SELECT * FROM codes WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
+        let row = sqlx::query("SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
             .bind(wallet_eth_addr)
             .bind(guardian_email_addr)
             .fetch_optional(&self.db)
@@ -210,7 +210,7 @@ impl Database {
         &self,
         email_addr: &str,
     ) -> Result<Option<String>> {
-        let row = sqlx::query("SELECT * FROM codes WHERE guardian_email_addr = $1")
+        let row = sqlx::query("SELECT * FROM credentials WHERE guardian_email_addr = $1")
             .bind(email_addr)
             .fetch_optional(&self.db)
             .await?;

@@ -107,7 +107,7 @@ pub async fn handle_email<P: EmailsPool>(
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountCode::from(hex2field(&account_code_str)?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 
@@ -236,7 +236,7 @@ pub async fn handle_email<P: EmailsPool>(
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountCode::from(hex2field(&account_code_str)?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 
@@ -358,7 +358,7 @@ pub async fn handle_email<P: EmailsPool>(
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountCode::from(hex2field(&account_code_str)?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 
