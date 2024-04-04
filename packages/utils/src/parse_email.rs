@@ -1,25 +1,15 @@
 use itertools::Itertools;
 
-// use cfdkim::*;
-// use mail_auth::common::verify::VerifySignature;
-// use mail_auth::trust_dns_resolver::proto::rr::dnssec::public_key;
-// use trust_dns_resolver::error::ResolveError;
-// use mail_auth::Error;
-use crate::statics::*;
 use anyhow::Result;
 use hex;
-// use mail_auth::{AuthenticatedMessage, DkimOutput, DkimResult, Resolver};
 
 use cfdkim::{canonicalize_signed_email, resolve_public_key};
 use neon::prelude::*;
 use rsa::traits::PublicKeyParts;
-
 use serde::{Deserialize, Serialize};
 use zk_regex_apis::extract_substrs::*;
-// use trust_dns_resolver::config::{ResolverConfig, ResolverOpts};
-// use trust_dns_resolver::proto::rr::{RData, RecordType};
-// use trust_dns_resolver::AsyncResolver;
 
+use crate::runtime;
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ParsedEmail {
     pub canonicalized_header: String,
@@ -63,6 +53,11 @@ impl ParsedEmail {
         Ok(str)
     }
 
+    pub fn get_from_addr_idxes(&self) -> Result<(usize, usize)> {
+        let idxes = extract_from_addr_idxes(&self.canonicalized_header)?[0];
+        Ok(idxes)
+    }
+
     pub fn get_to_addr(&self) -> Result<String> {
         let idxes = extract_to_addr_idxes(&self.canonicalized_header)?[0];
         let str = self.canonicalized_header[idxes.0..idxes.1].to_string();
@@ -77,16 +72,33 @@ impl ParsedEmail {
         Ok(str)
     }
 
+    pub fn get_email_domain_idxes(&self) -> Result<(usize, usize)> {
+        let idxes = extract_from_addr_idxes(&self.canonicalized_header)?[0];
+        let str = self.canonicalized_header[idxes.0..idxes.1].to_string();
+        let idxes = extract_email_domain_idxes(&str)?[0];
+        Ok(idxes)
+    }
+
     pub fn get_subject_all(&self) -> Result<String> {
         let idxes = extract_subject_all_idxes(&self.canonicalized_header)?[0];
         let str = self.canonicalized_header[idxes.0..idxes.1].to_string();
         Ok(str)
     }
 
+    pub fn get_subject_all_idxes(&self) -> Result<(usize, usize)> {
+        let idxes = extract_subject_all_idxes(&self.canonicalized_header)?[0];
+        Ok(idxes)
+    }
+
     pub fn get_timestamp(&self) -> Result<u64> {
         let idxes = extract_timestamp_idxes(&self.canonicalized_header)?[0];
         let str = &self.canonicalized_header[idxes.0..idxes.1];
         Ok(str.parse()?)
+    }
+
+    pub fn get_timestamp_idxes(&self) -> Result<(usize, usize)> {
+        let idxes = extract_timestamp_idxes(&self.canonicalized_header)?[0];
+        Ok(idxes)
     }
 
     pub fn get_invitation_code(&self) -> Result<String> {
@@ -99,12 +111,28 @@ impl ParsedEmail {
         Ok(str)
     }
 
+    pub fn get_invitation_code_idxes(&self) -> Result<(usize, usize)> {
+        let regex_config = serde_json::from_str(include_str!(
+            "../../circuits/src/regexes/invitation_code.json"
+        ))
+        .unwrap();
+        let idxes = extract_substr_idxes(&self.canonicalized_header, &regex_config)?[0];
+        Ok(idxes)
+    }
+
     pub fn get_email_addr_in_subject(&self) -> Result<String> {
         let idxes = extract_subject_all_idxes(&self.canonicalized_header)?[0];
         let subject = self.canonicalized_header[idxes.0..idxes.1].to_string();
         let idxes = extract_email_addr_idxes(&subject)?[0];
         let str = subject[idxes.0..idxes.1].to_string();
         Ok(str)
+    }
+
+    pub fn get_email_addr_in_subject_idxes(&self) -> Result<(usize, usize)> {
+        let idxes = extract_subject_all_idxes(&self.canonicalized_header)?[0];
+        let subject = self.canonicalized_header[idxes.0..idxes.1].to_string();
+        let idxes = extract_email_addr_idxes(&subject)?[0];
+        Ok(idxes)
     }
 
     pub fn get_message_id(&self) -> Result<String> {
@@ -131,17 +159,13 @@ pub fn parse_email_node(mut cx: FunctionContext) -> JsResult<JsPromise> {
                     let obj = cx.empty_object();
                     let canonicalized_header = cx.string(parsed_email.canonicalized_header);
                     obj.set(&mut cx, "canonicalizedHeader", canonicalized_header)?;
-                    // let signed_header = cx.string(
-                    //     "0x".to_string() + hex::encode(parsed_email.signed_header).as_str(),
-                    // );
-                    // obj.set(&mut cx, "signedHeader", signed_header)?;
+
                     let signature = cx.string(&signature_str);
                     obj.set(&mut cx, "signature", signature)?;
 
                     let public_key = cx.string(&public_key_str);
                     obj.set(&mut cx, "publicKey", public_key)?;
-                    // let dkim_domain = cx.string(&parsed_email.dkim_domain);
-                    // obj.set(&mut cx, "dkimDomain", dkim_domain)?;
+
                     Ok(obj)
                 }
 

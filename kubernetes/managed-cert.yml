@@ -1,0 +1,8 @@
+apiVersion: networking.gke.io/v1
+kind: ManagedCertificate
+metadata:
+  name: managed-cert-email-auth
+  namespace: email-auth
+spec:
+  domains:
+    - auth.prove.email

@@ -1,7 +1,5 @@
 #![allow(unused_imports)]
 
-use std::path::PathBuf;
-
 use crate::*;
 
 use anyhow::anyhow;
@@ -19,6 +17,23 @@ use lettre::{
 };
 use serde_json::Value;
 use tokio::fs::read_to_string;
+
+#[derive(Debug, Clone)]
+pub struct EmailForwardSender(UnboundedSender<EmailMessage>);
+
+impl EmailForwardSender {
+    pub fn new() -> (Self, UnboundedReceiver<EmailMessage>) {
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        (Self(tx), rx)
+    }
+
+    pub fn send(&self, email: EmailMessage) -> Result<()> {
+        match self.0.send(email) {
+            Ok(_) => Ok(()),
+            Err(e) => Err(anyhow!(e)),
+        }
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct EmailMessage {
@@ -39,19 +54,19 @@ pub struct EmailAttachment {
 }
 
 #[derive(Clone)]
-pub(crate) struct SmtpConfig {
-    pub(crate) domain_name: String,
-    pub(crate) id: String,
-    pub(crate) password: String,
+pub struct SmtpConfig {
+    pub domain_name: String,
+    pub id: String,
+    pub password: String,
 }
 
-pub(crate) struct SmtpClient {
+pub struct SmtpClient {
     config: SmtpConfig,
     transport: AsyncSmtpTransport<Tokio1Executor>,
 }
 
 impl SmtpClient {
-    pub(crate) fn new(config: SmtpConfig) -> Result<Self> {
+    pub fn new(config: SmtpConfig) -> Result<Self> {
         let creds = Credentials::new(config.id.clone(), config.password.clone());
         let transport = AsyncSmtpTransport::<Tokio1Executor>::relay(&config.domain_name)?
             .credentials(creds)
@@ -60,29 +75,15 @@ impl SmtpClient {
         Ok(Self { config, transport })
     }
 
-    pub(crate) async fn send_new_email(&self, email: EmailMessage) -> Result<()> {
-        self.send_inner(
-            email.to,
-            email.subject,
-            email.reference,
-            email.reply_to,
-            email.body_plain,
-            email.body_html,
-            email.body_attachments,
-        )
-        .await
-    }
+    pub async fn send_new_email(&self, email: EmailMessage) -> Result<()> {
+        let to = email.to;
+        let subject = email.subject;
+        let reference = email.reference;
+        let reply_to = email.reply_to;
+        let body_plain = email.body_plain;
+        let body_html = email.body_html;
+        let body_attachments = email.body_attachments;
 
-    async fn send_inner(
-        &self,
-        to: String,
-        subject: String,
-        reference: Option<String>,
-        reply_to: Option<String>,
-        body_plain: String,
-        body_html: String,
-        body_attachments: Option<Vec<EmailAttachment>>,
-    ) -> Result<()> {
         let from_mbox = Mailbox::new(None, self.config.id.parse::<Address>()?);
         let to_mbox = Mailbox::new(None, to.parse::<Address>()?);
 
@@ -144,5 +145,29 @@ pub async fn render_html(template_name: &str, render_data: Value) -> Result<Stri
     let email_template = read_to_string(&email_template_filename).await?;
 
     let reg = Handlebars::new();
+
     Ok(reg.render_template(&email_template, &render_data)?)
+}
+
+pub fn parse_error(error: String) -> Result<Option<String>> {
+    let mut error = error;
+    if error.contains("Contract call reverted with data: ") {
+        let revert_data = error
+            .replace("Contract call reverted with data: ", "")
+            .split_at(10)
+            .1
+            .to_string();
+        let revert_bytes = hex::decode(revert_data)
+            .unwrap()
+            .into_iter()
+            .filter(|&b| b >= 0x20 && b <= 0x7E)
+            .collect();
+        error = String::from_utf8(revert_bytes).unwrap().trim().to_string();
+    }
+
+    match error.as_str() {
+        "Account is already created" => Ok(Some(error)),
+        "insufficient balance" => Ok(Some("You don't have sufficient balance".to_string())),
+        _ => Ok(None),
+    }
 }

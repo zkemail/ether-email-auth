@@ -5,7 +5,7 @@ use std::fs;
 use std::path::PathBuf;
 
 #[async_trait]
-pub(crate) trait EmailsPool {
+pub trait EmailsPool {
     async fn get_unhandled_emails(&self) -> Result<Vec<(String, String)>>;
 
     async fn get_email_by_hash(&self, email_hash: &str) -> Result<String>;
@@ -31,7 +31,7 @@ impl EmailsPool for FileEmailsPool {
         for path in dir.into_iter() {
             let path = path?.path();
             let email = fs::read_to_string(path)?;
-            emails.push((calculate_email_hash(&email), email));
+            emails.push((calculate_default_hash(&email), email));
         }
         Ok(emails)
     }
@@ -63,7 +63,12 @@ impl EmailsPool for FileEmailsPool {
 impl FileEmailsPool {
     #[named]
     pub fn new() -> Self {
-        let dir_path = RECEIVED_EMAILS_DIR.get().unwrap().to_string();
+        let dir_path = PathBuf::new()
+            .join(env!("CARGO_MANIFEST_DIR"))
+            .join("received_emails")
+            .to_str()
+            .unwrap()
+            .to_string();
         info!(LOG, "dir_path: {}", dir_path; "func" => function_name!());
         fs::create_dir_all(&dir_path).unwrap();
         Self { dir_path }

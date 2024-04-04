@@ -15,6 +15,7 @@ packages/circuits/*.ptau
 *.sym
 *.wasm
 *.c
+*.zkey
 
 # Contracts
 packages/contracts/broadcast

@@ -14,7 +14,7 @@ use oauth2::{
 use tokio::net::TcpStream;
 
 #[derive(Clone)]
-pub(crate) enum ImapAuth {
+pub enum ImapAuth {
     Password {
         user_id: String,
         password: String,
@@ -30,11 +30,11 @@ pub(crate) enum ImapAuth {
 }
 
 #[derive(Clone)]
-pub(crate) struct ImapConfig {
-    pub(crate) domain_name: String,
-    pub(crate) port: u16,
-    pub(crate) auth: ImapAuth,
-    pub(crate) initially_checked: bool,
+pub struct ImapConfig {
+    pub domain_name: String,
+    pub port: u16,
+    pub auth: ImapAuth,
+    pub initially_checked: bool,
 }
 
 struct OAuth2 {
@@ -53,14 +53,14 @@ impl async_imap::Authenticator for &OAuth2 {
     }
 }
 
-pub(crate) struct ImapClient {
+pub struct ImapClient {
     session: Session<TlsStream<TcpStream>>,
     config: ImapConfig,
 }
 
 impl ImapClient {
     #[named]
-    pub(crate) async fn new(config: ImapConfig) -> Result<Self> {
+    pub async fn new(config: ImapConfig) -> Result<Self> {
         let tcp_stream = TcpStream::connect((&*config.domain_name, config.port)).await?;
         let tls = async_native_tls::TlsConnector::new();
         let tls_stream = tls.connect(&*config.domain_name, tcp_stream).await?;
@@ -134,7 +134,7 @@ impl ImapClient {
     }
 
     #[named]
-    pub(crate) async fn retrieve_new_emails(&mut self) -> Result<Vec<Vec<Fetch>>> {
+    pub async fn retrieve_new_emails(&mut self) -> Result<Vec<Vec<Fetch>>> {
         if !self.config.initially_checked {
             self.config.initially_checked = true;
             let result =
@@ -178,28 +178,6 @@ impl ImapClient {
             }
         }
     }
-
-    // async fn wait_new_email(mut self) -> Result<Self> {
-    //     loop {
-    //         let mut idle = self.session.idle();
-    //         idle.init().await?;
-    //         let result = idle.wait_with_timeout(Duration::from_secs(29 * 60)).0.await;
-    //         let is_new_data = matches!(result, Ok(NewData(_)));
-
-    //         let session_result = idle.done().await;
-
-    //         self = match session_result {
-    //             Ok(session) => Self { session, ..self },
-    //             Err(_) => Self::new(self.config).await.unwrap(),
-    //         };
-
-    //         if is_new_data {
-    //             return Ok(self);
-    //         } else {
-    //             self.reconnect().await?;
-    //         }
-    //     }
-    // }
 
     async fn reconnect(&mut self) -> Result<()> {
         const MAX_RETRIES: u32 = 5;
