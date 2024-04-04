@@ -37,4 +37,5 @@ def flask_app():
         )
         proof = gen_email_auth_proof(str(nonce), False, input)
         return jsonify(proof)
+
     return app
