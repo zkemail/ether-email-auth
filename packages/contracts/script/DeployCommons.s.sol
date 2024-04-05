@@ -9,7 +9,6 @@ import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 
-
 contract Deploy is Script {
     using ECDSA for *;
 
