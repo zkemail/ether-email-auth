@@ -19,6 +19,7 @@ pub mod email_auth {
             functions: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("UPGRADE_INTERFACE_VERSION"),
+<<<<<<< HEAD
                     ::std::vec![::ethers::core::abi::ethabi::Function {
                         name: ::std::borrow::ToOwned::to_owned("UPGRADE_INTERFACE_VERSION",),
                         inputs: ::std::vec![],
@@ -32,6 +33,27 @@ pub mod email_auth {
                         constant: ::core::option::Option::None,
                         state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
                     },],
+=======
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "UPGRADE_INTERFACE_VERSION",
+                            ),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("string"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+>>>>>>> ef32efc (Add load test.)
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("accountSalt"),
@@ -236,6 +258,7 @@ pub mod email_auth {
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("initialize"),
+<<<<<<< HEAD
                     ::std::vec![::ethers::core::abi::ethabi::Function {
                         name: ::std::borrow::ToOwned::to_owned("initialize"),
                         inputs: ::std::vec![
@@ -258,6 +281,34 @@ pub mod email_auth {
                         constant: ::core::option::Option::None,
                         state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
                     },],
+=======
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("initialize"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_initialOwner"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_accountSalt"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes32"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+>>>>>>> ef32efc (Add load test.)
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("insertSubjectTemplate"),
@@ -503,6 +554,7 @@ pub mod email_auth {
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("updateVerifier"),
+<<<<<<< HEAD
                     ::std::vec![::ethers::core::abi::ethabi::Function {
                         name: ::std::borrow::ToOwned::to_owned("updateVerifier"),
                         inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
@@ -516,6 +568,25 @@ pub mod email_auth {
                         constant: ::core::option::Option::None,
                         state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
                     },],
+=======
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("updateVerifier"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_verifierAddr"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+>>>>>>> ef32efc (Add load test.)
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("upgradeToAndCall"),
@@ -600,6 +671,7 @@ pub mod email_auth {
             events: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("Initialized"),
+<<<<<<< HEAD
                     ::std::vec![::ethers::core::abi::ethabi::Event {
                         name: ::std::borrow::ToOwned::to_owned("Initialized"),
                         inputs: ::std::vec![::ethers::core::abi::ethabi::EventParam {
@@ -609,6 +681,21 @@ pub mod email_auth {
                         },],
                         anonymous: false,
                     },],
+=======
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned("Initialized"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("version"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(64usize),
+                                    indexed: false,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+>>>>>>> ef32efc (Add load test.)
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("OwnershipTransferred"),
@@ -744,6 +831,155 @@ pub mod email_auth {
                     },],
                 ),
             ]),
+<<<<<<< HEAD
+=======
+            errors: ::core::convert::From::from([
+                (
+                    ::std::borrow::ToOwned::to_owned("AddressEmptyCode"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("AddressEmptyCode"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("target"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("ERC1967InvalidImplementation"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "ERC1967InvalidImplementation",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("implementation"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("ERC1967NonPayable"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("ERC1967NonPayable"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("FailedInnerCall"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("FailedInnerCall"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("InvalidInitialization"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "InvalidInitialization",
+                            ),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("NotInitializing"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned("NotInitializing"),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("OwnableInvalidOwner"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "OwnableInvalidOwner",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("owner"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("OwnableUnauthorizedAccount"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "OwnableUnauthorizedAccount",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("UUPSUnauthorizedCallContext"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "UUPSUnauthorizedCallContext",
+                            ),
+                            inputs: ::std::vec![],
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("UUPSUnsupportedProxiableUUID"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::AbiError {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "UUPSUnsupportedProxiableUUID",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("slot"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes32"),
+                                    ),
+                                },
+                            ],
+                        },
+                    ],
+                ),
+            ]),
+>>>>>>> ef32efc (Add load test.)
             receive: false,
             fallback: false,
         }
@@ -787,6 +1023,14 @@ pub mod email_auth {
                 EMAILAUTH_ABI.clone(),
                 client,
             ))
+        }
+        ///Calls the contract's `UPGRADE_INTERFACE_VERSION` (0xad3cb1cc) function
+        pub fn upgrade_interface_version(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<M, ::std::string::String> {
+            self.0
+                .method_hash([173, 60, 177, 204], ())
+                .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `UPGRADE_INTERFACE_VERSION` (0xad3cb1cc) function
         pub fn upgrade_interface_version(
@@ -1084,7 +1328,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(
         name = "ERC1967InvalidImplementation",
@@ -1102,7 +1350,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(name = "ERC1967NonPayable", abi = "ERC1967NonPayable()")]
     pub struct ERC1967NonPayable;
@@ -1115,7 +1367,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(name = "FailedInnerCall", abi = "FailedInnerCall()")]
     pub struct FailedInnerCall;
@@ -1128,7 +1384,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(name = "InvalidInitialization", abi = "InvalidInitialization()")]
     pub struct InvalidInitialization;
@@ -1141,7 +1401,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(name = "NotInitializing", abi = "NotInitializing()")]
     pub struct NotInitializing;
@@ -1154,7 +1418,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(name = "OwnableInvalidOwner", abi = "OwnableInvalidOwner(address)")]
     pub struct OwnableInvalidOwner {
@@ -1169,7 +1437,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(
         name = "OwnableUnauthorizedAccount",
@@ -1187,7 +1459,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(
         name = "UUPSUnauthorizedCallContext",
@@ -1203,7 +1479,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     #[etherror(
         name = "UUPSUnsupportedProxiableUUID",
@@ -1234,6 +1514,7 @@ pub mod email_auth {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
+<<<<<<< HEAD
             if let Ok(decoded) =
                 <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
             {
@@ -1281,6 +1562,61 @@ pub mod email_auth {
             if let Ok(decoded) =
                 <UUPSUnsupportedProxiableUUID as ::ethers::core::abi::AbiDecode>::decode(data)
             {
+=======
+            if let Ok(decoded) = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::RevertString(decoded));
+            }
+            if let Ok(decoded) = <AddressEmptyCode as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::AddressEmptyCode(decoded));
+            }
+            if let Ok(decoded) = <ERC1967InvalidImplementation as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ERC1967InvalidImplementation(decoded));
+            }
+            if let Ok(decoded) = <ERC1967NonPayable as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::ERC1967NonPayable(decoded));
+            }
+            if let Ok(decoded) = <FailedInnerCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::FailedInnerCall(decoded));
+            }
+            if let Ok(decoded) = <InvalidInitialization as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::InvalidInitialization(decoded));
+            }
+            if let Ok(decoded) = <NotInitializing as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::NotInitializing(decoded));
+            }
+            if let Ok(decoded) = <OwnableInvalidOwner as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::OwnableInvalidOwner(decoded));
+            }
+            if let Ok(decoded) = <OwnableUnauthorizedAccount as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::OwnableUnauthorizedAccount(decoded));
+            }
+            if let Ok(decoded) = <UUPSUnauthorizedCallContext as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::UUPSUnauthorizedCallContext(decoded));
+            }
+            if let Ok(decoded) = <UUPSUnsupportedProxiableUUID as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+>>>>>>> ef32efc (Add load test.)
                 return Ok(Self::UUPSUnsupportedProxiableUUID(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1289,6 +1625,7 @@ pub mod email_auth {
     impl ::ethers::core::abi::AbiEncode for EmailAuthErrors {
         fn encode(self) -> ::std::vec::Vec<u8> {
             match self {
+<<<<<<< HEAD
                 Self::AddressEmptyCode(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::ERC1967InvalidImplementation(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
@@ -1299,6 +1636,26 @@ pub mod email_auth {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::NotInitializing(element) => ::ethers::core::abi::AbiEncode::encode(element),
+=======
+                Self::AddressEmptyCode(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ERC1967InvalidImplementation(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ERC1967NonPayable(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::FailedInnerCall(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::InvalidInitialization(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::NotInitializing(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+>>>>>>> ef32efc (Add load test.)
                 Self::OwnableInvalidOwner(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1319,6 +1676,7 @@ pub mod email_auth {
         fn valid_selector(selector: [u8; 4]) -> bool {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
+<<<<<<< HEAD
                 _ if selector == <AddressEmptyCode as ::ethers::contract::EthError>::selector() => {
                     true
                 }
@@ -1364,6 +1722,46 @@ pub mod email_auth {
                     == <UUPSUnsupportedProxiableUUID as ::ethers::contract::EthError>::selector(
                     ) =>
                 {
+=======
+                _ if selector
+                    == <AddressEmptyCode as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <ERC1967InvalidImplementation as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <ERC1967NonPayable as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <FailedInnerCall as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <InvalidInitialization as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <NotInitializing as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <OwnableInvalidOwner as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <OwnableUnauthorizedAccount as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <UUPSUnauthorizedCallContext as ::ethers::contract::EthError>::selector() => {
+                    true
+                }
+                _ if selector
+                    == <UUPSUnsupportedProxiableUUID as ::ethers::contract::EthError>::selector() => {
+>>>>>>> ef32efc (Add load test.)
                     true
                 }
                 _ => false,
@@ -1379,11 +1777,27 @@ pub mod email_auth {
                 }
                 Self::ERC1967NonPayable(element) => ::core::fmt::Display::fmt(element, f),
                 Self::FailedInnerCall(element) => ::core::fmt::Display::fmt(element, f),
+<<<<<<< HEAD
                 Self::InvalidInitialization(element) => ::core::fmt::Display::fmt(element, f),
                 Self::NotInitializing(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OwnableInvalidOwner(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OwnableUnauthorizedAccount(element) => ::core::fmt::Display::fmt(element, f),
                 Self::UUPSUnauthorizedCallContext(element) => ::core::fmt::Display::fmt(element, f),
+=======
+                Self::InvalidInitialization(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::NotInitializing(element) => ::core::fmt::Display::fmt(element, f),
+                Self::OwnableInvalidOwner(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::OwnableUnauthorizedAccount(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::UUPSUnauthorizedCallContext(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+>>>>>>> ef32efc (Add load test.)
                 Self::UUPSUnsupportedProxiableUUID(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -1551,12 +1965,18 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
     )]
     #[ethcall(
         name = "UPGRADE_INTERFACE_VERSION",
         abi = "UPGRADE_INTERFACE_VERSION()"
     )]
+=======
+        Hash
+    )]
+    #[ethcall(name = "UPGRADE_INTERFACE_VERSION", abi = "UPGRADE_INTERFACE_VERSION()")]
+>>>>>>> ef32efc (Add load test.)
     pub struct UpgradeInterfaceVersionCall;
     ///Container type for all input parameters for the `accountSalt` function with signature `accountSalt()` and selector `0x6c74921e`
     #[derive(
@@ -1984,12 +2404,23 @@ pub mod email_auth {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
+<<<<<<< HEAD
             if let Ok(decoded) =
                 <UpgradeInterfaceVersionCall as ::ethers::core::abi::AbiDecode>::decode(data)
             {
                 return Ok(Self::UpgradeInterfaceVersion(decoded));
             }
             if let Ok(decoded) = <AccountSaltCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+=======
+            if let Ok(decoded) = <UpgradeInterfaceVersionCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::UpgradeInterfaceVersion(decoded));
+            }
+            if let Ok(decoded) = <AccountSaltCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+>>>>>>> ef32efc (Add load test.)
                 return Ok(Self::AccountSalt(decoded));
             }
             if let Ok(decoded) = <AuthEmailCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -2085,9 +2516,15 @@ pub mod email_auth {
             {
                 return Ok(Self::UpdateVerifier(decoded));
             }
+<<<<<<< HEAD
             if let Ok(decoded) =
                 <UpgradeToAndCallCall as ::ethers::core::abi::AbiDecode>::decode(data)
             {
+=======
+            if let Ok(decoded) = <UpgradeToAndCallCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+>>>>>>> ef32efc (Add load test.)
                 return Ok(Self::UpgradeToAndCall(decoded));
             }
             if let Ok(decoded) =
@@ -2109,6 +2546,21 @@ pub mod email_auth {
         fn encode(self) -> Vec<u8> {
             match self {
                 Self::UpgradeInterfaceVersion(element) => {
+<<<<<<< HEAD
+=======
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AccountSalt(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AuthEmail(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AuthedHash(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::ComputeMsgHash(element) => {
+>>>>>>> ef32efc (Add load test.)
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::AccountSalt(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -2146,18 +2598,42 @@ pub mod email_auth {
                 Self::UpdateSubjectTemplate(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+<<<<<<< HEAD
                 Self::UpdateVerifier(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::UpgradeToAndCall(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::UsedNullifiers(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::Verifier(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::VerifierAddr(element) => ::ethers::core::abi::AbiEncode::encode(element),
+=======
+                Self::UpdateVerifier(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::UpgradeToAndCall(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::UsedNullifiers(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Verifier(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::VerifierAddr(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+>>>>>>> ef32efc (Add load test.)
             }
         }
     }
     impl ::core::fmt::Display for EmailAuthCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+<<<<<<< HEAD
                 Self::UpgradeInterfaceVersion(element) => ::core::fmt::Display::fmt(element, f),
+=======
+                Self::UpgradeInterfaceVersion(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+>>>>>>> ef32efc (Add load test.)
                 Self::AccountSalt(element) => ::core::fmt::Display::fmt(element, f),
                 Self::AuthEmail(element) => ::core::fmt::Display::fmt(element, f),
                 Self::AuthedHash(element) => ::core::fmt::Display::fmt(element, f),
@@ -2331,7 +2807,11 @@ pub mod email_auth {
         Debug,
         PartialEq,
         Eq,
+<<<<<<< HEAD
         Hash,
+=======
+        Hash
+>>>>>>> ef32efc (Add load test.)
     )]
     pub struct UpgradeInterfaceVersionReturn(pub ::std::string::String);
     ///Container type for all return fields from the `accountSalt` function with signature `accountSalt()` and selector `0x6c74921e`
