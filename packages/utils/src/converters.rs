@@ -200,43 +200,22 @@ pub fn hex2field_node(cx: &mut FunctionContext, input_strs: &str) -> NeonResult<
     }
 }
 
-/// Converts an 8-bit integer to a Vec<u8> with a single element.
-pub fn int8_to_bytes(num: u8) -> Vec<u8> {
-    vec![num]
-}
-
-/// Merges two Vec<u8> into a single Vec<u8>.
-pub fn merge_u8_arrays(a: Vec<u8>, b: Vec<u8>) -> Vec<u8> {
-    [a, b].concat()
-}
-
-pub fn uint8_array_to_char_array(bytes: Vec<u8>) -> Vec<String> {
-    bytes.iter().map(|&b| b.to_string()).collect()
-}
-
-fn big_int_to_chunked_bytes(num: BigInt, bits_per_chunk: usize, num_chunks: usize) -> Vec<String> {
-    let mut chunks = Vec::new();
-    let mut remainder = num;
-    let two = BigInt::from(2);
-    let chunk_size = two.pow(bits_per_chunk as u32);
-
-    // Divide the number into chunks and convert each to a decimal string
-    for _ in 0..num_chunks {
-        let chunk = &remainder % &chunk_size;
-        remainder = remainder >> bits_per_chunk;
-        // Convert chunk to decimal string
-        chunks.push(chunk.to_string());
+pub fn bytes2fields_node(mut cx: FunctionContext) -> JsResult<JsArray> {
+    let input_str = cx.argument::<JsArray>(0)?;
+    let input_vec = input_str.to_vec(&mut cx)?;
+    let mut input_bytes = vec![];
+    for val in input_vec.into_iter() {
+        let val = match val.downcast::<JsNumber, _>(&mut cx) {
+            Ok(v) => v.value(&mut cx),
+            Err(e) => return cx.throw_error(e.to_string()),
+        };
+        input_bytes.push(val as u8);
     }
-
-    chunks
-}
-
-pub fn to_circom_bigint_bytes(num: BigInt) -> Vec<String> {
-    big_int_to_chunked_bytes(num, CIRCOM_BIGINT_N, CIRCOM_BIGINT_K)
-}
-
-pub fn vec_u8_to_bigint(bytes: Vec<u8>) -> BigInt {
-    bytes
-        .iter()
-        .fold(BigInt::from(0), |acc, &b| (acc << 8) | BigInt::from(b))
+    let fields = bytes2fields(&input_bytes);
+    let js_array = JsArray::new(&mut cx, fields.len() as u32);
+    for (i, field) in fields.into_iter().enumerate() {
+        let field = cx.string(&field2hex(&field));
+        js_array.set(&mut cx, i as u32, field)?;
+    }
+    Ok(js_array)
 }

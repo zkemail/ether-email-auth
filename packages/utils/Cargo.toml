@@ -43,3 +43,8 @@ slog = "2.7.0"
 sha2 = "0.10.8"
 ethers = "2.0.14"
 # wasm-bindgen = { version = "0.2.90", default-features = false }
+
+[dependencies.neon]
+version = "0.10"
+default-features = false
+features = ["napi-6", "channel-api", "promise-api"]
