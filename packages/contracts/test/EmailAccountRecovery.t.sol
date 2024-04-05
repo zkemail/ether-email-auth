@@ -33,11 +33,10 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         assertEq(address(this).balance, 1 ether);
         assertEq(receiver.balance, 0 ether);
 
-
-        vm.startPrank(deployer);        
+        vm.startPrank(deployer);
         this.transfer(receiver, 1 ether);
         vm.stopPrank();
-        
+
         assertEq(address(this).balance, 0 ether);
         assertEq(receiver.balance, 1 ether);
     }
@@ -77,7 +76,6 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
 
         assertEq(address(this).balance, 0 ether);
         assertEq(deployer.balance, 1 ether);
-
     }
 
     function testExpectRevertWithdrawOnlyOwner() public {
@@ -192,7 +190,7 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         testRequestGuardian();
 
         require(guardians[guardian] == GuardianStatus.REQUESTED);
-        
+
         transferOwnership(receiver);
         vm.startPrank(receiver);
         uint templateIdx = 0;
@@ -217,7 +215,9 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         vm.stopPrank();
     }
 
-    function testExpectRevertAcceptGuardianGuardianStatusMustBeRequested() public {
+    function testExpectRevertAcceptGuardianGuardianStatusMustBeRequested()
+        public
+    {
         testRequestGuardian();
 
         require(guardians[guardian] == GuardianStatus.REQUESTED);
@@ -249,7 +249,7 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         testRequestGuardian();
 
         require(guardians[guardian] == GuardianStatus.REQUESTED);
-        
+
         vm.startPrank(deployer);
         uint templateIdx = 0;
         bytes[] memory subjectParams = new bytes[](2);
@@ -260,7 +260,9 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         vm.stopPrank();
     }
 
-    function testExpectRevertAcceptGuardianInvalidWalletAddressInEmail() public {
+    function testExpectRevertAcceptGuardianInvalidWalletAddressInEmail()
+        public
+    {
         testRequestGuardian();
 
         require(guardians[guardian] == GuardianStatus.REQUESTED);
@@ -311,10 +313,12 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         subjectParams[1] = abi.encode(newSigner);
         vm.expectRevert(bytes("invalid guardian"));
         processRecovery(address(0x0), templateIdx, subjectParams, 0x0);
-        vm.stopPrank();        
+        vm.stopPrank();
     }
 
-    function testExpectRevertRecoverWalletGuardianStatusMustBeAccepted() public {
+    function testExpectRevertRecoverWalletGuardianStatusMustBeAccepted()
+        public
+    {
         testAcceptGuardian();
 
         assertEq(isRecovering, false);
