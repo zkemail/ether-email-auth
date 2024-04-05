@@ -33,10 +33,10 @@ Its instances are as follows:
 `yarn && yarn build`
 
 ### Run tests
-At `packages/circuits`, make a `build` directory, download the zip file from the following link, and place its unziped files under `build`.
-https://drive.google.com/file/d/1bJbaCNS2y_WqJh-_NYMi3Zqkcu9zy3Rq/view?usp=drive_link
+At `packages/circuits`, make a `build` directory, download the zip file from the following link, and place its unziped directory under `build`.
+https://drive.google.com/file/d/1ky3XyabnBFwcyBoWBimhoePT9kbFyEBR/view?usp=sharing
 
-Please rename this file to `email_auth.zkey`.
+Then, move `email_auth.zkey` in the unzipped directory `params` to `build`. 
 
 Then run the following command.
 `yarn test`

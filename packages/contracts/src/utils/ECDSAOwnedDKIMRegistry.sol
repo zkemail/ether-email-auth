@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@zk-email/contracts/DKIMRegistry.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 /// @title ECDSAOwnedDKIMRegistry
 /// @notice A DKIM Registry that could be updated by predefined ECDSA signer
@@ -18,7 +19,7 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
     string public constant REVOKE_PREFIX = "REVOKE:";
 
     constructor(address _signer) {
-        dkimRegistry = new DKIMRegistry();
+        dkimRegistry = new DKIMRegistry(address(this));
         signer = _signer;
     }
 
@@ -53,7 +54,9 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         address recoveredSigner = digest.recover(signature);
         require(recoveredSigner == signer, "Invalid signature");
 
@@ -84,7 +87,9 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         address recoveredSigner = digest.recover(signature);
         require(recoveredSigner == signer, "Invalid signature");
 

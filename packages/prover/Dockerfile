@@ -14,11 +14,12 @@ RUN npm install -g n
 RUN n 18
 RUN npm install -g yarn snarkjs
 
-RUN git clone https://github.com/zkemail/email-wallet.git
-WORKDIR /email-wallet/packages/prover
+RUN git clone https://github.com/zkemail/ether-email-auth.git
+WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
 WORKDIR /root
+RUN ls /root
 # RUN mkdir params
 # RUN cp /email-wallet/packages/prover/params/account_creation.wasm /root/params
 # RUN cp /email-wallet/packages/prover/params/account_init.wasm /root/params
@@ -29,6 +30,7 @@ RUN mkdir params
 WORKDIR /root/params
 RUN gdown "https://drive.google.com/uc?id=1ky3XyabnBFwcyBoWBimhoePT9kbFyEBR"
 RUN unzip params.zip
+RUN mv params/* /root/params
 WORKDIR /root
 RUN ls params
 # RUN mv build params

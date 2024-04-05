@@ -26,7 +26,7 @@ use anyhow::{anyhow, bail, Result};
 use dotenv::dotenv;
 use ethers::prelude::*;
 use lazy_static::lazy_static;
-use relayer_utils::{converters::*, cryptos::*, parse_email::ParsedEmail, Fr};
+use relayer_utils::{converters::*, cryptos::*, parse_email::ParsedEmail};
 use slog::{error, info, trace};
 use std::env;
 use std::future::Future;
@@ -44,7 +44,6 @@ pub static CHAIN_ID: OnceLock<u32> = OnceLock::new();
 pub static EMAIL_ACCOUNT_RECOVERY_VERSION_ID: OnceLock<u8> = OnceLock::new();
 pub static CHAIN_RPC_PROVIDER: OnceLock<String> = OnceLock::new();
 pub static CHAIN_RPC_EXPLORER: OnceLock<String> = OnceLock::new();
-pub static INPUT_FILES_DIR: OnceLock<String> = OnceLock::new();
 pub static EMAIL_TEMPLATES: OnceLock<String> = OnceLock::new();
 pub static RELAYER_EMAIL_ADDRESS: OnceLock<String> = OnceLock::new();
 
@@ -94,7 +93,6 @@ pub async fn run(
     EMAIL_ACCOUNT_RECOVERY_VERSION_ID
         .set(config.email_account_recovery_version_id)
         .unwrap();
-    INPUT_FILES_DIR.set(config.input_files_dir).unwrap();
     EMAIL_TEMPLATES.set(config.email_templates).unwrap();
     RELAYER_EMAIL_ADDRESS
         .set(config.smtp_config.id.clone())

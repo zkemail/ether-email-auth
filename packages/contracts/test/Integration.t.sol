@@ -17,7 +17,6 @@ import "forge-std/console.sol";
 contract IntegrationTest is Test {
     using Strings for *;
     using console for *;
-    using ECDSA for *;
 
     EmailAuth emailAuth;
     Verifier verifier;
@@ -30,16 +29,10 @@ contract IntegrationTest is Test {
     address relayer = deployer;
 
     bytes32 accountSalt;
-    string[] subjectTemplate;
-    string[] newSubjectTemplate;
-    bytes mockProof = abi.encodePacked(bytes1(0x01));
-
     string selector = "12345";
     string domainName = "gmail.com";
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
-    bytes32 emailNullifier =
-        0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
     uint256 startTimestamp = 1711197564; // Tue Mar 26 2024 12:40:24 GMT+0000
 
     function setUp() public {
@@ -57,7 +50,9 @@ contract IntegrationTest is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         dkim.setDKIMPublicKeyHash(
@@ -69,7 +64,6 @@ contract IntegrationTest is Test {
 
         // Create Verifier
         verifier = new Verifier();
-        accountSalt = 0x0e3edbf1c5f3d1bd33504e7d71fc62134c2e92d56675eda1e2d515b6eb68021c;
 
         // Create EmailAuth
         EmailAuth emailAuthImpl = new EmailAuth();
@@ -83,6 +77,7 @@ contract IntegrationTest is Test {
             address(simpleWalletImpl),
             abi.encodeWithSelector(
                 simpleWalletImpl.initialize.selector,
+                signer,
                 address(verifier),
                 address(dkim),
                 address(emailAuthImpl)
@@ -109,7 +104,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x91eB86019FD8D7c5a9E31143D422850A13F670A3
+            0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -142,9 +137,10 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0xB5A85e22f83D6669e99816f88bE51F72FBc04901";
+            .maskedSubject = "Accept guardian request for 0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
+        accountSalt = emailProof.accountSalt;
         emailProof.isCodeExist = vm.parseUint(pubSignals[33]) == 1;
         emailProof.proof = proofToBytes(
             string.concat(
@@ -166,9 +162,7 @@ contract IntegrationTest is Test {
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(
-            simpleWallet.computeEmailAuthAddress(accountSalt)
-        );
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
             templateId: simpleWallet.computeAcceptanceTemplateId(templateIdx),
             subjectParams: subjectParamsForAcceptance,
@@ -209,9 +203,13 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Set the new signer of 0x91eB86019FD8D7c5a9E31143D422850A13F670A3 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+            .maskedSubject = "Set the new signer of 0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
+        require(
+            emailProof.accountSalt == accountSalt,
+            "accountSalt should be the same"
+        );
         emailProof.isCodeExist = vm.parseUint(pubSignals[33]) == 1;
         emailProof.proof = proofToBytes(
             string.concat(
@@ -243,7 +241,11 @@ contract IntegrationTest is Test {
         });
         simpleWallet.handleRecovery(emailAuthMsg, templateIdx);
         require(simpleWallet.isRecovering(), "isRecovering should be set");
-        require(simpleWallet.newSignerCandidate() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720, "newSignerCandidate should be set");
+        require(
+            simpleWallet.newSignerCandidate() ==
+                0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
+            "newSignerCandidate should be set"
+        );
         require(simpleWallet.timelock() > 0, "timelock should be set");
         require(
             simpleWallet.owner() == simpleWalletOwner,
@@ -256,7 +258,10 @@ contract IntegrationTest is Test {
         simpleWallet.completeRecovery();
         console.log("simpleWallet owner: ", simpleWallet.owner());
         require(!simpleWallet.isRecovering(), "isRecovering should be reset");
-        require(simpleWallet.newSignerCandidate() == address(0), "newSignerCandidate should be reset");
+        require(
+            simpleWallet.newSignerCandidate() == address(0),
+            "newSignerCandidate should be reset"
+        );
         require(simpleWallet.timelock() == 0, "timelock should be reset");
         require(
             simpleWallet.owner() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,

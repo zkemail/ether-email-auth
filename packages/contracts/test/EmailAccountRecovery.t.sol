@@ -15,14 +15,13 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
 
     function setUpForInternal() public {
         vm.startPrank(deployer);
-        initialize(address(0x0), address(0x0), address(0x0));
-        vm.deal(address(this), 1 ether);
+        initialize(msg.sender, address(0x0), address(0x0), address(0x0));
         vm.stopPrank();
     }
 
     function setUpForPublic() public {
         vm.startPrank(deployer);
-        this.initialize(address(0x0), address(0x0), address(0x0));
+        this.initialize(deployer, address(0x0), address(0x0), address(0x0));
         vm.deal(address(this), 1 ether);
         vm.stopPrank();
     }
@@ -121,7 +120,7 @@ contract EmailAccountRecoveryTest is SimpleWallet, Test {
         vm.startPrank(deployer);
         uint templateIdx = 0;
         bytes[] memory subjectParams = new bytes[](1);
-        subjectParams[0] = abi.encode(guardian);
+        subjectParams[0] = abi.encode(address(this));
         acceptGuardian(guardian, templateIdx, subjectParams, 0x0);
         vm.stopPrank();
     }

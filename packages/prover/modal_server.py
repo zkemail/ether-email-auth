@@ -5,7 +5,7 @@ from core import (
 )
 
 
-stub = modal.Stub("email-wallet-relayer-v1.1")
+stub = modal.Stub("email-auth-prover-v1.0.1")
 
 image = modal.Image.from_dockerfile("Dockerfile")
 
@@ -37,4 +37,5 @@ def flask_app():
         )
         proof = gen_email_auth_proof(str(nonce), False, input)
         return jsonify(proof)
+
     return app

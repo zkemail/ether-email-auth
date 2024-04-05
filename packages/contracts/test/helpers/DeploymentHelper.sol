@@ -8,6 +8,7 @@ import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./SimpleWallet.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -48,7 +49,9 @@ contract DeploymentHelper is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = bytes(signedMsg).toEthSignedMessageHash();
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
         dkim.setDKIMPublicKeyHash(
@@ -68,6 +71,7 @@ contract DeploymentHelper is Test {
             address(emailAuthImpl),
             abi.encodeWithSelector(
                 emailAuthImpl.initialize.selector,
+                signer,
                 accountSalt
             )
         );
@@ -86,6 +90,7 @@ contract DeploymentHelper is Test {
             address(simpleWalletImpl),
             abi.encodeWithSelector(
                 simpleWalletImpl.initialize.selector,
+                signer,
                 address(verifier),
                 address(dkim),
                 address(emailAuth)
