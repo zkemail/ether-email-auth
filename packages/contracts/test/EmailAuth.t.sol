@@ -10,8 +10,10 @@ import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./helpers/DeploymentHelper.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract EmailAuthTest is DeploymentHelper {
+
     function setUp() public override {
         super.setUp();
     }
@@ -109,7 +111,12 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testExpectRevertUpdateSubjectTemplateCallerIsNotTheOwner() public {
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, 
+                0x90193C961A926261B756D1E5bb255e67ff9498A1
+            )
+        );
         emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
     }
 
@@ -144,7 +151,12 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testExpectRevertDeleteSubjectTemplateCallerIsNotTheOwner() public {
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, 
+                0x90193C961A926261B756D1E5bb255e67ff9498A1
+            )
+        );        
         emailAuth.deleteSubjectTemplate(templateId);
     }
 
@@ -227,7 +239,12 @@ contract EmailAuthTest is DeploymentHelper {
 
     function testExpectRevertAuthEmailCallerIsNotTheOwner() public {
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, 
+                0x90193C961A926261B756D1E5bb255e67ff9498A1
+            )
+        );
         emailAuth.authEmail(emailAuthMsg);
     }
 
@@ -353,7 +370,12 @@ contract EmailAuthTest is DeploymentHelper {
     }
 
     function testExpectRevertSetTimestampCheckEnabled() public {
-        vm.expectRevert(bytes("Ownable: caller is not the owner"));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector, 
+                0x90193C961A926261B756D1E5bb255e67ff9498A1
+            )
+        );
         emailAuth.setTimestampCheckEnabled(false);
     }
 }
