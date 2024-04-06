@@ -77,11 +77,11 @@ impl TestEnv {
         CHAIN_ID
             .set(env::var("CHAIN_ID").unwrap().parse().unwrap())
             .unwrap();
-        let eth_amount_per_account = env::var("ETH_AMOUNT_PER_ACCOUNT").unwrap();
-        let verifier_addr = env::var("VERIFIER_ADDR").unwrap().parse()?;
-        let dkim_addr = env::var("DKIM_ADDR").unwrap().parse()?;
-        let email_auth_impl_addr = env::var("EMAIL_AUTH_IMPL_ADDR").unwrap().parse()?;
-        let wallet_impl_addr = env::var("WALLET_IMPL_ADDR").unwrap().parse()?;
+        let eth_amount_per_account = env::var("TEST_ETH_AMOUNT_PER_ACCOUNT").unwrap();
+        let verifier_addr = env::var("TEST_VERIFIER_ADDR").unwrap().parse()?;
+        let dkim_addr = env::var("TEST_DKIM_ADDR").unwrap().parse()?;
+        let email_auth_impl_addr = env::var("TEST_EMAIL_AUTH_IMPL_ADDR").unwrap().parse()?;
+        let wallet_impl_addr = env::var("TEST_WALLET_IMPL_ADDR").unwrap().parse()?;
         let main_client = ChainClient::setup().await?;
         let eth_amount_per_account = U256::from_str_radix(&eth_amount_per_account, 10)?;
         let test_accounts = vec![];
@@ -141,7 +141,7 @@ impl TestEnv {
         let proxy = proxy_deploy.send().await?;
         let wallet = SimpleWallet::new(proxy.address(), test_client.clone());
         let new_owner = LocalWallet::new(&mut rand::thread_rng()).address();
-        let relayer_hostname = env::var("RELAYER_HOSTNAME").unwrap();
+        let relayer_hostname = env::var("TEST_RELAYER_HOSTNAME").unwrap();
 
         let test_account = TestAccount {
             client: test_client,
@@ -473,7 +473,7 @@ impl TestAccount {
 async fn load_test() -> Result<()> {
     dotenv().ok();
     let mut test_env = TestEnv::setup().await?;
-    let num_test_accounts = env::var("NUM_TEST_ACCOUNTS").unwrap().parse()?;
+    let num_test_accounts = env::var("TEST_NUM_TEST_ACCOUNTS").unwrap().parse()?;
     for _ in 0..num_test_accounts {
         test_env.add_test_account().await?;
     }
