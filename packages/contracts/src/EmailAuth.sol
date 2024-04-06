@@ -9,15 +9,20 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
+/// @notice Struct to hold the email authentication/authorization message.
 struct EmailAuthMsg {
+    /// @notice The ID of the subject template that the email subject should satisfy.
     uint templateId;
+    /// @notice The parameters in the email subject, which should be taken according to the specified subject template.
     bytes[] subjectParams;
+    /// @notice The number of skiiped bytes in the email subject.
     uint skipedSubjectPrefix;
+    /// @notice The email proof containing the zk proof and other necessary information for the email verification by the verifier contract.
     EmailProof proof;
 }
 
-/// @title Email Authentication Contract
-/// @notice This contract provides functionalities for email authentication using DKIM and custom verification logic.
+/// @title Email Authentication/Authorization Contract
+/// @notice This contract provides functionalities for the authentication of the email sender and the authentication of the message in the email subject using DKIM and custom verification logic.
 /// @dev Inherits from OwnableUpgradeable and UUPSUpgradeable for upgradeability and ownership management.
 contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     bytes32 public accountSalt;
@@ -31,9 +36,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     constructor() {}
 
-    /// @notice Initialize the contract with an initial owner and an account salt
-    /// @param _initialOwner The address of the initial owner
-    /// @param _accountSalt The account salt for hashing purposes
+    /// @notice Initialize the contract with an initial owner and an account salt.
+    /// @param _initialOwner The address of the initial owner.
+    /// @param _accountSalt The account salt to derive CREATE2 address of this contract.
     function initialize(
         address _initialOwner,
         bytes32 _accountSalt
@@ -43,20 +48,20 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         timestampCheckEnabled = true;
     }
 
-    /// @notice Returns the address of the DKIM registry contract
-    /// @return Address of the DKIM registry contract
+    /// @notice Returns the address of the DKIM registry contract.
+    /// @return address The address of the DKIM registry contract.
     function dkimRegistryAddr() public view returns (address) {
         return address(dkim);
     }
 
-    /// @notice Returns the address of the verifier contract
-    /// @return Address of the verifier contract
+    /// @notice Returns the address of the verifier contract.
+    /// @return address The Address of the verifier contract.
     function verifierAddr() public view returns (address) {
         return address(verifier);
     }
 
-    /// @notice Updates the address of the DKIM registry contract
-    /// @param _dkimRegistryAddr The new address of the DKIM registry contract
+    /// @notice Updates the address of the DKIM registry contract.
+    /// @param _dkimRegistryAddr The new address of the DKIM registry contract.
     function updateDKIMRegistry(address _dkimRegistryAddr) public onlyOwner {
         require(
             _dkimRegistryAddr != address(0),
@@ -65,16 +70,16 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
     }
 
-    /// @notice Updates the address of the verifier contract
-    /// @param _verifierAddr The new address of the verifier contract
+    /// @notice Updates the address of the verifier contract.
+    /// @param _verifierAddr The new address of the verifier contract.
     function updateVerifier(address _verifierAddr) public onlyOwner {
         require(_verifierAddr != address(0), "invalid verifier address");
         verifier = Verifier(_verifierAddr);
     }
 
-    /// @notice Retrieves a subject template by its ID
-    /// @param _templateId The ID of the template to retrieve
-    /// @return The subject template as an array of strings
+    /// @notice Retrieves a subject template by its ID.
+    /// @param _templateId The ID of the subject template to be retrieved.
+    /// @return string[] The subject template as an array of strings.
     function getSubjectTemplate(
         uint _templateId
     ) public view returns (string[] memory) {
@@ -85,9 +90,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return subjectTemplates[_templateId];
     }
 
-    /// @notice Inserts a new subject template
-    /// @param _templateId The ID for the new template
-    /// @param _subjectTemplate The subject template as an array of strings
+    /// @notice Inserts a new subject template.
+    /// @param _templateId The ID for the new subject template.
+    /// @param _subjectTemplate The subject template as an array of strings.
     function insertSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
@@ -100,10 +105,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         subjectTemplates[_templateId] = _subjectTemplate;
     }
 
-    /// @notice Updates an existing subject template by its ID
+    /// @notice Updates an existing subject template by its ID.
     /// @dev This function can only be called by the owner of the contract.
-    /// @param _templateId The ID of the template to update
-    /// @param _subjectTemplate The new subject template as an array of strings
+    /// @param _templateId The ID of the template to update.
+    /// @param _subjectTemplate The new subject template as an array of strings.
     function updateSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
@@ -116,9 +121,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         subjectTemplates[_templateId] = _subjectTemplate;
     }
 
-    /// @notice Deletes an existing subject template by its ID
+    /// @notice Deletes an existing subject template by its ID.
     /// @dev This function can only be called by the owner of the contract.
-    /// @param _templateId The ID of the template 
+    /// @param _templateId The ID of the subject template to be deleted.
     function deleteSubjectTemplate(uint _templateId) public onlyOwner {
         require(
             subjectTemplates[_templateId].length > 0,
@@ -127,13 +132,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         delete subjectTemplates[_templateId];
     }
 
-    /// @notice Computes the hash of an email authentication message
-    /// @dev This function takes into account the account salt, whether a code exists, the template ID, and the subject parameters to compute a unique hash for an email authentication message.
-    /// @param _accountSalt The account salt used for hashing
-    /// @param _isCodeExist A boolean indicating if a code exists
-    /// @param _templateId The ID of the email template
-    /// @param _subjectParams The parameters for the subject of the email
-    /// @return The computed hash as a bytes32 value
+    /// @notice Computes the hash of an email auth message.
+    /// @dev This function takes into account the account salt, a boolean indicating if an account code exists in the email, the subject template ID, and the subject parameters.
+    /// @param _accountSalt The account salt to derive CREATE2 address of this contract.
+    /// @param _isCodeExist A boolean indicating if an account code exists in the email.
+    /// @param _templateId The ID of the subject template.
+    /// @param _subjectParams The parameters in the email subject, which should be taken according to the specified subject template.
+    /// @return bytes32 The computed hash as a bytes32 value.
     function computeMsgHash(
         bytes32 _accountSalt,
         bool _isCodeExist,
@@ -151,10 +156,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             );
     }
 
-    /// @notice Authenticates an email based on the provided email authentication message
+    /// @notice Authenticate the email sender and authorize the message in the email subject based on the provided email auth message.
     /// @dev This function can only be called by the owner of the contract.
-    /// @param emailAuthMsg The email authentication message containing all necessary information for authentication
-    /// @return The hash of the authenticated email message
+    /// @param emailAuthMsg The email auth message containing all necessary information for authentication and authorization.
+    /// @return bytes32 The hash of the authorized email message.
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
     ) public onlyOwner returns (bytes32) {
@@ -218,9 +223,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return msgHash;
     }
 
-    /// @notice Validates the signature of an authenticated email
-    /// @param _hash The hash of the email authentication message
-    /// @param _signature The signature to validate, which is expected to be the email nullifier
+    /// @notice Validates the email nullifier of an authorized email as its signature.
+    /// @param _hash The hash of the email auth message computed by the `computeMsgHash` function.
+    /// @param _signature The signature to be validated, which is expected to be the email nullifier.
     /// @return A status code where `0x1626ba7e` indicates a valid signature and `0xffffffff` indicates an invalid signature.
     function isValidSignature(
         bytes32 _hash,
@@ -234,15 +239,15 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         }
     }
 
-    /// @notice Enables or disables the timestamp check for email authentication
+    /// @notice Enables or disables the timestamp check.
     /// @dev This function can only be called by the contract owner.
-    /// @param _enabled Boolean flag to enable or disable the timestamp check
+    /// @param _enabled Boolean flag to enable or disable the timestamp check.
     function setTimestampCheckEnabled(bool _enabled) public onlyOwner {
         timestampCheckEnabled = _enabled;
     }
 
-    /// @notice Upgrade the implementation of the proxy
-    /// @param newImplementation Address of the new implementation
+    /// @notice Upgrade the implementation of the proxy.
+    /// @param newImplementation Address of the new implementation.
     function _authorizeUpgrade(
         address newImplementation
     ) internal override onlyOwner {}

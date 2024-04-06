@@ -7,7 +7,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
-/// @dev This contract is abstract and requires implementation of several methods for handling email authentication and recovery processes.
+/// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering a wallet.
 abstract contract EmailAccountRecovery {
     uint8 constant EMAIL_ACCOUNT_RECOVERY_VERSION_ID = 1;
     address public verifierAddr;
@@ -16,28 +16,28 @@ abstract contract EmailAccountRecovery {
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
-    /// @return The address of the verifier contract.
+    /// @return address The address of the verifier contract.
     function verifier() public view virtual returns (address) {
         return verifierAddr;
     }
 
     /// @notice Returns the address of the DKIM contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
-    /// @return The address of the DKIM contract.
+    /// @return address The address of the DKIM contract.
     function dkim() public view virtual returns (address) {
         return dkimAddr;
     }
 
-    /// @notice Returns the address of the email authentication contract implementation.
+    /// @notice Returns the address of the email auth contract implementation.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
-    /// @return The address of the email authentication contract implementation.
+    /// @return address The address of the email authentication contract implementation.
     function emailAuthImplementation() public view virtual returns (address) {
         return emailAuthImplementationAddr;
     }
 
-    /// @notice Returns a two-dimensional array of strings representing the subject templates for email acceptance.
+    /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
-    /// @return A two-dimensional array of strings, where each inner array represents a set of parameters for a subject template.
+    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
     function acceptanceSubjectTemplates()
         public
         view
@@ -46,7 +46,7 @@ abstract contract EmailAccountRecovery {
 
     /// @notice Returns a two-dimensional array of strings representing the subject templates for email recovery.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific recovery subject templates.
-    /// @return A two-dimensional array of strings, where each inner array represents a set of parameters for a subject template.
+    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
     function recoverySubjectTemplates()
         public
         view
@@ -67,17 +67,16 @@ abstract contract EmailAccountRecovery {
         bytes32 emailNullifier
     ) internal virtual;
 
-    /// @notice Completes the recovery process for an email account.
+    /// @notice Completes the recovery process.
     /// @dev This function must be implemented by inheriting contracts to finalize the recovery process.
     function completeRecovery() external virtual;
 
-    /// @notice Computes the address for email authentication using the CREATE2 opcode.
-    /// @dev This function utilizes the `Create2` library to compute the address where an ERC1967Proxy contract
-    /// will be deployed for email authentication. The computation uses a provided account salt unique to the user's email
-    /// and the hash of the encoded ERC1967Proxy creation code concatenated with the encoded email authentication implementation
-    /// address and the initialization call data. This ensures that the computed address is deterministic and unique per user email.
-    /// @param accountSalt A bytes32 salt value unique to the user's email account, used in the computation of the contract address.
-    /// @return The computed address where the ERC1967Proxy contract for email authentication will be deployed.
+    /// @notice Computes the address for email auth contract using the CREATE2 opcode.
+    /// @dev This function utilizes the `Create2` library to compute the address. The computation uses a provided account salt
+    /// and the hash of the encoded ERC1967Proxy creation code concatenated with the encoded email auth contract implementation
+    /// address and the initialization call data. This ensures that the computed address is deterministic and unique per account salt.
+    /// @param accountSalt A bytes32 salt value, which is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
+    /// @return address The computed address.
     function computeEmailAuthAddress(
         bytes32 accountSalt
     ) public view returns (address) {
@@ -99,11 +98,11 @@ abstract contract EmailAccountRecovery {
             );
     }
 
-    /// @notice Calculates a unique ID for an email acceptance template using its index.
-    /// @dev Encodes the email account recovery version ID, "ACCEPTANCE", and the template index, 
-    /// then uses keccak256 to hash these values into a uint256 ID.
-    /// @param templateIdx The index of the acceptance template.
-    /// @return The computed uint ID unique to the specified template index.
+    /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
+    /// @dev Encodes the email account recovery version ID, "ACCEPTANCE", and the template index,
+    /// then uses keccak256 to hash these values into a uint ID.
+    /// @param templateIdx The index of the acceptance subject template.
+    /// @return uint The computed uint ID.
     function computeAcceptanceTemplateId(
         uint templateIdx
     ) public pure returns (uint) {
@@ -119,11 +118,11 @@ abstract contract EmailAccountRecovery {
             );
     }
 
-    /// @notice Calculates a unique ID for a recovery template based on its index.
-    /// @dev Encodes the email account recovery version ID, "RECOVERY", and the template index, 
+    /// @notice Calculates a unique ID for a recovery subject template using its index.
+    /// @dev Encodes the email account recovery version ID, "RECOVERY", and the template index,
     /// then uses keccak256 to hash these values into a uint256 ID.
-    /// @param templateIdx The index of the recovery template.
-    /// @return Unique uint ID for the given template index.
+    /// @param templateIdx The index of the recovery subject template.
+    /// @return uint The computed uint ID.
     function computeRecoveryTemplateId(
         uint templateIdx
     ) public pure returns (uint) {
@@ -139,12 +138,10 @@ abstract contract EmailAccountRecovery {
             );
     }
 
-    /// @notice Handles the acceptance of an email authentication message.
-    /// @dev This function validates the email authentication message, deploys a new EmailAuth contract as a proxy if validations pass,
-    /// and sets up the contract with necessary templates and verifiers. It ensures the guardian (computed address) is not deployed,
-    /// the template ID matches, and the code exists. Finally, it initializes the guardian's EmailAuth contract and records the acceptance.
-    /// @param emailAuthMsg The email authentication message containing proof and template information.
-    /// @param templateIdx The index of the template used for acceptance, which is validated against the message's template ID.
+    /// @notice Handles an acceptance by a new guardian.
+    /// @dev This function validates the email auth message, deploys a new EmailAuth contract as a proxy if validations pass and initializes the contract.
+    /// @param emailAuthMsg The email auth message for the email send from the guardian.
+    /// @param templateIdx The index of the subject template for acceptance, which should match with the subject in the given email auth message.
     function handleAcceptance(
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
@@ -198,12 +195,11 @@ abstract contract EmailAccountRecovery {
         );
     }
 
-    /// @notice Processes the recovery of an email authentication based on a received message.
-    /// @dev Validates the provided email authentication message against a deployed guardian address and a specific recovery template.
-    /// Requires that the guardian is already deployed, and the template ID matches the one in the message. Once validated, it
-    /// authenticates the email through the guardian's EmailAuth contract and initiates the recovery process with provided parameters.
-    /// @param emailAuthMsg The email authentication message containing the proof, template ID, and other relevant data for recovery.
-    /// @param templateIdx The index of the recovery template, used to validate against the message's template ID.
+    /// @notice Processes the recovery based on an email from the guardian.
+    /// @dev Verify the provided email auth message for a deployed guardian's EmailAuth contract and a specific subject template for recovery.
+    /// Requires that the guardian is already deployed, and the template ID corresponds to the `templateId` in the given email auth message. Once validated.
+    /// @param emailAuthMsg The email auth message for recovery.
+    /// @param templateIdx The index of the subject template for recovery, which should match with the subject in the given email auth message.
     function handleRecovery(
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
