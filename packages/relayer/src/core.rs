@@ -28,14 +28,6 @@ pub async fn handle_email<P: EmailsPool>(
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let subject = parsed_email.get_subject_all()?;
 
-    let account_code_str = db
-        .get_invitation_code_from_email_addr(&guardian_email_addr)
-        .await?
-        .ok_or(anyhow!(
-            "The user of email address {} is not registered.",
-            guardian_email_addr
-        ))?;
-
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
@@ -55,6 +47,21 @@ pub async fn handle_email<P: EmailsPool>(
         });
     }
     let request = request_record.unwrap();
+    if request.guardian_email_addr != guardian_email_addr {
+        return Err(anyhow!(
+            "Guardian email address in the request {} is not equal to the one in the email {}",
+            request.guardian_email_addr,
+            guardian_email_addr
+        ));
+    }
+    let account_code_str = db
+        .get_account_code_from_wallet_and_email(&request.wallet_eth_addr, &guardian_email_addr)
+        .await?
+        .ok_or(anyhow!(
+            "The user of the wallet address {} and the email address {} is not registered.",
+            request.wallet_eth_addr,
+            guardian_email_addr
+        ))?;
     check_and_update_dkim(
         &email,
         &parsed_email,
@@ -155,7 +162,7 @@ pub async fn handle_email<P: EmailsPool>(
                         is_set: true,
                     };
 
-                    db.update_credentials(&creds).await?;
+                    db.update_credentials_of_account_code(&creds).await?;
 
                     let updated_request = Request {
                         wallet_eth_addr: request.wallet_eth_addr.clone(),
