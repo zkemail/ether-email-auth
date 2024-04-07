@@ -39,10 +39,11 @@ contract Deploy is Script {
             console.log("SIMPLE_WALLET_IMPL env var not set");
             return;
         }
-        
+
         vm.startBroadcast(deployerPrivateKey);
         bytes memory data = abi.encodeWithSelector(
             SimpleWallet(payable(simpleWalletImpl)).initialize.selector,
+            vm.addr(deployerPrivateKey),
             verifier,
             dkim,
             emailAuthImpl

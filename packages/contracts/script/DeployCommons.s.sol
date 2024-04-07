@@ -9,7 +9,6 @@ import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 
-
 contract Deploy is Script {
     using ECDSA for *;
 
@@ -33,29 +32,36 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(
-            signer
-        );
+        dkim = new ECDSAOwnedDKIMRegistry(signer);
         console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
         vm.setEnv("DKIM", vm.toString(address(dkim)));
 
         // Deploy Verifier
         verifier = new Verifier();
-        console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(verifier));
+        console.log("Verifier deployed at: %s", address(verifier));
         vm.setEnv("VERIFIER", vm.toString(address(verifier)));
 
         // Deploy EmailAuth Implementation
         {
             emailAuthImpl = new EmailAuth();
-            console.log("EmailAuth implementation deployed at: %s", address(emailAuthImpl));
+            console.log(
+                "EmailAuth implementation deployed at: %s",
+                address(emailAuthImpl)
+            );
             vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
         // Deploy SimpleWallet Implementation
         {
             simpleWalletImpl = new SimpleWallet();
-            console.log("SimpleWallet implementation deployed at: %s", address(simpleWalletImpl));
-            vm.setEnv("SIMPLE_WALLET_IMPL", vm.toString(address(simpleWalletImpl)));
+            console.log(
+                "SimpleWallet implementation deployed at: %s",
+                address(simpleWalletImpl)
+            );
+            vm.setEnv(
+                "SIMPLE_WALLET_IMPL",
+                vm.toString(address(simpleWalletImpl))
+            );
         }
         vm.stopBroadcast();
     }

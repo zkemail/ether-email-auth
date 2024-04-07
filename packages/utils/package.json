@@ -1,5 +1,5 @@
 {
-  "name": "ether-email-auth-utils",
+  "name": "relayer-utils",
   "version": "0.1.0",
   "description": "",
   "main": "index.node",

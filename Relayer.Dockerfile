@@ -29,7 +29,7 @@ WORKDIR /relayer/packages/contracts
 RUN bash -i -c "foundryup"
 RUN bash -i -c "forge build"
 
-WORKDIR /relayer/packages/nft_relayer
+WORKDIR /relayer/packages/relayer
 RUN --mount=type=cache,target=/var/cache/cargo \
     cargo build \
     && rm -rf /var/lib/cargo/lists/*

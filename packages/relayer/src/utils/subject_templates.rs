@@ -5,8 +5,9 @@ use crate::*;
 use ethers::abi::{self, Token};
 use ethers::types::{Address, Bytes, I256, U256};
 use regex::Regex;
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TemplateValue {
     String(String),
     Uint(U256),
@@ -16,16 +17,7 @@ pub enum TemplateValue {
     Fixed(String),
 }
 
-pub(crate) const STRING_RGEX: &str = ".+";
-pub(crate) const UINT_REGEX: &str = "[0-9]+";
-pub(crate) const INT_REGEX: &str = "-?[0-9]+";
-pub(crate) const DECIMALS_REGEX: &str = "[0-9]+(\\.[0-9]+)?";
-pub(crate) const ETH_ADDR_REGEX: &str = "0x[0-9a-fA-F]{40}";
-// pub(crate) const EMAIL_ADDR_REGEX: &str =
-//     "[a-zA-Z0-9!#$%&'\\*\\+-/=\\?^_`{\\|}~\\.]+@[a-zA-Z0-9]+\\.[a-zA-Z0-9\\.-]+";
-
 impl TemplateValue {
-    #[named]
     pub fn abi_encode(&self, decimal_size: Option<u8>) -> Result<Bytes> {
         match self {
             Self::String(string) => Ok(Bytes::from(abi::encode(&[Token::String(string.clone())]))),
@@ -57,32 +49,56 @@ impl TemplateValue {
     }
 }
 
-pub fn extract_template_vals_and_idx(
+pub fn extract_template_vals_and_skipped_subject_idx(
     input: &str,
-    templates_array: Vec<Vec<String>>,
-) -> Result<(Option<usize>, Vec<TemplateValue>)> {
-    for (idx, templates) in templates_array.into_iter().enumerate() {
-        let template_vals = extract_template_vals(input, templates);
-        match template_vals {
-            Ok(vals) => {
-                return Ok((Some(idx), vals));
-            }
-            Err(_) => {
-                continue;
-            }
+    templates: Vec<String>,
+) -> Result<(Vec<TemplateValue>, usize), anyhow::Error> {
+    // Convert the template to a regex pattern, escaping necessary characters and replacing placeholders
+    let pattern = templates
+        .iter()
+        .map(|template| match template.as_str() {
+            "{string}" => STRING_REGEX.to_string(),
+            "{uint}" => UINT_REGEX.to_string(),
+            "{int}" => INT_REGEX.to_string(),
+            "{decimals}" => DECIMALS_REGEX.to_string(),
+            "{ethAddr}" => ETH_ADDR_REGEX.to_string(),
+            _ => regex::escape(template),
+        })
+        .collect::<Vec<String>>()
+        .join("\\s+");
+
+    let regex = Regex::new(&pattern).map_err(|e| anyhow!("Regex compilation failed: {}", e))?;
+
+    // Attempt to find the pattern in the input
+    if let Some(matched) = regex.find(input) {
+        // Calculate the number of bytes to skip before the match
+        let skipped_bytes = matched.start();
+
+        // Extract the values based on the matched pattern
+        let current_input = &input[skipped_bytes..];
+        match extract_template_vals(current_input, templates) {
+            Ok(vals) => Ok((vals, skipped_bytes)),
+            Err(e) => Err(e),
         }
+    } else {
+        // If there's no match, return an error indicating no match was found
+        Err(anyhow!("Unable to match templates with input"))
     }
-    Ok((None, Vec::new()))
 }
 
 pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {
-    let input_decomposed: Vec<&str> = input.split(' ').collect();
+    let input_decomposed: Vec<&str> = input.split_whitespace().collect();
     let mut template_vals = Vec::new();
     let mut input_idx = 0;
+
     for template in templates.iter() {
+        if input_idx >= input_decomposed.len() {
+            break; // Prevents index out of bounds if input is shorter than template
+        }
+
         match template.as_str() {
             "{string}" => {
-                let string_match = Regex::new(STRING_RGEX)
+                let string_match = Regex::new(STRING_REGEX)
                     .unwrap()
                     .find(input_decomposed[input_idx])
                     .ok_or(anyhow!("No string found"))?;
@@ -93,7 +109,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let string = string_match.as_str().to_string();
                 template_vals.push(TemplateValue::String(string));
-                input_idx += 1;
             }
             "{uint}" => {
                 let uint_match = Regex::new(UINT_REGEX)
@@ -106,7 +121,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let uint = U256::from_dec_str(uint_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Uint(uint));
-                input_idx += 1;
             }
             "{int}" => {
                 let int_match = Regex::new(INT_REGEX)
@@ -116,24 +130,21 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 if int_match.start() != 0 || int_match.end() != input_decomposed[input_idx].len() {
                     return Err(anyhow!("Int must be the whole word"));
                 }
-                let int_str = int_match.as_str();
                 let int = I256::from_dec_str(int_match.as_str()).unwrap();
                 template_vals.push(TemplateValue::Int(int));
-                input_idx += 1;
             }
             "{decimals}" => {
                 let decimals_match = Regex::new(DECIMALS_REGEX)
                     .unwrap()
                     .find(input_decomposed[input_idx])
-                    .ok_or(anyhow!("No amount found"))?;
+                    .ok_or(anyhow!("No decimals found"))?;
                 if decimals_match.start() != 0
                     || decimals_match.end() != input_decomposed[input_idx].len()
                 {
-                    return Err(anyhow!("Amount must be the whole word"));
+                    return Err(anyhow!("Decimals must be the whole word"));
                 }
                 let decimals = decimals_match.as_str().to_string();
                 template_vals.push(TemplateValue::Decimals(decimals));
-                input_idx += 1;
             }
             "{ethAddr}" => {
                 let address_match = Regex::new(ETH_ADDR_REGEX)
@@ -147,16 +158,13 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 }
                 let address = address_match.as_str().parse::<Address>().unwrap();
                 template_vals.push(TemplateValue::EthAddr(address));
-                input_idx += 1;
             }
-            _ => {
-                input_idx += 1;
-            }
+            _ => {} // Skip unknown placeholders
         }
+
+        input_idx += 1; // Move to the next piece of input
     }
-    if input_idx != input_decomposed.len() {
-        return Err(anyhow!("Input is not fully consumed"));
-    }
+
     Ok(template_vals)
 }
 

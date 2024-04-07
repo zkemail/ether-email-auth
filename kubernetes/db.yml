@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: postgres-secret-email-auth
+  namespace: email-auth
+  labels:
+    app: postgres-email-auth
+type: Opaque
+data:
+  POSTGRES_DB:
+  POSTGRES_USER:
+  POSTGRES_PASSWORD:
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc-email-auth
+  namespace: email-auth
+  labels:
+    app: postgres-email-auth
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-email-auth
+  namespace: email-auth
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-email-auth
+  template:
+    metadata:
+      labels:
+        app: postgres-email-auth
+    spec:
+      containers:
+        - name: postgres-email-auth
+          image: postgres:latest
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432
+          envFrom:
+            - secretRef:
+                name: postgres-secret-email-auth
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgredb
+              subPath: data
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: postgres-pvc-email-auth
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-svc-email-auth
+  namespace: email-auth
+  labels:
+    app: postgres-email-auth
+spec:
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+  selector:
+    app: postgres-email-auth

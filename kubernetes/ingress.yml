@@ -1,0 +1,21 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: managed-cert-ingress-email-auth
+  namespace: email-auth
+  annotations:
+    kubernetes.io/ingress.global-static-ip-name: k8s-email-auth-ip
+    networking.gke.io/managed-certificates: managed-cert-email-auth
+    ingressClassName: "gce"
+spec:
+  rules:
+    - host: auth.prove.email
+      http:
+        paths:
+          - pathType: Prefix
+            path: /
+            backend:
+              service:
+                name: relayer-svc-email-auth
+                port:
+                  number: 443

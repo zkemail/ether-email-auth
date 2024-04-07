@@ -10,11 +10,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         REQUESTED,
         ACCEPTED
     }
-    uint public constant TIMELOCK_PERIOD = 3 days;
+    uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
 
     bool public isRecovering;
     address public newSignerCandidate;
     mapping(address => GuardianStatus) public guardians;
+    uint public timelockPeriod = DEFAULT_TIMELOCK_PERIOD;
     uint public timelock;
 
     modifier onlyNotRecoveringOwner() {
@@ -36,11 +37,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
     constructor() {}
 
     function initialize(
+        address _initialOwner,
         address _verifier,
         address _dkim,
         address _emailAuthImplementation
     ) public initializer {
-        __Ownable_init();
+        __Ownable_init(_initialOwner);
         isRecovering = false;
         verifierAddr = _verifier;
         dkimAddr = _dkim;
@@ -98,9 +100,15 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.NONE,
-            "invalid guardian status"
+            "guardian status must be NONE"
         );
         guardians[guardian] = GuardianStatus.REQUESTED;
+    }
+
+    function configureTimelockPeriod(
+        uint period
+    ) public onlyNotRecoveringOwner {
+        timelockPeriod = period;
     }
 
     function acceptGuardian(
@@ -112,12 +120,15 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.REQUESTED,
-            "invalid guardian status"
+            "guardian status must be REQUESTED"
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 1, "invalid subject params");
-        address guardianInEmail = abi.decode(subjectParams[0], (address));
-        require(guardianInEmail == guardian, "invalid guardian in email");
+        address walletAddrInEmail = abi.decode(subjectParams[0], (address));
+        require(
+            walletAddrInEmail == address(this),
+            "invalid wallet address in email"
+        );
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 
@@ -130,7 +141,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.ACCEPTED,
-            "invalid guardian status"
+            "guardian status must be ACCEPTED"
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 2, "invalid subject params");
@@ -143,7 +154,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(newSignerInEmail != address(0), "invalid new signer");
         isRecovering = true;
         newSignerCandidate = newSignerInEmail;
-        timelock = block.timestamp + TIMELOCK_PERIOD;
+        timelock = block.timestamp + timelockPeriod;
     }
 
     function rejectRecovery() public onlyOwner {
