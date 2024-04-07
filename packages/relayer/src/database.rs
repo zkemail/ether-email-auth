@@ -96,12 +96,19 @@ impl Database {
         }
     }
 
-    pub(crate) async fn is_email_registered(&self, email_addr: &str) -> bool {
-        let row = sqlx::query("SELECT * FROM credentials WHERE guardian_email_addr = $1")
-            .bind(email_addr)
-            .fetch_optional(&self.db)
-            .await
-            .unwrap();
+    pub(crate) async fn is_wallet_and_email_registered(
+        &self,
+        wallet_eth_addr: &str,
+        email_addr: &str,
+    ) -> bool {
+        let row = sqlx::query(
+            "SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2",
+        )
+        .bind(wallet_eth_addr)
+        .bind(email_addr)
+        .fetch_optional(&self.db)
+        .await
+        .unwrap();
 
         match row {
             Some(_) => true,
@@ -109,12 +116,26 @@ impl Database {
         }
     }
 
-    pub(crate) async fn update_credentials(&self, row: &Credentials) -> Result<()> {
+    pub(crate) async fn update_credentials_of_account_code(&self, row: &Credentials) -> Result<()> {
         let res = sqlx::query("UPDATE credentials SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
             .bind(&row.wallet_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_set)
             .bind(&row.account_code)
+            .execute(&self.db)
+            .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn update_credentials_of_wallet_and_email(
+        &self,
+        row: &Credentials,
+    ) -> Result<()> {
+        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE wallet_eth_addr = $3, guardian_email_addr = $4")
+            .bind(&row.account_code)
+            .bind(row.is_set)
+            .bind(&row.wallet_eth_addr)
+            .bind(&row.guardian_email_addr)
             .execute(&self.db)
             .await?;
         Ok(())
@@ -206,14 +227,18 @@ impl Database {
         Ok(())
     }
 
-    pub(crate) async fn get_invitation_code_from_email_addr(
+    pub(crate) async fn get_account_code_from_wallet_and_email(
         &self,
+        wallet_eth_addr: &str,
         email_addr: &str,
     ) -> Result<Option<String>> {
-        let row = sqlx::query("SELECT * FROM credentials WHERE guardian_email_addr = $1")
-            .bind(email_addr)
-            .fetch_optional(&self.db)
-            .await?;
+        let row = sqlx::query(
+            "SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2",
+        )
+        .bind(wallet_eth_addr)
+        .bind(email_addr)
+        .fetch_optional(&self.db)
+        .await?;
 
         match row {
             Some(row) => {
