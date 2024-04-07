@@ -149,6 +149,15 @@ contract IntegrationTest is Test {
             )
         );
 
+        console.log("dkim public key hash: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[9])));
+        console.log("email nullifier: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[10])));
+        console.log("timestamp: ", vm.parseUint(pubSignals[11]));
+        console.log("account salt: ");
+        console.logBytes32(bytes32(vm.parseUint(pubSignals[32])));
+        console.log("is code exist: ", vm.parseUint(pubSignals[33]));
+
         // Call Request guardian -> GuardianStatus.REQUESTED
         simpleWallet.requestGuardian(
             simpleWallet.computeEmailAuthAddress(accountSalt)
