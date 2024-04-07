@@ -62,6 +62,12 @@ pub struct CompleteRecoveryRequest {
     pub wallet_eth_addr: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct GetAccountSaltRequest {
+    pub account_code: String,
+    pub email_addr: String,
+}
+
 // Create request status API
 pub async fn request_status_api(payload: RequestStatusRequest) -> Result<RequestStatusResponse> {
     let row = DB.get_request(payload.request_id).await?;
@@ -156,7 +162,7 @@ pub async fn handle_acceptance_request(
         .is_wallet_and_email_registered(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
     {
-        // In this case, the relayer sent a request email to the same guardian before, but it has not been reploed yet.
+        // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
         // Therefore, the relayer will send an email to the guardian again with a fresh account code.
         db.update_credentials_of_wallet_and_email(&Credentials {
             account_code: payload.account_code.clone(),
@@ -423,6 +429,18 @@ pub async fn handle_complete_recovery_request(
                 .unwrap()
         }
     }
+}
+
+pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> {
+    let padded_email_addr = PaddedEmailAddr::from_email_addr(&payload.email_addr);
+    let account_code =
+        AccountCode::from(hex2field(&format!("0x{}", payload.account_code)).unwrap());
+    let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(field2hex(&account_salt.0)))
+        .unwrap()
 }
 
 fn parse_error_message(error_data: String) -> String {
