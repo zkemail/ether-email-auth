@@ -10,11 +10,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         REQUESTED,
         ACCEPTED
     }
-    uint public constant TIMELOCK_PERIOD = 3 days;
+    uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
 
     bool public isRecovering;
     address public newSignerCandidate;
     mapping(address => GuardianStatus) public guardians;
+    uint public timelockPeriod = DEFAULT_TIMELOCK_PERIOD;
     uint public timelock;
 
     modifier onlyNotRecoveringOwner() {
@@ -104,6 +105,12 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         guardians[guardian] = GuardianStatus.REQUESTED;
     }
 
+    function configureTimelockPeriod(
+        uint period
+    ) public onlyNotRecoveringOwner {
+        timelockPeriod = period;
+    }
+
     function acceptGuardian(
         address guardian,
         uint templateIdx,
@@ -147,7 +154,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         require(newSignerInEmail != address(0), "invalid new signer");
         isRecovering = true;
         newSignerCandidate = newSignerInEmail;
-        timelock = block.timestamp + TIMELOCK_PERIOD;
+        timelock = block.timestamp + timelockPeriod;
     }
 
     function rejectRecovery() public onlyOwner {
