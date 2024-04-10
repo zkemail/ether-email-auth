@@ -9,7 +9,7 @@ use std::str;
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusRequest {
-    pub request_id: u64,
+    pub request_id: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -21,7 +21,7 @@ pub enum RequestStatus {
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub status: RequestStatus,
     pub is_success: bool,
     pub email_nullifier: Option<String>,
@@ -39,7 +39,7 @@ pub struct AcceptanceRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub subject_params: Vec<TemplateValue>,
 }
 
@@ -53,7 +53,7 @@ pub struct RecoveryRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub subject_params: Vec<TemplateValue>,
 }
 
@@ -129,9 +129,9 @@ pub async fn handle_acceptance_request(
             .unwrap();
     }
 
-    let mut request_id = rand::thread_rng().gen::<u64>();
+    let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = db.get_request(request_id).await {
-        request_id = rand::thread_rng().gen::<u64>();
+        request_id = rand::thread_rng().gen::<u32>();
     }
 
     if db
@@ -274,9 +274,9 @@ pub async fn handle_recovery_request(
             .unwrap();
     }
 
-    let mut request_id = rand::thread_rng().gen::<u64>();
+    let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = db.get_request(request_id).await {
-        request_id = rand::thread_rng().gen::<u64>();
+        request_id = rand::thread_rng().gen::<u32>();
     }
 
     if !db

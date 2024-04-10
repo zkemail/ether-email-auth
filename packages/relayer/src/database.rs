@@ -12,7 +12,7 @@ pub struct Credentials {
 
 #[derive(Debug, Clone)]
 pub struct Request {
-    pub request_id: u64,
+    pub request_id: u32,
     pub wallet_eth_addr: String,
     pub guardian_email_addr: String,
     pub is_for_recovery: bool,
@@ -176,7 +176,7 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn get_request(&self, request_id: u64) -> Result<Option<Request>> {
+    pub(crate) async fn get_request(&self, request_id: u32) -> Result<Option<Request>> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
             .bind(request_id as i64)
             .fetch_optional(&self.db)
@@ -194,7 +194,7 @@ impl Database {
                 let email_nullifier: Option<String> = row.get("email_nullifier");
                 let account_salt: Option<String> = row.get("account_salt");
                 let requests_row = Request {
-                    request_id: request_id as u64,
+                    request_id: request_id as u32,
                     wallet_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,

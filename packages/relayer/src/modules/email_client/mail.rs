@@ -1,7 +1,4 @@
-use crate::{
-    error, render_html, EmailForwardSender,
-    EmailMessage, Future, Result, LOG,
-};
+use crate::{error, render_html, EmailForwardSender, EmailMessage, Future, Result, LOG};
 
 use std::pin::Pin;
 
@@ -10,7 +7,7 @@ pub enum EmailAuthEvent {
     AcceptanceRequest {
         wallet_eth_addr: String,
         guardian_email_addr: String,
-        request_id: u64,
+        request_id: u32,
         subject: String,
         account_code: String,
     },
@@ -25,18 +22,18 @@ pub enum EmailAuthEvent {
     RecoveryRequest {
         wallet_eth_addr: String,
         guardian_email_addr: String,
-        request_id: u64,
+        request_id: u32,
         subject: String,
     },
     AcceptanceSuccess {
         wallet_eth_addr: String,
         guardian_email_addr: String,
-        request_id: u64,
+        request_id: u32,
     },
     RecoverySuccess {
         wallet_eth_addr: String,
         guardian_email_addr: String,
-        request_id: u64,
+        request_id: u32,
     },
     GuardianNotSet {
         wallet_eth_addr: String,
@@ -46,7 +43,7 @@ pub enum EmailAuthEvent {
         wallet_eth_addr: String,
         guardian_email_addr: String,
         subject: String,
-        request_id: u64,
+        request_id: u32,
     },
 }
 

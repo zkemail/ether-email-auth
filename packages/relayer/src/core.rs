@@ -36,10 +36,10 @@ pub async fn handle_email<P: EmailsPool>(
     }
     info!(LOG, "Request idxes: {:?}", request_idxes; "func" => function_name!());
     let request_id = &email[request_idxes[0].0..request_idxes[0].1];
-    let request_id_u64 = request_id
-        .parse::<u64>()
+    let request_id_u32 = request_id
+        .parse::<u32>()
         .map_err(|e| anyhow!("Failed to parse request_id to u64: {}", e))?;
-    let request_record = db.get_request(request_id_u64).await?;
+    let request_record = db.get_request(request_id_u32).await?;
     if request_record.is_none() {
         return Ok(EmailAuthEvent::Error {
             email_addr: guardian_email_addr,
@@ -183,7 +183,7 @@ pub async fn handle_email<P: EmailsPool>(
                     Ok(EmailAuthEvent::AcceptanceSuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
                         guardian_email_addr,
-                        request_id: request_id_u64,
+                        request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
@@ -303,7 +303,7 @@ pub async fn handle_email<P: EmailsPool>(
                     Ok(EmailAuthEvent::RecoverySuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
                         guardian_email_addr,
-                        request_id: request_id_u64,
+                        request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
@@ -425,7 +425,7 @@ pub async fn handle_email<P: EmailsPool>(
                     Ok(EmailAuthEvent::RecoverySuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
                         guardian_email_addr,
-                        request_id: request_id_u64,
+                        request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
