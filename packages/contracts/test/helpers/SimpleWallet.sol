@@ -116,7 +116,8 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         uint templateIdx,
         bytes[] memory subjectParams,
         bytes32
-    ) internal override onlyNotRecoveringOwner {
+    ) internal override {
+        require(!isRecovering, "recovery in progress");
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.REQUESTED,
@@ -137,7 +138,8 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         uint templateIdx,
         bytes[] memory subjectParams,
         bytes32
-    ) internal override onlyNotRecoveringOwner {
+    ) internal override {
+        require(!isRecovering, "recovery in progress");
         require(guardian != address(0), "invalid guardian");
         require(
             guardians[guardian] == GuardianStatus.ACCEPTED,
