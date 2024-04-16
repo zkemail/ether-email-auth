@@ -20,7 +20,6 @@ contract DeploymentHelper is Test {
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
     SimpleWallet simpleWallet;
-    SimpleWallet simpleWalletImpl;
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
@@ -79,7 +78,7 @@ contract DeploymentHelper is Test {
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
         // Create SimpleWallet as EmailAccountRecovery implementation
-        simpleWalletImpl = new SimpleWallet();
+        SimpleWallet simpleWalletImpl = new SimpleWallet();
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
             abi.encodeWithSelector(
