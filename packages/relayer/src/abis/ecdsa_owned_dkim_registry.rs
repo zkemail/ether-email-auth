@@ -7,369 +7,297 @@ pub use ecdsa_owned_dkim_registry::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types,
+    non_camel_case_types
 )]
 pub mod ecdsa_owned_dkim_registry {
     #[allow(deprecated)]
     fn __abi() -> ::ethers::core::abi::Abi {
         ::ethers::core::abi::ethabi::Contract {
             constructor: ::core::option::Option::Some(::ethers::core::abi::ethabi::Constructor {
-                inputs: ::std::vec![
-                    ::ethers::core::abi::ethabi::Param {
-                        name: ::std::borrow::ToOwned::to_owned("_signer"),
-                        kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                        internal_type: ::core::option::Option::Some(
-                            ::std::borrow::ToOwned::to_owned("address"),
-                        ),
-                    },
-                ],
+                inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                    name: ::std::borrow::ToOwned::to_owned("_signer"),
+                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                    internal_type: ::core::option::Option::Some(::std::borrow::ToOwned::to_owned(
+                        "address"
+                    ),),
+                },],
             }),
             functions: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("REVOKE_PREFIX"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("REVOKE_PREFIX"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("REVOKE_PREFIX"),
+                        inputs: ::std::vec![],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::String,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("string"),
+                            ),
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("SET_PREFIX"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("SET_PREFIX"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("SET_PREFIX"),
+                        inputs: ::std::vec![],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::String,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("string"),
+                            ),
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("computeSignedMsg"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("computeSignedMsg"),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("prefix"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("selector"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("domainName"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("computeSignedMsg"),
+                        inputs: ::std::vec![
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("prefix"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("selector"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("domainName"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes32"),
+                                ),
+                            },
+                        ],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::String,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("string"),
+                            ),
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("dkimRegistry"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("dkimRegistry"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("contract DKIMRegistry"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("dkimRegistry"),
+                        inputs: ::std::vec![],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("contract DKIMRegistry"),
+                            ),
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("isDKIMPublicKeyHashValid"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "isDKIMPublicKeyHashValid",
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("isDKIMPublicKeyHashValid",),
+                        inputs: ::std::vec![
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("domainName"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes32"),
+                                ),
+                            },
+                        ],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("bool"),
                             ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("domainName"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bool"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("revokeDKIMPublicKeyHash"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "revokeDKIMPublicKeyHash",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("selector"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("domainName"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("signature"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("revokeDKIMPublicKeyHash",),
+                        inputs: ::std::vec![
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("selector"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("domainName"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes32"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("signature"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes"),
+                                ),
+                            },
+                        ],
+                        outputs: ::std::vec![],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("setDKIMPublicKeyHash"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "setDKIMPublicKeyHash",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("selector"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("domainName"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::String,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("string"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("signature"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes"),
-                                    ),
-                                },
-                            ],
-                            outputs: ::std::vec![],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("setDKIMPublicKeyHash",),
+                        inputs: ::std::vec![
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("selector"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("domainName"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::String,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("string"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("publicKeyHash"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes32"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("signature"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("bytes"),
+                                ),
+                            },
+                        ],
+                        outputs: ::std::vec![],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("signer"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("signer"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("address"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::Function {
+                        name: ::std::borrow::ToOwned::to_owned("signer"),
+                        inputs: ::std::vec![],
+                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::string::String::new(),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("address"),
+                            ),
+                        },],
+                        constant: ::core::option::Option::None,
+                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                    },],
                 ),
             ]),
             events: ::std::collections::BTreeMap::new(),
             errors: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignature"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "ECDSAInvalidSignature",
-                            ),
-                            inputs: ::std::vec![],
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignature",),
+                        inputs: ::std::vec![],
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignatureLength"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "ECDSAInvalidSignatureLength",
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignatureLength",),
+                        inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::borrow::ToOwned::to_owned("length"),
+                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("uint256"),
                             ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("length"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
+                        },],
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignatureS"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "ECDSAInvalidSignatureS",
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("ECDSAInvalidSignatureS",),
+                        inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
+                            name: ::std::borrow::ToOwned::to_owned("s"),
+                            kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
+                            internal_type: ::core::option::Option::Some(
+                                ::std::borrow::ToOwned::to_owned("bytes32"),
                             ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("s"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
+                        },],
+                    },],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("StringsInsufficientHexLength"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned(
-                                "StringsInsufficientHexLength",
-                            ),
-                            inputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("value"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("length"),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
-                                        256usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("uint256"),
-                                    ),
-                                },
-                            ],
-                        },
-                    ],
+                    ::std::vec![::ethers::core::abi::ethabi::AbiError {
+                        name: ::std::borrow::ToOwned::to_owned("StringsInsufficientHexLength",),
+                        inputs: ::std::vec![
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("value"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("uint256"),
+                                ),
+                            },
+                            ::ethers::core::abi::ethabi::Param {
+                                name: ::std::borrow::ToOwned::to_owned("length"),
+                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
+                                internal_type: ::core::option::Option::Some(
+                                    ::std::borrow::ToOwned::to_owned("uint256"),
+                                ),
+                            },
+                        ],
+                    },],
                 ),
             ]),
             receive: false,
@@ -377,21 +305,18 @@ pub mod ecdsa_owned_dkim_registry {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static ECDSAOWNEDDKIMREGISTRY_ABI: ::ethers::contract::Lazy<
-        ::ethers::core::abi::Abi,
-    > = ::ethers::contract::Lazy::new(__abi);
+    pub static ECDSAOWNEDDKIMREGISTRY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
+        ::ethers::contract::Lazy::new(__abi);
     #[rustfmt::skip]
     const __BYTECODE: &[u8] = b"`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`@Qb\0!\xF08\x03\x80b\0!\xF0\x839\x81\x01`@\x81\x90Ra\x001\x91a\0\xADV[0`@Qa\0>\x90a\0\x9FV[`\x01`\x01`\xA0\x1B\x03\x90\x91\x16\x81R` \x01`@Q\x80\x91\x03\x90`\0\xF0\x80\x15\x80\x15a\0jW=`\0\x80>=`\0\xFD[P`\0\x80T`\x01`\x01`\xA0\x1B\x03\x92\x83\x16`\x01`\x01`\xA0\x1B\x03\x19\x91\x82\x16\x17\x90\x91U`\x01\x80T\x93\x90\x92\x16\x92\x16\x91\x90\x91\x17\x90Ua\0\xDDV[a\t\x99\x80b\0\x18W\x839\x01\x90V[`\0` \x82\x84\x03\x12\x15a\0\xBFW`\0\x80\xFD[\x81Q`\x01`\x01`\xA0\x1B\x03\x81\x16\x81\x14a\0\xD6W`\0\x80\xFD[\x93\x92PPPV[a\x17j\x80b\0\0\xED`\09`\0\xF3\xFE`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\x88W`\x005`\xE0\x1C\x80c\xAE\xC7\x93a\x11a\0[W\x80c\xAE\xC7\x93a\x14a\x01YW\x80c\xD5\x07\xC3 \x14a\x01lW\x80c\xE7\xA7\x97z\x14a\x01\xA8W\x80c\xF6\xB4\x93D\x14a\x01\xCBW`\0\x80\xFD[\x80c\x07\xF1\xEA\xF5\x14a\0\x8DW\x80c#\x8A\xC93\x14a\0\xDFW\x80cd#\xF1\xE2\x14a\x01$W\x80c\x97\x17\x0F+\x14a\x01DW[`\0\x80\xFD[a\0\xC9`@Q\x80`@\x01`@R\x80`\x04\x81R` \x01\x7FSET:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x81V[`@Qa\0\xD6\x91\x90a\x121V[`@Q\x80\x91\x03\x90\xF3[`\x01Ta\0\xFF\x90s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x81V[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\xD6V[`\0Ta\0\xFF\x90s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x81V[a\x01Wa\x01R6`\x04a\x13'V[a\x01\xDEV[\0[a\0\xC9a\x01g6`\x04a\x13\xCDV[a\x06\x03V[a\0\xC9`@Q\x80`@\x01`@R\x80`\x07\x81R` \x01\x7FREVOKE:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x81V[a\x01\xBBa\x01\xB66`\x04a\x14]V[a\x06=V[`@Q\x90\x15\x15\x81R` \x01a\0\xD6V[a\x01Wa\x01\xD96`\x04a\x13'V[a\x06\xE0V[\x83Q`\0\x03a\x02NW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x10`$\x82\x01R\x7FInvalid selector\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01[`@Q\x80\x91\x03\x90\xFD[\x82Q`\0\x03a\x02\xB9W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x13`$\x82\x01R\x7FInvalid domain name\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x81a\x03 W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x17`$\x82\x01R\x7FInvalid public key hash\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[a\x03*\x83\x83a\x06=V[\x15a\x03\x91W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x1C`$\x82\x01R\x7FpublicKeyHash is already set\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7FB\xD7\xCB\x98\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x84\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90cB\xD7\xCB\x98\x90`$\x01` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\x04\0W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\x04$\x91\x90a\x14\xA2V[\x15a\x04\x8BW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x18`$\x82\x01R\x7FpublicKeyHash is revoked\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0a\x04\xCE`@Q\x80`@\x01`@R\x80`\x04\x81R` \x01\x7FSET:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x86\x86\x86a\x06\x03V[\x90P`\0a\x04\xDB\x82a\n\xC8V[\x90P`\0a\x04\xE9\x82\x85a\x0B\x03V[`\x01T\x90\x91Ps\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x83\x16\x91\x16\x14a\x05pW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x11`$\x82\x01R\x7FInvalid signature\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7F\xC1\\\xFF\xAB\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\xC1\\\xFF\xAB\x90a\x05\xC8\x90\x89\x90\x89\x90`\x04\x01a\x14\xCBV[`\0`@Q\x80\x83\x03\x81`\0\x87\x80;\x15\x80\x15a\x05\xE2W`\0\x80\xFD[PZ\xF1\x15\x80\x15a\x05\xF6W=`\0\x80>=`\0\xFD[PPPPPPPPPPPV[``\x84\x84\x84a\x06\x11\x85a\x0B-V[`@Q` \x01a\x06$\x94\x93\x92\x91\x90a\x14\xEDV[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x90P\x94\x93PPPPV[`\0\x80T`@Q\x7F\xE7\xA7\x97z\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\xE7\xA7\x97z\x90a\x06\x96\x90\x86\x90\x86\x90`\x04\x01a\x14\xCBV[` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\x06\xB3W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\x06\xD7\x91\x90a\x14\xA2V[\x90P[\x92\x91PPV[\x83Q`\0\x03a\x07KW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x10`$\x82\x01R\x7FInvalid selector\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x82Q`\0\x03a\x07\xB6W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x13`$\x82\x01R\x7FInvalid domain name\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x81a\x08\x1DW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x17`$\x82\x01R\x7FInvalid public key hash\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[a\x08'\x83\x83a\x06=V[\x15\x15`\x01\x14a\x08\x92W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x18`$\x82\x01R\x7FpublicKeyHash is not set\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7FB\xD7\xCB\x98\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x84\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90cB\xD7\xCB\x98\x90`$\x01` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\t\x01W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\t%\x91\x90a\x14\xA2V[\x15a\t\x8CW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01\x81\x90R`$\x82\x01R\x7FpublicKeyHash is already revoked`D\x82\x01R`d\x01a\x02EV[`\0a\t\xCF`@Q\x80`@\x01`@R\x80`\x07\x81R` \x01\x7FREVOKE:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x86\x86\x86a\x06\x03V[\x90P`\0a\t\xDC\x82a\n\xC8V[\x90P`\0a\t\xEA\x82\x85a\x0B\x03V[`\x01T\x90\x91Ps\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x83\x16\x91\x16\x14a\nqW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x11`$\x82\x01R\x7FInvalid signature\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7F\x15\xD2Q.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x87\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\x15\xD2Q.\x90`$\x01a\x05\xC8V[`\0a\n\xD4\x82Qa\x0BDV[\x82`@Q` \x01a\n\xE6\x92\x91\x90a\x15\xEDV[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x90P\x91\x90PV[`\0\x80`\0\x80a\x0B\x13\x86\x86a\x0C\x02V[\x92P\x92P\x92Pa\x0B#\x82\x82a\x0COV[P\x90\x94\x93PPPPV[``a\x06\xDA\x82a\x0B<\x84a\rWV[`\x01\x01a\r\xC1V[```\0a\x0BQ\x83a\x0F\xE7V[`\x01\x01\x90P`\0\x81g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x0BqWa\x0Bqa\x12DV[`@Q\x90\x80\x82R\x80`\x1F\x01`\x1F\x19\x16` \x01\x82\x01`@R\x80\x15a\x0B\x9BW` \x82\x01\x81\x806\x837\x01\x90P[P\x90P\x81\x81\x01` \x01[\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01\x7F0123456789abcdef\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\n\x86\x06\x1A\x81S`\n\x85\x04\x94P\x84a\x0B\xA5WP\x93\x92PPPV[`\0\x80`\0\x83Q`A\x03a\x0C<W` \x84\x01Q`@\x85\x01Q``\x86\x01Q`\0\x1Aa\x0C.\x88\x82\x85\x85a\x10\xC9V[\x95P\x95P\x95PPPPa\x0CHV[PP\x81Q`\0\x91P`\x02\x90[\x92P\x92P\x92V[`\0\x82`\x03\x81\x11\x15a\x0CcWa\x0Cca\x16HV[\x03a\x0ClWPPV[`\x01\x82`\x03\x81\x11\x15a\x0C\x80Wa\x0C\x80a\x16HV[\x03a\x0C\xB7W`@Q\x7F\xF6E\xEE\xDF\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x01`@Q\x80\x91\x03\x90\xFD[`\x02\x82`\x03\x81\x11\x15a\x0C\xCBWa\x0C\xCBa\x16HV[\x03a\r\x05W`@Q\x7F\xFC\xE6\x98\xF7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x82\x90R`$\x01a\x02EV[`\x03\x82`\x03\x81\x11\x15a\r\x19Wa\r\x19a\x16HV[\x03a\rSW`@Q\x7F\xD7\x8B\xCE\x0C\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x82\x90R`$\x01a\x02EV[PPV[`\0\x80`\x80\x83\x90\x1C\x15a\roW`\x80\x92\x90\x92\x1C\x91`\x10\x01[`@\x83\x90\x1C\x15a\r\x84W`@\x92\x90\x92\x1C\x91`\x08\x01[` \x83\x90\x1C\x15a\r\x99W` \x92\x90\x92\x1C\x91`\x04\x01[`\x10\x83\x90\x1C\x15a\r\xAEW`\x10\x92\x90\x92\x1C\x91`\x02\x01[`\x08\x83\x90\x1C\x15a\x06\xDAW`\x01\x01\x92\x91PPV[``\x82`\0a\r\xD1\x84`\x02a\x16\xA6V[a\r\xDC\x90`\x02a\x16\xBDV[g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\r\xF4Wa\r\xF4a\x12DV[`@Q\x90\x80\x82R\x80`\x1F\x01`\x1F\x19\x16` \x01\x82\x01`@R\x80\x15a\x0E\x1EW` \x82\x01\x81\x806\x837\x01\x90P[P\x90P\x7F0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81`\0\x81Q\x81\x10a\x0EUWa\x0EUa\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP\x7Fx\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81`\x01\x81Q\x81\x10a\x0E\xB8Wa\x0E\xB8a\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP`\0a\x0E\xF4\x85`\x02a\x16\xA6V[a\x0E\xFF\x90`\x01a\x16\xBDV[\x90P[`\x01\x81\x11\x15a\x0F\x9CW\x7F0123456789abcdef\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x83`\x0F\x16`\x10\x81\x10a\x0F@Wa\x0F@a\x16\xD0V[\x1A`\xF8\x1B\x82\x82\x81Q\x81\x10a\x0FVWa\x0FVa\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP`\x04\x92\x90\x92\x1C\x91a\x0F\x95\x81a\x16\xFFV[\x90Pa\x0F\x02V[P\x81\x15a\x0F\xDFW`@Q\x7F\xE2.'\xEB\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x86\x90R`$\x81\x01\x85\x90R`D\x01a\x02EV[\x94\x93PPPPV[`\0\x80z\x18O\x03\xE9?\xF9\xF4\xDA\xA7\x97\xEDn8\xEDd\xBFj\x1F\x01\0\0\0\0\0\0\0\0\x83\x10a\x100Wz\x18O\x03\xE9?\xF9\xF4\xDA\xA7\x97\xEDn8\xEDd\xBFj\x1F\x01\0\0\0\0\0\0\0\0\x83\x04\x92P`@\x01[m\x04\xEE-mA[\x85\xAC\xEF\x81\0\0\0\0\x83\x10a\x10\\Wm\x04\xEE-mA[\x85\xAC\xEF\x81\0\0\0\0\x83\x04\x92P` \x01[f#\x86\xF2o\xC1\0\0\x83\x10a\x10zWf#\x86\xF2o\xC1\0\0\x83\x04\x92P`\x10\x01[c\x05\xF5\xE1\0\x83\x10a\x10\x92Wc\x05\xF5\xE1\0\x83\x04\x92P`\x08\x01[a'\x10\x83\x10a\x10\xA6Wa'\x10\x83\x04\x92P`\x04\x01[`d\x83\x10a\x10\xB8W`d\x83\x04\x92P`\x02\x01[`\n\x83\x10a\x06\xDAW`\x01\x01\x92\x91PPV[`\0\x80\x80\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF]WnsW\xA4P\x1D\xDF\xE9/Fh\x1B \xA0\x84\x11\x15a\x11\x04WP`\0\x91P`\x03\x90P\x82a\x11\xB9V[`@\x80Q`\0\x80\x82R` \x82\x01\x80\x84R\x8A\x90R`\xFF\x89\x16\x92\x82\x01\x92\x90\x92R``\x81\x01\x87\x90R`\x80\x81\x01\x86\x90R`\x01\x90`\xA0\x01` `@Q` \x81\x03\x90\x80\x84\x03\x90\x85Z\xFA\x15\x80\x15a\x11XW=`\0\x80>=`\0\xFD[PP`@Q\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x01Q\x91PPs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16a\x11\xAFWP`\0\x92P`\x01\x91P\x82\x90Pa\x11\xB9V[\x92P`\0\x91P\x81\x90P[\x94P\x94P\x94\x91PPV[`\0[\x83\x81\x10\x15a\x11\xDEW\x81\x81\x01Q\x83\x82\x01R` \x01a\x11\xC6V[PP`\0\x91\x01RV[`\0\x81Q\x80\x84Ra\x11\xFF\x81` \x86\x01` \x86\x01a\x11\xC3V[`\x1F\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x16\x92\x90\x92\x01` \x01\x92\x91PPV[` \x81R`\0a\x06\xD7` \x83\x01\x84a\x11\xE7V[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`A`\x04R`$`\0\xFD[`\0g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x84\x11\x15a\x12\x8EWa\x12\x8Ea\x12DV[`@Q`\x1F\x85\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x90\x81\x16`?\x01\x16\x81\x01\x90\x82\x82\x11\x81\x83\x10\x17\x15a\x12\xD4Wa\x12\xD4a\x12DV[\x81`@R\x80\x93P\x85\x81R\x86\x86\x86\x01\x11\x15a\x12\xEDW`\0\x80\xFD[\x85\x85` \x83\x017`\0` \x87\x83\x01\x01RPPP\x93\x92PPPV[`\0\x82`\x1F\x83\x01\x12a\x13\x18W`\0\x80\xFD[a\x06\xD7\x83\x835` \x85\x01a\x12sV[`\0\x80`\0\x80`\x80\x85\x87\x03\x12\x15a\x13=W`\0\x80\xFD[\x845g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x82\x11\x15a\x13UW`\0\x80\xFD[a\x13a\x88\x83\x89\x01a\x13\x07V[\x95P` \x87\x015\x91P\x80\x82\x11\x15a\x13wW`\0\x80\xFD[a\x13\x83\x88\x83\x89\x01a\x13\x07V[\x94P`@\x87\x015\x93P``\x87\x015\x91P\x80\x82\x11\x15a\x13\xA0W`\0\x80\xFD[P\x85\x01`\x1F\x81\x01\x87\x13a\x13\xB2W`\0\x80\xFD[a\x13\xC1\x87\x825` \x84\x01a\x12sV[\x91PP\x92\x95\x91\x94P\x92PV[`\0\x80`\0\x80`\x80\x85\x87\x03\x12\x15a\x13\xE3W`\0\x80\xFD[\x845g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x82\x11\x15a\x13\xFBW`\0\x80\xFD[a\x14\x07\x88\x83\x89\x01a\x13\x07V[\x95P` \x87\x015\x91P\x80\x82\x11\x15a\x14\x1DW`\0\x80\xFD[a\x14)\x88\x83\x89\x01a\x13\x07V[\x94P`@\x87\x015\x91P\x80\x82\x11\x15a\x14?W`\0\x80\xFD[Pa\x14L\x87\x82\x88\x01a\x13\x07V[\x94\x97\x93\x96P\x93\x94``\x015\x93PPPV[`\0\x80`@\x83\x85\x03\x12\x15a\x14pW`\0\x80\xFD[\x825g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x14\x87W`\0\x80\xFD[a\x14\x93\x85\x82\x86\x01a\x13\x07V[\x95` \x94\x90\x94\x015\x94PPPPV[`\0` \x82\x84\x03\x12\x15a\x14\xB4W`\0\x80\xFD[\x81Q\x80\x15\x15\x81\x14a\x14\xC4W`\0\x80\xFD[\x93\x92PPPV[`@\x81R`\0a\x14\xDE`@\x83\x01\x85a\x11\xE7V[\x90P\x82` \x83\x01R\x93\x92PPPV[`\0\x85Qa\x14\xFF\x81\x84` \x8A\x01a\x11\xC3V[\x7Fselector=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x90\x83\x01\x90\x81R\x85Qa\x159\x81`\t\x84\x01` \x8A\x01a\x11\xC3V[\x7F;domain=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\t\x92\x90\x91\x01\x91\x82\x01R\x84Qa\x15w\x81`\x11\x84\x01` \x89\x01a\x11\xC3V[\x7F;public_key_hash=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x11\x92\x90\x91\x01\x91\x82\x01R\x83Qa\x15\xB5\x81`\"\x84\x01` \x88\x01a\x11\xC3V[\x7F;\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\"\x92\x90\x91\x01\x91\x82\x01R`#\x01\x96\x95PPPPPPV[\x7F\x19Ethereum Signed Message:\n\0\0\0\0\0\0\x81R`\0\x83Qa\x16%\x81`\x1A\x85\x01` \x88\x01a\x11\xC3V[\x83Q\x90\x83\x01\x90a\x16<\x81`\x1A\x84\x01` \x88\x01a\x11\xC3V[\x01`\x1A\x01\x94\x93PPPPV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`!`\x04R`$`\0\xFD[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`\x11`\x04R`$`\0\xFD[\x80\x82\x02\x81\x15\x82\x82\x04\x84\x14\x17a\x06\xDAWa\x06\xDAa\x16wV[\x80\x82\x01\x80\x82\x11\x15a\x06\xDAWa\x06\xDAa\x16wV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`2`\x04R`$`\0\xFD[`\0\x81a\x17\x0EWa\x17\x0Ea\x16wV[P\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01\x90V\xFE\xA2dipfsX\"\x12 d\xE7I\x84:X\x98\xC3\xE6\xA0\xDE\x83\x93\xF1\xF0\xA3e\xD5@U@?\xAC\xD6\x1CQ\x89\xBA\x96\xF6\x07mdsolcC\0\x08\x17\x003`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`@Qa\t\x998\x03\x80a\t\x99\x839\x81\x01`@\x81\x90Ra\0/\x91a\0\xBEV[\x80`\x01`\x01`\xA0\x1B\x03\x81\x16a\0^W`@Qc\x1EO\xBD\xF7`\xE0\x1B\x81R`\0`\x04\x82\x01R`$\x01`@Q\x80\x91\x03\x90\xFD[a\0g\x81a\0nV[PPa\0\xEEV[`\0\x80T`\x01`\x01`\xA0\x1B\x03\x83\x81\x16`\x01`\x01`\xA0\x1B\x03\x19\x83\x16\x81\x17\x84U`@Q\x91\x90\x92\x16\x92\x83\x91\x7F\x8B\xE0\x07\x9CS\x16Y\x14\x13D\xCD\x1F\xD0\xA4\xF2\x84\x19I\x7F\x97\"\xA3\xDA\xAF\xE3\xB4\x18okdW\xE0\x91\x90\xA3PPV[`\0` \x82\x84\x03\x12\x15a\0\xD0W`\0\x80\xFD[\x81Q`\x01`\x01`\xA0\x1B\x03\x81\x16\x81\x14a\0\xE7W`\0\x80\xFD[\x93\x92PPPV[a\x08\x9C\x80a\0\xFD`\09`\0\xF3\xFE`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\xA3W`\x005`\xE0\x1C\x80c\x8D\xA5\xCB[\x11a\0vW\x80c\xE7\xA7\x97z\x11a\0[W\x80c\xE7\xA7\x97z\x14a\x01vW\x80c\xF2\xFD\xE3\x8B\x14a\x01\x89W\x80c\xF4\x9E\xB1d\x14a\x01\x9CW`\0\x80\xFD[\x80c\x8D\xA5\xCB[\x14a\x01;W\x80c\xC1\\\xFF\xAB\x14a\x01cW`\0\x80\xFD[\x80c\x06\x90\xBD8\x14a\0\xA8W\x80c\x15\xD2Q.\x14a\0\xFBW\x80cB\xD7\xCB\x98\x14a\x01\x10W\x80cqP\x18\xA6\x14a\x013W[`\0\x80\xFD[a\0\xE6a\0\xB66`\x04a\x069V[\x81Q` \x81\x84\x01\x81\x01\x80Q`\x01\x82R\x92\x82\x01\x94\x82\x01\x94\x90\x94 \x91\x90\x93R\x90\x91R`\0\x90\x81R`@\x90 T`\xFF\x16\x81V[`@Q\x90\x15\x15\x81R` \x01[`@Q\x80\x91\x03\x90\xF3[a\x01\x0Ea\x01\t6`\x04a\x06~V[a\x01\xAFV[\0[a\0\xE6a\x01\x1E6`\x04a\x06~V[`\x02` R`\0\x90\x81R`@\x90 T`\xFF\x16\x81V[a\x01\x0Ea\x02+V[`\0T`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\xF2V[a\x01\x0Ea\x01q6`\x04a\x069V[a\x02?V[a\0\xE6a\x01\x846`\x04a\x069V[a\x03YV[a\x01\x0Ea\x01\x976`\x04a\x06\x97V[a\x03\xBDV[a\x01\x0Ea\x01\xAA6`\x04a\x06\xD4V[a\x04!V[a\x01\xB7a\x04eV[`\0\x81\x81R`\x02` R`@\x90\x81\x90 \x80T\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0\x16`\x01\x17\x90UQ\x7F\xB8\x0F\xFF+Lo=\xDF\x80Hw\x92|w\xB2\xFE\x18q\xCE\xCA\xA5\xADC\xD2\xC7\xC4/As1\xF8e\x90a\x02 \x90\x83\x81R` \x01\x90V[`@Q\x80\x91\x03\x90\xA1PV[a\x023a\x04eV[a\x02=`\0a\x04\xB8V[V[a\x02Ga\x04eV[`\0\x81\x81R`\x02` R`@\x90 T`\xFF\x16\x15a\x02\xC5W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x19`$\x82\x01R\x7Fcannot set revoked pubkey\0\0\0\0\0\0\0`D\x82\x01R`d\x01[`@Q\x80\x91\x03\x90\xFD[`\x01\x80\x83`@Qa\x02\xD6\x91\x90a\x07\xC2V[\x90\x81R`@\x80Q` \x92\x81\x90\x03\x83\x01\x81 `\0\x86\x81R\x93R\x91 \x80T\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0\x16\x92\x15\x15\x92\x90\x92\x17\x90\x91U\x7FQ\r\xAC\x88\xEA\xF2\xDF\xBDS\x90BA\xFC\x19\x9A\xD4k c\xE6\xBFl?\xB2\x91\xF8\xCE\x86Cf4\x19\x90a\x03M\x90\x84\x90\x84\x90a\x07\xDEV[`@Q\x80\x91\x03\x90\xA1PPV[`\0\x81\x81R`\x02` R`@\x81 T`\xFF\x16\x15a\x03xWP`\0a\x03\xB7V[`\x01\x83`@Qa\x03\x88\x91\x90a\x07\xC2V[\x90\x81R`@\x80Q` \x92\x81\x90\x03\x83\x01\x90 `\0\x85\x81R\x92R\x90 T`\xFF\x16\x15a\x03\xB3WP`\x01a\x03\xB7V[P`\0[\x92\x91PPV[a\x03\xC5a\x04eV[s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16a\x04\x15W`@Q\x7F\x1EO\xBD\xF7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\0`\x04\x82\x01R`$\x01a\x02\xBCV[a\x04\x1E\x81a\x04\xB8V[PV[a\x04)a\x04eV[`\0[\x81Q\x81\x10\x15a\x04`Wa\x04X\x83\x83\x83\x81Q\x81\x10a\x04KWa\x04Ka\x087V[` \x02` \x01\x01Qa\x02?V[`\x01\x01a\x04,V[PPPV[`\0Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x163\x14a\x02=W`@Q\x7F\x11\x8C\xDA\xA7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R3`\x04\x82\x01R`$\x01a\x02\xBCV[`\0\x80Ts\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x83\x81\x16\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x83\x16\x81\x17\x84U`@Q\x91\x90\x92\x16\x92\x83\x91\x7F\x8B\xE0\x07\x9CS\x16Y\x14\x13D\xCD\x1F\xD0\xA4\xF2\x84\x19I\x7F\x97\"\xA3\xDA\xAF\xE3\xB4\x18okdW\xE0\x91\x90\xA3PPV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`A`\x04R`$`\0\xFD[`@Q`\x1F\x82\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x16\x81\x01g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x82\x82\x10\x17\x15a\x05\xA3Wa\x05\xA3a\x05-V[`@R\x91\x90PV[`\0\x82`\x1F\x83\x01\x12a\x05\xBCW`\0\x80\xFD[\x815g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x05\xD6Wa\x05\xD6a\x05-V[a\x06\x07` \x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0`\x1F\x84\x01\x16\x01a\x05\\V[\x81\x81R\x84` \x83\x86\x01\x01\x11\x15a\x06\x1CW`\0\x80\xFD[\x81` \x85\x01` \x83\x017`\0\x91\x81\x01` \x01\x91\x90\x91R\x93\x92PPPV[`\0\x80`@\x83\x85\x03\x12\x15a\x06LW`\0\x80\xFD[\x825g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x06cW`\0\x80\xFD[a\x06o\x85\x82\x86\x01a\x05\xABV[\x95` \x94\x90\x94\x015\x94PPPPV[`\0` \x82\x84\x03\x12\x15a\x06\x90W`\0\x80\xFD[P5\x91\x90PV[`\0` \x82\x84\x03\x12\x15a\x06\xA9W`\0\x80\xFD[\x815s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16\x81\x14a\x06\xCDW`\0\x80\xFD[\x93\x92PPPV[`\0\x80`@\x83\x85\x03\x12\x15a\x06\xE7W`\0\x80\xFD[\x825g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x82\x11\x15a\x06\xFFW`\0\x80\xFD[a\x07\x0B\x86\x83\x87\x01a\x05\xABV[\x93P` \x91P\x81\x85\x015\x81\x81\x11\x15a\x07\"W`\0\x80\xFD[\x85\x01`\x1F\x81\x01\x87\x13a\x073W`\0\x80\xFD[\x805\x82\x81\x11\x15a\x07EWa\x07Ea\x05-V[\x80`\x05\x1B\x92Pa\x07V\x84\x84\x01a\x05\\V[\x81\x81R\x92\x82\x01\x84\x01\x92\x84\x81\x01\x90\x89\x85\x11\x15a\x07pW`\0\x80\xFD[\x92\x85\x01\x92[\x84\x84\x10\x15a\x07\x8EW\x835\x82R\x92\x85\x01\x92\x90\x85\x01\x90a\x07uV[\x80\x96PPPPPPP\x92P\x92\x90PV[`\0[\x83\x81\x10\x15a\x07\xB9W\x81\x81\x01Q\x83\x82\x01R` \x01a\x07\xA1V[PP`\0\x91\x01RV[`\0\x82Qa\x07\xD4\x81\x84` \x87\x01a\x07\x9EV[\x91\x90\x91\x01\x92\x91PPV[`@\x81R`\0\x83Q\x80`@\x84\x01Ra\x07\xFD\x81``\x85\x01` \x88\x01a\x07\x9EV[` \x83\x01\x93\x90\x93RP`\x1F\x91\x90\x91\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x16\x01``\x01\x91\x90PV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`2`\x04R`$`\0\xFD\xFE\xA2dipfsX\"\x12 \x0C\x1C\xFA\xD6\xEFCwe\x9B\xFE\xA8\x8BVP\xBAm?\xB1y\x89C:k:\t \"S[\x9F\xCA\x1BdsolcC\0\x08\x17\x003";
     /// The bytecode of the contract.
-    pub static ECDSAOWNEDDKIMREGISTRY_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __BYTECODE,
-    );
+    pub static ECDSAOWNEDDKIMREGISTRY_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__BYTECODE);
     #[rustfmt::skip]
     const __DEPLOYED_BYTECODE: &[u8] = b"`\x80`@R4\x80\x15a\0\x10W`\0\x80\xFD[P`\x046\x10a\0\x88W`\x005`\xE0\x1C\x80c\xAE\xC7\x93a\x11a\0[W\x80c\xAE\xC7\x93a\x14a\x01YW\x80c\xD5\x07\xC3 \x14a\x01lW\x80c\xE7\xA7\x97z\x14a\x01\xA8W\x80c\xF6\xB4\x93D\x14a\x01\xCBW`\0\x80\xFD[\x80c\x07\xF1\xEA\xF5\x14a\0\x8DW\x80c#\x8A\xC93\x14a\0\xDFW\x80cd#\xF1\xE2\x14a\x01$W\x80c\x97\x17\x0F+\x14a\x01DW[`\0\x80\xFD[a\0\xC9`@Q\x80`@\x01`@R\x80`\x04\x81R` \x01\x7FSET:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x81V[`@Qa\0\xD6\x91\x90a\x121V[`@Q\x80\x91\x03\x90\xF3[`\x01Ta\0\xFF\x90s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x81V[`@Qs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x81R` \x01a\0\xD6V[`\0Ta\0\xFF\x90s\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x16\x81V[a\x01Wa\x01R6`\x04a\x13'V[a\x01\xDEV[\0[a\0\xC9a\x01g6`\x04a\x13\xCDV[a\x06\x03V[a\0\xC9`@Q\x80`@\x01`@R\x80`\x07\x81R` \x01\x7FREVOKE:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x81V[a\x01\xBBa\x01\xB66`\x04a\x14]V[a\x06=V[`@Q\x90\x15\x15\x81R` \x01a\0\xD6V[a\x01Wa\x01\xD96`\x04a\x13'V[a\x06\xE0V[\x83Q`\0\x03a\x02NW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x10`$\x82\x01R\x7FInvalid selector\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01[`@Q\x80\x91\x03\x90\xFD[\x82Q`\0\x03a\x02\xB9W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x13`$\x82\x01R\x7FInvalid domain name\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x81a\x03 W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x17`$\x82\x01R\x7FInvalid public key hash\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[a\x03*\x83\x83a\x06=V[\x15a\x03\x91W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x1C`$\x82\x01R\x7FpublicKeyHash is already set\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7FB\xD7\xCB\x98\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x84\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90cB\xD7\xCB\x98\x90`$\x01` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\x04\0W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\x04$\x91\x90a\x14\xA2V[\x15a\x04\x8BW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x18`$\x82\x01R\x7FpublicKeyHash is revoked\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0a\x04\xCE`@Q\x80`@\x01`@R\x80`\x04\x81R` \x01\x7FSET:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x86\x86\x86a\x06\x03V[\x90P`\0a\x04\xDB\x82a\n\xC8V[\x90P`\0a\x04\xE9\x82\x85a\x0B\x03V[`\x01T\x90\x91Ps\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x83\x16\x91\x16\x14a\x05pW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x11`$\x82\x01R\x7FInvalid signature\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7F\xC1\\\xFF\xAB\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\xC1\\\xFF\xAB\x90a\x05\xC8\x90\x89\x90\x89\x90`\x04\x01a\x14\xCBV[`\0`@Q\x80\x83\x03\x81`\0\x87\x80;\x15\x80\x15a\x05\xE2W`\0\x80\xFD[PZ\xF1\x15\x80\x15a\x05\xF6W=`\0\x80>=`\0\xFD[PPPPPPPPPPPV[``\x84\x84\x84a\x06\x11\x85a\x0B-V[`@Q` \x01a\x06$\x94\x93\x92\x91\x90a\x14\xEDV[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x90P\x94\x93PPPPV[`\0\x80T`@Q\x7F\xE7\xA7\x97z\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\xE7\xA7\x97z\x90a\x06\x96\x90\x86\x90\x86\x90`\x04\x01a\x14\xCBV[` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\x06\xB3W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\x06\xD7\x91\x90a\x14\xA2V[\x90P[\x92\x91PPV[\x83Q`\0\x03a\x07KW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x10`$\x82\x01R\x7FInvalid selector\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x82Q`\0\x03a\x07\xB6W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x13`$\x82\x01R\x7FInvalid domain name\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[\x81a\x08\x1DW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x17`$\x82\x01R\x7FInvalid public key hash\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[a\x08'\x83\x83a\x06=V[\x15\x15`\x01\x14a\x08\x92W`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x18`$\x82\x01R\x7FpublicKeyHash is not set\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7FB\xD7\xCB\x98\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x84\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90cB\xD7\xCB\x98\x90`$\x01` `@Q\x80\x83\x03\x81\x86Z\xFA\x15\x80\x15a\t\x01W=`\0\x80>=`\0\xFD[PPPP`@Q=`\x1F\x19`\x1F\x82\x01\x16\x82\x01\x80`@RP\x81\x01\x90a\t%\x91\x90a\x14\xA2V[\x15a\t\x8CW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01\x81\x90R`$\x82\x01R\x7FpublicKeyHash is already revoked`D\x82\x01R`d\x01a\x02EV[`\0a\t\xCF`@Q\x80`@\x01`@R\x80`\x07\x81R` \x01\x7FREVOKE:\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81RP\x86\x86\x86a\x06\x03V[\x90P`\0a\t\xDC\x82a\n\xC8V[\x90P`\0a\t\xEA\x82\x85a\x0B\x03V[`\x01T\x90\x91Ps\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x83\x16\x91\x16\x14a\nqW`@Q\x7F\x08\xC3y\xA0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R` `\x04\x82\x01R`\x11`$\x82\x01R\x7FInvalid signature\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`D\x82\x01R`d\x01a\x02EV[`\0T`@Q\x7F\x15\xD2Q.\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x87\x90Rs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x90\x91\x16\x90c\x15\xD2Q.\x90`$\x01a\x05\xC8V[`\0a\n\xD4\x82Qa\x0BDV[\x82`@Q` \x01a\n\xE6\x92\x91\x90a\x15\xEDV[`@Q` \x81\x83\x03\x03\x81R\x90`@R\x80Q\x90` \x01 \x90P\x91\x90PV[`\0\x80`\0\x80a\x0B\x13\x86\x86a\x0C\x02V[\x92P\x92P\x92Pa\x0B#\x82\x82a\x0COV[P\x90\x94\x93PPPPV[``a\x06\xDA\x82a\x0B<\x84a\rWV[`\x01\x01a\r\xC1V[```\0a\x0BQ\x83a\x0F\xE7V[`\x01\x01\x90P`\0\x81g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x0BqWa\x0Bqa\x12DV[`@Q\x90\x80\x82R\x80`\x1F\x01`\x1F\x19\x16` \x01\x82\x01`@R\x80\x15a\x0B\x9BW` \x82\x01\x81\x806\x837\x01\x90P[P\x90P\x81\x81\x01` \x01[\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01\x7F0123456789abcdef\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\n\x86\x06\x1A\x81S`\n\x85\x04\x94P\x84a\x0B\xA5WP\x93\x92PPPV[`\0\x80`\0\x83Q`A\x03a\x0C<W` \x84\x01Q`@\x85\x01Q``\x86\x01Q`\0\x1Aa\x0C.\x88\x82\x85\x85a\x10\xC9V[\x95P\x95P\x95PPPPa\x0CHV[PP\x81Q`\0\x91P`\x02\x90[\x92P\x92P\x92V[`\0\x82`\x03\x81\x11\x15a\x0CcWa\x0Cca\x16HV[\x03a\x0ClWPPV[`\x01\x82`\x03\x81\x11\x15a\x0C\x80Wa\x0C\x80a\x16HV[\x03a\x0C\xB7W`@Q\x7F\xF6E\xEE\xDF\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x01`@Q\x80\x91\x03\x90\xFD[`\x02\x82`\x03\x81\x11\x15a\x0C\xCBWa\x0C\xCBa\x16HV[\x03a\r\x05W`@Q\x7F\xFC\xE6\x98\xF7\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x82\x90R`$\x01a\x02EV[`\x03\x82`\x03\x81\x11\x15a\r\x19Wa\r\x19a\x16HV[\x03a\rSW`@Q\x7F\xD7\x8B\xCE\x0C\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x82\x90R`$\x01a\x02EV[PPV[`\0\x80`\x80\x83\x90\x1C\x15a\roW`\x80\x92\x90\x92\x1C\x91`\x10\x01[`@\x83\x90\x1C\x15a\r\x84W`@\x92\x90\x92\x1C\x91`\x08\x01[` \x83\x90\x1C\x15a\r\x99W` \x92\x90\x92\x1C\x91`\x04\x01[`\x10\x83\x90\x1C\x15a\r\xAEW`\x10\x92\x90\x92\x1C\x91`\x02\x01[`\x08\x83\x90\x1C\x15a\x06\xDAW`\x01\x01\x92\x91PPV[``\x82`\0a\r\xD1\x84`\x02a\x16\xA6V[a\r\xDC\x90`\x02a\x16\xBDV[g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\r\xF4Wa\r\xF4a\x12DV[`@Q\x90\x80\x82R\x80`\x1F\x01`\x1F\x19\x16` \x01\x82\x01`@R\x80\x15a\x0E\x1EW` \x82\x01\x81\x806\x837\x01\x90P[P\x90P\x7F0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81`\0\x81Q\x81\x10a\x0EUWa\x0EUa\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP\x7Fx\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81`\x01\x81Q\x81\x10a\x0E\xB8Wa\x0E\xB8a\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP`\0a\x0E\xF4\x85`\x02a\x16\xA6V[a\x0E\xFF\x90`\x01a\x16\xBDV[\x90P[`\x01\x81\x11\x15a\x0F\x9CW\x7F0123456789abcdef\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x83`\x0F\x16`\x10\x81\x10a\x0F@Wa\x0F@a\x16\xD0V[\x1A`\xF8\x1B\x82\x82\x81Q\x81\x10a\x0FVWa\x0FVa\x16\xD0V[` \x01\x01\x90~\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x19\x16\x90\x81`\0\x1A\x90SP`\x04\x92\x90\x92\x1C\x91a\x0F\x95\x81a\x16\xFFV[\x90Pa\x0F\x02V[P\x81\x15a\x0F\xDFW`@Q\x7F\xE2.'\xEB\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x81R`\x04\x81\x01\x86\x90R`$\x81\x01\x85\x90R`D\x01a\x02EV[\x94\x93PPPPV[`\0\x80z\x18O\x03\xE9?\xF9\xF4\xDA\xA7\x97\xEDn8\xEDd\xBFj\x1F\x01\0\0\0\0\0\0\0\0\x83\x10a\x100Wz\x18O\x03\xE9?\xF9\xF4\xDA\xA7\x97\xEDn8\xEDd\xBFj\x1F\x01\0\0\0\0\0\0\0\0\x83\x04\x92P`@\x01[m\x04\xEE-mA[\x85\xAC\xEF\x81\0\0\0\0\x83\x10a\x10\\Wm\x04\xEE-mA[\x85\xAC\xEF\x81\0\0\0\0\x83\x04\x92P` \x01[f#\x86\xF2o\xC1\0\0\x83\x10a\x10zWf#\x86\xF2o\xC1\0\0\x83\x04\x92P`\x10\x01[c\x05\xF5\xE1\0\x83\x10a\x10\x92Wc\x05\xF5\xE1\0\x83\x04\x92P`\x08\x01[a'\x10\x83\x10a\x10\xA6Wa'\x10\x83\x04\x92P`\x04\x01[`d\x83\x10a\x10\xB8W`d\x83\x04\x92P`\x02\x01[`\n\x83\x10a\x06\xDAW`\x01\x01\x92\x91PPV[`\0\x80\x80\x7F\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF]WnsW\xA4P\x1D\xDF\xE9/Fh\x1B \xA0\x84\x11\x15a\x11\x04WP`\0\x91P`\x03\x90P\x82a\x11\xB9V[`@\x80Q`\0\x80\x82R` \x82\x01\x80\x84R\x8A\x90R`\xFF\x89\x16\x92\x82\x01\x92\x90\x92R``\x81\x01\x87\x90R`\x80\x81\x01\x86\x90R`\x01\x90`\xA0\x01` `@Q` \x81\x03\x90\x80\x84\x03\x90\x85Z\xFA\x15\x80\x15a\x11XW=`\0\x80>=`\0\xFD[PP`@Q\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x01Q\x91PPs\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x16a\x11\xAFWP`\0\x92P`\x01\x91P\x82\x90Pa\x11\xB9V[\x92P`\0\x91P\x81\x90P[\x94P\x94P\x94\x91PPV[`\0[\x83\x81\x10\x15a\x11\xDEW\x81\x81\x01Q\x83\x82\x01R` \x01a\x11\xC6V[PP`\0\x91\x01RV[`\0\x81Q\x80\x84Ra\x11\xFF\x81` \x86\x01` \x86\x01a\x11\xC3V[`\x1F\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x16\x92\x90\x92\x01` \x01\x92\x91PPV[` \x81R`\0a\x06\xD7` \x83\x01\x84a\x11\xE7V[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`A`\x04R`$`\0\xFD[`\0g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x84\x11\x15a\x12\x8EWa\x12\x8Ea\x12DV[`@Q`\x1F\x85\x01\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xE0\x90\x81\x16`?\x01\x16\x81\x01\x90\x82\x82\x11\x81\x83\x10\x17\x15a\x12\xD4Wa\x12\xD4a\x12DV[\x81`@R\x80\x93P\x85\x81R\x86\x86\x86\x01\x11\x15a\x12\xEDW`\0\x80\xFD[\x85\x85` \x83\x017`\0` \x87\x83\x01\x01RPPP\x93\x92PPPV[`\0\x82`\x1F\x83\x01\x12a\x13\x18W`\0\x80\xFD[a\x06\xD7\x83\x835` \x85\x01a\x12sV[`\0\x80`\0\x80`\x80\x85\x87\x03\x12\x15a\x13=W`\0\x80\xFD[\x845g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x82\x11\x15a\x13UW`\0\x80\xFD[a\x13a\x88\x83\x89\x01a\x13\x07V[\x95P` \x87\x015\x91P\x80\x82\x11\x15a\x13wW`\0\x80\xFD[a\x13\x83\x88\x83\x89\x01a\x13\x07V[\x94P`@\x87\x015\x93P``\x87\x015\x91P\x80\x82\x11\x15a\x13\xA0W`\0\x80\xFD[P\x85\x01`\x1F\x81\x01\x87\x13a\x13\xB2W`\0\x80\xFD[a\x13\xC1\x87\x825` \x84\x01a\x12sV[\x91PP\x92\x95\x91\x94P\x92PV[`\0\x80`\0\x80`\x80\x85\x87\x03\x12\x15a\x13\xE3W`\0\x80\xFD[\x845g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x80\x82\x11\x15a\x13\xFBW`\0\x80\xFD[a\x14\x07\x88\x83\x89\x01a\x13\x07V[\x95P` \x87\x015\x91P\x80\x82\x11\x15a\x14\x1DW`\0\x80\xFD[a\x14)\x88\x83\x89\x01a\x13\x07V[\x94P`@\x87\x015\x91P\x80\x82\x11\x15a\x14?W`\0\x80\xFD[Pa\x14L\x87\x82\x88\x01a\x13\x07V[\x94\x97\x93\x96P\x93\x94``\x015\x93PPPV[`\0\x80`@\x83\x85\x03\x12\x15a\x14pW`\0\x80\xFD[\x825g\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x81\x11\x15a\x14\x87W`\0\x80\xFD[a\x14\x93\x85\x82\x86\x01a\x13\x07V[\x95` \x94\x90\x94\x015\x94PPPPV[`\0` \x82\x84\x03\x12\x15a\x14\xB4W`\0\x80\xFD[\x81Q\x80\x15\x15\x81\x14a\x14\xC4W`\0\x80\xFD[\x93\x92PPPV[`@\x81R`\0a\x14\xDE`@\x83\x01\x85a\x11\xE7V[\x90P\x82` \x83\x01R\x93\x92PPPV[`\0\x85Qa\x14\xFF\x81\x84` \x8A\x01a\x11\xC3V[\x7Fselector=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\x90\x83\x01\x90\x81R\x85Qa\x159\x81`\t\x84\x01` \x8A\x01a\x11\xC3V[\x7F;domain=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\t\x92\x90\x91\x01\x91\x82\x01R\x84Qa\x15w\x81`\x11\x84\x01` \x89\x01a\x11\xC3V[\x7F;public_key_hash=\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\x11\x92\x90\x91\x01\x91\x82\x01R\x83Qa\x15\xB5\x81`\"\x84\x01` \x88\x01a\x11\xC3V[\x7F;\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\"\x92\x90\x91\x01\x91\x82\x01R`#\x01\x96\x95PPPPPPV[\x7F\x19Ethereum Signed Message:\n\0\0\0\0\0\0\x81R`\0\x83Qa\x16%\x81`\x1A\x85\x01` \x88\x01a\x11\xC3V[\x83Q\x90\x83\x01\x90a\x16<\x81`\x1A\x84\x01` \x88\x01a\x11\xC3V[\x01`\x1A\x01\x94\x93PPPPV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`!`\x04R`$`\0\xFD[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`\x11`\x04R`$`\0\xFD[\x80\x82\x02\x81\x15\x82\x82\x04\x84\x14\x17a\x06\xDAWa\x06\xDAa\x16wV[\x80\x82\x01\x80\x82\x11\x15a\x06\xDAWa\x06\xDAa\x16wV[\x7FNH{q\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0`\0R`2`\x04R`$`\0\xFD[`\0\x81a\x17\x0EWa\x17\x0Ea\x16wV[P\x7F\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\x01\x90V\xFE\xA2dipfsX\"\x12 d\xE7I\x84:X\x98\xC3\xE6\xA0\xDE\x83\x93\xF1\xF0\xA3e\xD5@U@?\xAC\xD6\x1CQ\x89\xBA\x96\xF6\x07mdsolcC\0\x08\x17\x003";
     /// The deployed bytecode of the contract.
-    pub static ECDSAOWNEDDKIMREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes = ::ethers::core::types::Bytes::from_static(
-        __DEPLOYED_BYTECODE,
-    );
+    pub static ECDSAOWNEDDKIMREGISTRY_DEPLOYED_BYTECODE: ::ethers::core::types::Bytes =
+        ::ethers::core::types::Bytes::from_static(__DEPLOYED_BYTECODE);
     pub struct ECDSAOwnedDKIMRegistry<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for ECDSAOwnedDKIMRegistry<M> {
         fn clone(&self) -> Self {
@@ -423,13 +348,11 @@ pub mod ecdsa_owned_dkim_registry {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(
-                ::ethers::contract::Contract::new(
-                    address.into(),
-                    ECDSAOWNEDDKIMREGISTRY_ABI.clone(),
-                    client,
-                ),
-            )
+            Self(::ethers::contract::Contract::new(
+                address.into(),
+                ECDSAOWNEDDKIMREGISTRY_ABI.clone(),
+                client,
+            ))
         }
         /// Constructs the general purpose `Deployer` instance based on the provided constructor arguments and sends it.
         /// Returns a new instance of a deployer that returns an instance of this contract after sending the transaction
@@ -504,10 +427,7 @@ pub mod ecdsa_owned_dkim_registry {
         ///Calls the contract's `dkimRegistry` (0x6423f1e2) function
         pub fn dkim_registry(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([100, 35, 241, 226], ())
                 .expect("method not found (this should never happen)")
@@ -555,17 +475,15 @@ pub mod ecdsa_owned_dkim_registry {
         ///Calls the contract's `signer` (0x238ac933) function
         pub fn signer(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
+        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
             self.0
                 .method_hash([35, 138, 201, 51], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-    for ECDSAOwnedDKIMRegistry<M> {
+        for ECDSAOwnedDKIMRegistry<M>
+    {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -579,7 +497,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(name = "ECDSAInvalidSignature", abi = "ECDSAInvalidSignature()")]
     pub struct ECDSAInvalidSignature;
@@ -592,7 +510,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "ECDSAInvalidSignatureLength",
@@ -610,9 +528,12 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
-    #[etherror(name = "ECDSAInvalidSignatureS", abi = "ECDSAInvalidSignatureS(bytes32)")]
+    #[etherror(
+        name = "ECDSAInvalidSignatureS",
+        abi = "ECDSAInvalidSignatureS(bytes32)"
+    )]
     pub struct ECDSAInvalidSignatureS {
         pub s: [u8; 32],
     }
@@ -625,7 +546,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[etherror(
         name = "StringsInsufficientHexLength",
@@ -651,29 +572,29 @@ pub mod ecdsa_owned_dkim_registry {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <::std::string::String as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevertString(decoded));
             }
-            if let Ok(decoded) = <ECDSAInvalidSignature as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <ECDSAInvalidSignature as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ECDSAInvalidSignature(decoded));
             }
-            if let Ok(decoded) = <ECDSAInvalidSignatureLength as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <ECDSAInvalidSignatureLength as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ECDSAInvalidSignatureLength(decoded));
             }
-            if let Ok(decoded) = <ECDSAInvalidSignatureS as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <ECDSAInvalidSignatureS as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ECDSAInvalidSignatureS(decoded));
             }
-            if let Ok(decoded) = <StringsInsufficientHexLength as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <StringsInsufficientHexLength as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::StringsInsufficientHexLength(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -703,19 +624,25 @@ pub mod ecdsa_owned_dkim_registry {
             match selector {
                 [0x08, 0xc3, 0x79, 0xa0] => true,
                 _ if selector
-                    == <ECDSAInvalidSignature as ::ethers::contract::EthError>::selector() => {
+                    == <ECDSAInvalidSignature as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
                 _ if selector
-                    == <ECDSAInvalidSignatureLength as ::ethers::contract::EthError>::selector() => {
+                    == <ECDSAInvalidSignatureLength as ::ethers::contract::EthError>::selector(
+                    ) =>
+                {
                     true
                 }
                 _ if selector
-                    == <ECDSAInvalidSignatureS as ::ethers::contract::EthError>::selector() => {
+                    == <ECDSAInvalidSignatureS as ::ethers::contract::EthError>::selector() =>
+                {
                     true
                 }
                 _ if selector
-                    == <StringsInsufficientHexLength as ::ethers::contract::EthError>::selector() => {
+                    == <StringsInsufficientHexLength as ::ethers::contract::EthError>::selector(
+                    ) =>
+                {
                     true
                 }
                 _ => false,
@@ -725,15 +652,9 @@ pub mod ecdsa_owned_dkim_registry {
     impl ::core::fmt::Display for ECDSAOwnedDKIMRegistryErrors {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::ECDSAInvalidSignature(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::ECDSAInvalidSignatureLength(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::ECDSAInvalidSignatureS(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::ECDSAInvalidSignature(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ECDSAInvalidSignatureLength(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ECDSAInvalidSignatureS(element) => ::core::fmt::Display::fmt(element, f),
                 Self::StringsInsufficientHexLength(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -751,8 +672,7 @@ pub mod ecdsa_owned_dkim_registry {
             Self::ECDSAInvalidSignature(value)
         }
     }
-    impl ::core::convert::From<ECDSAInvalidSignatureLength>
-    for ECDSAOwnedDKIMRegistryErrors {
+    impl ::core::convert::From<ECDSAInvalidSignatureLength> for ECDSAOwnedDKIMRegistryErrors {
         fn from(value: ECDSAInvalidSignatureLength) -> Self {
             Self::ECDSAInvalidSignatureLength(value)
         }
@@ -762,8 +682,7 @@ pub mod ecdsa_owned_dkim_registry {
             Self::ECDSAInvalidSignatureS(value)
         }
     }
-    impl ::core::convert::From<StringsInsufficientHexLength>
-    for ECDSAOwnedDKIMRegistryErrors {
+    impl ::core::convert::From<StringsInsufficientHexLength> for ECDSAOwnedDKIMRegistryErrors {
         fn from(value: StringsInsufficientHexLength) -> Self {
             Self::StringsInsufficientHexLength(value)
         }
@@ -777,7 +696,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "REVOKE_PREFIX", abi = "REVOKE_PREFIX()")]
     pub struct RevokePrefixCall;
@@ -790,7 +709,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "SET_PREFIX", abi = "SET_PREFIX()")]
     pub struct SetPrefixCall;
@@ -803,7 +722,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "computeSignedMsg",
@@ -824,7 +743,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "dkimRegistry", abi = "dkimRegistry()")]
     pub struct DkimRegistryCall;
@@ -837,7 +756,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "isDKIMPublicKeyHashValid",
@@ -856,7 +775,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "revokeDKIMPublicKeyHash",
@@ -877,7 +796,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(
         name = "setDKIMPublicKeyHash",
@@ -898,7 +817,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     #[ethcall(name = "signer", abi = "signer()")]
     pub struct SignerCall;
@@ -919,44 +838,38 @@ pub mod ecdsa_owned_dkim_registry {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <RevokePrefixCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) = <RevokePrefixCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevokePrefix(decoded));
             }
-            if let Ok(decoded) = <SetPrefixCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) = <SetPrefixCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::SetPrefix(decoded));
             }
-            if let Ok(decoded) = <ComputeSignedMsgCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <ComputeSignedMsgCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::ComputeSignedMsg(decoded));
             }
-            if let Ok(decoded) = <DkimRegistryCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) = <DkimRegistryCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::DkimRegistry(decoded));
             }
-            if let Ok(decoded) = <IsDKIMPublicKeyHashValidCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <IsDKIMPublicKeyHashValidCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::IsDKIMPublicKeyHashValid(decoded));
             }
-            if let Ok(decoded) = <RevokeDKIMPublicKeyHashCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <RevokeDKIMPublicKeyHashCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::RevokeDKIMPublicKeyHash(decoded));
             }
-            if let Ok(decoded) = <SetDKIMPublicKeyHashCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) =
+                <SetDKIMPublicKeyHashCall as ::ethers::core::abi::AbiDecode>::decode(data)
+            {
                 return Ok(Self::SetDKIMPublicKeyHash(decoded));
             }
-            if let Ok(decoded) = <SignerCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
+            if let Ok(decoded) = <SignerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::Signer(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -965,18 +878,10 @@ pub mod ecdsa_owned_dkim_registry {
     impl ::ethers::core::abi::AbiEncode for ECDSAOwnedDKIMRegistryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::RevokePrefix(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::SetPrefix(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::ComputeSignedMsg(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
-                Self::DkimRegistry(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
+                Self::RevokePrefix(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::SetPrefix(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::ComputeSignedMsg(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DkimRegistry(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::IsDKIMPublicKeyHashValid(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -997,15 +902,9 @@ pub mod ecdsa_owned_dkim_registry {
                 Self::SetPrefix(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ComputeSignedMsg(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DkimRegistry(element) => ::core::fmt::Display::fmt(element, f),
-                Self::IsDKIMPublicKeyHashValid(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::RevokeDKIMPublicKeyHash(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
-                Self::SetDKIMPublicKeyHash(element) => {
-                    ::core::fmt::Display::fmt(element, f)
-                }
+                Self::IsDKIMPublicKeyHashValid(element) => ::core::fmt::Display::fmt(element, f),
+                Self::RevokeDKIMPublicKeyHash(element) => ::core::fmt::Display::fmt(element, f),
+                Self::SetDKIMPublicKeyHash(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Signer(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -1030,20 +929,17 @@ pub mod ecdsa_owned_dkim_registry {
             Self::DkimRegistry(value)
         }
     }
-    impl ::core::convert::From<IsDKIMPublicKeyHashValidCall>
-    for ECDSAOwnedDKIMRegistryCalls {
+    impl ::core::convert::From<IsDKIMPublicKeyHashValidCall> for ECDSAOwnedDKIMRegistryCalls {
         fn from(value: IsDKIMPublicKeyHashValidCall) -> Self {
             Self::IsDKIMPublicKeyHashValid(value)
         }
     }
-    impl ::core::convert::From<RevokeDKIMPublicKeyHashCall>
-    for ECDSAOwnedDKIMRegistryCalls {
+    impl ::core::convert::From<RevokeDKIMPublicKeyHashCall> for ECDSAOwnedDKIMRegistryCalls {
         fn from(value: RevokeDKIMPublicKeyHashCall) -> Self {
             Self::RevokeDKIMPublicKeyHash(value)
         }
     }
-    impl ::core::convert::From<SetDKIMPublicKeyHashCall>
-    for ECDSAOwnedDKIMRegistryCalls {
+    impl ::core::convert::From<SetDKIMPublicKeyHashCall> for ECDSAOwnedDKIMRegistryCalls {
         fn from(value: SetDKIMPublicKeyHashCall) -> Self {
             Self::SetDKIMPublicKeyHash(value)
         }
@@ -1062,7 +958,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct RevokePrefixReturn(pub ::std::string::String);
     ///Container type for all return fields from the `SET_PREFIX` function with signature `SET_PREFIX()` and selector `0x07f1eaf5`
@@ -1074,7 +970,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SetPrefixReturn(pub ::std::string::String);
     ///Container type for all return fields from the `computeSignedMsg` function with signature `computeSignedMsg(string,string,string,bytes32)` and selector `0xaec79361`
@@ -1086,7 +982,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct ComputeSignedMsgReturn(pub ::std::string::String);
     ///Container type for all return fields from the `dkimRegistry` function with signature `dkimRegistry()` and selector `0x6423f1e2`
@@ -1098,7 +994,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct DkimRegistryReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `isDKIMPublicKeyHashValid` function with signature `isDKIMPublicKeyHashValid(string,bytes32)` and selector `0xe7a7977a`
@@ -1110,7 +1006,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct IsDKIMPublicKeyHashValidReturn(pub bool);
     ///Container type for all return fields from the `signer` function with signature `signer()` and selector `0x238ac933`
@@ -1122,7 +1018,7 @@ pub mod ecdsa_owned_dkim_registry {
         Debug,
         PartialEq,
         Eq,
-        Hash
+        Hash,
     )]
     pub struct SignerReturn(pub ::ethers::core::types::Address);
 }

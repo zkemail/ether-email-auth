@@ -53,8 +53,8 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+        uses: foundry-rs/foundry-toolchain@v1.2.0
 
       - name: Run tests
         working-directory: packages/contracts
-        run: forge test --no-match-test "testIntegration"
+        run: yarn test
