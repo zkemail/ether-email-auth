@@ -28,7 +28,7 @@ pub async fn run_server(
         )
         .route(
             "/api/requestStatus",
-            axum::routing::get(move |payload: String| async move {
+            axum::routing::post(move |payload: String| async move {
                 let payload: Result<RequestStatusRequest> =
                     serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));
                 match payload {
@@ -141,6 +141,28 @@ pub async fn run_server(
                         )
                         .await;
                         Ok::<_, axum::response::Response>(recovery_response)
+                    }
+                    Err(e) => {
+                        let error_message = serde_json::to_string(&e.to_string())
+                            .map_err(|_| axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .unwrap();
+                        Ok(axum::http::Response::builder()
+                            .status(axum::http::StatusCode::INTERNAL_SERVER_ERROR)
+                            .body(serde_json::to_string(&e.to_string()).unwrap().into())
+                            .unwrap())
+                    }
+                }
+            }),
+        )
+        .route(
+            "/api/getAccountSalt",
+            axum::routing::post(move |payload: String| async move {
+                let payload: Result<GetAccountSaltRequest> =
+                    serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));
+                match payload {
+                    Ok(payload) => {
+                        let response = get_account_salt(payload).await;
+                        Ok::<_, axum::response::Response>(response)
                     }
                     Err(e) => {
                         let error_message = serde_json::to_string(&e.to_string())

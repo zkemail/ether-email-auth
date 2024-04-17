@@ -685,7 +685,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         assertEq(simpleWallet.owner(), deployer);
         assertEq(simpleWallet.newSignerCandidate(), newSigner);
 
-        vm.startPrank(deployer);
+        vm.startPrank(someRelayer);
         vm.warp(4 days);
         simpleWallet.completeRecovery();
         vm.stopPrank();
@@ -704,7 +704,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         assertEq(simpleWallet.owner(), deployer);
         assertEq(simpleWallet.newSignerCandidate(), address(0x0));
 
-        vm.startPrank(deployer);
+        vm.startPrank(someRelayer);
         vm.warp(4 days);
         vm.expectRevert(bytes("recovery not in progress"));
         simpleWallet.completeRecovery();
@@ -726,7 +726,7 @@ contract EmailAccountRecoveryTest is StructHelper {
 
         vm.warp(0);
 
-        vm.startPrank(deployer);
+        vm.startPrank(someRelayer);
         vm.expectRevert(bytes("timelock not expired"));
         simpleWallet.completeRecovery();
         vm.stopPrank();
