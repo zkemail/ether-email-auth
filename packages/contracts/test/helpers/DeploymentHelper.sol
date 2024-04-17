@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
 import "forge-std/Test.sol";
@@ -22,7 +23,9 @@ contract DeploymentHelper is Test {
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
-    address guardian = vm.addr(3);
+    address guardian = address(0xCfBb461d24554AE7653575696cCb0A917E8551D7);
+    address newSigner = vm.addr(4);
+    address someRelayer = vm.addr(5);
 
     bytes32 accountSalt;
     uint templateId;
@@ -67,19 +70,9 @@ contract DeploymentHelper is Test {
 
         // Create EmailAuth
         EmailAuth emailAuthImpl = new EmailAuth();
-        ERC1967Proxy emailAuthProxy = new ERC1967Proxy(
-            address(emailAuthImpl),
-            abi.encodeWithSelector(
-                emailAuthImpl.initialize.selector,
-                signer,
-                accountSalt
-            )
-        );
-        emailAuth = EmailAuth(payable(address(emailAuthProxy)));
-        emailAuth.updateVerifier(address(verifier));
-        emailAuth.updateDKIMRegistry(address(dkim));
+        emailAuth = emailAuthImpl;
 
-        uint templateIdx = 1;
+        uint templateIdx = 0;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
@@ -93,7 +86,7 @@ contract DeploymentHelper is Test {
                 signer,
                 address(verifier),
                 address(dkim),
-                address(emailAuth)
+                address(emailAuthImpl)
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
