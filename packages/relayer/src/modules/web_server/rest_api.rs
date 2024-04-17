@@ -9,7 +9,7 @@ use std::str;
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusRequest {
-    pub request_id: u64,
+    pub request_id: u32,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -21,7 +21,7 @@ pub enum RequestStatus {
 
 #[derive(Serialize, Deserialize)]
 pub struct RequestStatusResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub status: RequestStatus,
     pub is_success: bool,
     pub email_nullifier: Option<String>,
@@ -39,7 +39,7 @@ pub struct AcceptanceRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub subject_params: Vec<TemplateValue>,
 }
 
@@ -53,13 +53,19 @@ pub struct RecoveryRequest {
 
 #[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
-    pub request_id: u64,
+    pub request_id: u32,
     pub subject_params: Vec<TemplateValue>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct CompleteRecoveryRequest {
     pub wallet_eth_addr: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GetAccountSaltRequest {
+    pub account_code: String,
+    pub email_addr: String,
 }
 
 // Create request status API
@@ -123,9 +129,9 @@ pub async fn handle_acceptance_request(
             .unwrap();
     }
 
-    let mut request_id = rand::thread_rng().gen::<u64>();
+    let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = db.get_request(request_id).await {
-        request_id = rand::thread_rng().gen::<u64>();
+        request_id = rand::thread_rng().gen::<u32>();
     }
 
     if db
@@ -152,6 +158,44 @@ pub async fn handle_acceptance_request(
                 guardian_email_addr: payload.guardian_email_addr.clone(),
             })
             .expect("Failed to send GuardianAlreadyExists event");
+    } else if db
+        .is_wallet_and_email_registered(&payload.wallet_eth_addr, &payload.guardian_email_addr)
+        .await
+    {
+        // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
+        // Therefore, the relayer will send an email to the guardian again with a fresh account code.
+        db.update_credentials_of_wallet_and_email(&Credentials {
+            account_code: payload.account_code.clone(),
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_set: false,
+        })
+        .await
+        .expect("Failed to insert credentials");
+
+        db.insert_request(&Request {
+            request_id: request_id.clone(),
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        tx_event_consumer
+            .send(EmailAuthEvent::AcceptanceRequest {
+                wallet_eth_addr: payload.wallet_eth_addr.clone(),
+                guardian_email_addr: payload.guardian_email_addr.clone(),
+                request_id,
+                subject: payload.subject.clone(),
+                account_code: payload.account_code.clone(),
+            })
+            .expect("Failed to send Acceptance event");
     } else {
         db.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
@@ -230,12 +274,15 @@ pub async fn handle_recovery_request(
             .unwrap();
     }
 
-    let mut request_id = rand::thread_rng().gen::<u64>();
+    let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = db.get_request(request_id).await {
-        request_id = rand::thread_rng().gen::<u64>();
+        request_id = rand::thread_rng().gen::<u32>();
     }
 
-    if !db.is_email_registered(&payload.guardian_email_addr).await {
+    if !db
+        .is_wallet_and_email_registered(&payload.wallet_eth_addr, &payload.guardian_email_addr)
+        .await
+    {
         db.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
@@ -313,11 +360,11 @@ pub async fn handle_recovery_request(
         .expect("Failed to insert request");
 
         tx_event_consumer
-            .send(EmailAuthEvent::RecoveryRequest {
+            .send(EmailAuthEvent::GuardianNotSet {
                 wallet_eth_addr: payload.wallet_eth_addr.clone(),
                 guardian_email_addr: payload.guardian_email_addr.clone(),
-                request_id,
-                subject: payload.subject.clone(),
+                // request_id,
+                // subject: payload.subject.clone(),
             })
             .expect("Failed to send Recovery event");
     }
@@ -382,6 +429,18 @@ pub async fn handle_complete_recovery_request(
                 .unwrap()
         }
     }
+}
+
+pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> {
+    let padded_email_addr = PaddedEmailAddr::from_email_addr(&payload.email_addr);
+    let account_code =
+        AccountCode::from(hex2field(&format!("0x{}", payload.account_code)).unwrap());
+    let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(field2hex(&account_salt.0)))
+        .unwrap()
 }
 
 fn parse_error_message(error_data: String) -> String {
