@@ -57,4 +57,4 @@ jobs:
 
       - name: Run tests
         working-directory: packages/contracts
-        run: forge test --no-match-test "testIntegration"
+        run: yarn test
