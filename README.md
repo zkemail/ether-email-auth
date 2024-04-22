@@ -20,9 +20,9 @@ In addition to a user and a smart contract employing our SDK, there is a permiss
 The Relayer connects the off-chain world, where the users are, with the on-chain world, where the contracts reside, without compromising security.
 Specifically, the user, the Relayer, and the contract collaborate as follows:
 1. (Off-chain) The user sends the Relayer an email containing a message to the contract in the Subject.
-2. (Off-chain) The Relayer generates an email-auth message for the given email, consisting of data about the Subject, an Ethereum address corresponding to the user's email address, a ZK proof of the email, and so on.
+2. (Off-chain) The Relayer generates **an email-auth message for the given email, consisting of data about the Subject, an Ethereum address corresponding to the user's email address, a ZK proof of the email, and so on**.
 3. (Off-chain -> On-chain) The Relayer broadcasts an Ethereum transaction to call the contract with the email-auth message.
-4. (On-chain) After authorizing and authenticating the given email-auth message, the contract executes application-specific logic depending on the message in the Subject and the user's Ethereum address.
+4. (On-chain) After verifying the given email-auth message, the contract executes application-specific logic depending on the message in the Subject and the user's Ethereum address.
 5. (On-chain -> Off-chain) The Relayer sends the user an email to report the execution result of the contract.
 
 ## Novel Concepts
@@ -61,7 +61,7 @@ The circuit is agnostic to application contexts such as subject templates.
 **Therefore, a developer does not need to make new circuits.**
 
 ### `contracts` Package
-It has Solidity contracts that help any smart contracts employing our SDK authorize and authenticate the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
+It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
 
 The verifier contract in `Verifier.sol` has a responsibility to verify the ZK proof in the given email-auth message. 
 It is a global contract, that is, multiple users in your application will use the same verifier contract.
@@ -75,7 +75,7 @@ If each user should be able to modify the registered public keys, a new DKIM reg
 
 The email-auth contract in `EmailAuth.sol` is a contract for each email user.
 Its contract Ethereum address is calculated as the CREATE2 of the account salt, i.e., the hash of the user's email address and one account code held by the user. 
-It provides an entry function `authEmail` to authorize and authenticate the email-auth message by calling the verifier and the DKIM registry contracts.
+It provides an entry function `authEmail` to verify the email-auth message by calling the verifier and the DKIM registry contracts.
 Besides, it supports [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271). 
 After the email-auth message is processed in the `authEmail` function, the `isValidSignature` function of the email-auth contract returns true for the hash of the data in the email-auth message and its email nullifier, a 32-byte data unique to each email.
 
@@ -94,7 +94,7 @@ The Relayer calls the prover server for each given email to delegate the proof g
 You can deploy the prover server either on your local machine or [Modal instances](https://modal.com/).
 
 ### Security Notes
-Our SDK only performs the authorization and authentication of the email-auth message.
+Our SDK only performs the verification of the email-auth message.
 **You have a responsibility to ensure security and privacy in your application.**
 
 Here, we present a list of security requirements that you should check.
