@@ -95,13 +95,26 @@ You can deploy the prover server either on your local machine or [Modal instance
 
 ### Security Notes
 Our SDK only performs the authorization and authentication of the email-auth message.
-**It suggests that you have a responsibility to ensure security and privacy in your application.**
+**You have a responsibility to ensure security and privacy in your application.**
 
 Here, we present a list of security requirements that you should check.
-- As described in the Subsection of "Invitation Code", for a new email user, your application contract must ensure that the value of `isCodeExist` in the given email-auth message is true.
+- As described in the Subsection of "Invitation Code", for each email user, your application contract must ensure that the value of `isCodeExist` in the first email-auth message is true.
 - The application contract can configure multiple subject templates for the same email-auth contract. However, the Relayer can choose any of the configured templates, as long as the message in the Subject matches with the chosen template. For example, if there are two templates "Send {decimals} {string}" and "Send {string}", the message "Send 1.23 ETH" matches with both templates. We recommend defining the subject templates without such ambiguities.
-- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server. For example, if your Relayer storing the users' account codes exposes an API that returns the Ethereum address for the given email address and its stored account code, an adversary can breach that privacy. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can determine which email addresses are registered.
+- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server. For example, if your Relayer storing the users' account codes exposes an API that returns the Ethereum address for the given email address and its stored account code, an adversary can breach that privacy. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
 
 ## Application: Email-based Account Recovery
+As a representative example of applications using our SDK, we provide contracts and a Relayer server for email-based account recovery. They assume a life cycle of the account recovery in three phases:
+
+1. (Setting a guardian) A wallet owner requests a holder of a specified email address to become a guardian. The guardian is set after the guardian sends an email to accept the request.
+2. (Processing a recovery for each guardian) When a guardian sends an email to recover the wallet, state data for the recovery in the wallet contract is updated.
+3. (Completing a recovery) If the required condition for the recovery holds, the account recovery is done.
+
+<!-- The above life cycle can support various practical implementations of account recovery. For example, if your wallet contract requires confirmations from multiple guardians and sets a timelock if only less than three guardians confirm the recovery, you can implement such functions as follows:
+1. (Setting a guardian) Your wallet contract stores a list of multiple guardians' Ethereum addresses. When the wallet approves a new guardian’s email, it deploys a new 
+ adds the guardian’s Ethereum address to that list.
+2. When the wallet approves one guardian’s email for the first time, it sets the status of the wallet to a recovering mode and stores the new signer address in the email, the guardian’s ethereum address, and the block timestamp. After that, every time the wallet approves a guardian’s email, it adds the guardian’s ethereum address to the confirming guardians list.
+3. If the size of the confirming guardians list is two, the wallet updates the signer address if and only if the timelock is expired. Otherwise, i.e., the number of the confirming guardians are more than two, the wallet immediately updates it.
+-->
+
 
 
