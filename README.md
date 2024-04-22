@@ -103,11 +103,29 @@ Here, we present a list of security requirements that you should check.
 - To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server. For example, if your Relayer storing the users' account codes exposes an API that returns the Ethereum address for the given email address and its stored account code, an adversary can breach that privacy. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
 
 ## Application: Email-based Account Recovery
-As a representative example of applications using our SDK, we provide contracts and a Relayer server for email-based account recovery. They assume a life cycle of the account recovery in three phases:
+As a representative example of applications using our SDK, we provide contracts and a Relayer server for email-based account recovery. They assume a life cycle of the account recovery in four phases:
+1. (Requesting a guardian) A wallet owner requests a holder of a specified email address to become a guardian.
+2. (Accepting a guardian) If the requested guardian sends an email to accept the request, the wallet contract registers the Ethereum address corresponding to its email address.
+3. (Processing a recovery for each guardian) When a guardian sends an email to recover the wallet, the wallet contract updates state data for the recovery.
+4. (Completing a recovery) If the required condition for the recovery holds, the account recovery is done.
 
-1. (Setting a guardian) A wallet owner requests a holder of a specified email address to become a guardian. The guardian is set after the guardian sends an email to accept the request.
-2. (Processing a recovery for each guardian) When a guardian sends an email to recover the wallet, state data for the recovery in the wallet contract is updated.
-3. (Completing a recovery) If the required condition for the recovery holds, the account recovery is done.
+Specifically, we expect the following UX. **Notably, the guardian only needs to reply to emails sent from the Relayer in every process.**
+1. (Requesting a guardian 1/4) A web page to configure guardians for email-based account recovery requests the wallet owner to input the guardian's email address and some related data such as the length of timelock until that guardian's recovery request is enabled. 
+2. (Requesting a guardian 2/4) The frontend script on the web page randomly generates a new account code and derives the guardian's Ethereum address from the input guardian's email address and that code. 
+It then requests the wallet owner to broadcast a transaction to register the guardian request into the wallet contract, passing the derived Ethereum address and the related data (not the private data such as the email address and the account code).
+3. (Requesting a guardian 3/4) The frontend script also sends the wallet address, the guardian's email address, and the account code to the Relayer. 
+4. (Requesting a guardian 4/4) The Relayer then sends the guardian an email to say "The owner of this wallet address requests you to become a guardian".
+5. (Accepting a guardian 1/3) If confirming the request, the guardian replies to the Relayer's email.
+6. (Accepting a guardian 2/3) The Relayer generates an email-auth message for the guardian's email and then broadcasts a transaction to pass it to the wallet contract.
+7. (Accepting a guardian 3/3) If the given email-auth message is valid, the wallet contract deploys an email-auth contract for the guardian and stores its address as the guardian.
+8. (Processing a recovery for each guardian 1/6) When losing a private key for controlling the wallet, on the web page to recover the wallet, the wallet owner inputs the wallet address to be recovered, the guardian's email address and a new EOA address called owner address derived from a fresh private key.
+9.  (Processing a recovery for each guardian 2/6) The frontend script on the web page sends the input data to the Relayer.
+10. (Processing a recovery for each guardian 3/6) The Relayer then sends the guardian an email to say "Please rotate the owner address for this wallet address to this EOA address".
+11. (Processing a recovery for each guardian 4/6) If confirming the requested recovery, the guardian replies to the Relayer's email.
+12. (Processing a recovery for each guardian 5/6) The Relayer generates an email-auth message for the guardian's email and then broadcasts a transaction to pass it to the wallet contract.
+13. (Processing a recovery for each guardian 6/6) If the given email-auth message is valid, the wallet contract updates states for the recovery.
+14. (Completing a recovery 1/) When the frontend script finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the wallet contract, it requests the Relayer to complete the recovery.
+15. (Completing a recovery 1/) The Relayer broadcasts a transaction to call a function in the wallet contract for completing the recovery. If it returns no error, the owner address should be rotated.
 
 <!-- The above life cycle can support various practical implementations of account recovery. For example, if your wallet contract requires confirmations from multiple guardians and sets a timelock if only less than three guardians confirm the recovery, you can implement such functions as follows:
 1. (Setting a guardian) Your wallet contract stores a list of multiple guardians' Ethereum addresses. When the wallet approves a new guardian’s email, it deploys a new 
