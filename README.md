@@ -124,8 +124,8 @@ It then requests the wallet owner to broadcast a transaction to register the gua
 11. (Processing a recovery for each guardian 4/6) If confirming the requested recovery, the guardian replies to the Relayer's email.
 12. (Processing a recovery for each guardian 5/6) The Relayer generates an email-auth message for the guardian's email and then broadcasts a transaction to pass it to the wallet contract.
 13. (Processing a recovery for each guardian 6/6) If the given email-auth message is valid, the wallet contract updates states for the recovery.
-14. (Completing a recovery 1/) When the frontend script finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the wallet contract, it requests the Relayer to complete the recovery.
-15. (Completing a recovery 1/) The Relayer broadcasts a transaction to call a function in the wallet contract for completing the recovery. If it returns no error, the owner address should be rotated.
+14. (Completing a recovery 1/2) When the frontend script finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the wallet contract, it requests the Relayer to complete the recovery.
+15. (Completing a recovery 2/2) The Relayer broadcasts a transaction to call a function in the wallet contract for completing the recovery. If it returns no error, the owner address should be rotated.
 
 <!-- The above life cycle can support various practical implementations of account recovery. For example, if your wallet contract requires confirmations from multiple guardians and sets a timelock if only less than three guardians confirm the recovery, you can implement such functions as follows:
 1. (Setting a guardian) Your wallet contract stores a list of multiple guardians' Ethereum addresses. When the wallet approves a new guardian’s email, it deploys a new 
