@@ -97,10 +97,10 @@ You can deploy the prover server either on your local machine or [Modal instance
 Our SDK only performs the verification of the email-auth message.
 **You have a responsibility to ensure security and privacy in your application.**
 
-Here, we present a list of security requirements that you should check.
+Here, we present a list of security notes that you should check.
 - As described in the Subsection of "Invitation Code", for each email user, your application contract must ensure that the value of `isCodeExist` in the first email-auth message is true.
 - The application contract can configure multiple subject templates for the same email-auth contract. However, the Relayer can choose any of the configured templates, as long as the message in the Subject matches with the chosen template. For example, if there are two templates "Send {decimals} {string}" and "Send {string}", the message "Send 1.23 ETH" matches with both templates. We recommend defining the subject templates without such ambiguities.
-- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server. For example, if your Relayer storing the users' account codes exposes an API that returns the Ethereum address for the given email address and its stored account code, an adversary can breach that privacy. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
+- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server, which stores the users' account codes. For example, an adversary can breach that privacy by exploiting an API provided by the Relayer such that returns the Ethereum address for the given email address and its stored account code. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
 
 ## Application: Email-based Account Recovery
 As a representative example of applications using our SDK, we provide contracts and a Relayer server for email-based account recovery. They assume a life cycle of the account recovery in four phases:
