@@ -1,11 +1,14 @@
-pragma circom 2.1.5;
+pragma circom 2.1.6;
+
+include "@zk-email/circuits/utils/constants.circom";
+
 
 function email_max_bytes_const() {
-    return 256;
+    return EMAIL_ADDR_MAX_BYTES();
 }
 
 function domain_len_const() {
-    return 255;
+    return DOMAIN_MAX_BYTES();
 }
 
 function invitation_code_len_const() {
@@ -17,7 +20,7 @@ function field_pack_bits_const() {
 }
 
 function pack_bytes_const() {
-    return 31;
+    return MAX_BYTES_IN_FIELD();
 }
 
 function timestamp_len_const() {
