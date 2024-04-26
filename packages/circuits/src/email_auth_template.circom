@@ -1,11 +1,10 @@
-
-pragma circom 2.1.5;
+pragma circom 2.1.6;
 
 include "circomlib/circuits/bitify.circom";
 include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/poseidon.circom";
 include "@zk-email/circuits/email-verifier.circom";
-include "@zk-email/circuits/helpers/extract.circom";
+include "@zk-email/circuits/utils/regex.circom";
 include "./utils/constants.circom";
 include "./utils/account_salt.circom";
 include "./utils/hash_sign.circom";
@@ -65,26 +64,26 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     
     // Verify Email Signature
     component email_verifier = EmailVerifier(max_header_bytes, 0, n, k, 1);
-    email_verifier.in_padded <== padded_header;
+    email_verifier.emailHeader <== padded_header;
     email_verifier.pubkey <== public_key;
     email_verifier.signature <== signature;
-    email_verifier.in_len_padded_bytes <== padded_header_len;
+    email_verifier.emailHeaderLength <== padded_header_len;
     signal header_hash[256] <== email_verifier.sha;
-    public_key_hash <== email_verifier.pubkey_hash;
+    public_key_hash <== email_verifier.pubkeyHash;
 
     // FROM HEADER REGEX
     signal from_regex_out, from_regex_reveal[max_header_bytes];
     (from_regex_out, from_regex_reveal) <== FromAddrRegex(max_header_bytes)(padded_header);
     from_regex_out === 1;
     signal from_email_addr[email_max_bytes];
-    from_email_addr <== VarShiftMaskedStr(max_header_bytes, email_max_bytes)(from_regex_reveal, from_addr_idx);
+    from_email_addr <== SelectRegexReveal(max_header_bytes, email_max_bytes)(from_regex_reveal, from_addr_idx);
 
     // DOMAIN NAME HEADER REGEX
     signal domain_regex_out, domain_regex_reveal[email_max_bytes];
     (domain_regex_out, domain_regex_reveal) <== EmailDomainRegex(email_max_bytes)(from_email_addr);
     domain_regex_out === 1;
     signal domain_name_bytes[domain_len];
-    domain_name_bytes <== VarShiftMaskedStr(email_max_bytes, domain_len)(domain_regex_reveal, domain_idx);
+    domain_name_bytes <== SelectRegexReveal(email_max_bytes, domain_len)(domain_regex_reveal, domain_idx);
     domain_name <== Bytes2Ints(domain_len)(domain_name_bytes);
     
     signal sign_hash;
@@ -98,14 +97,14 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     (subject_regex_out, subject_regex_reveal) <== SubjectAllRegex(max_header_bytes)(padded_header);
     subject_regex_out === 1;
     signal subject_all[max_subject_bytes];
-    subject_all <== VarShiftMaskedStr(max_header_bytes, max_subject_bytes)(subject_regex_reveal, subject_idx);
+    subject_all <== SelectRegexReveal(max_header_bytes, max_subject_bytes)(subject_regex_reveal, subject_idx);
 
     // Timestamp regex + convert to decimal format
     signal timestamp_regex_out, timestamp_regex_reveal[max_header_bytes];
     (timestamp_regex_out, timestamp_regex_reveal) <== TimestampRegex(max_header_bytes)(padded_header);
     // timestamp_regex_out === 1;
     signal timestamp_str[timestamp_len];
-    timestamp_str <== VarShiftMaskedStr(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
+    timestamp_str <== SelectRegexReveal(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
     signal raw_timestamp <== Digit2Int(timestamp_len)(timestamp_str);
     timestamp <== timestamp_regex_out * raw_timestamp;
     
@@ -142,7 +141,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
             replaced_code_regex_reveal[i] <== code_regex_reveal[i] * is_code_exist;
         }
     }
-    signal shifted_code_hex[code_len] <== VarShiftMaskedStr(max_header_bytes, code_len)(replaced_code_regex_reveal, code_idx);
+    signal shifted_code_hex[code_len] <== SelectRegexReveal(max_header_bytes, code_len)(replaced_code_regex_reveal, code_idx);
     signal invitation_code_hex[code_len];
     for(var i=0; i<code_len; i++) {
         invitation_code_hex[i] <== is_code_exist * (shifted_code_hex[i] - 48) + 48;
@@ -177,7 +176,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
             }
         }
         signal shifted_email_addr[email_max_bytes];
-        shifted_email_addr <== VarShiftMaskedStr(max_subject_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, subject_email_addr_idx);
+        shifted_email_addr <== SelectRegexReveal(max_subject_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, subject_email_addr_idx);
         signal recipient_email_addr[email_max_bytes];
         for(var i=0; i<email_max_bytes; i++) {
             recipient_email_addr[i] <== shifted_email_addr[i] * has_email_recipient;
