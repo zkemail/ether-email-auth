@@ -68,6 +68,14 @@ pub struct GetAccountSaltRequest {
     pub email_addr: String,
 }
 
+#[derive(Deserialize)]
+struct PermittedWallet {
+    wallet_name: String,
+    hash_of_bytecode_of_proxy: String,
+    impl_contract_address: String,
+    slot_location: String,
+}
+
 // Create request status API
 pub async fn request_status_api(payload: RequestStatusRequest) -> Result<RequestStatusResponse> {
     let row = DB.get_request(payload.request_id).await?;
@@ -105,6 +113,48 @@ pub async fn handle_acceptance_request(
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Wallet not deployed"))
+            .unwrap();
+    }
+
+    // Check if hash of bytecode of proxy contract is equal or not
+    let bytecode = chain_client
+        .get_bytecode(&payload.wallet_eth_addr)
+        .await
+        .unwrap();
+    let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
+
+    let permitted_wallets: Vec<PermittedWallet> =
+        serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    let permitted_wallet = permitted_wallets
+        .iter()
+        .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+
+    if let Some(permitted_wallet) = permitted_wallet {
+        let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+        let impl_contract_from_proxy = {
+            let raw_hex = hex::encode(
+                chain_client
+                    .get_storage_at(&payload.wallet_eth_addr, slot_location)
+                    .await
+                    .unwrap(),
+            );
+            format!("0x{}", &raw_hex[24..])
+        };
+        if !permitted_wallet
+            .impl_contract_address
+            .eq_ignore_ascii_case(&impl_contract_from_proxy)
+        {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Body::from(
+                    "Invalid bytecode, impl contract address mismatch",
+                ))
+                .unwrap();
+        }
+    } else {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not permitted"))
             .unwrap();
     }
 
