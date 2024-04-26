@@ -175,4 +175,21 @@ impl ChainClient {
             .map(|status| status == U64::from(1))
             .unwrap_or(false))
     }
+
+    pub async fn get_bytecode(&self, wallet_addr: &String) -> Result<Bytes, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        Ok(self.client.get_code(wallet_address, None).await?)
+    }
+
+    pub async fn get_storage_at(
+        &self,
+        wallet_addr: &String,
+        slot: u64,
+    ) -> Result<H256, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        Ok(self
+            .client
+            .get_storage_at(wallet_address, u64_to_u8_array_32(slot).into(), None)
+            .await?)
+    }
 }
