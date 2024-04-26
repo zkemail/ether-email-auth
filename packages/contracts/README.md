@@ -161,3 +161,33 @@ It provides the following functions.
 - `setTimestampCheckEnabled(bool enabled) public`
     1. Assert `msg.sender==owner`.
     2. Set `timestampCheckEnabled` to `enabled`.
+
+### `EmailAccountRecovery` Contract
+It is an abstract contract for each wallet contract to implement our email-based account recovery. **Each wallet provider only needs to implement the following functions in the wallet contract.**
+- `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian.
+- `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery.
+- `acceptGuardian(address guardian, uint templateIdx, bytes[] subjectParams, bytes32 emailNullifier) internal virtual`: it takes as input the Ethereum address `guardian` corresponding to the guardian's email address, the index `templateIdx` of the subject template in the output of `acceptanceSubjectTemplates()`, the parameter values of the variable parts `subjectParams` in the template `acceptanceSubjectTemplates()[templateIdx]`, and an email nullifier `emailNullifier`. It is called after verifying the email-auth message to accept the role of the guardian; thus you can assume the arguments are already verified. 
+- `processRecovery(address guardian, uint templateIdx, bytes[] subjectParams, bytes32 emailNullifier) internal virtual`: it takes as input the Ethereum address `guardian` corresponding to the guardian's email address, the index `templateIdx` of the subject template in the output of `recoverySubjectTemplates()`, the parameter values of the variable parts `subjectParams` in the template `recoverySubjectTemplates()[templateIdx]`, and an email nullifier `emailNullifier`. It is called after verifying the email-auth message to confirm the recovery; thus you can assume the arguments are already verified.
+- `completeRecovery() external virtual`: it can be called by anyone, in particular a Relayer, when completing the account recovery. It should first check if the condition for the account recovery holds and then update the owner address in the wallet contract.
+
+It also provides the following entry functions with their default implementations, called by the Relayer.
+- `handleAcceptance(EmailAuthMsg emailAuthMsg, uint templateIdx) external`
+    1. Let `address guardian = CREATE2(emailAuthMsg.proof.accountSalt, ERC1967Proxy.creationCode, emailAuthImplementation(), (emailAuthMsg.proof.accountSalt))`.
+    2. Assert that the contract of `guardian` has not been deployed.
+    3. Let `uint templateId = keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "ACCEPTANCE", templateIdx)`.
+    4. Assert that  `templateId` is equal to `emailAuthMsg.templateId`.
+    5. Assert that `emailAuthMsg.proof.isCodeExist` is true.
+    6. Deploy the proxy contract of `emailAuthImplementation()`. Its salt is `emailAuthMsg.proof.accountSalt` and its initialization parameter is  `mailAuthMsg.proof.accountSalt`.
+    7. Call `EmailAuth(guardian).setDkim(dkim())`.
+    8. Call `EmailAuth(guardian).setVerifier(verifier())`.
+    9. For each `template` in `acceptanceSubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "ACCEPTANCE", idx), template)`.
+    10. For each `template` in `recoverySubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "RECOVERY", idx), template)`.
+    11. Assert that `EmailAuth(guardian).authEmail(1emailAuthMsg)` returns no error.
+    12. Call `acceptGuardian(guardian, templateIdx, emailAuthMsg.subjectParams, emailAuthMsg.proof.emailNullifier)`.
+- `handleRecovery(EmailAuthMsg emailAuthMsg, uint templateIdx) external`
+    1. Let `address guardian = CREATE2(emailAuthMsg.proof.accountSalt, ERC1967Proxy.creationCode, emailAuthImplementation(), (emailAuthMsg.proof.accountSalt))`.
+    2. Assert that the contract of `guardian` has been already deployed.
+    3. Let `uint templateId=keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "RECOVERY", templateIdx)`.
+    4. Assert that  `templateId` is equal to `emailAuthMsg.templateId`.
+    5. Assert that `EmailAuth(guardian).authEmail(emailAuthMsg)` returns no error.
+    6. Call `processRecovery(guardian, templateIdx, emailAuthMsg.subjectParams, emailAuthMsg.proof.emailNullifier)`.
