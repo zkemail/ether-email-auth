@@ -2,6 +2,7 @@ use std::error::Error;
 
 use crate::converters::*;
 
+use ethers::types::Bytes;
 use halo2curves::ff::Field;
 use neon::prelude::*;
 use poseidon_rs::*;
@@ -295,4 +296,8 @@ pub fn generate_partial_sha(
 
     let precomputed_sha = partial_sha(precompute_text, sha_cutoff_index);
     Ok((precomputed_sha, body_remaining, body_remaining_length))
+}
+
+pub fn keccak256(data: &[u8]) -> Bytes {
+    Bytes::from(ethers::utils::keccak256(data))
 }

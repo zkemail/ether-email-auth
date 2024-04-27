@@ -193,6 +193,12 @@ pub fn hex_to_u256(hex: &str) -> Result<U256, hex::FromHexError> {
     Ok(U256::from_big_endian(&array))
 }
 
+pub fn u64_to_u8_array_32(value: u64) -> [u8; 32] {
+    let mut array = [0u8; 32];
+    array[..8].copy_from_slice(&value.to_be_bytes());
+    array
+}
+
 pub fn hex2field_node(cx: &mut FunctionContext, input_strs: &str) -> NeonResult<Fr> {
     match hex2field(input_strs) {
         Ok(field) => Ok(field),
