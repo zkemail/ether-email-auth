@@ -79,7 +79,6 @@ NOTE: You need to turn on IMAP on the email id you’d be using for the relayer.
 8. Apply `relayer.yml` , ssh into the pod and run `nohup cargo run &` , this step should be done under a min to pass the liveness check.
 9. Apply `ingress.yml`
 
-
 ## Specification
 ### Database
 It has the following tables in the DB.
