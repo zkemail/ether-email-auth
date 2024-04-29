@@ -3,6 +3,7 @@ pragma solidity ^0.8.12;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {EmailAccountRecovery} from "../../src/EmailAccountRecovery.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
 contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
     enum GuardianStatus {
@@ -54,7 +55,7 @@ contract SimpleWallet is OwnableUpgradeable, EmailAccountRecovery {
         uint256 amount
     ) public onlyNotRecoveringOwner {
         require(address(this).balance >= amount, "insufficient balance");
-        payable(to).transfer(amount);
+        Address.sendValue(payable(to), amount);
     }
 
     function withdraw(uint256 amount) public onlyNotRecoveringOwner {
