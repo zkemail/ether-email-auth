@@ -81,12 +81,14 @@ contract DeploymentHelper is Test {
         SimpleWallet simpleWalletImpl = new SimpleWallet();
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
-            abi.encodeWithSelector(
-                simpleWalletImpl.initialize.selector,
-                signer,
-                address(verifier),
-                address(dkim),
-                address(emailAuthImpl)
+            abi.encodeCall(
+                simpleWalletImpl.initialize,
+                (
+                    signer,
+                    address(verifier),
+                    address(dkim),
+                    address(emailAuthImpl)
+                )
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
