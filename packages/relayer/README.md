@@ -1,5 +1,84 @@
 This is a Relayer server implementation in Rust for email-based account recovery.
 
+## How to Run the Relayer
+You can run the relayer either on your local environments or cloud instances (we are using GCP).
+### Local
+1. Clone the repo, https://github.com/zkemail/ether-email-auth.
+2. Install dependencies.
+    1. `cd ether-email-auth` and run `yarn`.
+3. If you have not deployed common contracts, build contract artifacts and deploy required contracts.
+    1. `cd packages/contracts` and run `forge build`.
+    2. Set the env file in `packages/contracts/.env`, an example env file is as follows,
+    
+    ```jsx
+    LOCALHOST_RPC_URL=http://127.0.0.1:8545
+    SEPOLIA_RPC_URL=https://sepolia.base.org
+    MAINNET_RPC_URL=https://mainnet.base.org
+    
+    PRIVATE_KEY=""
+    CHAIN_ID=84532
+    RPC_URL="https://sepolia.base.org"
+    SIGNER=0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0 # Signer for the dkim oracle on IC
+    ETHERSCAN_API_KEY=
+    # CHAIN_NAME="base_sepolia"
+    ```
+    3. Run `forge script script/DeployCommons.s.sol:Deploy -vvvv --rpc-url $RPC_URL --broadcast` to get `ECDSAOwnedDKIMRegistry`, `Verifier`, `EmailAuth implementation` and `SimpleWallet implementation`.
+4. Install PostgreSQL and create a database.
+    1. `psql -U <admin_user> -d postgres` to login to administrative PostgreSQL user. Replace **`<admin_user>`** with the administrative PostgreSQL user (commonly **`postgres`**).
+    2. Create a new user, `CREATE USER my_new_user WITH PASSWORD 'my_secure_password';`, `ALTER USER my_new_user CREATEDB;`.
+    3. Exit `psql` and now create a new database, `psql -U new_user -d postgres` followed by `CREATE DATABASE my_new_database;`.
+5. Run the prover.
+    1. `cd packages/prover` and `python local.py`, let this run async.
+6. Run the relayer.
+    1. `cd packages/relayer`.
+    2. Set the env file, an example env file is as follows,
+        ```jsx
+        EMAIL_ACCOUNT_RECOVERY_VERSION_ID=1           # Address of the deployed wallet contract.
+        PRIVATE_KEY=                      # Private key for Relayer's account.
+        CHAIN_RPC_PROVIDER=https://sepolia.base.org
+        CHAIN_RPC_EXPLORER=https://sepolia.basescan.org
+        CHAIN_ID=84532                    # Chain ID of the testnet.
+        
+        # IMAP + SMTP (Settings will be provided by your email provider)
+        IMAP_DOMAIN_NAME=imap.gmail.com
+        IMAP_PORT=993
+        AUTH_TYPE=password
+        SMTP_DOMAIN_NAME=smtp.gmail.com
+        LOGIN_ID=                    # IMAP login id - usually your email address.
+        LOGIN_PASSWORD=""         # IMAP password - usually your email password.
+        
+        PROVER_ADDRESS="http://localhost:8080"  # Address of the prover.
+        
+        DATABASE_URL= "postgres://new_user:my_secure_password@localhost/my_new_database"
+        WEB_SERVER_ADDRESS="127.0.0.1:4500"
+        CIRCUITS_DIR_PATH=  # Absolute path to packages/circuits
+        EMAIL_TEMPLATES_PATH=  # Absolute path to packages/relayer/eml_templates
+        
+        CANISTER_ID="q7eci-dyaaa-aaaak-qdbia-cai"
+        PEM_PATH="./.ic.pem"
+        IC_REPLICA_URL="https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
+        
+        JSON_LOGGER=false
+        ```
+7. You should have your entire setup up and running!
+
+NOTE: You need to turn on IMAP on the email id you’d be using for the relayer.
+
+### Production on GCP
+1. Install `kubectl` on your system (https://kubernetes.io/docs/tasks/tools/)
+2. Setup k8s config of `zkemail` cluster on GKE,
+`gcloud container clusters get-credentials zkemail --region us-central1 --project (your_project_name)`
+3. One time steps (already done)
+    1. Create a static IP (https://cloud.google.com/vpc/docs/reserve-static-external-ip-address#gcloud)
+    2. Map the static IP with a domain from Google Domain
+    3. Create a `Managed Certificate` by applying `kubernetes/managed-cert.yml` (update the domain accordingly)
+4. (Optional) Delete `db.yml` , `ingress.yml`  and `relayer.yml` if applied already
+5. (Optional) Build the Relayer’s Docker image and publish it.
+6. Set the config in the respective manifests (Here, you can set the image of the relayer in `relayer.yml` , latest image already present in the config.)
+7. Apply `db.yml` 
+8. Apply `relayer.yml` , ssh into the pod and run `nohup cargo run &` , this step should be done under a min to pass the liveness check.
+9. Apply `ingress.yml`
+
 ## Specification
 ### Database
 It has the following tables in the DB.

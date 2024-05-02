@@ -34,10 +34,7 @@ contract StructHelper is DeploymentHelper {
 
         vm.mockCall(
             address(verifier),
-            abi.encodeWithSelector(
-                Verifier.verifyEmailProof.selector,
-                emailProof
-            ),
+            abi.encodeCall(Verifier.verifyEmailProof, (emailProof)),
             abi.encode(true)
         );
     }
