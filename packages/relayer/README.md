@@ -64,6 +64,28 @@ You can run the relayer either on your local environments or cloud instances (we
 
 NOTE: You need to turn on IMAP on the email id you’d be using for the relayer.
 
+#### Appendix: If you use your own gmail for the relayer
+
+If you intend to use a Gmail address, you need to configure your Google account and Gmail as follows:
+
+##### Enable IMAP:
+
+Gmail -> See all settings -> Forwarding and POP/IMAP -> IMAP access -> Enable IMAP.
+
+Note that from June 2024, IMAP will be enabled by default.
+
+##### Enable two-factor authentication for your Google account:
+
+Refer to the following help link. 
+
+[Google 2FA Setup](https://support.google.com/accounts/answer/185839?hl=en&co=GENIE.Platform%3DDesktop)
+
+##### Create an app password: 
+
+Refer to the following help link. If you do not see the 'App passwords' option, try searching for 'app pass' in the search box to select it.
+
+[Google App Passwords](https://support.google.com/accounts/answer/185833?hl=en)
+
 ### Production on GCP
 1. Install `kubectl` on your system (https://kubernetes.io/docs/tasks/tools/)
 2. Setup k8s config of `zkemail` cluster on GKE,
