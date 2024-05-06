@@ -3,25 +3,26 @@ mod simple_wallet;
 pub(crate) use erc1967_proxy::*;
 use ethers::utils::to_checksum;
 use futures::future::join_all;
+
 use relayer_utils::converters::{field2hex, fr_to_bytes32};
 use relayer_utils::cryptos::{AccountCode, AccountSalt, PaddedEmailAddr};
 use relayer_utils::parse_email::ParsedEmail;
 use relayer_utils::regex::extract_substr_idxes;
 use serde_json::json;
-use simple_wallet::InitializeCall;
+
 pub(crate) use simple_wallet::*;
 
 use anyhow::{anyhow, Result};
 use dotenv::dotenv;
-use ethers::abi::AbiEncode;
+
 use ethers::middleware::Middleware;
 use ethers::prelude::*;
 use ethers::signers::Signer;
 use relayer::*;
-use relayer_utils::*;
+
 use reqwest;
 use std::env;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::Duration;
 use tokio::task;
 use tokio::time::sleep;
@@ -127,22 +128,30 @@ impl TestEnv {
             println!("ETH Transfer tx hash: {}", tx_hash);
         }
 
-        let wallet_init_call = SimpleWalletCalls::Initialize(InitializeCall {
-            initial_owner: self.main_client.client.address(),
-            verifier: self.verifier_addr,
-            dkim: self.dkim_addr,
-            email_auth_implementation: self.email_auth_impl_addr,
-        });
-        let wallet_init_data = wallet_init_call.encode();
-        let proxy_deploy = ERC1967Proxy::deploy(
+        let wallet_contract = SimpleWallet::deploy(test_client.clone(), ())
+            .unwrap()
+            .send()
+            .await?;
+        let wallet_init_data = wallet_contract
+            .initialize(
+                self.main_client.client.address(),
+                self.verifier_addr,
+                self.dkim_addr,
+                self.email_auth_impl_addr,
+            )
+            .calldata()
+            .expect("Failed to get calldata");
+        let proxy = ERC1967Proxy::deploy(
             test_client.clone(),
             (self.wallet_impl_addr, wallet_init_data),
-        )?;
-        let proxy = proxy_deploy.send().await?;
-        let wallet = SimpleWallet::new(proxy.address(), test_client.clone());
+        )
+        .unwrap()
+        .send()
+        .await?;
+
         let new_owner = LocalWallet::new(&mut rand::thread_rng()).address();
         let relayer_hostname = env::var("TEST_RELAYER_HOSTNAME").unwrap();
-
+        let wallet = SimpleWallet::new(proxy.address(), test_client.clone());
         let test_account = TestAccount {
             client: test_client,
             wallet,
@@ -182,8 +191,8 @@ impl TestAccount {
         let smtp_client = SmtpClient::new(smtp_config)?;
 
         let mut request_id: Option<u64> = None;
-        let mut account_code: AccountCode = AccountCode::new(rand::thread_rng());
-        let mut guardian_email_addr = env::var("TEST_LOGIN_ID").unwrap();
+        let account_code: AccountCode = AccountCode::new(rand::thread_rng());
+        let guardian_email_addr = env::var("TEST_LOGIN_ID").unwrap();
         let account_salt = AccountSalt::new(
             &PaddedEmailAddr::from_email_addr(&guardian_email_addr),
             account_code,
@@ -404,7 +413,7 @@ impl TestAccount {
             return Err(anyhow!("API call to acceptanceRequest failed"));
         }
         let res_json = res.json::<AcceptanceResponse>().await?;
-        Ok(res_json.request_id)
+        Ok(res_json.request_id.into())
     }
 
     async fn call_recovery_request_api(&mut self, guardian_email_addr: &str) -> Result<u64> {
@@ -430,7 +439,7 @@ impl TestAccount {
             return Err(anyhow!("API call to recoveryRequest failed"));
         }
         let res_json = res.json::<RecoveryResponse>().await?;
-        Ok(res_json.request_id)
+        Ok(res_json.request_id.into())
     }
 
     async fn complete_recovery(&mut self) -> Result<()> {
