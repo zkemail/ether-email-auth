@@ -34,6 +34,14 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     mapping(bytes32 => bool) public usedNullifiers;
     bool public timestampCheckEnabled;
 
+    event DKIMRegistryUpdated(address indexed dkimRegistry);
+    event VerifierUpdated(address indexed verifier);
+    event SubjectTemplateInserted(uint indexed templateId);
+    event SubjectTemplateUpdated(uint indexed templateId);
+    event SubjectTemplateDeleted(uint indexed templateId);
+    event EmailAuthed(bytes32 indexed emailNullifier, bytes32 indexed msgHash, bytes32 indexed accountSalt, bool isCodeExist, uint templateId);
+    event TimestampCheckEnabled(bool enabled);
+
     constructor() {}
 
     /// @notice Initialize the contract with an initial owner and an account salt.
@@ -68,6 +76,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             "invalid dkim registry address"
         );
         dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
+        emit DKIMRegistryUpdated(_dkimRegistryAddr);
     }
 
     /// @notice Updates the address of the verifier contract.
@@ -75,6 +84,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function updateVerifier(address _verifierAddr) public onlyOwner {
         require(_verifierAddr != address(0), "invalid verifier address");
         verifier = Verifier(_verifierAddr);
+        emit VerifierUpdated(_verifierAddr);
     }
 
     /// @notice Retrieves a subject template by its ID.
@@ -103,6 +113,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             "template id already exists"
         );
         subjectTemplates[_templateId] = _subjectTemplate;
+        emit SubjectTemplateInserted(_templateId);
     }
 
     /// @notice Updates an existing subject template by its ID.
@@ -119,6 +130,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             "template id not exists"
         );
         subjectTemplates[_templateId] = _subjectTemplate;
+        emit SubjectTemplateUpdated(_templateId);
     }
 
     /// @notice Deletes an existing subject template by its ID.
@@ -130,6 +142,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             "template id not exists"
         );
         delete subjectTemplates[_templateId];
+        emit SubjectTemplateDeleted(_templateId);
     }
 
     /// @notice Computes the hash of an email auth message.
@@ -219,7 +232,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
         lastTimestamp = emailAuthMsg.proof.timestamp;
         authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
-
+        emit EmailAuthed(
+            emailAuthMsg.proof.emailNullifier,
+            msgHash,
+            emailAuthMsg.proof.accountSalt,
+            emailAuthMsg.proof.isCodeExist,
+            emailAuthMsg.templateId
+        );
         return msgHash;
     }
 
@@ -244,6 +263,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @param _enabled Boolean flag to enable or disable the timestamp check.
     function setTimestampCheckEnabled(bool _enabled) public onlyOwner {
         timestampCheckEnabled = _enabled;
+        emit TimestampCheckEnabled(_enabled);
     }
 
     /// @notice Upgrade the implementation of the proxy.

@@ -18,7 +18,11 @@ contract EmailAuthTest is StructHelper {
 
         vm.startPrank(deployer);
         emailAuth.initialize(deployer, accountSalt);
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.VerifierUpdated(address(verifier));
         emailAuth.updateVerifier(address(verifier));
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.DKIMRegistryUpdated(address(dkim));
         emailAuth.updateDKIMRegistry(address(dkim));
         vm.stopPrank();
     }
@@ -38,6 +42,8 @@ contract EmailAuthTest is StructHelper {
 
         vm.startPrank(deployer);
         ECDSAOwnedDKIMRegistry newDKIM = new ECDSAOwnedDKIMRegistry(msg.sender);
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
         emailAuth.updateDKIMRegistry(address(newDKIM));
         vm.stopPrank();
 
@@ -60,6 +66,8 @@ contract EmailAuthTest is StructHelper {
 
         vm.startPrank(deployer);
         Verifier newVerifier = new Verifier();
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.VerifierUpdated(address(newVerifier));
         emailAuth.updateVerifier(address(newVerifier));
         vm.stopPrank();
 
@@ -87,6 +95,12 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testInsertSubjectTemplate() public {
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.SubjectTemplateInserted(templateId);
+        _testInsertSubjectTemplate();
+    }
+
+    function _testInsertSubjectTemplate() private {
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
         string[] memory result = emailAuth.getSubjectTemplate(templateId);
         assertEq(result, subjectTemplate);
@@ -116,13 +130,15 @@ contract EmailAuthTest is StructHelper {
         string[] memory result = emailAuth.getSubjectTemplate(templateId);
 
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         vm.stopPrank();
 
         result = emailAuth.getSubjectTemplate(templateId);
         assertEq(result, subjectTemplate);
 
         vm.startPrank(deployer);
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.SubjectTemplateUpdated(templateId);
         emailAuth.updateSubjectTemplate(templateId, newSubjectTemplate);
         vm.stopPrank();
 
@@ -163,13 +179,15 @@ contract EmailAuthTest is StructHelper {
 
     function testDeleteSubjectTemplate() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         vm.stopPrank();
 
         string[] memory result = emailAuth.getSubjectTemplate(templateId);
         assertEq(result, subjectTemplate);
 
         vm.startPrank(deployer);
+        vm.expectEmit(true,false,false,false);
+        emit EmailAuth.SubjectTemplateDeleted(templateId);
         emailAuth.deleteSubjectTemplate(templateId);
         vm.stopPrank();
 
@@ -212,7 +230,7 @@ contract EmailAuthTest is StructHelper {
 
     function testAuthEmail() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -224,6 +242,14 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
+        vm.expectEmit(true,true,true,true);
+        emit EmailAuth.EmailAuthed(
+            emailAuthMsg.proof.emailNullifier,
+            bytes32(0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5),
+            emailAuthMsg.proof.accountSalt,
+            emailAuthMsg.proof.isCodeExist,
+            emailAuthMsg.templateId
+        );
         bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
         assertEq(
             msgHash,
@@ -281,7 +307,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidDkimPublicKeyHash() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -301,7 +327,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailEmailNullifierAlreadyUsed() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -321,7 +347,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidAccountSalt() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -341,7 +367,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidTimestamp() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
@@ -367,7 +393,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidSubject() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -387,7 +413,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidEmailProof() public {
         vm.startPrank(deployer);
-        this.testInsertSubjectTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -432,6 +458,8 @@ contract EmailAuthTest is StructHelper {
         vm.startPrank(deployer);
 
         assertTrue(emailAuth.timestampCheckEnabled());
+        vm.expectEmit(true, false, false, false);
+        emit EmailAuth.TimestampCheckEnabled(false);
         emailAuth.setTimestampCheckEnabled(false);
         assertFalse(emailAuth.timestampCheckEnabled());
 
