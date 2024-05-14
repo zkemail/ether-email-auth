@@ -23,7 +23,7 @@ contract DeploymentHelper is Test {
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
-    address guardian = address(0xCfBb461d24554AE7653575696cCb0A917E8551D7);
+    address guardian = address(0xB14671BD69AA90F42424d636386cA57b97f4d282);
     address newSigner = vm.addr(4);
     address someRelayer = vm.addr(5);
 

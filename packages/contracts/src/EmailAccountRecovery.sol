@@ -4,6 +4,10 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
+
+// TODO: REMOVE IT LATER
+import "forge-std/console.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -80,22 +84,21 @@ abstract contract EmailAccountRecovery {
     function computeEmailAuthAddress(
         bytes32 accountSalt
     ) public view returns (address) {
-        return
-            Create2.computeAddress(
-                accountSalt,
-                keccak256(
-                    abi.encodePacked(
-                        type(ERC1967Proxy).creationCode,
-                        abi.encode(
-                            emailAuthImplementation(),
-                            abi.encodeCall(
-                                EmailAuth.initialize,
-                                (address(this), accountSalt)
-                            )
-                        )
+
+        return L2ContractHelper.computeCreate2Address(
+            address(this),
+            accountSalt,
+            keccak256(type(ERC1967Proxy).creationCode),
+            keccak256(
+                abi.encode(
+                    emailAuthImplementation(),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (address(this), accountSalt)
                     )
                 )
-            );
+            )
+        );
     }
 
     /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
@@ -137,7 +140,6 @@ abstract contract EmailAccountRecovery {
                 )
             );
     }
-
     /// @notice Handles an acceptance by a new guardian.
     /// @dev This function validates the email auth message, deploys a new EmailAuth contract as a proxy if validations pass and initializes the contract.
     /// @param emailAuthMsg The email auth message for the email send from the guardian.
@@ -167,6 +169,10 @@ abstract contract EmailAccountRecovery {
                 (address(this), emailAuthMsg.proof.accountSalt)
             )
         );
+        // TODO: REMOVE IT LATER
+        console.log("deployed proxy", address(proxy));
+        console.log("computed guardian", guardian);
+
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.updateDKIMRegistry(dkim());
         guardianEmailAuth.updateVerifier(verifier());
@@ -207,6 +213,7 @@ abstract contract EmailAccountRecovery {
         address guardian = computeEmailAuthAddress(
             emailAuthMsg.proof.accountSalt
         );
+        // Check if the guardian is deployed
         require(address(guardian).code.length > 0, "guardian is not deployed");
         uint templateId = uint256(
             keccak256(
