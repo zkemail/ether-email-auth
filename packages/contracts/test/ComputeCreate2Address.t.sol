@@ -17,6 +17,8 @@ contract ComputeCreate2AddressTest is StructHelper {
     function testComputeCreate2Address() public {
         bytes32 accountSalt = 0x0;
 
+        // See the example code
+        // https://github.com/matter-labs/foundry-zksync/blob/13497a550e4a097c57bec7430435ab810a6d10fc/zk-tests/src/Contracts.t.sol#L195
         string memory artifact = vm.readFile(
             "zkout/ERC1967Proxy.sol/artifacts.json"
         );
