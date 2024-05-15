@@ -183,6 +183,10 @@ contract EmailAccountRecoveryTest is StructHelper {
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        address computedGuardian = simpleWallet.computeEmailAuthAddress(
+            emailAuthMsg.proof.accountSalt
+        );
+        console.log("computed guardian", computedGuardian);
         uint templateId = simpleWallet.computeAcceptanceTemplateId(templateIdx);
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);

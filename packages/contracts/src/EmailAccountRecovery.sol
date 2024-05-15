@@ -85,10 +85,13 @@ abstract contract EmailAccountRecovery {
         bytes32 accountSalt
     ) public view returns (address) {
 
+        // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+        // If you failed some test cases, check the bytecodeHash by yourself
+        // see, test/ComputeCreate2Address.t.sol
         return L2ContractHelper.computeCreate2Address(
             address(this),
             accountSalt,
-            keccak256(type(ERC1967Proxy).creationCode),
+            bytes32(0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de),
             keccak256(
                 abi.encode(
                     emailAuthImplementation(),
@@ -151,6 +154,7 @@ abstract contract EmailAccountRecovery {
         address guardian = computeEmailAuthAddress(
             emailAuthMsg.proof.accountSalt
         );
+        console.log("computed guardian", guardian);
         require(
             address(guardian).code.length == 0,
             "guardian is already deployed"
@@ -171,7 +175,7 @@ abstract contract EmailAccountRecovery {
         );
         // TODO: REMOVE IT LATER
         console.log("deployed proxy", address(proxy));
-        console.log("computed guardian", guardian);
+        
 
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.updateDKIMRegistry(dkim());
