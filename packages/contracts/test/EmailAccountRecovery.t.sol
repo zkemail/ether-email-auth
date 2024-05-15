@@ -455,14 +455,20 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
         emailAuthMsg.proof.accountSalt = 0x0;
 
+        address computedGuardian = simpleWallet.computeEmailAuthAddress(
+            emailAuthMsg.proof.accountSalt
+        );
+        console.log("computed guardian", computedGuardian);
+        
         vm.mockCall(
             address(simpleWallet.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
+
         // Deploy mock guardian, that status is NONE
         vm.mockCall(
-            address(0x08D901253E998F1767412D7F08b6244c2EFa36A2),
+            address(0x889170C6bEe9053626f8460A9875d22Cf6DE0782),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
