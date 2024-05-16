@@ -197,7 +197,7 @@ It also provides the following entry functions with their default implementation
 You should use foundry-zksync, the installation process is following URL.
 https://github.com/matter-labs/foundry-zksync
 
-Current version foundry-zksync is forge 0.0.2 (01f61ff 2024-05-13T00:25:58.292512000Z)
+Current version foundry-zksync is forge 0.0.2 (13497a5 2024-05-16T00:24:48.304138000Z)
 They can't use solc 0.8.25, so you should set appreciate solc version in foundry.toml.
 For ex. 
 
