@@ -147,7 +147,10 @@ contract Groth16Verifier {
     
     uint256 constant IC34x = 17200277971154844558795152972305030598825544262989507243870426175345494329533;
     uint256 constant IC34y = 13245378736717227505280905840466588681621373751130811528368986104264297516492;
-    
+
+    address constant ecAddAddr = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
+    address constant ecMulAddr = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
+    address constant ecPairingAddr = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
  
     // Memory data
     uint16 constant pVk = 0;
@@ -172,7 +175,7 @@ contract Groth16Verifier {
                 mstore(add(mIn, 32), y)
                 mstore(add(mIn, 64), s)
 
-                success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
+                success := staticcall(sub(gas(), 2000), ecMulAddr, mIn, 96, mIn, 64)
 
                 if iszero(success) {
                     mstore(0, 0)
@@ -182,7 +185,7 @@ contract Groth16Verifier {
                 mstore(add(mIn, 64), mload(pR))
                 mstore(add(mIn, 96), mload(add(pR, 32)))
 
-                success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
+                success := staticcall(sub(gas(), 2000), ecAddAddr, mIn, 128, pR, 64)
 
                 if iszero(success) {
                     mstore(0, 0)
@@ -310,7 +313,7 @@ contract Groth16Verifier {
                 mstore(add(_pPairing, 736), deltay2)
 
 
-                let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
+                let success := staticcall(sub(gas(), 2000), ecPairingAddr, _pPairing, 768, _pPairing, 0x20)
 
                 isOk := and(success, mload(_pPairing))
             }
