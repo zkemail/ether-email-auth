@@ -279,14 +279,43 @@ Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
 Transaction hash: 0xfdca7b9eb3ae933ca123111489572427ee95eb6be74978b24c73fe74cb4988d7
 ```
 
+About Create2, `L2ContractHelper.computeCreate2Address` should be used.
+And `type(ERC1967Proxy).creationCode` doesn't work correctly.
+We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
+Perhaps that is different value in each compiler version.
+
+You should replace the following line to the correct hash.
+packages/contracts/src/EmailAccountRecovery.sol:L94 
+
+See, test/ComputeCreate2Address.t.sol
+
 # For zksync testing
 
-TODO
-
 Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
-Therefore, EmailAccountRecovery.t.sol will be split.
+Therefore, EmailAccountRecovery.t.sol has been splited.
 
-Some test cases are currently failing because the address derivation method in create2 is different from that in EVM.
-currently checking the correct way to derive addresses.
+Currently some test cases are not work correctly because there is a issue about missing libraries.
 
+Failing test cases are here.
 
+- testAuthEmail()
+- testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
+- testExpectRevertAuthEmailInvalidEmailProof()
+- testExpectRevertAuthEmailInvalidSubject()
+- testExpectRevertAuthEmailInvalidTimestamp()
+- testIsValidSignature()
+- testIsValidSignatureReturnsFalse()
+
+# For zksync deployment (For test net)
+
+You need to edit .env at first.
+Second just run the following commands with `--zksync`
+
+```
+source .env
+forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
+```
+
+# Rest of tasks
+
+- [ ] Introduce conditional branching for zksync and other cases to unify the code.
