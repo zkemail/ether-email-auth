@@ -85,23 +85,42 @@ abstract contract EmailAccountRecovery {
         bytes32 accountSalt
     ) public view returns (address) {
 
-        // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
-        // If you failed some test cases, check the bytecodeHash by yourself
-        // see, test/ComputeCreate2Address.t.sol
-        return L2ContractHelper.computeCreate2Address(
-            address(this),
-            accountSalt,
-            bytes32(0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de),
-            keccak256(
-                abi.encode(
-                    emailAuthImplementation(),
-                    abi.encodeCall(
-                        EmailAuth.initialize,
-                        (address(this), accountSalt)
+        // If on zksync, we use L2ContractHelper.computeCreate2Address
+        if(block.chainid == 324 || block.chainid == 300) {
+            // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+            // If you failed some test cases, check the bytecodeHash by yourself
+            // see, test/ComputeCreate2Address.t.sol
+            return L2ContractHelper.computeCreate2Address(
+                address(this),
+                accountSalt,
+                bytes32(0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de),
+                keccak256(
+                    abi.encode(
+                        emailAuthImplementation(),
+                        abi.encodeCall(
+                            EmailAuth.initialize,
+                            (address(this), accountSalt)
+                        )
                     )
                 )
-            )
-        );
+            );            
+        } else {
+            return Create2.computeAddress(
+                accountSalt,
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
+                        abi.encode(
+                            emailAuthImplementation(),
+                            abi.encodeCall(
+                                EmailAuth.initialize,
+                                (address(this), accountSalt)
+                            )
+                        )
+                    )
+                )
+            );
+        }
     }
 
     /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.

@@ -148,9 +148,14 @@ contract Groth16Verifier {
     uint256 constant IC34x = 17200277971154844558795152972305030598825544262989507243870426175345494329533;
     uint256 constant IC34y = 13245378736717227505280905840466588681621373751130811528368986104264297516492;
 
-    address constant ecAddAddr = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
-    address constant ecMulAddr = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
-    address constant ecPairingAddr = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
+    // For zksync mainnet
+    address constant ecAddAddrZkSync = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
+    address constant ecMulAddrZkSync = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
+    address constant ecPairingAddrZkSync = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
+    // For zksync sepolia
+    address constant ecAddAddrZkSyncSepolia = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
+    address constant ecMulAddrZkSyncSepolia = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
+    address constant ecPairingAddrZkSyncSepolia = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
  
     // Memory data
     uint16 constant pVk = 0;
@@ -159,7 +164,28 @@ contract Groth16Verifier {
     uint16 constant pLastMem = 896;
 
     function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[34] calldata _pubSignals) public view returns (bool) {
+
+        uint16 zksync;
+        if(block.chainid == 300) {
+            zksync = 2; // zkSync sepolia
+        } else if(block.chainid == 324) {
+            zksync = 1; // zkSync mainnet
+        } else {
+            zksync = 0; // others
+        }
+
         assembly {
+            // switch _zksync
+            //     case 1 { 
+            //         success := staticcall(sub(gas(), 2000), ecMulAddr, mIn, 96, mIn, 64)
+            //     }
+            //     case 2 {
+            //         success := staticcall(sub(gas(), 2000), ecMulAddr, mIn, 96, mIn, 64)
+            //     }
+            //     default { 
+            //         success := staticcall(sub(gas(), 2000), ecMulAddr, mIn, 96, mIn, 64)
+            //     }
+
             function checkField(v) {
                 if iszero(lt(v, q)) {
                     mstore(0, 0)
@@ -168,15 +194,24 @@ contract Groth16Verifier {
             }
             
             // G1 function to multiply a G1 value(x,y) to value in an address
-            function g1_mulAccC(pR, x, y, s) {
+            function g1_mulAccC(pR, x, y, s, z) {
                 let success
                 let mIn := mload(0x40)
                 mstore(mIn, x)
                 mstore(add(mIn, 32), y)
                 mstore(add(mIn, 64), s)
 
-                success := staticcall(sub(gas(), 2000), ecMulAddr, mIn, 96, mIn, 64)
-
+                switch z
+                case 1 { 
+                    success := staticcall(sub(gas(), 2000), ecMulAddrZkSync, mIn, 96, mIn, 64)
+                }
+                case 2 {
+                    success := staticcall(sub(gas(), 2000), ecMulAddrZkSyncSepolia, mIn, 96, mIn, 64)
+                }
+                default { 
+                    success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
+                }
+                
                 if iszero(success) {
                     mstore(0, 0)
                     return(0, 0x20)
@@ -185,7 +220,17 @@ contract Groth16Verifier {
                 mstore(add(mIn, 64), mload(pR))
                 mstore(add(mIn, 96), mload(add(pR, 32)))
 
-                success := staticcall(sub(gas(), 2000), ecAddAddr, mIn, 128, pR, 64)
+                switch z
+                case 1 { 
+                    success := staticcall(sub(gas(), 2000), ecAddAddrZkSync, mIn, 128, pR, 64)
+                }
+                case 2 {
+                    success := staticcall(sub(gas(), 2000), ecAddAddrZkSyncSepolia, mIn, 128, pR, 64)
+                }
+                default { 
+                    success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
+                }
+
 
                 if iszero(success) {
                     mstore(0, 0)
@@ -193,7 +238,7 @@ contract Groth16Verifier {
                 }
             }
 
-            function checkPairing(pA, pB, pC, pubSignals, pMem) -> isOk {
+            function checkPairing(pA, pB, pC, pubSignals, pMem, z) -> isOk {
                 let _pPairing := add(pMem, pPairing)
                 let _pVk := add(pMem, pVk)
 
@@ -202,73 +247,73 @@ contract Groth16Verifier {
 
                 // Compute the linear combination vk_x
                 
-                g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)))
+                g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)), z)
                 
-                g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)))
+                g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)), z)
                 
-                g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)))
+                g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)), z)
                 
-                g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)))
+                g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)), z)
                 
-                g1_mulAccC(_pVk, IC5x, IC5y, calldataload(add(pubSignals, 128)))
+                g1_mulAccC(_pVk, IC5x, IC5y, calldataload(add(pubSignals, 128)), z)
                 
-                g1_mulAccC(_pVk, IC6x, IC6y, calldataload(add(pubSignals, 160)))
+                g1_mulAccC(_pVk, IC6x, IC6y, calldataload(add(pubSignals, 160)), z)
                 
-                g1_mulAccC(_pVk, IC7x, IC7y, calldataload(add(pubSignals, 192)))
+                g1_mulAccC(_pVk, IC7x, IC7y, calldataload(add(pubSignals, 192)), z)
                 
-                g1_mulAccC(_pVk, IC8x, IC8y, calldataload(add(pubSignals, 224)))
+                g1_mulAccC(_pVk, IC8x, IC8y, calldataload(add(pubSignals, 224)), z)
                 
-                g1_mulAccC(_pVk, IC9x, IC9y, calldataload(add(pubSignals, 256)))
+                g1_mulAccC(_pVk, IC9x, IC9y, calldataload(add(pubSignals, 256)), z)
                 
-                g1_mulAccC(_pVk, IC10x, IC10y, calldataload(add(pubSignals, 288)))
+                g1_mulAccC(_pVk, IC10x, IC10y, calldataload(add(pubSignals, 288)), z)
                 
-                g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)))
+                g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)), z)
                 
-                g1_mulAccC(_pVk, IC12x, IC12y, calldataload(add(pubSignals, 352)))
+                g1_mulAccC(_pVk, IC12x, IC12y, calldataload(add(pubSignals, 352)), z)
                 
-                g1_mulAccC(_pVk, IC13x, IC13y, calldataload(add(pubSignals, 384)))
+                g1_mulAccC(_pVk, IC13x, IC13y, calldataload(add(pubSignals, 384)), z)
                 
-                g1_mulAccC(_pVk, IC14x, IC14y, calldataload(add(pubSignals, 416)))
+                g1_mulAccC(_pVk, IC14x, IC14y, calldataload(add(pubSignals, 416)), z)
                 
-                g1_mulAccC(_pVk, IC15x, IC15y, calldataload(add(pubSignals, 448)))
+                g1_mulAccC(_pVk, IC15x, IC15y, calldataload(add(pubSignals, 448)), z)
                 
-                g1_mulAccC(_pVk, IC16x, IC16y, calldataload(add(pubSignals, 480)))
+                g1_mulAccC(_pVk, IC16x, IC16y, calldataload(add(pubSignals, 480)), z)
                 
-                g1_mulAccC(_pVk, IC17x, IC17y, calldataload(add(pubSignals, 512)))
+                g1_mulAccC(_pVk, IC17x, IC17y, calldataload(add(pubSignals, 512)), z)
                 
-                g1_mulAccC(_pVk, IC18x, IC18y, calldataload(add(pubSignals, 544)))
+                g1_mulAccC(_pVk, IC18x, IC18y, calldataload(add(pubSignals, 544)), z)
                 
-                g1_mulAccC(_pVk, IC19x, IC19y, calldataload(add(pubSignals, 576)))
+                g1_mulAccC(_pVk, IC19x, IC19y, calldataload(add(pubSignals, 576)), z)
                 
-                g1_mulAccC(_pVk, IC20x, IC20y, calldataload(add(pubSignals, 608)))
+                g1_mulAccC(_pVk, IC20x, IC20y, calldataload(add(pubSignals, 608)), z)
                 
-                g1_mulAccC(_pVk, IC21x, IC21y, calldataload(add(pubSignals, 640)))
+                g1_mulAccC(_pVk, IC21x, IC21y, calldataload(add(pubSignals, 640)), z)
                 
-                g1_mulAccC(_pVk, IC22x, IC22y, calldataload(add(pubSignals, 672)))
+                g1_mulAccC(_pVk, IC22x, IC22y, calldataload(add(pubSignals, 672)), z)
                 
-                g1_mulAccC(_pVk, IC23x, IC23y, calldataload(add(pubSignals, 704)))
+                g1_mulAccC(_pVk, IC23x, IC23y, calldataload(add(pubSignals, 704)), z)
                 
-                g1_mulAccC(_pVk, IC24x, IC24y, calldataload(add(pubSignals, 736)))
+                g1_mulAccC(_pVk, IC24x, IC24y, calldataload(add(pubSignals, 736)), z)
                 
-                g1_mulAccC(_pVk, IC25x, IC25y, calldataload(add(pubSignals, 768)))
+                g1_mulAccC(_pVk, IC25x, IC25y, calldataload(add(pubSignals, 768)), z)
                 
-                g1_mulAccC(_pVk, IC26x, IC26y, calldataload(add(pubSignals, 800)))
+                g1_mulAccC(_pVk, IC26x, IC26y, calldataload(add(pubSignals, 800)), z)
                 
-                g1_mulAccC(_pVk, IC27x, IC27y, calldataload(add(pubSignals, 832)))
+                g1_mulAccC(_pVk, IC27x, IC27y, calldataload(add(pubSignals, 832)), z)
                 
-                g1_mulAccC(_pVk, IC28x, IC28y, calldataload(add(pubSignals, 864)))
+                g1_mulAccC(_pVk, IC28x, IC28y, calldataload(add(pubSignals, 864)), z)
                 
-                g1_mulAccC(_pVk, IC29x, IC29y, calldataload(add(pubSignals, 896)))
+                g1_mulAccC(_pVk, IC29x, IC29y, calldataload(add(pubSignals, 896)), z)
                 
-                g1_mulAccC(_pVk, IC30x, IC30y, calldataload(add(pubSignals, 928)))
+                g1_mulAccC(_pVk, IC30x, IC30y, calldataload(add(pubSignals, 928)), z)
                 
-                g1_mulAccC(_pVk, IC31x, IC31y, calldataload(add(pubSignals, 960)))
+                g1_mulAccC(_pVk, IC31x, IC31y, calldataload(add(pubSignals, 960)), z)
                 
-                g1_mulAccC(_pVk, IC32x, IC32y, calldataload(add(pubSignals, 992)))
+                g1_mulAccC(_pVk, IC32x, IC32y, calldataload(add(pubSignals, 992)), z)
                 
-                g1_mulAccC(_pVk, IC33x, IC33y, calldataload(add(pubSignals, 1024)))
+                g1_mulAccC(_pVk, IC33x, IC33y, calldataload(add(pubSignals, 1024)), z)
                 
-                g1_mulAccC(_pVk, IC34x, IC34y, calldataload(add(pubSignals, 1056)))
+                g1_mulAccC(_pVk, IC34x, IC34y, calldataload(add(pubSignals, 1056)), z)
                 
 
                 // -A
@@ -313,7 +358,17 @@ contract Groth16Verifier {
                 mstore(add(_pPairing, 736), deltay2)
 
 
-                let success := staticcall(sub(gas(), 2000), ecPairingAddr, _pPairing, 768, _pPairing, 0x20)
+                let success := false
+                switch z
+                case 1 { 
+                    success := staticcall(sub(gas(), 2000), ecPairingAddrZkSync, _pPairing, 768, _pPairing, 0x20)
+                }
+                case 2 {
+                    success := staticcall(sub(gas(), 2000), ecPairingAddrZkSyncSepolia, _pPairing, 768, _pPairing, 0x20)
+                }
+                default { 
+                    success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
+                }
 
                 isOk := and(success, mload(_pPairing))
             }
@@ -395,7 +450,7 @@ contract Groth16Verifier {
             
 
             // Validate all evaluations
-            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
+            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem, zksync)
 
             mstore(0, isValid)
              return(0, 0x20)
