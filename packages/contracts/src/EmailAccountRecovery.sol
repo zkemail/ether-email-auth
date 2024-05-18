@@ -170,7 +170,6 @@ abstract contract EmailAccountRecovery {
         address guardian = computeEmailAuthAddress(
             emailAuthMsg.proof.accountSalt
         );
-        console.log("computed guardian", guardian);
         require(
             address(guardian).code.length == 0,
             "guardian is already deployed"
