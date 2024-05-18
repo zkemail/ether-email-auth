@@ -299,6 +299,8 @@ See, test/ComputeCreate2Address.t.sol
 
 # For zkSync testing
 
+Run `yarn zktest`.
+
 Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will be failed. If you want to test on other EVM, please install foundry.
 
 Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
@@ -315,6 +317,10 @@ Failing test cases are here.
 - testExpectRevertAuthEmailInvalidTimestamp()
 - testIsValidSignature()
 - testIsValidSignatureReturnsFalse()
+
+# For integration testing
+
+forge test --match-test 'testIntegration_Account_Recovery'  --zksync --chain 300 -vvv --ffi
 
 # For zkSync deployment (For test net)
 

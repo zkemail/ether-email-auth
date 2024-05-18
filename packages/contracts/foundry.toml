@@ -20,6 +20,7 @@ extra_output = ["storageLayout"]
 
 # For missing libraries, please comment out this if you use foundry
 #libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x91cc0f0a227b8dd56794f9391e8af48b40420a0b", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:0x981e3df952358a57753c7b85de7949da4abcf54a"]
+
 [rpc_endpoints]
 localhost = "${LOCALHOST_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
