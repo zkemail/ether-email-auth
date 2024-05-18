@@ -192,7 +192,7 @@ It also provides the following entry functions with their default implementation
     5. Assert that `EmailAuth(guardian).authEmail(emailAuthMsg)` returns no error.
     6. Call `processRecovery(guardian, templateIdx, emailAuthMsg.subjectParams, emailAuthMsg.proof.emailNullifier)`.
 
-# For zksync
+# For zkSync
 
 You should use foundry-zksync, the installation process is following URL.
 https://github.com/matter-labs/foundry-zksync
@@ -297,7 +297,7 @@ packages/contracts/src/EmailAccountRecovery.sol:L94
 
 See, test/ComputeCreate2Address.t.sol
 
-# For zksync testing
+# For zkSync testing
 
 Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will be failed. If you want to test on other EVM, please install foundry.
 
@@ -316,7 +316,7 @@ Failing test cases are here.
 - testIsValidSignature()
 - testIsValidSignatureReturnsFalse()
 
-# For zksync deployment (For test net)
+# For zkSync deployment (For test net)
 
 You need to edit .env at first.
 Second just run the following commands with `--zksync`
