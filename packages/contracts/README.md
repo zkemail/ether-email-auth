@@ -279,6 +279,14 @@ Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
 Transaction hash: 0xfdca7b9eb3ae933ca123111489572427ee95eb6be74978b24c73fe74cb4988d7
 ```
 
+After that, you can see the following line in foundry.toml.
+Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
+
+```
+libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
+
+```
+
 About Create2, `L2ContractHelper.computeCreate2Address` should be used.
 And `type(ERC1967Proxy).creationCode` doesn't work correctly.
 We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
@@ -290,6 +298,8 @@ packages/contracts/src/EmailAccountRecovery.sol:L94
 See, test/ComputeCreate2Address.t.sol
 
 # For zksync testing
+
+Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will be failed. If you want to test on other EVM, please install foundry.
 
 Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
 Therefore, EmailAccountRecovery.t.sol has been splited.
@@ -316,6 +326,3 @@ source .env
 forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
 ```
 
-# Rest of tasks
-
-- [ ] Introduce conditional branching for zksync and other cases to unify the code.

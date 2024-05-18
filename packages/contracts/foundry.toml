@@ -18,9 +18,8 @@ solc = "0.8.23"
 build_info = true
 extra_output = ["storageLayout"]
 
-# For missing libraries
-libraries = ["/Users/wataru_shinohara/GitHub/zkemail/ether-email-auth/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x91cc0f0a227b8dd56794f9391e8af48b40420a0b", "/Users/wataru_shinohara/GitHub/zkemail/ether-email-auth/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:0x981e3df952358a57753c7b85de7949da4abcf54a"]
-
+# For missing libraries, please comment out this if you use foundry
+#libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x91cc0f0a227b8dd56794f9391e8af48b40420a0b", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:0x981e3df952358a57753c7b85de7949da4abcf54a"]
 [rpc_endpoints]
 localhost = "${LOCALHOST_RPC_URL}"
 sepolia = "${SEPOLIA_RPC_URL}"
@@ -36,5 +35,3 @@ libs = ["../../node_modules", "lib"]
 fallback_oz = true
 is_system = false
 mode = "3"
-
-libraries = ["/Users/wataru_shinohara/GitHub/zkemail/ether-email-auth/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x91cc0f0a227b8dd56794f9391e8af48b40420a0b", "/Users/wataru_shinohara/GitHub/zkemail/ether-email-auth/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:0x981e3df952358a57753c7b85de7949da4abcf54a"]

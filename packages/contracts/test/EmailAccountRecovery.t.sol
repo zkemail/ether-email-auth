@@ -174,19 +174,16 @@ contract EmailAccountRecoveryTest is StructHelper {
     function testHandleAcceptance() public {
         testRequestGuardian();
 
+        console.log("guardian", guardian);
+
         require(
             simpleWallet.guardians(guardian) ==
                 SimpleWallet.GuardianStatus.REQUESTED
         );
 
-        console.log("guardian", guardian);
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        address computedGuardian = simpleWallet.computeEmailAuthAddress(
-            emailAuthMsg.proof.accountSalt
-        );
-        console.log("computed guardian", computedGuardian);
         uint templateId = simpleWallet.computeAcceptanceTemplateId(templateIdx);
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
@@ -455,11 +452,6 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
         emailAuthMsg.proof.accountSalt = 0x0;
 
-        address computedGuardian = simpleWallet.computeEmailAuthAddress(
-            emailAuthMsg.proof.accountSalt
-        );
-        console.log("computed guardian", computedGuardian);
-        
         vm.mockCall(
             address(simpleWallet.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
@@ -467,8 +459,15 @@ contract EmailAccountRecoveryTest is StructHelper {
         );
 
         // Deploy mock guardian, that status is NONE
+        address mockCallAddress;
+        if(block.chainid == 300) {
+            mockCallAddress = address(0x889170C6bEe9053626f8460A9875d22Cf6DE0782);
+        } else {
+            mockCallAddress = address(0x2Cfb66029975B1c8881adaa3b79c5Caa4FEB84B5);
+        }
+
         vm.mockCall(
-            address(0x889170C6bEe9053626f8460A9875d22Cf6DE0782),
+            mockCallAddress,
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );

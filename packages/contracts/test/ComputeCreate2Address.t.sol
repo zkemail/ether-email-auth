@@ -15,6 +15,13 @@ contract ComputeCreate2AddressTest is StructHelper {
     constructor() {}
 
     function testComputeCreate2Address() public {
+
+        // This test is not neccessary for non zkSync chains
+        if(block.chainid != 324 && block.chainid != 300) {
+            console.log("skip");
+            return;
+        }
+        
         bytes32 accountSalt = 0x0;
 
         // See the example code

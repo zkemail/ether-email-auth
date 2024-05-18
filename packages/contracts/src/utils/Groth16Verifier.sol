@@ -148,7 +148,8 @@ contract Groth16Verifier {
     uint256 constant IC34x = 17200277971154844558795152972305030598825544262989507243870426175345494329533;
     uint256 constant IC34y = 13245378736717227505280905840466588681621373751130811528368986104264297516492;
 
-    // For zksync mainnet
+    // For zksync mainnet TODO: Current addresses are on zkSync sepolia, 
+    // Please deploy them before you deploy the Groth16Verifier.
     address constant ecAddAddrZkSync = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
     address constant ecMulAddrZkSync = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
     address constant ecPairingAddrZkSync = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
