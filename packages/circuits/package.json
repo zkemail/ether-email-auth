@@ -10,10 +10,13 @@
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "^6.0.2",
-    "@zk-email/zk-regex-circom": "^2.0.2",
+    "@babel/core": "^7.22.5",
+    "@babel/preset-env": "^7.22.2",
+    "@zk-email/circuits": "^6.0.3",
+    "@zk-email/zk-regex-circom": "^2.1.0",
     "commander": "^11.0.0",
-    "snarkjs": "^0.7.0"
+    "snarkjs": "^0.7.0",
+    "ts-jest": "^29.1.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.20",
