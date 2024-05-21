@@ -82,3 +82,6 @@ book
 
 # For zksync
 zkout
+
+# For venv
+packages/prover/path/to/venv

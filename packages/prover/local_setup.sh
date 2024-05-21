@@ -4,7 +4,7 @@ set -e # Stop on error
 mkdir -p build
 
 npm install -g snarkjs@latest
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 mkdir build && cd build
 gdown "https://drive.google.com/uc?id=13_RItK372JdfQFM3TmQFU_svN7q0k5iF"
 unzip params.zip
