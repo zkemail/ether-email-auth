@@ -5,7 +5,7 @@ yarn install
 ```
 
 ## Requirements
-- Newer than or equal to `forge 0.2.0 (b174c3a)`.
+- Newer than or equal to `forge 0.2.0 (13497a5)`.
 
 ## Build and Test
 
