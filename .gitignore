@@ -79,3 +79,6 @@ book
 
 # Vs code settings
 .vscode
+
+# For zksync
+zkout

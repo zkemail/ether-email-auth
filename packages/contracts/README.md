@@ -5,7 +5,7 @@ yarn install
 ```
 
 ## Requirements
-- Newer than or equal to `forge 0.2.0 (b174c3a)`.
+- Newer than or equal to `forge 0.2.0 (13497a5)`.
 
 ## Build and Test
 
@@ -191,3 +191,144 @@ It also provides the following entry functions with their default implementation
     4. Assert that  `templateId` is equal to `emailAuthMsg.templateId`.
     5. Assert that `EmailAuth(guardian).authEmail(emailAuthMsg)` returns no error.
     6. Call `processRecovery(guardian, templateIdx, emailAuthMsg.subjectParams, emailAuthMsg.proof.emailNullifier)`.
+
+# For zkSync
+
+You should use foundry-zksync, the installation process is following URL.
+https://github.com/matter-labs/foundry-zksync
+
+Current version foundry-zksync is forge 0.0.2 (13497a5 2024-05-16T00:24:48.304138000Z)
+They can't use solc 0.8.25, so you should set appreciate solc version in foundry.toml.
+For ex. 
+
+```
+solc = "0.8.23"
+```
+
+Also the current foundry-zksync does not work correctly if your svm has 0.8.25 installed.
+In that case, please do the following:
+
+For Apple Silicon
+
+```
+rm -rf  ~/Library/Application\ Support/svm/0.8.25
+```
+
+Or you can use docker too.
+
+```
+docker run -d -it -v $PWD:$PWD --name zksync-development --platform linux/amd64 ubuntu
+docker exec -it zksync-development bash
+```
+
+In the docker container, you should execute following commands.
+
+```
+apt update
+apt -y install git curl nodejs npm
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+curl -L https://foundry.paradigm.xyz | bash
+source ~/.bashrc
+git clone https://github.com/matter-labs/foundry-zksync.git
+cd foundry-zksync
+chmod +x ./install-foundry-zksync
+./install-foundry-zksync
+cd /Users/wataru_shinohara/GitHub/zkemail/ether-email-auth
+yarn
+cd packages/contracts
+```
+
+At the first forge build, you got the following warning.
+
+```
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│ Warning: Your code or one of its dependencies uses the 'extcodesize' instruction, which is       │
+│ usually needed in the following cases:                                                           │
+│   1. To detect whether an address belongs to a smart contract.                                   │
+│   2. To detect whether the deploy code execution has finished.                                   │
+│ zkSync Era comes with native account abstraction support (so accounts are smart contracts,       │
+│ including private-key controlled EOAs), and you should avoid differentiating between contracts   │
+│ and non-contract addresses.                                                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+--> ../../node_modules/forge-std/src/StdCheats.sol
+
+Failed to compile with zksolc: Missing libraries detected [ZkMissingLibrary { contract_name: "SubjectUtils", contract_path: "src/libraries/SubjectUtils.sol", missing_libraries: ["src/libraries/DecimalUtils.sol:DecimalUtils"] }, ZkMissingLibrary { contract_name: "DecimalUtils", contract_path: "src/libraries/DecimalUtils.sol", missing_libraries: [] }]
+```
+
+Please run the following command in order to deploy the missing libraries:
+
+```
+forge create --deploy-missing-libraries --private-key <PRIVATE_KEY> --rpc-url <RPC_URL> --chain <CHAIN_ID> --zksync
+forge create --deploy-missing-libraries --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
+```
+
+The above command output the following(for example):
+
+```
+[⠊] Compiling...
+No files changed, compilation skipped
+Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
+Deployed to: 0x91cc0f0A227b8dD56794f9391E8Af48B40420A0b
+Transaction hash: 0x4f94ab71443d01988105540c3abb09ed66f8af5d0bb6a88691e2dafa88b3583d
+[⠢] Compiling...
+[⠃] Compiling 68 files with 0.8.23
+[⠆] Solc 0.8.23 finished in 12.20s
+Compiler run successful!
+Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
+Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
+Transaction hash: 0xfdca7b9eb3ae933ca123111489572427ee95eb6be74978b24c73fe74cb4988d7
+```
+
+After that, you can see the following line in foundry.toml.
+Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
+
+```
+libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
+
+```
+
+About Create2, `L2ContractHelper.computeCreate2Address` should be used.
+And `type(ERC1967Proxy).creationCode` doesn't work correctly.
+We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
+Perhaps that is different value in each compiler version.
+
+You should replace the following line to the correct hash.
+packages/contracts/src/EmailAccountRecovery.sol:L94 
+
+See, test/ComputeCreate2Address.t.sol
+
+# For zkSync testing
+
+Run `yarn zktest`.
+
+Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will be failed. If you want to test on other EVM, please install foundry.
+
+Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
+Therefore, EmailAccountRecovery.t.sol has been splited.
+
+Currently some test cases are not work correctly because there is a issue about missing libraries.
+
+Failing test cases are here.
+
+- testAuthEmail()
+- testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
+- testExpectRevertAuthEmailInvalidEmailProof()
+- testExpectRevertAuthEmailInvalidSubject()
+- testExpectRevertAuthEmailInvalidTimestamp()
+- testIsValidSignature()
+- testIsValidSignatureReturnsFalse()
+
+# For integration testing
+
+forge test --match-test 'testIntegration_Account_Recovery'  --zksync --chain 300 -vvv --ffi
+
+# For zkSync deployment (For test net)
+
+You need to edit .env at first.
+Second just run the following commands with `--zksync`
+
+```
+source .env
+forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
+```
+

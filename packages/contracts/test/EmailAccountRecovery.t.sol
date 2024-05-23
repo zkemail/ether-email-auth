@@ -174,6 +174,8 @@ contract EmailAccountRecoveryTest is StructHelper {
     function testHandleAcceptance() public {
         testRequestGuardian();
 
+        console.log("guardian", guardian);
+
         require(
             simpleWallet.guardians(guardian) ==
                 SimpleWallet.GuardianStatus.REQUESTED
@@ -455,9 +457,17 @@ contract EmailAccountRecoveryTest is StructHelper {
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
+
         // Deploy mock guardian, that status is NONE
+        address mockCallAddress;
+        if(block.chainid == 300) {
+            mockCallAddress = address(0x889170C6bEe9053626f8460A9875d22Cf6DE0782);
+        } else {
+            mockCallAddress = address(0x2Cfb66029975B1c8881adaa3b79c5Caa4FEB84B5);
+        }
+
         vm.mockCall(
-            address(0x08D901253E998F1767412D7F08b6244c2EFa36A2),
+            mockCallAddress,
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
@@ -589,146 +599,4 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testRejectRecovery() public {
-        vm.warp(block.timestamp + 3 days);
-
-        testHandleRecovery();
-
-        assertEq(simpleWallet.isRecovering(), true);
-        assertEq(
-            simpleWallet.timelock(),
-            block.timestamp + simpleWallet.timelockPeriod()
-        );
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), newSigner);
-
-        vm.warp(0);
-
-        vm.startPrank(deployer);
-        simpleWallet.rejectRecovery();
-        vm.stopPrank();
-
-        assertEq(simpleWallet.isRecovering(), false);
-        assertEq(simpleWallet.timelock(), 0);
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), address(0x0));
-    }
-
-    function testExpectRevertRejectRecoveryOwnableUnauthorizedAccount() public {
-        testHandleRecovery();
-
-        vm.startPrank(deployer);
-        simpleWallet.transferOwnership(receiver);
-        vm.stopPrank();
-
-        assertEq(simpleWallet.isRecovering(), true);
-        assertEq(
-            simpleWallet.timelock(),
-            block.timestamp + simpleWallet.timelockPeriod()
-        );
-        assertEq(simpleWallet.owner(), receiver);
-        assertEq(simpleWallet.newSignerCandidate(), newSigner);
-
-        vm.startPrank(deployer);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                deployer
-            )
-        );
-        simpleWallet.rejectRecovery();
-        vm.stopPrank();
-    }
-
-    function testExpectRevertRejectRecoveryRecoveryNotInProgress() public {
-        testHandleAcceptance();
-
-        assertEq(simpleWallet.isRecovering(), false);
-        assertEq(simpleWallet.timelock(), 0);
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), address(0x0));
-
-        vm.startPrank(deployer);
-        vm.expectRevert(bytes("recovery not in progress"));
-        simpleWallet.rejectRecovery();
-        vm.stopPrank();
-    }
-
-    function testExpectRevertRejectRecovery() public {
-        vm.warp(block.timestamp + 1 days);
-
-        testHandleRecovery();
-
-        assertEq(simpleWallet.isRecovering(), true);
-        assertEq(
-            simpleWallet.timelock(),
-            block.timestamp + simpleWallet.timelockPeriod()
-        );
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), newSigner);
-
-        vm.startPrank(deployer);
-        vm.warp(block.timestamp + 4 days);
-        vm.expectRevert(bytes("timelock expired"));
-        simpleWallet.rejectRecovery();
-        vm.stopPrank();
-    }
-
-    function testCompleteRecovery() public {
-        testHandleRecovery();
-
-        assertEq(simpleWallet.isRecovering(), true);
-        assertEq(
-            simpleWallet.timelock(),
-            block.timestamp + simpleWallet.timelockPeriod()
-        );
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), newSigner);
-
-        vm.startPrank(someRelayer);
-        vm.warp(4 days);
-        simpleWallet.completeRecovery();
-        vm.stopPrank();
-
-        assertEq(simpleWallet.isRecovering(), false);
-        assertEq(simpleWallet.timelock(), 0);
-        assertEq(simpleWallet.owner(), newSigner);
-        assertEq(simpleWallet.newSignerCandidate(), address(0x0));
-    }
-
-    function testExpectRevertCompleteRecoveryRecoveryNotInProgress() public {
-        testHandleAcceptance();
-
-        assertEq(simpleWallet.isRecovering(), false);
-        assertEq(simpleWallet.timelock(), 0);
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), address(0x0));
-
-        vm.startPrank(someRelayer);
-        vm.warp(4 days);
-        vm.expectRevert(bytes("recovery not in progress"));
-        simpleWallet.completeRecovery();
-        vm.stopPrank();
-    }
-
-    function testExpectRevertCompleteRecovery() public {
-        vm.warp(block.timestamp + 3 days);
-
-        testHandleRecovery();
-
-        assertEq(simpleWallet.isRecovering(), true);
-        assertEq(
-            simpleWallet.timelock(),
-            block.timestamp + simpleWallet.timelockPeriod()
-        );
-        assertEq(simpleWallet.owner(), deployer);
-        assertEq(simpleWallet.newSignerCandidate(), newSigner);
-
-        vm.warp(0);
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("timelock not expired"));
-        simpleWallet.completeRecovery();
-        vm.stopPrank();
-    }
 }
