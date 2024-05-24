@@ -46,6 +46,32 @@ contract UserOverrideableDKIMRegistryTest is Test {
         );
     }
 
+    function testFuzzSetDKIMPublicKeyHashForAll(
+        string memory randomDomainName,
+        bytes32 randomPublicKeyHash
+    ) public {
+        vm.startPrank(deployer);
+        vm.expectEmit();
+        emit UserOverrideableDKIMRegistry.DKIMPublicKeyHashRegistered(
+            randomDomainName,
+            randomPublicKeyHash,
+            address(0)
+        );
+        registry.setDKIMPublicKeyHash(
+            randomDomainName,
+            randomPublicKeyHash,
+            false
+        );
+        vm.stopPrank();
+        require(
+            registry.isDKIMPublicKeyHashValid(
+                randomDomainName,
+                randomPublicKeyHash
+            ),
+            "Invalid public key hash"
+        );
+    }
+
     function testFailDKIMPublicKeyHashForAllByUser1() public {
         vm.startPrank(user1);
         registry.setDKIMPublicKeyHash(domainName, publicKeyHash, false);
@@ -63,6 +89,32 @@ contract UserOverrideableDKIMRegistryTest is Test {
         registry.setDKIMPublicKeyHash(domainName, publicKeyHash, true);
         require(
             registry.isDKIMPublicKeyHashValid(domainName, publicKeyHash),
+            "Invalid public key hash"
+        );
+        vm.stopPrank();
+    }
+
+    function testFuzzSetDKIMPublicKeyHashForPersonalByUser1(
+        string memory randomDomainName,
+        bytes32 randomPublicKeyHash
+    ) public {
+        vm.startPrank(user1);
+        vm.expectEmit();
+        emit UserOverrideableDKIMRegistry.DKIMPublicKeyHashRegistered(
+            randomDomainName,
+            randomPublicKeyHash,
+            user1
+        );
+        registry.setDKIMPublicKeyHash(
+            randomDomainName,
+            randomPublicKeyHash,
+            true
+        );
+        require(
+            registry.isDKIMPublicKeyHashValid(
+                randomDomainName,
+                randomPublicKeyHash
+            ),
             "Invalid public key hash"
         );
         vm.stopPrank();
