@@ -10,6 +10,7 @@ yarn install
 ## Build and Test
 
 Make sure you have [Foundry](https://github.com/foundry-rs/foundry) installed
+Currently, the latest version is not working in some test cases, please use nightly-3e9385b65d5ff502095c7896aab6042127548c34
 
 Build the contracts using the below command.
 
