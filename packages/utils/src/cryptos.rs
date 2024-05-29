@@ -47,7 +47,7 @@ impl PaddedEmailAddr {
 pub fn extract_rand_from_signature(signature: &[u8]) -> Result<Fr, PoseidonError> {
     let mut signature = signature.to_vec();
     signature.reverse();
-    let mut inputs = bytes_chunk_fields(&signature, 121, 2);
+    let mut inputs = bytes_chunk_fields(&signature, 121, 2, 17);
     inputs.push(Fr::one());
     let cm_rand = poseidon_fields(&inputs)?;
     Ok(cm_rand)
@@ -83,13 +83,13 @@ impl AccountSalt {
 
 /// `public_key_n` is little endian.
 pub fn public_key_hash(public_key_n: &[u8]) -> Result<Fr, PoseidonError> {
-    let inputs = bytes_chunk_fields(public_key_n, 121, 2);
+    let inputs = bytes_chunk_fields(public_key_n, 121, 2, 17);
     poseidon_fields(&inputs)
 }
 
 /// `signature` is little endian.
 pub fn email_nullifier(signature: &[u8]) -> Result<Fr, PoseidonError> {
-    let inputs = bytes_chunk_fields(signature, 121, 2);
+    let inputs = bytes_chunk_fields(signature, 121, 2, 17);
     let sign_rand = poseidon_fields(&inputs)?;
     poseidon_fields(&[sign_rand])
 }

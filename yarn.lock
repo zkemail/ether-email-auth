@@ -1770,34 +1770,26 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@^6.0.2":
-  version "6.0.2"
-  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.0.2.tgz#11b97e2f99169742e38a8754e19337eed605a986"
-  integrity sha512-noOFEiSPGHukfdX41NTvQgIQHCQsVpLHmgZb5R2GWb5XMsfYyr3yCLt8FklbDC3QYWD5TpqtuL/ee2LQHaFj+A==
+"@zk-email/circuits@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.1.1.tgz#6eff8063fc71bf5ad38c90c552e9bfdfcd7247c6"
+  integrity sha512-O09UQjEY0sM8gfR6M2/KJPZfIac7xuVHvpwyTCxTpb+CZvt3qXhhRcrDm3CoHOpvtRGS3sI9SdUQZipiiSiR/w==
   dependencies:
-    "@zk-email/zk-regex-circom" "^1.1.1"
+    "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.0.0":
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.0.0.tgz#5443de70446dfb5c458cdf5b3cf13c4d5fa20dc1"
-  integrity sha512-iMFfRowJJwRrWLltFmcjBhWhvvPnoj7QCso4JauoM8wh5YLAFV3lWs0B3GRkURXFkkQum6szj8uTWP+CdbWc/A==
+"@zk-email/contracts@^6.1.1":
+  version "6.1.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.1.tgz#a4757ae8fed9ba2e790e5760730c124c5bdaa979"
+  integrity sha512-AnFbQiS2QCJJReRwdZbrs45y2ZoFXo4TJZtAkqluYjIwHwBeXEGKpYufMCZi3O1g5XCP+GxpATQfXkaN3tWgjQ==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
 
-"@zk-email/zk-regex-circom@^1.1.1":
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-1.3.0.tgz#8cb2b3b4977cfe42dc7072e13795e10d92efa074"
-  integrity sha512-faMboihzV3zyh2K3Qy4GYgxRRql4YEef26QDCISFFuURACWINfwtoZPC4OHtE0Ug60iAWRbpQtUWlPjomTCxoQ==
-  dependencies:
-    commander "^11.0.0"
-    snarkjs "^0.7.0"
-
-"@zk-email/zk-regex-circom@^2.0.2":
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.0.2.tgz#be7a8c0b59de726f5b978a879c40ad37d402487a"
-  integrity sha512-xqq33NT1nSnY00cFk3o+Q607XUIJqN1DwYBjMxkv2jWp9PsS/fsBtdqLhN1I0oRnKqEf3LblAVwDdr9aJC+Eng==
+"@zk-email/zk-regex-circom@^2.1.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.1.0.tgz#cc2f1d93fb130a9f8ac88114d3559a296df97538"
+  integrity sha512-Ayq0Hk4m7w1UHPPx2c5bUWLdKUPnuK62AZFOyiIvA7x4NgRyvjxe+S4D5KFH5FIz4PgEnXVxgscSSbe5p/GCvQ==
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.0"

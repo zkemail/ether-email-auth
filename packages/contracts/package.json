@@ -10,7 +10,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@zk-email/contracts": "^6.0.0",
+    "@zk-email/contracts": "^6.1.1",
     "solady": "^0.0.123"
   },
   "devDependencies": {
