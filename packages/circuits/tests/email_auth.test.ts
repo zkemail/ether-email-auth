@@ -7,14 +7,20 @@ import * as path from "path";
 const p = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
 const field = new ff.F1Field(p);
 const relayerUtils = require("../../utils");
-const option = {
-    include: path.join(__dirname, "../../../node_modules")
-};
+
 import { genEmailAuthInput } from "../helpers/email_auth";
 import { readFileSync } from "fs";
 
 jest.setTimeout(1440000);
 describe("Email Auth", () => {
+    let circuit;
+    beforeAll(async () => {
+        const option = {
+            include: path.join(__dirname, "../../../node_modules")
+        };
+        circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
+    });
+
     it("Verify a sent email whose subject has an email address", async () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
         const emailRaw = readFileSync(emailFilePath, "utf8");
@@ -23,7 +29,6 @@ describe("Email Auth", () => {
         const accountCode = await relayerUtils.genAccountCode();
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
         console.log(circuitInputs);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -57,7 +62,6 @@ describe("Email Auth", () => {
         console.log(parsedEmail.canonicalizedHeader);
         const accountCode = await relayerUtils.genAccountCode();
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -91,7 +95,6 @@ describe("Email Auth", () => {
         console.log(parsedEmail.canonicalizedHeader);
         const accountCode = await relayerUtils.genAccountCode();
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -125,7 +128,6 @@ describe("Email Auth", () => {
         console.log(parsedEmail.canonicalizedHeader);
         const accountCode = await relayerUtils.genAccountCode();
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -159,7 +161,6 @@ describe("Email Auth", () => {
         console.log(parsedEmail.canonicalizedHeader);
         const accountCode = "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -192,7 +193,6 @@ describe("Email Auth", () => {
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
         const accountCode = "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
-        const circuit = await wasm_tester(path.join(__dirname, "../src/email_auth.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -217,5 +217,17 @@ describe("Email Auth", () => {
         const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(witness[1 + domainFields.length + 3 + maskedSubjectFields.length]);
         expect(1n).toEqual(witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 1]);
+    });
+
+    it("Verify a sent email whose subject tries to forge the From field", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test7.eml");
+        const accountCode = "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+        circuitInputs.from_addr_idx = circuitInputs.subject_idx;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
     });
 });
