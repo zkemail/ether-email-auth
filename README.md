@@ -60,6 +60,9 @@ It has a main circom circuit for verifying the email along with its DKIM signatu
 The circuit is agnostic to application contexts such as subject templates.
 **Therefore, a developer does not need to make new circuits.**
 
+In a nutshell, our circuit 1) verifies the given RSA signature for the given email header and the RSA public key, 2) exposes the Subject field with removing the invitation code and the email address that appears in the Subject, and 3) computes the account salt derived from the email address in the From field and the given account code, which must be the same as the invitation code if it exists.
+In this way, it allows our on-chain verifier to authenticate the email sender and authorize the message in the Subject while protecting privacy.
+
 ### `contracts` Package
 It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
 

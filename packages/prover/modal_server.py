@@ -5,7 +5,7 @@ from core import (
 )
 
 
-stub = modal.Stub("email-auth-prover-v1.0.2")
+stub = modal.Stub("email-auth-prover-v1.0.3")
 
 image = modal.Image.from_dockerfile("Dockerfile")
 

@@ -6341,8 +6341,8 @@ dependencies = [
 
 [[package]]
 name = "zk-regex-apis"
-version = "2.0.2"
-source = "git+https://github.com/zkemail/zk-regex.git?branch=main#9962a117a4a6019e4f07b0177ef89dc797fa3c87"
+version = "2.1.0"
+source = "git+https://github.com/zkemail/zk-regex.git?branch=main#491a2dcb7f81b9bafcc5d3d4b595b8c8d4ae973e"
 dependencies = [
  "fancy-regex",
  "itertools 0.10.5",

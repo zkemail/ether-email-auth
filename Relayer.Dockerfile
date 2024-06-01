@@ -1,96 +1,60 @@
-# syntax=docker/dockerfile:1.6
-
+# Use the latest official Rust image as the base
 FROM rust:latest
 
-RUN rm -f /etc/apt/apt.conf.d/docker-clean
-
-RUN --mount=type=cache,target=/var/cache/apt \
-    apt update && apt upgrade -y \
-    && rm -rf /var/lib/apt/lists/*
-
+# Use bash as the shell
 SHELL ["/bin/bash", "-c"]
 
-RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
-RUN . /root/.nvm/nvm.sh && . /root/.nvm/bash_completion
+# Install NVM, Node.js, and Yarn
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash \
+    && . $HOME/.nvm/nvm.sh \
+    && nvm install 18 \
+    && nvm alias default 18 \
+    && nvm use default \
+    && npm install -g yarn
 
-RUN bash -i -c "nvm install 18 && nvm use 18"
-RUN bash -i -c "npm install -g yarn"
-
+# Set the working directory
 WORKDIR /relayer
 
+# Pre-configure Git to avoid common issues and increase clone verbosity
+RUN git config --global advice.detachedHead false \
+    && git config --global core.compression 0 \
+    && git config --global protocol.version 2 \
+    && git config --global http.postBuffer 1048576000 \
+    && git config --global fetch.verbose true
+
+# Copy project files
 COPY . .
 
-RUN --mount=type=cache,target=/var/cache/yarn \
-    bash -i -c "yarn" \ 
-    && rm -rf /var/lib/yarn/lists/*
+# Install Yarn dependencies with retry mechanism
+RUN . $HOME/.nvm/nvm.sh && nvm use default && yarn || \
+    (sleep 5 && yarn) || \
+    (sleep 10 && yarn)
 
-RUN curl -L https://foundry.paradigm.xyz | bash
+# Install Foundry
+RUN curl -L https://foundry.paradigm.xyz | bash \
+    && source $HOME/.bashrc \
+    && foundryup
+
+# Verify Foundry installation
+RUN source $HOME/.bashrc && forge --version
+
+# Set the working directory for contracts
 WORKDIR /relayer/packages/contracts
-RUN bash -i -c "foundryup"
-RUN bash -i -c "forge build"
 
+# Install Yarn dependencies for contracts
+RUN source $HOME/.nvm/nvm.sh && nvm use default && yarn
+
+# Build the contracts using Foundry
+RUN source $HOME/.bashrc && forge build
+
+# Set the working directory for the Rust project
 WORKDIR /relayer/packages/relayer
-RUN --mount=type=cache,target=/var/cache/cargo \
-    cargo build \
-    && rm -rf /var/lib/cargo/lists/*
 
+# Build the Rust project with caching
+RUN cargo build
+
+# Expose port
 EXPOSE 4500
 
-# CMD ["/bin/bash", "-c", "cargo", "run", "--release"]
-
-
-# # ------------------ Chef stage -------------------
-# # Use cargo chef to cache dependencies
-# FROM rustlang/rust:nightly AS chef
-
-# # Install cargo chef
-# # RUN cargo install cargo-chef 
-
-# # Work in app
-# WORKDIR /app
-
-# # ------------------ Planner stage -------------------
-# FROM chef as planner
-
-# # Copy files into container
-# COPY Cargo.toml Cargo.lock ./
-# COPY packages/relayer ./packages/relayer
-# COPY packages/utils ./packages/utils
-# COPY packages/circuits ./packages/circuits
-# COPY packages/frontend ./packages/frontend
-# COPY packages/scripts ./packages/scripts
-
-# # Create a lockfile for cargo chef
-# RUN cargo +nightly chef prepare --recipe-path recipe.json
-
-# # ------------------ Builder stage -------------------
-# FROM chef AS builder
-# WORKDIR /relayer
-
-# # Copy over our lock file
-# COPY --from=planner  /app /relayer
-
-# # Build for any AWS machine. Same as cargo build but caches dependencies with the chef to make builds faster.
-# RUN cargo chef cook --release --recipe-path recipe.json
-
-# ### Above this all dependencies should be cached as long as our lock file stays the same
-
-# # Build binary
-# RUN cargo build --release
-
-# # ------------------ Runtime stage -------------------
-
-# # Using super lightweight debian image to reduce overhead
-# FROM ubuntu:latest AS runtime
-
-# # Copy prebuild bin from the Builder stage
-# COPY --from=builder /relayer/target/release/relayer /relayer/target/release/relayer
-# COPY --from=builder /relayer/Cargo.toml /relayer/Cargo.toml
-# COPY --from=builder /relayer/Cargo.lock /relayer/Cargo.lock
-
-# EXPOSE 4500
-
-# CMD ["relayer/target/release/relayer"]
-
-# # This cargo chef logic comes from https://github.com/LukeMathWalker/cargo-chef
-# # Inspired by Huff: https://github.com/huff-language/huff-rs/blob/main/Dockerfile
+# Set the default command
+CMD ["cargo", "run"]

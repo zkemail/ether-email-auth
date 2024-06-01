@@ -7,15 +7,20 @@ import * as path from "path";
 const p = "21888242871839275222246405745257275088548364400416034343698204186575808495617";
 const field = new ff.F1Field(p);
 const relayerUtils = require("../../utils");
-const option = {
-    include: path.join(__dirname, "../../../node_modules")
-};
 import { genEmailAuthInput } from "../helpers/email_auth";
 import { genRecipientInput } from "../helpers/recipient";
 import { readFileSync } from "fs";
 
 jest.setTimeout(1440000);
 describe("Email Auth", () => {
+    let circuit;
+    beforeAll(async () => {
+        const option = {
+            include: path.join(__dirname, "../../../node_modules")
+        };
+        circuit = await wasm_tester(path.join(__dirname, "./circuits/email_auth_with_recipient.circom"), option);
+    });
+
     it("Verify a sent email whose subject has an email address", async () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
         const emailRaw = readFileSync(emailFilePath, "utf8");
@@ -28,7 +33,6 @@ describe("Email Auth", () => {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx
         };
-        const circuit = await wasm_tester(path.join(__dirname, "./circuits/email_auth_with_recipient.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -72,7 +76,6 @@ describe("Email Auth", () => {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx
         };
-        const circuit = await wasm_tester(path.join(__dirname, "./circuits/email_auth_with_recipient.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -115,7 +118,6 @@ describe("Email Auth", () => {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx
         };
-        const circuit = await wasm_tester(path.join(__dirname, "./circuits/email_auth_with_recipient.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -158,7 +160,6 @@ describe("Email Auth", () => {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx
         };
-        const circuit = await wasm_tester(path.join(__dirname, "./circuits/email_auth_with_recipient.circom"), option);
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";

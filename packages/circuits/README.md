@@ -34,7 +34,7 @@ Its instances are as follows:
 
 ### Run tests
 At `packages/circuits`, make a `build` directory, download the zip file from the following link, and place its unzipped directory under `build`.
-https://drive.google.com/file/d/13_RItK372JdfQFM3TmQFU_svN7q0k5iF/view?usp=drive_link
+https://drive.google.com/file/d/1TChinAnHr9eV8H_OV9SVReF8Rvu6h1XH/view?usp=sharing
 
 Then, move `email_auth.zkey` in the unzipped directory `params` to `build`. 
 
