@@ -36,7 +36,12 @@ contract IntegrationTest is Test {
     uint256 startTimestamp = 1711197564; // Tue Mar 26 2024 12:40:24 GMT+0000
 
     function setUp() public {
-        vm.createSelectFork("https://mainnet.base.org");
+        if(block.chainid == 300) {
+            vm.createSelectFork("https://sepolia.era.zksync.dev");
+        } else {
+            vm.createSelectFork("https://mainnet.base.org");
+        }
+        
         vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
@@ -104,7 +109,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635
+            0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -116,7 +121,9 @@ contract IntegrationTest is Test {
         );
         inputGenerationInput[1] = string.concat(
             vm.projectRoot(),
-            "/test/emails/accept.eml"
+            "/test/emails/",
+            block.chainid.toString(),
+            "/accept.eml"
         );
         inputGenerationInput[2] = uint256(accountCode).toHexString(32);
         vm.ffi(inputGenerationInput);
@@ -137,7 +144,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635";
+            .maskedSubject = "Accept guardian request for 0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -194,7 +201,9 @@ contract IntegrationTest is Test {
         );
         inputGenerationInput[1] = string.concat(
             vm.projectRoot(),
-            "/test/emails/recovery.eml"
+            "/test/emails/",
+            block.chainid.toString(),
+            "/recovery.eml"
         );
         inputGenerationInput[2] = uint256(accountCode).toHexString(32);
         vm.ffi(inputGenerationInput);
@@ -212,7 +221,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Set the new signer of 0x3Bb7f1A59bDE3B61a0d537723E4e27D022489635 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+            .maskedSubject = "Set the new signer of 0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
