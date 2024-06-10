@@ -268,25 +268,6 @@ contract EmailAuthTest is StructHelper {
         );
     }
 
-    function testExpectRevertAuthEmailCallerIsNotTheOwner() public {
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-
-        assertEq(
-            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
-            false
-        );
-        assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                address(this)
-            )
-        );
-        emailAuth.authEmail(emailAuthMsg);
-    }
-
     function testExpectRevertAuthEmailTemplateIdNotExists() public {
         vm.startPrank(deployer);
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();

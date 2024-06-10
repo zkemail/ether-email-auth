@@ -175,7 +175,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @return bytes32 The hash of the authorized email message.
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
-    ) public onlyOwner returns (bytes32) {
+    ) public returns (bytes32) {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
