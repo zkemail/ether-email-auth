@@ -4,6 +4,7 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -105,12 +106,19 @@ abstract contract EmailAccountRecovery {
         address recoveredAccount,
         bytes32 accountSalt
     ) public view returns (address) {
-        return
-            Create2.computeAddress(
-                accountSalt,
-                keccak256(
-                    abi.encodePacked(
-                        type(ERC1967Proxy).creationCode,
+        // If on zksync, we use L2ContractHelper.computeCreate2Address
+        if (block.chainid == 324 || block.chainid == 300) {
+            // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+            // If you failed some test cases, check the bytecodeHash by yourself
+            // see, test/ComputeCreate2Address.t.sol
+            return
+                L2ContractHelper.computeCreate2Address(
+                    address(this),
+                    accountSalt,
+                    bytes32(
+                        0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de
+                    ),
+                    keccak256(
                         abi.encode(
                             emailAuthImplementation(),
                             abi.encodeCall(
@@ -119,8 +127,29 @@ abstract contract EmailAccountRecovery {
                             )
                         )
                     )
-                )
-            );
+                );
+        } else {
+            return
+                Create2.computeAddress(
+                    accountSalt,
+                    keccak256(
+                        abi.encodePacked(
+                            type(ERC1967Proxy).creationCode,
+                            abi.encode(
+                                emailAuthImplementation(),
+                                abi.encodeCall(
+                                    EmailAuth.initialize,
+                                    (
+                                        recoveredAccount,
+                                        accountSalt,
+                                        address(this)
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+        }
     }
 
     /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
@@ -162,7 +191,6 @@ abstract contract EmailAccountRecovery {
                 )
             );
     }
-
     /// @notice Handles an acceptance by a new guardian.
     /// @dev This function validates the email auth message, deploys a new EmailAuth contract as a proxy if validations pass and initializes the contract.
     /// @param emailAuthMsg The email auth message for the email send from the guardian.
@@ -202,6 +230,7 @@ abstract contract EmailAccountRecovery {
                 )
             )
         );
+
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.initDKIMRegistry(dkim());
         guardianEmailAuth.initVerifier(verifier());
@@ -248,6 +277,7 @@ abstract contract EmailAccountRecovery {
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
+        // Check if the guardian is deployed
         require(address(guardian).code.length > 0, "guardian is not deployed");
         uint templateId = uint256(
             keccak256(

@@ -194,6 +194,8 @@ contract EmailAccountRecoveryTest is StructHelper {
     function testHandleAcceptance() public {
         testRequestGuardian();
 
+        console.log("guardian", guardian);
+
         require(
             recoveryModule.guardians(guardian) ==
                 RecoveryModule.GuardianStatus.REQUESTED
@@ -509,13 +511,20 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.proof.accountSalt = 0x0;
 
         // vm.mockCall(
-        //     address(recoveryModule.emailAuthImplementationAddr()),
+        //     address(simpleWallet.emailAuthImplementationAddr()),
         //     abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
         //     abi.encode(0x0)
         // );
-        // Deploy mock guardian, that status is NONE
+
+        // // Deploy mock guardian, that status is NONE
+        // address mockCallAddress;
+        // if(block.chainid == 300) {
+        //     mockCallAddress = address(0x889170C6bEe9053626f8460A9875d22Cf6DE0782);
+        // } else {
+        //     mockCallAddress = address(0x2Cfb66029975B1c8881adaa3b79c5Caa4FEB84B5);
+        // }
         // vm.mockCall(
-        //     guardian,
+        //     mockCallAddress,
         //     abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
         //     abi.encode(0x0)
         // );

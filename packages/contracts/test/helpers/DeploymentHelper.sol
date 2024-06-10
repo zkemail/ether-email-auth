@@ -25,7 +25,7 @@ contract DeploymentHelper is Test {
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
-    address guardian = address(0xF31307A599929f650748EE17BCE535C7671b8Ac9);
+    address guardian;
     address newSigner = vm.addr(4);
     address someRelayer = vm.addr(5);
 
@@ -43,6 +43,14 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     function setUp() public virtual {
+        // For zkSync computeEmailAuthAddress uses L2ContractHelper.computeCreate2Address
+        // The gardian address should be different from other EVM chains
+        if (block.chainid == 300) {
+            guardian = address(0x4110796d50E5a4f51E626B00c38af39d236Ec8b9);
+        } else {
+            guardian = address(0xa0cD5E8f1663E9218e3Adb2544377e2f663c2999);
+        }
+
         vm.startPrank(deployer);
         address signer = deployer;
 
