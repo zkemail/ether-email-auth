@@ -2,7 +2,7 @@
 pragma solidity ^0.8.12;
 
 import {EmailProof} from "./utils/Verifier.sol";
-import {ECDSAOwnedDKIMRegistry} from "./utils/ECDSAOwnedDKIMRegistry.sol";
+import {IDKIMRegistry} from "@zk-email/contracts/DKIMRegistry.sol";
 import {Verifier} from "./utils/Verifier.sol";
 import {SubjectUtils} from "./libraries/SubjectUtils.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -26,8 +26,9 @@ struct EmailAuthMsg {
 /// @dev Inherits from OwnableUpgradeable and UUPSUpgradeable for upgradeability and ownership management.
 contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     bytes32 public accountSalt;
-    ECDSAOwnedDKIMRegistry public dkim;
+    IDKIMRegistry public dkim;
     Verifier public verifier;
+    address module;
     mapping(uint => string[]) public subjectTemplates;
     mapping(bytes32 => bytes32) public authedHash;
     uint public lastTimestamp;
@@ -39,21 +40,35 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     event SubjectTemplateInserted(uint indexed templateId);
     event SubjectTemplateUpdated(uint indexed templateId);
     event SubjectTemplateDeleted(uint indexed templateId);
-    event EmailAuthed(bytes32 indexed emailNullifier, bytes32 indexed msgHash, bytes32 indexed accountSalt, bool isCodeExist, uint templateId);
+    event EmailAuthed(
+        bytes32 indexed emailNullifier,
+        bytes32 indexed msgHash,
+        bytes32 indexed accountSalt,
+        bool isCodeExist,
+        uint templateId
+    );
     event TimestampCheckEnabled(bool enabled);
+
+    modifier onlyModule() {
+        require(msg.sender == module, "only module");
+        _;
+    }
 
     constructor() {}
 
     /// @notice Initialize the contract with an initial owner and an account salt.
     /// @param _initialOwner The address of the initial owner.
     /// @param _accountSalt The account salt to derive CREATE2 address of this contract.
+    /// @param _module The address of the module contract.
     function initialize(
         address _initialOwner,
-        bytes32 _accountSalt
+        bytes32 _accountSalt,
+        address _module
     ) public initializer {
         __Ownable_init(_initialOwner);
         accountSalt = _accountSalt;
         timestampCheckEnabled = true;
+        module = _module;
     }
 
     /// @notice Returns the address of the DKIM registry contract.
@@ -68,6 +83,33 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return address(verifier);
     }
 
+    /// @notice Initializes the address of the DKIM registry contract.
+    /// @param _dkimRegistryAddr The address of the DKIM registry contract.
+    function initDKIMRegistry(address _dkimRegistryAddr) public onlyModule {
+        require(
+            _dkimRegistryAddr != address(0),
+            "invalid dkim registry address"
+        );
+        require(
+            address(dkim) == address(0),
+            "dkim registry already initialized"
+        );
+        dkim = IDKIMRegistry(_dkimRegistryAddr);
+        emit DKIMRegistryUpdated(_dkimRegistryAddr);
+    }
+
+    /// @notice Initializes the address of the verifier contract.
+    /// @param _verifierAddr The address of the verifier contract.
+    function initVerifier(address _verifierAddr) public onlyModule {
+        require(_verifierAddr != address(0), "invalid verifier address");
+        require(
+            address(verifier) == address(0),
+            "verifier already initialized"
+        );
+        verifier = Verifier(_verifierAddr);
+        emit VerifierUpdated(_verifierAddr);
+    }
+
     /// @notice Updates the address of the DKIM registry contract.
     /// @param _dkimRegistryAddr The new address of the DKIM registry contract.
     function updateDKIMRegistry(address _dkimRegistryAddr) public onlyOwner {
@@ -75,7 +117,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             _dkimRegistryAddr != address(0),
             "invalid dkim registry address"
         );
-        dkim = ECDSAOwnedDKIMRegistry(_dkimRegistryAddr);
+        dkim = IDKIMRegistry(_dkimRegistryAddr);
         emit DKIMRegistryUpdated(_dkimRegistryAddr);
     }
 
@@ -88,6 +130,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Retrieves a subject template by its ID.
+    /// @dev This function can only be called by the module contract.
     /// @param _templateId The ID of the subject template to be retrieved.
     /// @return string[] The subject template as an array of strings.
     function getSubjectTemplate(
@@ -101,12 +144,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Inserts a new subject template.
+    /// @dev This function can only be called by the owner of the contract.
     /// @param _templateId The ID for the new subject template.
     /// @param _subjectTemplate The subject template as an array of strings.
     function insertSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
-    ) public {
+    ) public onlyModule {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length == 0,
@@ -117,13 +161,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Updates an existing subject template by its ID.
-    /// @dev This function can only be called by the owner of the contract.
+    /// @dev This function can only be called by the module contract.
     /// @param _templateId The ID of the template to update.
     /// @param _subjectTemplate The new subject template as an array of strings.
     function updateSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
-    ) public onlyOwner {
+    ) public onlyModule {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length > 0,
@@ -136,7 +180,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Deletes an existing subject template by its ID.
     /// @dev This function can only be called by the owner of the contract.
     /// @param _templateId The ID of the subject template to be deleted.
-    function deleteSubjectTemplate(uint _templateId) public onlyOwner {
+    function deleteSubjectTemplate(uint _templateId) public onlyModule {
         require(
             subjectTemplates[_templateId].length > 0,
             "template id not exists"
@@ -170,12 +214,12 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Authenticate the email sender and authorize the message in the email subject based on the provided email auth message.
-    /// @dev This function can only be called by the owner of the contract.
+    /// @dev This function can only be called by the module contract.
     /// @param emailAuthMsg The email auth message containing all necessary information for authentication and authorization.
     /// @return bytes32 The hash of the authorized email message.
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
-    ) public onlyOwner returns (bytes32) {
+    ) public onlyModule returns (bytes32) {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
@@ -261,7 +305,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Enables or disables the timestamp check.
     /// @dev This function can only be called by the contract owner.
     /// @param _enabled Boolean flag to enable or disable the timestamp check.
-    function setTimestampCheckEnabled(bool _enabled) public onlyOwner {
+    function setTimestampCheckEnabled(bool _enabled) public onlyModule {
         timestampCheckEnabled = _enabled;
         emit TimestampCheckEnabled(_enabled);
     }

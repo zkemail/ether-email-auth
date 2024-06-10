@@ -53,6 +53,24 @@ abstract contract EmailAccountRecovery {
         virtual
         returns (string[][] memory);
 
+    /// @notice Extracts the account address to be recovered from the subject parameters of an acceptance email.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the subject parameters.
+    /// @param subjectParams The subject parameters of the acceptance email.
+    /// @param templateIdx The index of the acceptance subject template.
+    function extractRecoveredAccountFromAcceptanceSubject(
+        bytes[] memory subjectParams,
+        uint templateIdx
+    ) public pure virtual returns (address);
+
+    /// @notice Extracts the account address to be recovered from the subject parameters of a recovery email.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the subject parameters.
+    /// @param subjectParams The subject parameters of the recovery email.
+    /// @param templateIdx The index of the recovery subject template.
+    function extractRecoveredAccountFromRecoverySubject(
+        bytes[] memory subjectParams,
+        uint templateIdx
+    ) public pure virtual returns (address);
+
     function acceptGuardian(
         address guardian,
         uint templateIdx,
@@ -69,15 +87,22 @@ abstract contract EmailAccountRecovery {
 
     /// @notice Completes the recovery process.
     /// @dev This function must be implemented by inheriting contracts to finalize the recovery process.
-    function completeRecovery() external virtual;
+    /// @param account The address of the account to be recovered.
+    /// @param recoveryCalldata The calldata for the recovery process.
+    function completeRecovery(
+        address account,
+        bytes memory recoveryCalldata
+    ) external virtual;
 
     /// @notice Computes the address for email auth contract using the CREATE2 opcode.
-    /// @dev This function utilizes the `Create2` library to compute the address. The computation uses a provided account salt
+    /// @dev This function utilizes the `Create2` library to compute the address. The computation uses a provided account address to be recovered, account salt,
     /// and the hash of the encoded ERC1967Proxy creation code concatenated with the encoded email auth contract implementation
     /// address and the initialization call data. This ensures that the computed address is deterministic and unique per account salt.
+    /// @param recoveredAccount The address of the account to be recovered.
     /// @param accountSalt A bytes32 salt value, which is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
     /// @return address The computed address.
     function computeEmailAuthAddress(
+        address recoveredAccount,
         bytes32 accountSalt
     ) public view returns (address) {
         return
@@ -90,7 +115,7 @@ abstract contract EmailAccountRecovery {
                             emailAuthImplementation(),
                             abi.encodeCall(
                                 EmailAuth.initialize,
-                                (address(this), accountSalt)
+                                (recoveredAccount, accountSalt, address(this))
                             )
                         )
                     )
@@ -146,7 +171,13 @@ abstract contract EmailAccountRecovery {
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
+        address recoveredAccount = extractRecoveredAccountFromAcceptanceSubject(
+            emailAuthMsg.subjectParams,
+            templateIdx
+        );
+        require(recoveredAccount != address(0), "invalid account in email");
         address guardian = computeEmailAuthAddress(
+            recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
         require(
@@ -164,12 +195,16 @@ abstract contract EmailAccountRecovery {
             emailAuthImplementation(),
             abi.encodeCall(
                 EmailAuth.initialize,
-                (address(this), emailAuthMsg.proof.accountSalt)
+                (
+                    recoveredAccount,
+                    emailAuthMsg.proof.accountSalt,
+                    address(this)
+                )
             )
         );
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
-        guardianEmailAuth.updateDKIMRegistry(dkim());
-        guardianEmailAuth.updateVerifier(verifier());
+        guardianEmailAuth.initDKIMRegistry(dkim());
+        guardianEmailAuth.initVerifier(verifier());
         for (uint idx = 0; idx < acceptanceSubjectTemplates().length; idx++) {
             guardianEmailAuth.insertSubjectTemplate(
                 computeAcceptanceTemplateId(idx),
@@ -204,7 +239,13 @@ abstract contract EmailAccountRecovery {
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
+        address recoveredAccount = extractRecoveredAccountFromRecoverySubject(
+            emailAuthMsg.subjectParams,
+            templateIdx
+        );
+        require(recoveredAccount != address(0), "invalid account in email");
         address guardian = computeEmailAuthAddress(
+            recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
         require(address(guardian).code.length > 0, "guardian is not deployed");

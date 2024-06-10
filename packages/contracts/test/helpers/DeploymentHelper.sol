@@ -9,6 +9,7 @@ import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./SimpleWallet.sol";
+import "./RecoveryModule.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -19,11 +20,12 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    RecoveryModule recoveryModule;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
-    address guardian = address(0xCfBb461d24554AE7653575696cCb0A917E8551D7);
+    address guardian = address(0xF31307A599929f650748EE17BCE535C7671b8Ac9);
     address newSigner = vm.addr(4);
     address someRelayer = vm.addr(5);
 
@@ -77,18 +79,29 @@ contract DeploymentHelper is Test {
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
-        // Create SimpleWallet as EmailAccountRecovery implementation
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-            address(simpleWalletImpl),
+        // Create RecoveryModule as EmailAccountRecovery implementation
+        RecoveryModule recoveryModuleImpl = new RecoveryModule();
+        ERC1967Proxy recoveryModuleProxy = new ERC1967Proxy(
+            address(recoveryModuleImpl),
             abi.encodeCall(
-                simpleWalletImpl.initialize,
+                recoveryModuleImpl.initialize,
                 (
                     signer,
                     address(verifier),
                     address(dkim),
                     address(emailAuthImpl)
                 )
+            )
+        );
+        recoveryModule = RecoveryModule(payable(address(recoveryModuleProxy)));
+
+        // Create SimpleWallet
+        SimpleWallet simpleWalletImpl = new SimpleWallet();
+        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+            address(simpleWalletImpl),
+            abi.encodeCall(
+                simpleWalletImpl.initialize,
+                (signer, address(recoveryModule))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));

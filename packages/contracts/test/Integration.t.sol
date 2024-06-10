@@ -11,7 +11,7 @@ import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
-
+import "./helpers/RecoveryModule.sol";
 import "forge-std/console.sol";
 
 contract IntegrationTest is Test {
@@ -21,6 +21,7 @@ contract IntegrationTest is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    RecoveryModule recoveryModule;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -70,17 +71,29 @@ contract IntegrationTest is Test {
         console.log("emailAuthImpl");
         console.logAddress(address(emailAuthImpl));
 
+        // Create RecoveryModule as EmailAccountRecovery implementation
+        RecoveryModule recoveryModuleImpl = new RecoveryModule();
+        ERC1967Proxy recoveryModuleProxy = new ERC1967Proxy(
+            address(recoveryModuleImpl),
+            abi.encodeCall(
+                recoveryModuleImpl.initialize,
+                (
+                    signer,
+                    address(verifier),
+                    address(dkim),
+                    address(emailAuthImpl)
+                )
+            )
+        );
+        recoveryModule = RecoveryModule(payable(address(recoveryModuleProxy)));
+
         // Create SimpleWallet as EmailAccountRecovery implementation
         SimpleWallet simpleWalletImpl = new SimpleWallet();
-
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
-            abi.encodeWithSelector(
-                simpleWalletImpl.initialize.selector,
-                signer,
-                address(verifier),
-                address(dkim),
-                address(emailAuthImpl)
+            abi.encodeCall(
+                simpleWalletImpl.initialize,
+                (signer, address(recoveryModule))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
@@ -159,13 +172,14 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call Request guardian -> GuardianStatus.REQUESTED
-        simpleWallet.requestGuardian(
-            simpleWallet.computeEmailAuthAddress(accountSalt)
+        address guardian = recoveryModule.computeEmailAuthAddress(
+            address(simpleWallet),
+            accountSalt
         );
+        recoveryModule.requestGuardian(guardian);
         require(
-            simpleWallet.guardians(
-                simpleWallet.computeEmailAuthAddress(accountSalt)
-            ) == SimpleWallet.GuardianStatus.REQUESTED,
+            recoveryModule.guardians(guardian) ==
+                RecoveryModule.GuardianStatus.REQUESTED,
             "GuardianStatus should be REQUESTED"
         );
 
@@ -173,16 +187,15 @@ contract IntegrationTest is Test {
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
         subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
-            templateId: simpleWallet.computeAcceptanceTemplateId(templateIdx),
+            templateId: recoveryModule.computeAcceptanceTemplateId(templateIdx),
             subjectParams: subjectParamsForAcceptance,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        simpleWallet.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
         require(
-            simpleWallet.guardians(
-                simpleWallet.computeEmailAuthAddress(accountSalt)
-            ) == SimpleWallet.GuardianStatus.ACCEPTED,
+            recoveryModule.guardians(guardian) ==
+                RecoveryModule.GuardianStatus.ACCEPTED,
             "GuardianStatus should be ACCEPTED"
         );
 
@@ -243,19 +256,25 @@ contract IntegrationTest is Test {
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
-            templateId: simpleWallet.computeRecoveryTemplateId(templateIdx),
+            templateId: recoveryModule.computeRecoveryTemplateId(templateIdx),
             subjectParams: subjectParamsForRecovery,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        simpleWallet.handleRecovery(emailAuthMsg, templateIdx);
-        require(simpleWallet.isRecovering(), "isRecovering should be set");
+        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
         require(
-            simpleWallet.newSignerCandidate() ==
+            recoveryModule.isRecovering(address(simpleWallet)),
+            "isRecovering should be set"
+        );
+        require(
+            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)) ==
                 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
             "newSignerCandidate should be set"
         );
-        require(simpleWallet.timelock() > 0, "timelock should be set");
+        require(
+            recoveryModule.currentTimelockOfAccount(address(simpleWallet)) > 0,
+            "timelock should be set"
+        );
         require(
             simpleWallet.owner() == simpleWalletOwner,
             "simpleWallet owner should be old one"
@@ -264,14 +283,21 @@ contract IntegrationTest is Test {
         // Call completeRecovery
         // Warp at 3 days + 10 seconds later
         vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
-        simpleWallet.completeRecovery();
+        recoveryModule.completeRecovery(address(simpleWallet), new bytes(0));
         console.log("simpleWallet owner: ", simpleWallet.owner());
-        require(!simpleWallet.isRecovering(), "isRecovering should be reset");
         require(
-            simpleWallet.newSignerCandidate() == address(0),
+            !recoveryModule.isRecovering(address(simpleWallet)),
+            "isRecovering should be reset"
+        );
+        require(
+            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)) ==
+                address(0),
             "newSignerCandidate should be reset"
         );
-        require(simpleWallet.timelock() == 0, "timelock should be reset");
+        require(
+            recoveryModule.currentTimelockOfAccount(address(simpleWallet)) == 0,
+            "timelock should be reset"
+        );
         require(
             simpleWallet.owner() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
             "simpleWallet owner should be new one"
