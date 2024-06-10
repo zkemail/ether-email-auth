@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
 
-
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
 /// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering a wallet.
@@ -83,30 +82,18 @@ abstract contract EmailAccountRecovery {
         bytes32 accountSalt
     ) public view returns (address) {
         // If on zksync, we use L2ContractHelper.computeCreate2Address
-        if(block.chainid == 324 || block.chainid == 300) {
+        if (block.chainid == 324 || block.chainid == 300) {
             // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
             // If you failed some test cases, check the bytecodeHash by yourself
             // see, test/ComputeCreate2Address.t.sol
-            return L2ContractHelper.computeCreate2Address(
-                address(this),
-                accountSalt,
-                bytes32(0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de),
-                keccak256(
-                    abi.encode(
-                        emailAuthImplementation(),
-                        abi.encodeCall(
-                            EmailAuth.initialize,
-                            (address(this), accountSalt)
-                        )
-                    )
-                )
-            );            
-        } else {
-            return Create2.computeAddress(
-                accountSalt,
-                keccak256(
-                    abi.encodePacked(
-                        type(ERC1967Proxy).creationCode,
+            return
+                L2ContractHelper.computeCreate2Address(
+                    address(this),
+                    accountSalt,
+                    bytes32(
+                        0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de
+                    ),
+                    keccak256(
                         abi.encode(
                             emailAuthImplementation(),
                             abi.encodeCall(
@@ -115,8 +102,24 @@ abstract contract EmailAccountRecovery {
                             )
                         )
                     )
-                )
-            );
+                );
+        } else {
+            return
+                Create2.computeAddress(
+                    accountSalt,
+                    keccak256(
+                        abi.encodePacked(
+                            type(ERC1967Proxy).creationCode,
+                            abi.encode(
+                                emailAuthImplementation(),
+                                abi.encodeCall(
+                                    EmailAuth.initialize,
+                                    (address(this), accountSalt)
+                                )
+                            )
+                        )
+                    )
+                );
         }
     }
 
@@ -159,6 +162,21 @@ abstract contract EmailAccountRecovery {
                 )
             );
     }
+
+    /// @notice Returns the owner address of the Email Auth contract. It can be overridden by inheriting contracts to provide a different logic for fetching the owner address.
+    /// @dev Retrieves the owner from the upgradable Ownable contract at the email auth contract implementation address.
+    /// @param msgSender The address of the message sender (not used in this function but included for potential future extensions).
+    /// @param emailAuthMsg The email authentication message (not used in this function but included for potential future extensions).
+    /// @param templateIdx The index of the template (not used in this function but included for potential future extensions).
+    /// @return address The owner address of the Email Auth contract.
+    function getEmailAuthOwner(
+        address msgSender,
+        EmailAuthMsg memory emailAuthMsg,
+        uint templateIdx
+    ) public view returns (address) {
+        return msgSender;
+    }
+
     /// @notice Handles an acceptance by a new guardian.
     /// @dev This function validates the email auth message, deploys a new EmailAuth contract as a proxy if validations pass and initializes the contract.
     /// @param emailAuthMsg The email auth message for the email send from the guardian.
@@ -178,6 +196,8 @@ abstract contract EmailAccountRecovery {
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");
 
+        address initialOwner = getEmailAuthOwner(address(this), emailAuthMsg, templateIdx);
+
         // Deploy proxy of the guardian's EmailAuth contract
         ERC1967Proxy proxy = new ERC1967Proxy{
             salt: emailAuthMsg.proof.accountSalt
@@ -185,10 +205,9 @@ abstract contract EmailAccountRecovery {
             emailAuthImplementation(),
             abi.encodeCall(
                 EmailAuth.initialize,
-                (address(this), emailAuthMsg.proof.accountSalt)
+                (initialOwner, emailAuthMsg.proof.accountSalt)
             )
         );
-        
 
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.updateDKIMRegistry(dkim());
