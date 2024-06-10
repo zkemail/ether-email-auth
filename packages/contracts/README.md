@@ -32,7 +32,7 @@ Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `pa
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
-Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --ffi
+Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 31337 --ffi
 ```
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
