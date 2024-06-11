@@ -89,10 +89,10 @@ abstract contract EmailAccountRecovery {
     /// @notice Completes the recovery process.
     /// @dev This function must be implemented by inheriting contracts to finalize the recovery process.
     /// @param account The address of the account to be recovered.
-    /// @param recoveryCalldata The calldata for the recovery process.
+    /// @param completeCalldata The calldata for the recovery process.
     function completeRecovery(
         address account,
-        bytes memory recoveryCalldata
+        bytes memory completeCalldata
     ) external virtual;
 
     /// @notice Computes the address for email auth contract using the CREATE2 opcode.
