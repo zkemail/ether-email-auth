@@ -97,8 +97,7 @@ pub fn email_nullifier(signature: &[u8]) -> Result<Fr, PoseidonError> {
 pub fn pad_email_addr_node(mut cx: FunctionContext) -> JsResult<JsArray> {
     let email_addr = cx.argument::<JsString>(0)?.value(&mut cx);
     let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
-    let padded_email_addr_bytes =
-        JsArray::new(&mut cx, padded_email_addr.padded_bytes.len() as u32);
+    let padded_email_addr_bytes = JsArray::new(&mut cx, padded_email_addr.padded_bytes.len());
     for (idx, byte) in padded_email_addr.padded_bytes.into_iter().enumerate() {
         let js_byte = cx.number(byte);
         padded_email_addr_bytes.set(&mut cx, idx as u32, js_byte)?;

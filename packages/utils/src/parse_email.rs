@@ -188,9 +188,9 @@ pub fn extract_invitation_code_idxes_node(mut cx: FunctionContext) -> JsResult<J
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -212,9 +212,9 @@ pub fn extract_invitation_code_with_prefix_idxes_node(
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
