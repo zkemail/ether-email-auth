@@ -37,9 +37,9 @@ Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 3133
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
 1. `cp .env.sample .env`. 
-2. Write your private key in hex to the `PRIVATE_KEY` field in `.env`.
+2. Write your private key in hex to the `PRIVATE_KEY` field in `.env`. If you want to verify your own contracts, you can set `ETHERSCAN_API_KEY` to your own key.
 3. `source .env`
-4. `forge script script/DeployCommons.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --broadcast -vvvv`
+4. `forge script script/DeployCommons.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv`
 
 #### Deploy Each Wallet.
 After deploying common contracts, you can deploy a proxy contract of `SimpleWallet`, which is an example contract supporting our email-based account recovery.
@@ -238,7 +238,13 @@ yarn
 cd packages/contracts
 ```
 
-At the first forge build, you got the following warning.
+Also, there are the problem with foundy-zksync. They can't resolve contracts in monorepo's node_modules.
+
+https://github.com/matter-labs/foundry-zksync/issues/411
+
+To fix this, you should copy `node_modules` in the project root dir to `packages/contracts/node_modules`. And then you should replace `libs = ["../../node_modules", "lib"]` to `libs = ["node_modules", "lib"]` in `foundry.toml`. At the end, you should replace `../../node_modules` to `node_modules` in `remappings.txt`.
+
+At the first forge build, you got the following warning like the following.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -286,6 +292,8 @@ Also, this line is needed only for foundry-zksync, if you use foundry, please re
 libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
 
 ```
+
+Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
 
 About Create2, `L2ContractHelper.computeCreate2Address` should be used.
 And `type(ERC1967Proxy).creationCode` doesn't work correctly.

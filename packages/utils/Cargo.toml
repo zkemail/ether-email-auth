@@ -7,7 +7,7 @@ edition = "2018"
 exclude = ["index.node"]
 
 [lib]
-crate-type = ["rlib", "cdylib"]
+crate-type = ["cdylib", "rlib"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -45,6 +45,6 @@ ethers = "2.0.14"
 # wasm-bindgen = { version = "0.2.90", default-features = false }
 
 [dependencies.neon]
-version = "0.10"
-default-features = false
-features = ["napi-6", "channel-api", "promise-api"]
+version = "1.0.0"
+# default-features = false
+# features = ["napi-6", "channel-api", "promise-api"]

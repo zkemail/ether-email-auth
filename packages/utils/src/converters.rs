@@ -228,7 +228,7 @@ pub fn bytes2fields_node(mut cx: FunctionContext) -> JsResult<JsArray> {
         input_bytes.push(val as u8);
     }
     let fields = bytes2fields(&input_bytes);
-    let js_array = JsArray::new(&mut cx, fields.len() as u32);
+    let js_array = JsArray::new(&mut cx, fields.len());
     for (i, field) in fields.into_iter().enumerate() {
         let field = cx.string(&field2hex(&field));
         js_array.set(&mut cx, i as u32, field)?;

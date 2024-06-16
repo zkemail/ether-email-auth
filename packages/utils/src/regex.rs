@@ -6,7 +6,7 @@ pub fn pad_string_node(mut cx: FunctionContext) -> JsResult<JsArray> {
     let string = cx.argument::<JsString>(0)?.value(&mut cx);
     let padded_bytes_size = cx.argument::<JsNumber>(1)?.value(&mut cx) as usize;
     let padded_bytes = pad_string(&string, padded_bytes_size);
-    let padded_array = JsArray::new(&mut cx, padded_bytes_size as u32);
+    let padded_array = JsArray::new(&mut cx, padded_bytes_size);
     for (idx, byte) in padded_bytes.into_iter().enumerate() {
         let js_byte = cx.number(byte);
         padded_array.set(&mut cx, idx as u32, js_byte)?;
@@ -25,9 +25,9 @@ pub fn extract_substr_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray> {
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -43,9 +43,9 @@ pub fn extract_email_addr_idxes_node(mut cx: FunctionContext) -> JsResult<JsArra
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -61,9 +61,9 @@ pub fn extract_email_domain_idxes_node(mut cx: FunctionContext) -> JsResult<JsAr
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -79,9 +79,9 @@ pub fn extract_email_addr_with_name_idxes_node(mut cx: FunctionContext) -> JsRes
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -97,9 +97,9 @@ pub fn extract_from_all_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray>
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -115,9 +115,9 @@ pub fn extract_from_addr_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -135,10 +135,10 @@ pub fn extract_to_all_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray> {
         Err(e) => return cx.throw_error(e.to_string()),
     };
 
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
 
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
 
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
@@ -158,9 +158,9 @@ pub fn extract_to_addr_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray> 
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -176,9 +176,9 @@ pub fn extract_subject_all_idxes_node(mut cx: FunctionContext) -> JsResult<JsArr
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -194,9 +194,9 @@ pub fn extract_body_hash_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -212,9 +212,9 @@ pub fn extract_timestamp_idxes_node(mut cx: FunctionContext) -> JsResult<JsArray
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
@@ -230,9 +230,9 @@ pub fn extract_message_id_idxes_node(mut cx: FunctionContext) -> JsResult<JsArra
         Ok(substr_idxes) => substr_idxes,
         Err(e) => return cx.throw_error(e.to_string()),
     };
-    let js_array = JsArray::new(&mut cx, substr_idxes.len() as u32);
+    let js_array = JsArray::new(&mut cx, substr_idxes.len());
     for (i, (start_idx, end_idx)) in substr_idxes.iter().enumerate() {
-        let start_end_array = JsArray::new(&mut cx, 2u32);
+        let start_end_array = JsArray::new(&mut cx, 2usize);
         let start_idx = cx.number(*start_idx as f64);
         start_end_array.set(&mut cx, 0, start_idx)?;
         let end_idx = cx.number(*end_idx as f64);
