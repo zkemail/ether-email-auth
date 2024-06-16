@@ -26,9 +26,9 @@ struct EmailAuthMsg {
 /// @dev Inherits from OwnableUpgradeable and UUPSUpgradeable for upgradeability and ownership management.
 contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     bytes32 public accountSalt;
-    IDKIMRegistry public dkim;
-    Verifier public verifier;
-    address module;
+    IDKIMRegistry internal dkim;
+    Verifier internal verifier;
+    address public module;
     mapping(uint => string[]) public subjectTemplates;
     mapping(bytes32 => bytes32) public authedHash;
     uint public lastTimestamp;
@@ -130,7 +130,6 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Retrieves a subject template by its ID.
-    /// @dev This function can only be called by the module contract.
     /// @param _templateId The ID of the subject template to be retrieved.
     /// @return string[] The subject template as an array of strings.
     function getSubjectTemplate(
@@ -201,7 +200,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         bool _isCodeExist,
         uint _templateId,
         bytes[] memory _subjectParams
-    ) public pure returns (bytes32) {
+    ) public pure virtual returns (bytes32) {
         return
             keccak256(
                 abi.encode(
@@ -219,7 +218,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @return bytes32 The hash of the authorized email message.
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
-    ) public onlyModule returns (bytes32) {
+    ) public virtual onlyModule returns (bytes32) {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
@@ -293,7 +292,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function isValidSignature(
         bytes32 _hash,
         bytes memory _signature
-    ) public view returns (bytes4) {
+    ) public view virtual returns (bytes4) {
         bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
         if (authedHash[_emailNullifier] == _hash) {
             return 0x1626ba7e;

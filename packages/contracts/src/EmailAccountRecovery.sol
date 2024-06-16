@@ -61,7 +61,7 @@ abstract contract EmailAccountRecovery {
     function extractRecoveredAccountFromAcceptanceSubject(
         bytes[] memory subjectParams,
         uint templateIdx
-    ) public pure virtual returns (address);
+    ) public view virtual returns (address);
 
     /// @notice Extracts the account address to be recovered from the subject parameters of a recovery email.
     /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the subject parameters.
@@ -70,7 +70,7 @@ abstract contract EmailAccountRecovery {
     function extractRecoveredAccountFromRecoverySubject(
         bytes[] memory subjectParams,
         uint templateIdx
-    ) public pure virtual returns (address);
+    ) public view virtual returns (address);
 
     function acceptGuardian(
         address guardian,
@@ -216,41 +216,52 @@ abstract contract EmailAccountRecovery {
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");
 
-        // Deploy proxy of the guardian's EmailAuth contract
-        ERC1967Proxy proxy = new ERC1967Proxy{
-            salt: emailAuthMsg.proof.accountSalt
-        }(
-            emailAuthImplementation(),
-            abi.encodeCall(
-                EmailAuth.initialize,
-                (
-                    recoveredAccount,
-                    emailAuthMsg.proof.accountSalt,
-                    address(this)
+        EmailAuth guardianEmailAuth;
+        if (guardian.code.length == 0) {
+            // Deploy proxy of the guardian's EmailAuth contract
+            ERC1967Proxy proxy = new ERC1967Proxy{
+                salt: emailAuthMsg.proof.accountSalt
+            }(
+                emailAuthImplementation(),
+                abi.encodeCall(
+                    EmailAuth.initialize,
+                    (
+                        recoveredAccount,
+                        emailAuthMsg.proof.accountSalt,
+                        address(this)
+                    )
                 )
-            )
-        );
-
-        EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
-        guardianEmailAuth.initDKIMRegistry(dkim());
-        guardianEmailAuth.initVerifier(verifier());
-        for (uint idx = 0; idx < acceptanceSubjectTemplates().length; idx++) {
-            guardianEmailAuth.insertSubjectTemplate(
-                computeAcceptanceTemplateId(idx),
-                acceptanceSubjectTemplates()[idx]
             );
-        }
-        for (uint idx = 0; idx < recoverySubjectTemplates().length; idx++) {
-            guardianEmailAuth.insertSubjectTemplate(
-                computeRecoveryTemplateId(idx),
-                recoverySubjectTemplates()[idx]
+            guardianEmailAuth = EmailAuth(address(proxy));
+            guardianEmailAuth.initDKIMRegistry(dkim());
+            guardianEmailAuth.initVerifier(verifier());
+            for (
+                uint idx = 0;
+                idx < acceptanceSubjectTemplates().length;
+                idx++
+            ) {
+                guardianEmailAuth.insertSubjectTemplate(
+                    computeAcceptanceTemplateId(idx),
+                    acceptanceSubjectTemplates()[idx]
+                );
+            }
+            for (uint idx = 0; idx < recoverySubjectTemplates().length; idx++) {
+                guardianEmailAuth.insertSubjectTemplate(
+                    computeRecoveryTemplateId(idx),
+                    recoverySubjectTemplates()[idx]
+                );
+            }
+        } else {
+            guardianEmailAuth = EmailAuth(payable(address(guardian)));
+            require(
+                guardianEmailAuth.module() == address(this),
+                "invalid module"
             );
         }
 
         // An assertion to confirm that the authEmail function is executed successfully
         // and does not return an error.
         guardianEmailAuth.authEmail(emailAuthMsg);
-
         acceptGuardian(
             guardian,
             templateIdx,
