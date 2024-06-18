@@ -1798,7 +1798,7 @@
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.1.1":
+"@zk-email/contracts@^6.1.2":
   version "6.1.2"
   resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.2.tgz#ce5b21c62103da72cad404724f2eb9649c773d86"
   integrity sha512-cakbMmr+ox6nyhNXiJI8ZM0ZuKn3A60KIeiZsr3a1dYn4Rk03PL2MfHMv9ec8ivNnJNy+jDbOAkcTV5PYHoTIQ==
