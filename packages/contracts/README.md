@@ -340,3 +340,4 @@ source .env
 forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
 ```
 
+Note, current foundy-zksync doesn't support to verify contracts. It will be supported in the future.
