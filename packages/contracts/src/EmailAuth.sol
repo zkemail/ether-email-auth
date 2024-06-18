@@ -28,7 +28,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     bytes32 public accountSalt;
     IDKIMRegistry internal dkim;
     Verifier internal verifier;
-    address public module;
+    address public controller;
     mapping(uint => string[]) public subjectTemplates;
     mapping(bytes32 => bytes32) public authedHash;
     uint public lastTimestamp;
@@ -49,8 +49,8 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     );
     event TimestampCheckEnabled(bool enabled);
 
-    modifier onlyModule() {
-        require(msg.sender == module, "only module");
+    modifier onlyController() {
+        require(msg.sender == controller, "only controller");
         _;
     }
 
@@ -59,16 +59,16 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Initialize the contract with an initial owner and an account salt.
     /// @param _initialOwner The address of the initial owner.
     /// @param _accountSalt The account salt to derive CREATE2 address of this contract.
-    /// @param _module The address of the module contract.
+    /// @param _controller The address of the controller contract.
     function initialize(
         address _initialOwner,
         bytes32 _accountSalt,
-        address _module
+        address _controller
     ) public initializer {
         __Ownable_init(_initialOwner);
         accountSalt = _accountSalt;
         timestampCheckEnabled = true;
-        module = _module;
+        controller = _controller;
     }
 
     /// @notice Returns the address of the DKIM registry contract.
@@ -85,7 +85,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Initializes the address of the DKIM registry contract.
     /// @param _dkimRegistryAddr The address of the DKIM registry contract.
-    function initDKIMRegistry(address _dkimRegistryAddr) public onlyModule {
+    function initDKIMRegistry(address _dkimRegistryAddr) public onlyController {
         require(
             _dkimRegistryAddr != address(0),
             "invalid dkim registry address"
@@ -100,7 +100,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Initializes the address of the verifier contract.
     /// @param _verifierAddr The address of the verifier contract.
-    function initVerifier(address _verifierAddr) public onlyModule {
+    function initVerifier(address _verifierAddr) public onlyController {
         require(_verifierAddr != address(0), "invalid verifier address");
         require(
             address(verifier) == address(0),
@@ -149,7 +149,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function insertSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
-    ) public onlyModule {
+    ) public onlyController {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length == 0,
@@ -160,13 +160,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Updates an existing subject template by its ID.
-    /// @dev This function can only be called by the module contract.
+    /// @dev This function can only be called by the controller contract.
     /// @param _templateId The ID of the template to update.
     /// @param _subjectTemplate The new subject template as an array of strings.
     function updateSubjectTemplate(
         uint _templateId,
         string[] memory _subjectTemplate
-    ) public onlyModule {
+    ) public onlyController {
         require(_subjectTemplate.length > 0, "subject template is empty");
         require(
             subjectTemplates[_templateId].length > 0,
@@ -179,7 +179,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Deletes an existing subject template by its ID.
     /// @dev This function can only be called by the owner of the contract.
     /// @param _templateId The ID of the subject template to be deleted.
-    function deleteSubjectTemplate(uint _templateId) public onlyModule {
+    function deleteSubjectTemplate(uint _templateId) public onlyController {
         require(
             subjectTemplates[_templateId].length > 0,
             "template id not exists"
@@ -213,12 +213,12 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Authenticate the email sender and authorize the message in the email subject based on the provided email auth message.
-    /// @dev This function can only be called by the module contract.
+    /// @dev This function can only be called by the controller contract.
     /// @param emailAuthMsg The email auth message containing all necessary information for authentication and authorization.
     /// @return bytes32 The hash of the authorized email message.
     function authEmail(
         EmailAuthMsg memory emailAuthMsg
-    ) public virtual onlyModule returns (bytes32) {
+    ) public virtual onlyController returns (bytes32) {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
@@ -304,7 +304,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Enables or disables the timestamp check.
     /// @dev This function can only be called by the contract owner.
     /// @param _enabled Boolean flag to enable or disable the timestamp check.
-    function setTimestampCheckEnabled(bool _enabled) public onlyModule {
+    function setTimestampCheckEnabled(bool _enabled) public onlyController {
         timestampCheckEnabled = _enabled;
         emit TimestampCheckEnabled(_enabled);
     }

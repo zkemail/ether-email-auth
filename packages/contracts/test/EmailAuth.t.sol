@@ -157,7 +157,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertUpdateSubjectTemplateCallerIsNotTheModule()
         public
     {
-        vm.expectRevert("only module");
+        vm.expectRevert("only controller");
         emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
     }
 
@@ -203,7 +203,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertDeleteSubjectTemplateCallerIsNotTheModule()
         public
     {
-        vm.expectRevert("only module");
+        vm.expectRevert("only controller");
         emailAuth.deleteSubjectTemplate(templateId);
     }
 
@@ -282,7 +282,7 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.lastTimestamp(), 0);
         assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
-        vm.expectRevert("only module");
+        vm.expectRevert("only controller");
         emailAuth.authEmail(emailAuthMsg);
     }
 
@@ -466,7 +466,7 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testExpectRevertSetTimestampCheckEnabled() public {
-        vm.expectRevert("only module");
+        vm.expectRevert("only controller");
         emailAuth.setTimestampCheckEnabled(false);
     }
 }

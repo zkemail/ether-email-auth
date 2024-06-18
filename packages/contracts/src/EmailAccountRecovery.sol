@@ -254,8 +254,8 @@ abstract contract EmailAccountRecovery {
         } else {
             guardianEmailAuth = EmailAuth(payable(address(guardian)));
             require(
-                guardianEmailAuth.module() == address(this),
-                "invalid module"
+                guardianEmailAuth.controller() == address(this),
+                "invalid controller"
             );
         }
 
