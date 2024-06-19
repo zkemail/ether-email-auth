@@ -8,11 +8,10 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
 import "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeploymentHelper is Test {
@@ -21,6 +20,7 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
@@ -49,7 +49,7 @@ contract DeploymentHelper is Test {
         if (block.chainid == 300) {
             guardian = address(0x4110796d50E5a4f51E626B00c38af39d236Ec8b9);
         } else {
-            guardian = address(0xa0cD5E8f1663E9218e3Adb2544377e2f663c2999);
+            guardian = address(0xfB1f91113157135BA8a461489c1Ae92Fb681beFF);
         }
 
         vm.startPrank(deployer);
@@ -73,6 +73,15 @@ contract DeploymentHelper is Test {
             domainName,
             publicKeyHash,
             signature
+        );
+
+        // Create userOverrideable dkim registry
+        overrideableDkim = new UserOverrideableDKIMRegistry(deployer, deployer);
+        overrideableDkim.setDKIMPublicKeyHash(
+            domainName,
+            publicKeyHash,
+            deployer,
+            new bytes(0)
         );
 
         // Create Verifier
