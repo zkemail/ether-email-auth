@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
-import {RecoveryModule} from "./RecoveryModule.sol";
+import {RecoveryController} from "./RecoveryController.sol";
 
 contract SimpleWallet is OwnableUpgradeable {
     enum GuardianStatus {
@@ -18,18 +18,18 @@ contract SimpleWallet is OwnableUpgradeable {
     /// @notice Function to receive ETH
     receive() external payable {}
 
-    address public recoveryModule;
+    address public recoveryController;
 
     constructor() {}
 
     function initialize(
         address _initialOwner,
-        address _recoveryModule
+        address _recoveryController
     ) public initializer {
         __Ownable_init(_initialOwner);
-        recoveryModule = _recoveryModule;
-        RecoveryModule(_recoveryModule).configureTimelockPeriod(
-            RecoveryModule(_recoveryModule).DEFAULT_TIMELOCK_PERIOD()
+        recoveryController = _recoveryController;
+        RecoveryController(_recoveryController).configureTimelockPeriod(
+            RecoveryController(_recoveryController).DEFAULT_TIMELOCK_PERIOD()
         );
     }
 
@@ -44,8 +44,8 @@ contract SimpleWallet is OwnableUpgradeable {
 
     function changeOwner(address newOwner) public {
         require(
-            msg.sender == owner() || msg.sender == recoveryModule,
-            "only owner or recovery module"
+            msg.sender == owner() || msg.sender == recoveryController,
+            "only owner or recovery controller"
         );
         _transferOwnership(newOwner);
     }

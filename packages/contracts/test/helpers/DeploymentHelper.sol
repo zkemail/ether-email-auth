@@ -9,8 +9,9 @@ import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./SimpleWallet.sol";
-import "./RecoveryModule.sol";
+import "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -20,7 +21,7 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
-    RecoveryModule recoveryModule;
+    RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -87,12 +88,12 @@ contract DeploymentHelper is Test {
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
-        // Create RecoveryModule as EmailAccountRecovery implementation
-        RecoveryModule recoveryModuleImpl = new RecoveryModule();
-        ERC1967Proxy recoveryModuleProxy = new ERC1967Proxy(
-            address(recoveryModuleImpl),
+        // Create RecoveryController as EmailAccountRecovery implementation
+        RecoveryController recoveryControllerImpl = new RecoveryController();
+        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+            address(recoveryControllerImpl),
             abi.encodeCall(
-                recoveryModuleImpl.initialize,
+                recoveryControllerImpl.initialize,
                 (
                     signer,
                     address(verifier),
@@ -101,7 +102,9 @@ contract DeploymentHelper is Test {
                 )
             )
         );
-        recoveryModule = RecoveryModule(payable(address(recoveryModuleProxy)));
+        recoveryController = RecoveryController(
+            payable(address(recoveryControllerProxy))
+        );
 
         // Create SimpleWallet
         SimpleWallet simpleWalletImpl = new SimpleWallet();
@@ -109,7 +112,7 @@ contract DeploymentHelper is Test {
             address(simpleWalletImpl),
             abi.encodeCall(
                 simpleWalletImpl.initialize,
-                (signer, address(recoveryModule))
+                (signer, address(recoveryController))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));

@@ -105,7 +105,7 @@ contract EmailAccountRecoveryTest is StructHelper {
 
     function testAcceptanceSubjectTemplates() public {
         setUp();
-        string[][] memory res = recoveryModule.acceptanceSubjectTemplates();
+        string[][] memory res = recoveryController.acceptanceSubjectTemplates();
         assertEq(res[0][0], "Accept");
         assertEq(res[0][1], "guardian");
         assertEq(res[0][2], "request");
@@ -115,7 +115,7 @@ contract EmailAccountRecoveryTest is StructHelper {
 
     function testRecoverySubjectTemplates() public {
         setUp();
-        string[][] memory res = recoveryModule.recoverySubjectTemplates();
+        string[][] memory res = recoveryController.recoverySubjectTemplates();
         assertEq(res[0][0], "Set");
         assertEq(res[0][1], "the");
         assertEq(res[0][2], "new");
@@ -130,17 +130,17 @@ contract EmailAccountRecoveryTest is StructHelper {
         setUp();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.NONE
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.NONE
         );
 
         vm.startPrank(deployer);
-        recoveryModule.requestGuardian(guardian);
+        recoveryController.requestGuardian(guardian);
         vm.stopPrank();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
     }
 
@@ -148,17 +148,17 @@ contract EmailAccountRecoveryTest is StructHelper {
     //     setUp();
 
     //     require(
-    //         recoveryModule.guardians(guardian) ==
-    //             RecoveryModule.GuardianStatus.NONE
+    //         recoveryController.guardians(guardian) ==
+    //             recoveryController.GuardianStatus.NONE
     //     );
 
     //     vm.startPrank(receiver);
-    //     recoveryModule.requestGuardian(guardian);
+    //     recoveryController.requestGuardian(guardian);
     //     vm.stopPrank();
 
     //     require(
-    //         recoveryModule.guardians(guardian) ==
-    //             RecoveryModule.GuardianStatus.NONE
+    //         recoveryController.guardians(guardian) ==
+    //             recoveryController.GuardianStatus.NONE
     //     );
     // }
 
@@ -166,13 +166,13 @@ contract EmailAccountRecoveryTest is StructHelper {
         setUp();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.NONE
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.NONE
         );
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("invalid guardian"));
-        recoveryModule.requestGuardian(address(0x0));
+        recoveryController.requestGuardian(address(0x0));
         vm.stopPrank();
     }
 
@@ -180,14 +180,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         setUp();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.NONE
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.NONE
         );
 
         vm.startPrank(deployer);
-        recoveryModule.requestGuardian(guardian);
+        recoveryController.requestGuardian(guardian);
         vm.expectRevert(bytes("guardian status must be NONE"));
-        recoveryModule.requestGuardian(guardian);
+        recoveryController.requestGuardian(guardian);
         vm.stopPrank();
     }
 
@@ -197,14 +197,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         console.log("guardian", guardian);
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeAcceptanceTemplateId(
+        uint templateId = recoveryController.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -213,19 +213,19 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         // acceptGuardian is internal, we call handleAcceptance, which calls acceptGuardian internally.
         vm.startPrank(someRelayer);
-        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.ACCEPTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.ACCEPTED
         );
     }
 
@@ -238,14 +238,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         testRequestGuardian();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeAcceptanceTemplateId(
+        uint templateId = recoveryController.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -255,14 +255,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("guardian status must be REQUESTED"));
-        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
@@ -270,14 +270,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         testRequestGuardian();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 1;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeAcceptanceTemplateId(
+        uint templateId = recoveryController.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -286,14 +286,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid template index"));
-        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
@@ -301,14 +301,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         testRequestGuardian();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeAcceptanceTemplateId(
+        uint templateId = recoveryController.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -318,14 +318,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid subject params"));
-        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
@@ -335,14 +335,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         testRequestGuardian();
 
         require(
-            recoveryModule.guardians(guardian) ==
-                RecoveryModule.GuardianStatus.REQUESTED
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeAcceptanceTemplateId(
+        uint templateId = recoveryController.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -351,35 +351,39 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid account in email"));
-        recoveryModule.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testHandleRecovery() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](2);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -387,46 +391,54 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
     }
 
     function testExpectRevertHandleRecoveryGuardianIsNotDeployed() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](2);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -435,28 +447,30 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("guardian is not deployed"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleRecoveryInvalidTemplateId() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
@@ -469,14 +483,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid template id"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
@@ -488,21 +502,25 @@ contract EmailAccountRecoveryTest is StructHelper {
     {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](2);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -531,27 +549,31 @@ contract EmailAccountRecoveryTest is StructHelper {
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("guardian is not deployed"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleRecoveryInvalidTemplateIndex() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
         uint templateIdx = 1;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](2);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -559,34 +581,38 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid template index"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleRecoveryInvalidSubjectParams() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](3);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -595,34 +621,34 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid subject params"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     // function testExpectRevertHandleRecoveryInvalidGuardianInEmail() public {
     //     testHandleAcceptance();
 
-    //     assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+    //     assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
     //     assertEq(
-    //         recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+    //         recoveryController.currentTimelockOfAccount(address(simpleWallet)),
     //         0
     //     );
     //     assertEq(simpleWallet.owner(), deployer);
     //     assertEq(
-    //         recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+    //         recoveryController.newSignerCandidateOfAccount(address(simpleWallet)),
     //         address(0x0)
     //     );
     //     uint templateIdx = 0;
 
     //     EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-    //     uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+    //     uint templateId = recoveryController.computeRecoveryTemplateId(templateIdx);
     //     emailAuthMsg.templateId = templateId;
     //     bytes[] memory subjectParamsForRecovery = new bytes[](2);
     //     subjectParamsForRecovery[0] = abi.encode(address(0x0));
@@ -630,34 +656,38 @@ contract EmailAccountRecoveryTest is StructHelper {
     //     emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
     //     vm.mockCall(
-    //         address(recoveryModule.emailAuthImplementationAddr()),
+    //         address(recoveryController.emailAuthImplementationAddr()),
     //         abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
     //         abi.encode(0x0)
     //     );
 
     //     vm.startPrank(someRelayer);
     //     vm.expectRevert(bytes("invalid guardian in email"));
-    //     recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+    //     recoveryController.handleRecovery(emailAuthMsg, templateIdx);
     //     vm.stopPrank();
     // }
 
     function testExpectRevertHandleRecoveryInvalidNewSigner() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryModule.computeRecoveryTemplateId(templateIdx);
+        uint templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
         emailAuthMsg.templateId = templateId;
         bytes[] memory subjectParamsForRecovery = new bytes[](2);
         subjectParamsForRecovery[0] = abi.encode(simpleWallet);
@@ -665,14 +695,14 @@ contract EmailAccountRecoveryTest is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryModule.emailAuthImplementationAddr()),
+            address(recoveryController.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid new signer"));
-        recoveryModule.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
@@ -681,32 +711,38 @@ contract EmailAccountRecoveryTest is StructHelper {
 
         testHandleRecovery();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
 
         vm.warp(0);
 
         vm.startPrank(address(simpleWallet));
-        recoveryModule.rejectRecovery();
+        recoveryController.rejectRecovery();
         vm.stopPrank();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
     }
@@ -714,41 +750,47 @@ contract EmailAccountRecoveryTest is StructHelper {
     function testExpectRevertRejectRecoveryOwnableUnauthorizedAccount() public {
         testHandleRecovery();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
 
         vm.startPrank(deployer);
         vm.expectRevert("recovery not in progress");
-        recoveryModule.rejectRecovery();
+        recoveryController.rejectRecovery();
         vm.stopPrank();
     }
 
     function testExpectRevertRejectRecoveryRecoveryNotInProgress() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("recovery not in progress"));
-        recoveryModule.rejectRecovery();
+        recoveryController.rejectRecovery();
         vm.stopPrank();
     }
 
@@ -757,53 +799,66 @@ contract EmailAccountRecoveryTest is StructHelper {
 
         testHandleRecovery();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
 
         vm.startPrank(address(simpleWallet));
         vm.warp(block.timestamp + 4 days);
         vm.expectRevert(bytes("timelock expired"));
-        recoveryModule.rejectRecovery();
+        recoveryController.rejectRecovery();
         vm.stopPrank();
     }
 
     function testCompleteRecovery() public {
         testHandleRecovery();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
 
         vm.startPrank(someRelayer);
         vm.warp(4 days);
-        recoveryModule.completeRecovery(address(simpleWallet), new bytes(0));
+        recoveryController.completeRecovery(
+            address(simpleWallet),
+            new bytes(0)
+        );
         vm.stopPrank();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), newSigner);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
     }
@@ -811,14 +866,16 @@ contract EmailAccountRecoveryTest is StructHelper {
     function testExpectRevertCompleteRecoveryRecoveryNotInProgress() public {
         testHandleAcceptance();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             address(0x0)
         );
 
@@ -826,7 +883,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.warp(4 days);
         vm.expectRevert(bytes("recovery not in progress"));
         bytes memory recoveryCalldata;
-        recoveryModule.completeRecovery(
+        recoveryController.completeRecovery(
             address(simpleWallet),
             recoveryCalldata
         );
@@ -838,15 +895,19 @@ contract EmailAccountRecoveryTest is StructHelper {
 
         testHandleRecovery();
 
-        assertEq(recoveryModule.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryModule.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryModule.timelockPeriodOfAccount(address(simpleWallet))
+                recoveryController.timelockPeriodOfAccount(
+                    address(simpleWallet)
+                )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryModule.newSignerCandidateOfAccount(address(simpleWallet)),
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ),
             newSigner
         );
 
@@ -855,7 +916,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("timelock not expired"));
         bytes memory recoveryCalldata;
-        recoveryModule.completeRecovery(
+        recoveryController.completeRecovery(
             address(simpleWallet),
             recoveryCalldata
         );

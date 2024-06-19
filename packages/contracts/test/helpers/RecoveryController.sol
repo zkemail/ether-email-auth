@@ -7,7 +7,7 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import "forge-std/console.sol";
 
-contract RecoveryModule is OwnableUpgradeable, EmailAccountRecovery {
+contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     enum GuardianStatus {
         NONE,
         REQUESTED,
