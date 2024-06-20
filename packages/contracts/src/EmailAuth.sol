@@ -29,7 +29,6 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     ECDSAOwnedDKIMRegistry public dkim;
     Verifier public verifier;
     mapping(uint => string[]) public subjectTemplates;
-    // mapping(bytes32 => bytes32) public authedHash;
     uint public lastTimestamp;
     mapping(bytes32 => bool) public usedNullifiers;
     bool public timestampCheckEnabled;
@@ -41,7 +40,6 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     event SubjectTemplateDeleted(uint indexed templateId);
     event EmailAuthed(
         bytes32 indexed emailNullifier,
-        bytes32 indexed msgHash,
         bytes32 indexed accountSalt,
         bool isCodeExist,
         uint templateId
@@ -151,37 +149,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         emit SubjectTemplateDeleted(_templateId);
     }
 
-    /// @notice Computes the hash of an email auth message.
-    /// @dev This function takes into account the account salt, a boolean indicating if an account code exists in the email, the subject template ID, and the subject parameters.
-    /// @param _accountSalt The account salt to derive CREATE2 address of this contract.
-    /// @param _isCodeExist A boolean indicating if an account code exists in the email.
-    /// @param _templateId The ID of the subject template.
-    /// @param _subjectParams The parameters in the email subject, which should be taken according to the specified subject template.
-    /// @return bytes32 The computed hash as a bytes32 value.
-    function computeMsgHash(
-        bytes32 _accountSalt,
-        bool _isCodeExist,
-        uint _templateId,
-        bytes[] memory _subjectParams
-    ) public pure returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    _accountSalt,
-                    _isCodeExist,
-                    _templateId,
-                    _subjectParams
-                )
-            );
-    }
-
     /// @notice Authenticate the email sender and authorize the message in the email subject based on the provided email auth message.
     /// @dev This function can only be called by the owner of the contract.
     /// @param emailAuthMsg The email auth message containing all necessary information for authentication and authorization.
-    /// @return bytes32 The hash of the authorized email message.
-    function authEmail(
-        EmailAuthMsg memory emailAuthMsg
-    ) public onlyOwner returns (bytes32) {
+    function authEmail(EmailAuthMsg memory emailAuthMsg) public onlyOwner {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(
@@ -224,45 +195,15 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             "invalid email proof"
         );
 
-        bytes32 msgHash = computeMsgHash(
-            emailAuthMsg.proof.accountSalt,
-            emailAuthMsg.proof.isCodeExist,
-            emailAuthMsg.templateId,
-            emailAuthMsg.subjectParams
-        );
-
-        // require(
-        //     authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0),
-        //     "email already authed"
-        // );
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
         lastTimestamp = emailAuthMsg.proof.timestamp;
-        // authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
         emit EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
-            msgHash,
             emailAuthMsg.proof.accountSalt,
             emailAuthMsg.proof.isCodeExist,
             emailAuthMsg.templateId
         );
-        return msgHash;
     }
-
-    // /// @notice Validates the email nullifier of an authorized email as its signature.
-    // /// @param _hash The hash of the email auth message computed by the `computeMsgHash` function.
-    // /// @param _signature The signature to be validated, which is expected to be the email nullifier.
-    // /// @return A status code where `0x1626ba7e` indicates a valid signature and `0xffffffff` indicates an invalid signature.
-    // function isValidSignature(
-    //     bytes32 _hash,
-    //     bytes memory _signature
-    // ) public view returns (bytes4) {
-    //     bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
-    //     if (authedHash[_emailNullifier] == _hash) {
-    //         return 0x1626ba7e;
-    //     } else {
-    //         return 0xffffffff;
-    //     }
-    // }
 
     /// @notice Enables or disables the timestamp check.
     /// @dev This function can only be called by the contract owner.
