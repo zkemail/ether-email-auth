@@ -1836,10 +1836,10 @@
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
 
-"@zk-email/relayer-utils@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.1.0.tgz#faf352f9aa10a03f8e32660e69057133c8bc34ab"
-  integrity sha512-KNjj95+zji81iav6TIwmtDuTkYN7V4KInLhI2fOt8sdm5rE7j/kd32nMu4xI4okZGYaxwsdlwxp0zHuzZ3L5EQ==
+"@zk-email/relayer-utils@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.1.4.tgz#2afa99318b4c30a3b6974fd77004b7011f650c81"
+  integrity sha512-nwJe83kp8ORAELUQ4+FYANksB9FBZlzSVefIkdz4TOAIIf8r0SuDJS/m/aAM3EY3/0Y1kWyHgyXArz/hqOnWWA==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0"
     cargo-cp-artifact "^0.1"
