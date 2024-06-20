@@ -29,7 +29,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     ECDSAOwnedDKIMRegistry public dkim;
     Verifier public verifier;
     mapping(uint => string[]) public subjectTemplates;
-    mapping(bytes32 => bytes32) public authedHash;
+    // mapping(bytes32 => bytes32) public authedHash;
     uint public lastTimestamp;
     mapping(bytes32 => bool) public usedNullifiers;
     bool public timestampCheckEnabled;
@@ -39,7 +39,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     event SubjectTemplateInserted(uint indexed templateId);
     event SubjectTemplateUpdated(uint indexed templateId);
     event SubjectTemplateDeleted(uint indexed templateId);
-    event EmailAuthed(bytes32 indexed emailNullifier, bytes32 indexed msgHash, bytes32 indexed accountSalt, bool isCodeExist, uint templateId);
+    event EmailAuthed(
+        bytes32 indexed emailNullifier,
+        bytes32 indexed msgHash,
+        bytes32 indexed accountSalt,
+        bool isCodeExist,
+        uint templateId
+    );
     event TimestampCheckEnabled(bool enabled);
 
     constructor() {}
@@ -225,13 +231,13 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             emailAuthMsg.subjectParams
         );
 
-        require(
-            authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0),
-            "email already authed"
-        );
+        // require(
+        //     authedHash[emailAuthMsg.proof.emailNullifier] == bytes32(0),
+        //     "email already authed"
+        // );
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
         lastTimestamp = emailAuthMsg.proof.timestamp;
-        authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
+        // authedHash[emailAuthMsg.proof.emailNullifier] = msgHash;
         emit EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
             msgHash,
@@ -242,21 +248,21 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         return msgHash;
     }
 
-    /// @notice Validates the email nullifier of an authorized email as its signature.
-    /// @param _hash The hash of the email auth message computed by the `computeMsgHash` function.
-    /// @param _signature The signature to be validated, which is expected to be the email nullifier.
-    /// @return A status code where `0x1626ba7e` indicates a valid signature and `0xffffffff` indicates an invalid signature.
-    function isValidSignature(
-        bytes32 _hash,
-        bytes memory _signature
-    ) public view returns (bytes4) {
-        bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
-        if (authedHash[_emailNullifier] == _hash) {
-            return 0x1626ba7e;
-        } else {
-            return 0xffffffff;
-        }
-    }
+    // /// @notice Validates the email nullifier of an authorized email as its signature.
+    // /// @param _hash The hash of the email auth message computed by the `computeMsgHash` function.
+    // /// @param _signature The signature to be validated, which is expected to be the email nullifier.
+    // /// @return A status code where `0x1626ba7e` indicates a valid signature and `0xffffffff` indicates an invalid signature.
+    // function isValidSignature(
+    //     bytes32 _hash,
+    //     bytes memory _signature
+    // ) public view returns (bytes4) {
+    //     bytes32 _emailNullifier = abi.decode(_signature, (bytes32));
+    //     if (authedHash[_emailNullifier] == _hash) {
+    //         return 0x1626ba7e;
+    //     } else {
+    //         return 0xffffffff;
+    //     }
+    // }
 
     /// @notice Enables or disables the timestamp check.
     /// @dev This function can only be called by the contract owner.
