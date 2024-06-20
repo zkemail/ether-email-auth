@@ -1,7 +1,7 @@
 const circom_tester = require("circom_tester");
 const wasm_tester = circom_tester.wasm;
 import * as path from "path";
-const relayerUtils = require("relayer-utils");
+const relayerUtils = require("@zk-email/relayer-utils");
 import { genEmailAuthInput } from "../helpers/email_auth";
 import { genRecipientInput } from "../helpers/recipient";
 import { readFileSync } from "fs";

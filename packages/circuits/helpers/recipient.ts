@@ -1,6 +1,6 @@
 import fs from "fs";
 import { promisify } from "util";
-const relayerUtils = require("relayer-utils");
+const relayerUtils = require("@zk-email/relayer-utils");
 
 export async function genRecipientInput(emailFilePath: string): Promise<{
   subject_email_addr_idx: number;
