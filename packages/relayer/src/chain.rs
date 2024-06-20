@@ -2,6 +2,8 @@ use crate::*;
 use ethers::middleware::Middleware;
 use ethers::prelude::*;
 use ethers::signers::Signer;
+use relayer_utils::converters::u64_to_u8_array_32;
+use relayer_utils::LOG;
 
 const CONFIRMATIONS: usize = 1;
 

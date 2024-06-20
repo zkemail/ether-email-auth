@@ -1,5 +1,6 @@
 use crate::*;
 
+use relayer_utils::LOG;
 use sqlx::{postgres::PgPool, Row};
 
 #[derive(Debug, Clone)]

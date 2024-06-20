@@ -3,8 +3,7 @@ use relayer::*;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let (sender, rx) = EmailForwardSender::new();
-    run(RelayerConfig::new(), event_consumer, sender, rx).await?;
+    run(RelayerConfig::new()).await?;
 
     Ok(())
 }
