@@ -57,7 +57,13 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             request.wallet_eth_addr,
             guardian_email_addr
         ))?;
-    check_and_update_dkim(&email, &parsed_email, &CLIENT, &request.wallet_eth_addr).await?;
+    check_and_update_dkim(
+        &email,
+        &parsed_email,
+        &request.wallet_eth_addr,
+        request.account_salt.as_deref().unwrap_or_default(),
+    )
+    .await?;
 
     if let Ok(invitation_code) = parsed_email.get_invitation_code() {
         trace!(LOG, "Email with account code"; "func" => function_name!());
