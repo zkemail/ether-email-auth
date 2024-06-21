@@ -453,8 +453,9 @@ pub async fn handle_complete_recovery_request(payload: CompleteRecoveryRequest) 
 
 pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> {
     let padded_email_addr = PaddedEmailAddr::from_email_addr(&payload.email_addr);
-    let account_code = AccountKey::from(hex2field(&format!("0x{}", payload.account_code)).unwrap());
-    let account_salt = WalletSalt::new(&padded_email_addr, account_code).unwrap();
+    let account_code =
+        AccountCode::from(hex2field(&format!("0x{}", payload.account_code)).unwrap());
+    let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
 
     Response::builder()
         .status(StatusCode::OK)

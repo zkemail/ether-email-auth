@@ -152,7 +152,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     // Account salt
     var num_email_addr_ints = compute_ints_size(email_max_bytes);
     signal from_addr_ints[num_email_addr_ints] <== Bytes2Ints(email_max_bytes)(from_email_addr);
-    account_salt <== WalletSalt(num_email_addr_ints)(from_addr_ints, account_code);
+    account_salt <== AccountSalt(num_email_addr_ints)(from_addr_ints, account_code);
 
     if(recipient_enabled==1) {
         signal input subject_email_addr_idx;

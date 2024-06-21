@@ -2,7 +2,7 @@ pragma circom 2.1.6;
 
 include "circomlib/circuits/poseidon.circom";
 
-template WalletSalt(num_ints) {
+template AccountSalt(num_ints) {
     signal input email_addr_ints[num_ints];
     signal input account_code;
 

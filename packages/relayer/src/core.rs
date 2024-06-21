@@ -109,7 +109,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountKey::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 
@@ -238,7 +238,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountKey::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 
@@ -360,7 +360,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let circuit_input = generate_email_auth_input(
                 &email,
-                &AccountKey::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
             )
             .await?;
 

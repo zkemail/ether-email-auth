@@ -11,8 +11,6 @@ jest.setTimeout(120000);
 describe("Invitation Code Regex", () => {
   it("invitation code", async () => {
     const codeStr = "Code 123abc";
-    // const prefixLen = "ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
@@ -37,8 +35,6 @@ describe("Invitation Code Regex", () => {
 
   it("invitation code in the subject", async () => {
     const codeStr = "Swap 0.1 ETH to DAI code 123abc";
-    // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
@@ -65,8 +61,6 @@ describe("Invitation Code Regex", () => {
 
   it("email address and invitation code in the subject", async () => {
     const codeStr = "Send 0.1 ETH to alice@gmail.com code 123abc";
-    // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
@@ -93,8 +87,6 @@ describe("Invitation Code Regex", () => {
 
   it("invitation code in the email address", async () => {
     const codeStr = "sepolia+code123456@sendeth.org";
-    // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
@@ -121,8 +113,6 @@ describe("Invitation Code Regex", () => {
 
   it("prefix + invitation code in the subject", async () => {
     const codeStr = "Swap 0.1 ETH to DAI code 123abc";
-    // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
@@ -154,8 +144,6 @@ describe("Invitation Code Regex", () => {
   it("prefix + invitation code in the subject 2", async () => {
     const codeStr =
       "Re: Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC Code 01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-    // const prefixLen = "sepolia+ACCOUNTKEY.0x".length;
-    // const revealed = "123abc";
     const paddedStr = relayerUtils.padString(codeStr, 256);
     const circuitInputs = {
       msg: paddedStr,
