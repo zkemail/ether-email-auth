@@ -8,19 +8,14 @@ use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use relayer_utils::{extract_substr_idxes, generate_email_auth_input};
+use relayer_utils::{extract_substr_idxes, generate_email_auth_input, LOG};
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
 #[named]
-pub async fn handle_email<P: EmailsPool>(
-    email: String,
-    db: Arc<Database>,
-    chain_client: Arc<ChainClient>,
-    emails_pool: P,
-) -> Result<EmailAuthEvent> {
+pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     trace!(LOG, "email: {}", email; "func" => function_name!());
     let guardian_email_addr = parsed_email.get_from_addr()?;
@@ -39,7 +34,7 @@ pub async fn handle_email<P: EmailsPool>(
     let request_id_u32 = request_id
         .parse::<u32>()
         .map_err(|e| anyhow!("Failed to parse request_id to u64: {}", e))?;
-    let request_record = db.get_request(request_id_u32).await?;
+    let request_record = DB.get_request(request_id_u32).await?;
     if request_record.is_none() {
         return Ok(EmailAuthEvent::Error {
             email_addr: guardian_email_addr,
@@ -54,7 +49,7 @@ pub async fn handle_email<P: EmailsPool>(
             guardian_email_addr
         ));
     }
-    let account_code_str = db
+    let account_code_str = DB
         .get_account_code_from_wallet_and_email(&request.wallet_eth_addr, &guardian_email_addr)
         .await?
         .ok_or(anyhow!(
@@ -65,8 +60,8 @@ pub async fn handle_email<P: EmailsPool>(
     check_and_update_dkim(
         &email,
         &parsed_email,
-        &chain_client,
         &request.wallet_eth_addr,
+        request.account_salt.as_deref().unwrap_or_default(),
     )
     .await?;
 
@@ -82,7 +77,7 @@ pub async fn handle_email<P: EmailsPool>(
         }
 
         if !request.is_for_recovery {
-            let subject_template = chain_client
+            let subject_template = CLIENT
                 .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
                 .await?;
 
@@ -146,7 +141,7 @@ pub async fn handle_email<P: EmailsPool>(
             info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
             info!(LOG, "Request: {:?}", request; "func" => function_name!());
 
-            match chain_client
+            match CLIENT
                 .handle_acceptance(
                     &request.wallet_eth_addr,
                     email_auth_msg,
@@ -162,7 +157,7 @@ pub async fn handle_email<P: EmailsPool>(
                         is_set: true,
                     };
 
-                    db.update_credentials_of_account_code(&creds).await?;
+                    DB.update_credentials_of_account_code(&creds).await?;
 
                     let updated_request = Request {
                         wallet_eth_addr: request.wallet_eth_addr.clone(),
@@ -178,7 +173,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::AcceptanceSuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
@@ -201,7 +196,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::Error {
                         email_addr: guardian_email_addr,
@@ -211,7 +206,7 @@ pub async fn handle_email<P: EmailsPool>(
                 Err(e) => Err(anyhow!("Failed to handle acceptance: {}", e)),
             }
         } else {
-            let subject_template = chain_client
+            let subject_template = CLIENT
                 .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
                 .await?;
 
@@ -275,7 +270,7 @@ pub async fn handle_email<P: EmailsPool>(
             info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
             info!(LOG, "Request: {:?}", request; "func" => function_name!());
 
-            match chain_client
+            match CLIENT
                 .handle_recovery(
                     &request.wallet_eth_addr,
                     email_auth_msg,
@@ -298,7 +293,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::RecoverySuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
@@ -321,7 +316,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::Error {
                         email_addr: guardian_email_addr,
@@ -333,7 +328,7 @@ pub async fn handle_email<P: EmailsPool>(
         }
     } else {
         if request.is_for_recovery {
-            let subject_template = chain_client
+            let subject_template = CLIENT
                 .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
                 .await?;
 
@@ -397,7 +392,7 @@ pub async fn handle_email<P: EmailsPool>(
             info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
             info!(LOG, "Request: {:?}", request; "func" => function_name!());
 
-            match chain_client
+            match CLIENT
                 .handle_recovery(
                     &request.wallet_eth_addr,
                     email_auth_msg,
@@ -420,7 +415,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::RecoverySuccess {
                         wallet_eth_addr: request.wallet_eth_addr,
@@ -443,7 +438,7 @@ pub async fn handle_email<P: EmailsPool>(
                         account_salt: Some(bytes32_to_hex(&account_salt)),
                     };
 
-                    db.update_request(&updated_request).await?;
+                    DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::Error {
                         email_addr: guardian_email_addr,
