@@ -189,7 +189,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @notice Authenticate the email sender and authorize the message in the email subject based on the provided email auth message.
     /// @dev This function can only be called by the controller contract.
     /// @param emailAuthMsg The email auth message containing all necessary information for authentication and authorization.
-    function authEmail(EmailAuthMsg memory emailAuthMsg) public onlyOwner {
+    function authEmail(EmailAuthMsg memory emailAuthMsg) public onlyController {
         string[] memory template = subjectTemplates[emailAuthMsg.templateId];
         require(template.length > 0, "template id not exists");
         require(

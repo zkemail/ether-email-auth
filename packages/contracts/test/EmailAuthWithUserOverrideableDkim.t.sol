@@ -59,6 +59,7 @@ contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
             emailAuthMsg.proof.isCodeExist,
             emailAuthMsg.templateId
         );
+        emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
 
         assertEq(

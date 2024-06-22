@@ -97,6 +97,7 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testInsertSubjectTemplate() public {
+        vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.SubjectTemplateInserted(templateId);
         _testInsertSubjectTemplate();
