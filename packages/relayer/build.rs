@@ -28,4 +28,22 @@ fn main() {
     .unwrap()
     .write_to_file("./src/abis/email_account_recovery.rs")
     .unwrap();
+    Abigen::new(
+        "ERC1967Proxy",
+        "../contracts/artifacts/ERC1967Proxy.sol/ERC1967Proxy.json",
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .write_to_file("./tests/erc1967_proxy.rs")
+    .unwrap();
+    Abigen::new(
+        "SimpleWallet",
+        "../contracts/artifacts/SimpleWallet.sol/SimpleWallet.json",
+    )
+    .unwrap()
+    .generate()
+    .unwrap()
+    .write_to_file("./tests/simple_wallet.rs")
+    .unwrap();
 }
