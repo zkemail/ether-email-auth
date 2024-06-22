@@ -3,6 +3,7 @@ use anyhow::Result;
 use axum::{body::Body, response::Response};
 use hex::decode;
 use rand::Rng;
+use relayer_utils::LOG;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
 use std::str;
@@ -99,17 +100,8 @@ pub async fn request_status_api(payload: RequestStatusRequest) -> Result<Request
     })
 }
 
-pub async fn handle_acceptance_request(
-    payload: AcceptanceRequest,
-    db: Arc<Database>,
-    email_sender: EmailForwardSender,
-    chain_client: Arc<ChainClient>,
-    tx_event_consumer: UnboundedSender<EmailAuthEvent>,
-) -> Response<Body> {
-    if !chain_client
-        .is_wallet_deployed(&payload.wallet_eth_addr)
-        .await
-    {
+pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
+    if !CLIENT.is_wallet_deployed(&payload.wallet_eth_addr).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Wallet not deployed"))
@@ -117,10 +109,7 @@ pub async fn handle_acceptance_request(
     }
 
     // Check if hash of bytecode of proxy contract is equal or not
-    let bytecode = chain_client
-        .get_bytecode(&payload.wallet_eth_addr)
-        .await
-        .unwrap();
+    let bytecode = CLIENT.get_bytecode(&payload.wallet_eth_addr).await.unwrap();
     let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
 
     let permitted_wallets: Vec<PermittedWallet> =
@@ -133,7 +122,7 @@ pub async fn handle_acceptance_request(
         let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
         let impl_contract_from_proxy = {
             let raw_hex = hex::encode(
-                chain_client
+                CLIENT
                     .get_storage_at(&payload.wallet_eth_addr, slot_location)
                     .await
                     .unwrap(),
@@ -158,7 +147,7 @@ pub async fn handle_acceptance_request(
             .unwrap();
     }
 
-    let subject_template = chain_client
+    let subject_template = CLIENT
         .get_acceptance_subject_templates(&payload.wallet_eth_addr, payload.template_idx)
         .await
         .unwrap();
@@ -172,7 +161,7 @@ pub async fn handle_acceptance_request(
             .unwrap();
     }
 
-    if let Ok(Some(creds)) = db.get_credentials(&payload.account_code).await {
+    if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Account code already used"))
@@ -180,15 +169,15 @@ pub async fn handle_acceptance_request(
     }
 
     let mut request_id = rand::thread_rng().gen::<u32>();
-    while let Ok(Some(request)) = db.get_request(request_id).await {
+    while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
 
-    if db
+    if DB
         .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
     {
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -202,19 +191,19 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::GuardianAlreadyExists {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-            })
-            .expect("Failed to send GuardianAlreadyExists event");
-    } else if db
+        handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+        })
+        .await
+        .expect("Failed to send GuardianAlreadyExists event");
+    } else if DB
         .is_wallet_and_email_registered(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
     {
         // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
         // Therefore, the relayer will send an email to the guardian again with a fresh account code.
-        db.update_credentials_of_wallet_and_email(&Credentials {
+        DB.update_credentials_of_wallet_and_email(&Credentials {
             account_code: payload.account_code.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -223,7 +212,7 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert credentials");
 
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -237,17 +226,17 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::AcceptanceRequest {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-                request_id,
-                subject: payload.subject.clone(),
-                account_code: payload.account_code.clone(),
-            })
-            .expect("Failed to send Acceptance event");
+        handle_email_event(EmailAuthEvent::AcceptanceRequest {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id,
+            subject: payload.subject.clone(),
+            account_code: payload.account_code.clone(),
+        })
+        .await
+        .expect("Failed to send Acceptance event");
     } else {
-        db.insert_credentials(&Credentials {
+        DB.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -256,7 +245,7 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert credentials");
 
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -270,15 +259,15 @@ pub async fn handle_acceptance_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::AcceptanceRequest {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-                request_id,
-                subject: payload.subject.clone(),
-                account_code: payload.account_code.clone(),
-            })
-            .expect("Failed to send Acceptance event");
+        handle_email_event(EmailAuthEvent::AcceptanceRequest {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id,
+            subject: payload.subject.clone(),
+            account_code: payload.account_code.clone(),
+        })
+        .await
+        .expect("Failed to send Acceptance event");
     }
 
     Response::builder()
@@ -293,24 +282,15 @@ pub async fn handle_acceptance_request(
         .unwrap()
 }
 
-pub async fn handle_recovery_request(
-    payload: RecoveryRequest,
-    db: Arc<Database>,
-    email_sender: EmailForwardSender,
-    chain_client: Arc<ChainClient>,
-    tx_event_consumer: UnboundedSender<EmailAuthEvent>,
-) -> Response<Body> {
-    if !chain_client
-        .is_wallet_deployed(&payload.wallet_eth_addr)
-        .await
-    {
+pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
+    if !CLIENT.is_wallet_deployed(&payload.wallet_eth_addr).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Wallet not deployed"))
             .unwrap();
     }
 
-    let subject_template = chain_client
+    let subject_template = CLIENT
         .get_recovery_subject_templates(&payload.wallet_eth_addr, payload.template_idx)
         .await
         .unwrap();
@@ -325,15 +305,15 @@ pub async fn handle_recovery_request(
     }
 
     let mut request_id = rand::thread_rng().gen::<u32>();
-    while let Ok(Some(request)) = db.get_request(request_id).await {
+    while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
 
-    if !db
+    if !DB
         .is_wallet_and_email_registered(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
     {
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -347,14 +327,14 @@ pub async fn handle_recovery_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::GuardianNotRegistered {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-                subject: payload.subject.clone(),
-                request_id,
-            })
-            .expect("Failed to send GuardianNotRegistered event");
+        handle_email_event(EmailAuthEvent::GuardianNotRegistered {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            subject: payload.subject.clone(),
+            request_id,
+        })
+        .await
+        .expect("Failed to send GuardianNotRegistered event");
 
         return Response::builder()
             .status(StatusCode::OK)
@@ -368,11 +348,11 @@ pub async fn handle_recovery_request(
             .unwrap();
     }
 
-    if db
+    if DB
         .is_guardian_set(&payload.wallet_eth_addr, &payload.guardian_email_addr)
         .await
     {
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -386,16 +366,16 @@ pub async fn handle_recovery_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::RecoveryRequest {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-                request_id,
-                subject: payload.subject.clone(),
-            })
-            .expect("Failed to send Recovery event");
+        handle_email_event(EmailAuthEvent::RecoveryRequest {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id,
+            subject: payload.subject.clone(),
+        })
+        .await
+        .expect("Failed to send Recovery event");
     } else {
-        db.insert_request(&Request {
+        DB.insert_request(&Request {
             request_id: request_id.clone(),
             wallet_eth_addr: payload.wallet_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -409,14 +389,14 @@ pub async fn handle_recovery_request(
         .await
         .expect("Failed to insert request");
 
-        tx_event_consumer
-            .send(EmailAuthEvent::GuardianNotSet {
-                wallet_eth_addr: payload.wallet_eth_addr.clone(),
-                guardian_email_addr: payload.guardian_email_addr.clone(),
-                // request_id,
-                // subject: payload.subject.clone(),
-            })
-            .expect("Failed to send Recovery event");
+        handle_email_event(EmailAuthEvent::GuardianNotSet {
+            wallet_eth_addr: payload.wallet_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            // request_id,
+            // subject: payload.subject.clone(),
+        })
+        .await
+        .expect("Failed to send Recovery event");
     }
 
     Response::builder()
@@ -431,25 +411,15 @@ pub async fn handle_recovery_request(
         .unwrap()
 }
 
-pub async fn handle_complete_recovery_request(
-    payload: CompleteRecoveryRequest,
-    db: Arc<Database>,
-    chain_client: Arc<ChainClient>,
-) -> Response<Body> {
-    if !chain_client
-        .is_wallet_deployed(&payload.wallet_eth_addr)
-        .await
-    {
+pub async fn handle_complete_recovery_request(payload: CompleteRecoveryRequest) -> Response<Body> {
+    if !CLIENT.is_wallet_deployed(&payload.wallet_eth_addr).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Wallet not deployed"))
             .unwrap();
     }
 
-    match chain_client
-        .complete_recovery(&payload.wallet_eth_addr)
-        .await
-    {
+    match CLIENT.complete_recovery(&payload.wallet_eth_addr).await {
         Ok(true) => Response::builder()
             .status(StatusCode::OK)
             .body(Body::from("Recovery completed"))
@@ -505,4 +475,48 @@ fn parse_error_message(error_data: String) -> String {
         }
     }
     "Failed to parse contract error".to_string()
+}
+
+pub async fn receive_email_api_fn(email: String) -> Result<()> {
+    let parsed_email = ParsedEmail::new_from_raw_email(&email).await.unwrap();
+    let from_addr = parsed_email.get_from_addr().unwrap();
+    tokio::spawn(async move {
+        match handle_email_event(EmailAuthEvent::Ack {
+            email_addr: from_addr.clone(),
+            subject: parsed_email.get_subject_all().unwrap_or_default(),
+            original_message_id: parsed_email.get_message_id().ok(),
+        })
+        .await
+        {
+            Ok(_) => {
+                trace!(LOG, "Ack email event sent");
+            }
+            Err(e) => {
+                error!(LOG, "Error handling email event: {:?}", e);
+            }
+        }
+        match handle_email(email.clone()).await {
+            Ok(event) => match handle_email_event(event).await {
+                Ok(_) => {}
+                Err(e) => {
+                    error!(LOG, "Error handling email event: {:?}", e);
+                }
+            },
+            Err(e) => {
+                error!(LOG, "Error handling email: {:?}", e);
+                match handle_email_event(EmailAuthEvent::Error {
+                    email_addr: from_addr,
+                    error: e.to_string(),
+                })
+                .await
+                {
+                    Ok(_) => {}
+                    Err(e) => {
+                        error!(LOG, "Error handling email event: {:?}", e);
+                    }
+                }
+            }
+        }
+    });
+    Ok(())
 }

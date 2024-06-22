@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use relayer_utils::extract_substr_idxes;
+use relayer_utils::LOG;
 
 use crate::*;
 use candid::CandidType;
@@ -68,8 +69,8 @@ impl<'a> DkimOracleClient<'a> {
 pub async fn check_and_update_dkim(
     email: &str,
     parsed_email: &ParsedEmail,
-    chain_client: &Arc<ChainClient>,
     wallet_addr: &str,
+    account_salt: &str,
 ) -> Result<()> {
     let mut public_key_n = parsed_email.public_key.clone();
     public_key_n.reverse();
@@ -77,11 +78,23 @@ pub async fn check_and_update_dkim(
     info!(LOG, "public_key_hash {:?}", public_key_hash; "func" => function_name!());
     let domain = parsed_email.get_email_domain()?;
     info!(LOG, "domain {:?}", domain; "func" => function_name!());
-    let dkim = chain_client
+    if CLIENT.get_bytecode(&wallet_addr.to_string()).await? == Bytes::from(vec![0u8; 20]) {
+        info!(LOG, "wallet not deployed"; "func" => function_name!());
+        return Ok(());
+    }
+    let email_auth_addr = CLIENT
+        .get_email_auth_addr_from_wallet(&wallet_addr.to_string(), &account_salt.to_string())
+        .await?;
+    let mut dkim = CLIENT
         .get_dkim_from_wallet(&wallet_addr.to_string())
         .await?;
+    if CLIENT.get_bytecode(&email_auth_addr.to_string()).await? != Bytes::from(vec![0u8; 20]) {
+        dkim = CLIENT
+            .get_dkim_from_email_auth(&email_auth_addr.to_string())
+            .await?;
+    }
     info!(LOG, "dkim {:?}", dkim; "func" => function_name!());
-    if chain_client
+    if CLIENT
         .check_if_dkim_public_key_hash_valid(
             domain.clone(),
             fr_to_bytes32(&public_key_hash)?,
@@ -112,7 +125,7 @@ pub async fn check_and_update_dkim(
     info!(LOG, "public_key_hash from oracle {:?}", public_key_hash; "func" => function_name!());
     let signature = Bytes::from_hex(&oracle_result.signature[2..])?;
     info!(LOG, "signature {:?}", signature; "func" => function_name!());
-    let tx_hash = chain_client
+    let tx_hash = CLIENT
         .set_dkim_public_key_hash(
             selector,
             domain,

@@ -2,6 +2,8 @@ use crate::*;
 use ethers::middleware::Middleware;
 use ethers::prelude::*;
 use ethers::signers::Signer;
+use relayer_utils::converters::u64_to_u8_array_32;
+use relayer_utils::LOG;
 
 const CONFIRMATIONS: usize = 1;
 
@@ -71,6 +73,36 @@ impl ChainClient {
         let dkim = contract.dkim().call().await?;
 
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
+    }
+
+    pub async fn get_dkim_from_email_auth(
+        &self,
+        email_auth_addr: &String,
+    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
+        let email_auth_address: H160 = email_auth_addr.parse()?;
+        let contract = EmailAuth::new(email_auth_address, self.client.clone());
+        let dkim = contract.dkim_registry_addr().call().await?;
+
+        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
+    }
+
+    pub async fn get_email_auth_addr_from_wallet(
+        &self,
+        wallet_addr: &String,
+        account_salt: &String,
+    ) -> Result<H160, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let account_salt_bytes = hex::decode(account_salt)
+            .map_err(|e| anyhow!("Failed to decode account_salt: {}", e))?;
+        let email_auth_addr = contract
+            .compute_email_auth_address(
+                account_salt_bytes
+                    .try_into()
+                    .map_err(|_| anyhow!("account_salt must be 32 bytes"))?,
+            )
+            .await?;
+        Ok(email_auth_addr)
     }
 
     pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> bool {

@@ -1,6 +1,8 @@
-use crate::{error, render_html, EmailForwardSender, EmailMessage, Future, Result, LOG};
-
-use std::pin::Pin;
+use crate::*;
+use handlebars::Handlebars;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
+use tokio::fs::read_to_string;
 
 #[derive(Debug, Clone)]
 pub enum EmailAuthEvent {
@@ -45,23 +47,33 @@ pub enum EmailAuthEvent {
         subject: String,
         request_id: u32,
     },
+    Ack {
+        email_addr: String,
+        subject: String,
+        original_message_id: Option<String>,
+    },
+    NoOp,
 }
 
-pub fn event_consumer(
-    event: EmailAuthEvent,
-    sender: EmailForwardSender,
-) -> Pin<Box<dyn Future<Output = ()> + Send>> {
-    Box::pin(async {
-        match event_consumer_fn(event, sender).await {
-            Ok(_) => {}
-            Err(err) => {
-                error!(LOG, "Failed to accept event: {}", err);
-            }
-        }
-    })
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailMessage {
+    pub to: String,
+    pub subject: String,
+    pub reference: Option<String>,
+    pub reply_to: Option<String>,
+    pub body_plain: String,
+    pub body_html: String,
+    pub body_attachments: Option<Vec<EmailAttachment>>,
 }
 
-async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) -> Result<()> {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EmailAttachment {
+    pub inline_id: String,
+    pub content_type: String,
+    pub contents: Vec<u8>,
+}
+
+pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
     match event {
         EmailAuthEvent::AcceptanceRequest {
             wallet_eth_addr,
@@ -97,7 +109,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::Error { email_addr, error } => {
             let subject = "Error";
@@ -123,7 +135,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::GuardianAlreadyExists {
             wallet_eth_addr,
@@ -152,7 +164,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::RecoveryRequest {
             wallet_eth_addr,
@@ -185,7 +197,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::AcceptanceSuccess {
             wallet_eth_addr,
@@ -216,7 +228,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::RecoverySuccess {
             wallet_eth_addr,
@@ -247,7 +259,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::GuardianNotSet {
             wallet_eth_addr,
@@ -272,7 +284,7 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
         EmailAuthEvent::GuardianNotRegistered {
             wallet_eth_addr,
@@ -307,8 +319,88 @@ async fn event_consumer_fn(event: EmailAuthEvent, sender: EmailForwardSender) ->
                 body_attachments: None,
             };
 
-            sender.send(email)?;
+            send_email(email).await?;
         }
+        EmailAuthEvent::Ack {
+            email_addr,
+            subject,
+            original_message_id,
+        } => {
+            let body_plain = format!(
+                "Hi {}!\nYour email with the subject {} is received.",
+                email_addr, subject
+            );
+            let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": subject});
+            let body_html = render_html("acknowledgement.html", render_data).await?;
+            let subject = format!("Email Wallet Notification. Acknowledgement.");
+            let email = EmailMessage {
+                to: email_addr,
+                subject,
+                body_plain,
+                body_html,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
+                body_attachments: None,
+            };
+            send_email(email).await?;
+        }
+        EmailAuthEvent::NoOp => {}
+    }
+
+    Ok(())
+}
+
+pub async fn render_html(template_name: &str, render_data: Value) -> Result<String> {
+    let email_template_filename = PathBuf::new()
+        .join(EMAIL_TEMPLATES.get().unwrap())
+        .join(template_name);
+    let email_template = read_to_string(&email_template_filename).await?;
+
+    let reg = Handlebars::new();
+
+    Ok(reg.render_template(&email_template, &render_data)?)
+}
+
+pub fn parse_error(error: String) -> Result<Option<String>> {
+    let mut error = error;
+    if error.contains("Contract call reverted with data: ") {
+        let revert_data = error
+            .replace("Contract call reverted with data: ", "")
+            .split_at(10)
+            .1
+            .to_string();
+        let revert_bytes = hex::decode(revert_data)
+            .unwrap()
+            .into_iter()
+            .filter(|&b| b >= 0x20 && b <= 0x7E)
+            .collect();
+        error = String::from_utf8(revert_bytes).unwrap().trim().to_string();
+    }
+
+    match error.as_str() {
+        "Account is already created" => Ok(Some(error)),
+        "insufficient balance" => Ok(Some("You don't have sufficient balance".to_string())),
+        _ => Ok(Some(error)),
+    }
+}
+
+pub async fn send_email(email: EmailMessage) -> Result<()> {
+    let smtp_server = SMTP_SERVER.get().unwrap();
+
+    // Send POST request to email server
+    let client = reqwest::Client::new();
+    let response = client
+        .post(smtp_server)
+        .json(&email)
+        .send()
+        .await
+        .map_err(|e| anyhow!("Failed to send email: {}", e))?;
+
+    if !response.status().is_success() {
+        return Err(anyhow!(
+            "Failed to send email: {}",
+            response.text().await.unwrap_or_default()
+        ));
     }
 
     Ok(())

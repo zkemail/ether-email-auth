@@ -50,23 +50,14 @@ contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         vm.expectEmit(true, true, true, true);
         emit EmailAuth.EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
-            bytes32(
-                0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5
-            ),
             emailAuthMsg.proof.accountSalt,
             emailAuthMsg.proof.isCodeExist,
             emailAuthMsg.templateId
-        );
-        bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
-        assertEq(
-            msgHash,
-            0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5
         );
         vm.stopPrank();
 
@@ -75,9 +66,5 @@ contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
             true
         );
         assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
-        assertEq(
-            emailAuth.authedHash(emailAuthMsg.proof.emailNullifier),
-            msgHash
-        );
     }
 }

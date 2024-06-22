@@ -79,7 +79,7 @@ If each user should be able to modify the registered public keys, a new DKIM reg
 The email-auth contract in `EmailAuth.sol` is a contract for each email user.
 Its contract Ethereum address is calculated as the CREATE2 of the account salt, i.e., the hash of the user's email address and one account code held by the user. 
 It provides an entry function `authEmail` to verify the email-auth message by calling the verifier and the DKIM registry contracts.
-Besides, it supports [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271). 
+<!-- Besides, it supports [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271).  -->
 After the email-auth message is processed in the `authEmail` function, the `isValidSignature` function of the email-auth contract returns true for the hash of the data in the email-auth message and its email nullifier, a 32-byte data unique to each email.
 
 Your application contract can employ those contracts in the following manner:

@@ -97,7 +97,6 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testInsertSubjectTemplate() public {
-        vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.SubjectTemplateInserted(templateId);
         _testInsertSubjectTemplate();
@@ -214,22 +213,6 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testComputeMsgHash() public view {
-        bytes[] memory subjectParams = new bytes[](2);
-        subjectParams[0] = abi.encode(1);
-        subjectParams[1] = abi.encode(vm.addr(1));
-        bytes32 msgHash = emailAuth.computeMsgHash(
-            accountSalt,
-            true,
-            templateId,
-            subjectParams
-        );
-        assertEq(
-            msgHash,
-            0x9eb0ca41b745b7ff94a261435d5746b08d6ecf68ba68630911958e3bb9bab8a1
-        );
-    }
-
     function testAuthEmail() public {
         vm.startPrank(deployer);
         _testInsertSubjectTemplate();
@@ -241,24 +224,16 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         vm.expectEmit(true, true, true, true);
         emit EmailAuth.EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
-            bytes32(
-                0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5
-            ),
             emailAuthMsg.proof.accountSalt,
             emailAuthMsg.proof.isCodeExist,
             emailAuthMsg.templateId
         );
-        bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
-        assertEq(
-            msgHash,
-            0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5
-        );
+        emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
 
         assertEq(
@@ -266,10 +241,6 @@ contract EmailAuthTest is StructHelper {
             true
         );
         assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
-        assertEq(
-            emailAuth.authedHash(emailAuthMsg.proof.emailNullifier),
-            msgHash
-        );
     }
 
     function testExpectRevertAuthEmailCallerIsNotTheModule() public {
@@ -280,7 +251,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.expectRevert("only controller");
         emailAuth.authEmail(emailAuthMsg);
@@ -296,7 +266,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("template id not exists"));
@@ -315,7 +284,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         emailAuthMsg.proof.domainName = "invalid.com";
@@ -335,7 +303,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         emailAuth.authEmail(emailAuthMsg);
@@ -355,7 +322,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         emailAuthMsg.proof.accountSalt = bytes32(uint256(1234));
@@ -368,7 +334,7 @@ contract EmailAuthTest is StructHelper {
         vm.startPrank(deployer);
         _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        bytes32 msgHash = emailAuth.authEmail(emailAuthMsg);
+        emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
 
         assertEq(
@@ -376,10 +342,6 @@ contract EmailAuthTest is StructHelper {
             true
         );
         assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
-        assertEq(
-            emailAuth.authedHash(emailAuthMsg.proof.emailNullifier),
-            msgHash
-        );
 
         vm.startPrank(deployer);
         emailAuthMsg.proof.emailNullifier = 0x0;
@@ -401,7 +363,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         emailAuthMsg.subjectParams[0] = abi.encode(2 ether);
@@ -421,7 +382,6 @@ contract EmailAuthTest is StructHelper {
             false
         );
         assertEq(emailAuth.lastTimestamp(), 0);
-        assertEq(emailAuth.authedHash(emailAuthMsg.proof.emailNullifier), 0x0);
 
         vm.startPrank(deployer);
         vm.mockCall(
@@ -435,22 +395,6 @@ contract EmailAuthTest is StructHelper {
         vm.expectRevert(bytes("invalid email proof"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
-    }
-
-    function testIsValidSignature() public {
-        testAuthEmail();
-        bytes32 msgHash = 0x07db5f3c5c23bea55c416ae251bfb8a2128d110aa1738eefa90e7c84e1e0afd5;
-        bytes memory signature = abi.encodePacked(emailNullifier);
-        bytes4 result = emailAuth.isValidSignature(msgHash, signature);
-        assertEq(result, bytes4(0x1626ba7e));
-    }
-
-    function testIsValidSignatureReturnsFalse() public {
-        testAuthEmail();
-        bytes32 msgHash = 0x0;
-        bytes memory signature = abi.encodePacked(emailNullifier);
-        bytes4 result = emailAuth.isValidSignature(msgHash, signature);
-        assertEq(result, bytes4(0xffffffff));
     }
 
     function testSetTimestampCheckEnabled() public {

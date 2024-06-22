@@ -139,8 +139,6 @@ It provides the following functions.
     1. Assert `msg.sender==owner`.
     2. Assert `subjectTemplates[_templateId].length > 0`, i.e., any template has been already registered with `_templateId`.
     3. `delete subjectTemplates[_templateId]`.
-- `computeMsgHash(bytes32 accountSalt, bool isCodeExist, uint templateId, bytes[] subjectParams) public view returns (bytes32)`
-    1. Return `keccak256(accountAddr, templateId, isCodeExist, subjectParams)`
 - `authEmail(EmailAuthMsg emailAuthMsg) returns (bytes32)`
     1. Assert `msg.sender==owner`.
     2. Let `string[] memory template = subjectTemplates[emailAuthMsg.templateId]`.
@@ -152,9 +150,6 @@ It provides the following functions.
     8. Construct an expected subject `expectedSubject` from `template` and the values of `emailAuthMsg.subjectParams`.
     9. Assert that `expectedSubject` is equal to `emailAuthMsg.proof.maskedSubject[skipedSubjectPrefix:]` , i.e., the string of `emailAuthMsg.proof.maskedSubject` from the `skipedSubjectPrefix`-th byte.
     10. Assert `verifier.verifyEmailProof(emailAuthMsg.proof)==true`.
-    11. Compute `bytes32 msgHash = computeMsgHash(emailAuthMsg.proof.accountSalt, emailAuthMsg.proof.isCodeExist, emailAuthMsg.templateId, emailAuthMsg.subjectParams)`. 
-    12. Set `authedHash[emailAuthMsg.proof.emailNullifier]=msgHash`.
-    13. Return `msgHash`.
 - `isValidSignature(bytes32 _hash, bytes memory _signature) public view returns (bytes4 magicValue)`
     1. Parse `_signature` as `(bytes32 emailNullifier)`.
     2. If `authedHash[emailNullifier]== _hash`, return `0x1626ba7e`; otherwise return `0xffffffff`.
