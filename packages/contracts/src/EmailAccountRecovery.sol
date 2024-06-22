@@ -16,6 +16,9 @@ abstract contract EmailAccountRecovery {
     address public dkimAddr;
     address public emailAuthImplementationAddr;
 
+    mapping(address account => string[][]) public acceptanceSubjectTemplates;
+    mapping(address account => string[][]) public recoverySubjectTemplates;
+
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
     /// @return address The address of the verifier contract.
@@ -40,7 +43,7 @@ abstract contract EmailAccountRecovery {
     /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
     /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
-    function acceptanceSubjectTemplates()
+    function getAcceptanceSubjectTemplates(address account)
         public
         view
         virtual
@@ -49,13 +52,14 @@ abstract contract EmailAccountRecovery {
     /// @notice Returns a two-dimensional array of strings representing the subject templates for email recovery.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific recovery subject templates.
     /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
-    function recoverySubjectTemplates()
+    function getRecoverySubjectTemplates(address account)
         public
         view
         virtual
         returns (string[][] memory);
 
     function acceptGuardian(
+        address account,
         address guardian,
         uint templateIdx,
         bytes[] memory subjectParams,
@@ -63,6 +67,7 @@ abstract contract EmailAccountRecovery {
     ) internal virtual;
 
     function processRecovery(
+        address account,
         address guardian,
         uint templateIdx,
         bytes[] memory subjectParams,
@@ -71,8 +76,7 @@ abstract contract EmailAccountRecovery {
 
     /// @notice Completes the recovery process.
     /// @dev This function must be implemented by inheriting contracts to finalize the recovery process.
-    function completeRecovery() external virtual;
-
+    function completeRecovery(address account, bytes memory recoveryCalldata) external virtual;
     /// @notice Computes the address for email auth contract using the CREATE2 opcode.
     /// @dev This function utilizes the `Create2` library to compute the address. The computation uses a provided account salt
     /// and the hash of the encoded ERC1967Proxy creation code concatenated with the encoded email auth contract implementation
@@ -164,6 +168,7 @@ abstract contract EmailAccountRecovery {
     /// @param emailAuthMsg The email auth message for the email send from the guardian.
     /// @param templateIdx The index of the subject template for acceptance, which should match with the subject in the given email auth message.
     function handleAcceptance(
+        address account,
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
@@ -193,16 +198,16 @@ abstract contract EmailAccountRecovery {
         EmailAuth guardianEmailAuth = EmailAuth(address(proxy));
         guardianEmailAuth.updateDKIMRegistry(dkim());
         guardianEmailAuth.updateVerifier(verifier());
-        for (uint idx = 0; idx < acceptanceSubjectTemplates().length; idx++) {
+        for (uint idx = 0; idx < acceptanceSubjectTemplates[account].length; idx++) {
             guardianEmailAuth.insertSubjectTemplate(
                 computeAcceptanceTemplateId(idx),
-                acceptanceSubjectTemplates()[idx]
+                acceptanceSubjectTemplates[account][idx]
             );
         }
-        for (uint idx = 0; idx < recoverySubjectTemplates().length; idx++) {
+        for (uint idx = 0; idx < recoverySubjectTemplates[account].length; idx++) {
             guardianEmailAuth.insertSubjectTemplate(
                 computeRecoveryTemplateId(idx),
-                recoverySubjectTemplates()[idx]
+                recoverySubjectTemplates[account][idx]
             );
         }
 
@@ -211,6 +216,7 @@ abstract contract EmailAccountRecovery {
         guardianEmailAuth.authEmail(emailAuthMsg);
 
         acceptGuardian(
+            account,
             guardian,
             templateIdx,
             emailAuthMsg.subjectParams,
@@ -224,6 +230,7 @@ abstract contract EmailAccountRecovery {
     /// @param emailAuthMsg The email auth message for recovery.
     /// @param templateIdx The index of the subject template for recovery, which should match with the subject in the given email auth message.
     function handleRecovery(
+        address account,
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
@@ -250,6 +257,7 @@ abstract contract EmailAccountRecovery {
         guardianEmailAuth.authEmail(emailAuthMsg);
 
         processRecovery(
+            account,
             guardian,
             templateIdx,
             emailAuthMsg.subjectParams,
