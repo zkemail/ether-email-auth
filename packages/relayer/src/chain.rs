@@ -97,6 +97,7 @@ impl ChainClient {
             .map_err(|e| anyhow!("Failed to decode account_salt: {}", e))?;
         let email_auth_addr = contract
             .compute_email_auth_address(
+                wallet_address,
                 account_salt_bytes
                     .try_into()
                     .map_err(|_| anyhow!("account_salt must be 32 bytes"))?,
@@ -147,10 +148,20 @@ impl ChainClient {
         Ok(templates[template_idx as usize].clone())
     }
 
-    pub async fn complete_recovery(&self, wallet_addr: &String) -> Result<bool, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
-        let call = contract.complete_recovery();
+    pub async fn complete_recovery(
+        &self,
+        controller_eth_addr: &String,
+        account_eth_addr: &String,
+        complete_calldata: &String,
+    ) -> Result<bool, anyhow::Error> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+        let call = contract.complete_recovery(
+            account_eth_addr
+                .parse::<H160>()
+                .expect("Invalid H160 address"),
+            Bytes::from(complete_calldata.clone().into_bytes()),
+        );
         let tx = call.send().await?;
         // If the transaction is successful, the function will return true and false otherwise.
         let receipt = tx
@@ -223,5 +234,55 @@ impl ChainClient {
             .client
             .get_storage_at(wallet_address, u64_to_u8_array_32(slot).into(), None)
             .await?)
+    }
+
+    pub async fn get_recovered_account_from_acceptance_subject(
+        &self,
+        wallet_addr: &String,
+        subject_params: Vec<TemplateValue>,
+        template_idx: u64,
+    ) -> Result<H160, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let subject_params_bytes = subject_params
+            .iter() // Change here: use iter() instead of map() directly on Vec
+            .map(|s| {
+                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
+                    .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
+            }) // Error handling
+            .collect::<Vec<_>>();
+        let recovered_account = contract
+            .extract_recovered_account_from_acceptance_subject(
+                subject_params_bytes,
+                template_idx.into(),
+            )
+            .call()
+            .await?;
+        Ok(recovered_account)
+    }
+
+    pub async fn get_recovered_account_from_recovery_subject(
+        &self,
+        wallet_addr: &String,
+        subject_params: Vec<TemplateValue>,
+        template_idx: u64,
+    ) -> Result<H160, anyhow::Error> {
+        let wallet_address: H160 = wallet_addr.parse()?;
+        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let subject_params_bytes = subject_params
+            .iter() // Change here: use iter() instead of map() directly on Vec
+            .map(|s| {
+                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
+                    .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
+            }) // Error handling
+            .collect::<Vec<_>>();
+        let recovered_account = contract
+            .extract_recovered_account_from_recovery_subject(
+                subject_params_bytes,
+                template_idx.into(),
+            )
+            .call()
+            .await?;
+        Ok(recovered_account)
     }
 }
