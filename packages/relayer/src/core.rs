@@ -50,17 +50,17 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
         ));
     }
     let account_code_str = DB
-        .get_account_code_from_wallet_and_email(&request.wallet_eth_addr, &guardian_email_addr)
+        .get_account_code_from_wallet_and_email(&request.account_eth_addr, &guardian_email_addr)
         .await?
         .ok_or(anyhow!(
             "The user of the wallet address {} and the email address {} is not registered.",
-            request.wallet_eth_addr,
+            request.account_eth_addr,
             guardian_email_addr
         ))?;
     check_and_update_dkim(
         &email,
         &parsed_email,
-        &request.wallet_eth_addr,
+        &request.account_eth_addr,
         request.account_salt.as_deref().unwrap_or_default(),
     )
     .await?;
@@ -78,7 +78,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
         if !request.is_for_recovery {
             let subject_template = CLIENT
-                .get_acceptance_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .get_acceptance_subject_templates(&request.account_eth_addr, request.template_idx)
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -143,7 +143,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_acceptance(
-                    &request.wallet_eth_addr,
+                    &request.account_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )
@@ -152,7 +152,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 Ok(true) => {
                     let creds = Credentials {
                         account_code: invitation_code,
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         is_set: true,
                     };
@@ -160,7 +160,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     DB.update_credentials_of_account_code(&creds).await?;
 
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,
@@ -176,14 +177,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::AcceptanceSuccess {
-                        wallet_eth_addr: request.wallet_eth_addr,
+                        account_eth_addr: request.account_eth_addr,
                         guardian_email_addr,
                         request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,
@@ -207,7 +209,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             }
         } else {
             let subject_template = CLIENT
-                .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .get_recovery_subject_templates(&request.account_eth_addr, request.template_idx)
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -272,7 +274,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_recovery(
-                    &request.wallet_eth_addr,
+                    &request.account_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )
@@ -280,7 +282,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             {
                 Ok(true) => {
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,
@@ -296,14 +299,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::RecoverySuccess {
-                        wallet_eth_addr: request.wallet_eth_addr,
+                        account_eth_addr: request.account_eth_addr,
                         guardian_email_addr,
                         request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,
@@ -329,7 +333,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     } else {
         if request.is_for_recovery {
             let subject_template = CLIENT
-                .get_recovery_subject_templates(&request.wallet_eth_addr, request.template_idx)
+                .get_recovery_subject_templates(&request.account_eth_addr, request.template_idx)
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -394,7 +398,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_recovery(
-                    &request.wallet_eth_addr,
+                    &request.account_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )
@@ -402,7 +406,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             {
                 Ok(true) => {
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,
@@ -418,14 +423,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     DB.update_request(&updated_request).await?;
 
                     Ok(EmailAuthEvent::RecoverySuccess {
-                        wallet_eth_addr: request.wallet_eth_addr,
+                        account_eth_addr: request.account_eth_addr,
                         guardian_email_addr,
                         request_id: request_id_u32,
                     })
                 }
                 Ok(false) => {
                     let updated_request = Request {
-                        wallet_eth_addr: request.wallet_eth_addr.clone(),
+                        account_eth_addr: request.account_eth_addr.clone(),
+                        controller_eth_addr: request.controller_eth_addr.clone(),
                         guardian_email_addr: guardian_email_addr.clone(),
                         template_idx: request.template_idx,
                         is_for_recovery: request.is_for_recovery,

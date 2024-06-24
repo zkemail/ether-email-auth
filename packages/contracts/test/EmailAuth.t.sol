@@ -17,7 +17,7 @@ contract EmailAuthTest is StructHelper {
         super.setUp();
 
         vm.startPrank(deployer);
-        emailAuth.initialize(deployer, accountSalt);
+        emailAuth.initialize(deployer, accountSalt, deployer);
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.VerifierUpdated(address(verifier));
         emailAuth.updateVerifier(address(verifier));
@@ -84,7 +84,9 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testGetSubjectTemplate() public {
+        vm.startPrank(deployer);
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        vm.stopPrank();
         string[] memory result = emailAuth.getSubjectTemplate(templateId);
         assertEq(result, subjectTemplate);
     }
@@ -95,9 +97,11 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testInsertSubjectTemplate() public {
+        vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.SubjectTemplateInserted(templateId);
         _testInsertSubjectTemplate();
+        vm.stopPrank();
     }
 
     function _testInsertSubjectTemplate() private {
@@ -109,20 +113,24 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertInsertSubjectTemplateSubjectTemplateIsEmpty()
         public
     {
+        vm.startPrank(deployer);
         string[] memory emptySubjectTemplate = new string[](0);
         vm.expectRevert(bytes("subject template is empty"));
         emailAuth.insertSubjectTemplate(templateId, emptySubjectTemplate);
+        vm.stopPrank();
     }
 
     function testExpectRevertInsertSubjectTemplateTemplateIdAlreadyExists()
         public
     {
+        vm.startPrank(deployer);
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
         string[] memory result = emailAuth.getSubjectTemplate(templateId);
         assertEq(result, subjectTemplate);
 
         vm.expectRevert(bytes("template id already exists"));
         emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        vm.stopPrank();
     }
 
     function testUpdateSubjectTemplate() public {
@@ -146,13 +154,10 @@ contract EmailAuthTest is StructHelper {
         assertEq(result, newSubjectTemplate);
     }
 
-    function testExpectRevertUpdateSubjectTemplateCallerIsNotTheOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                address(this)
-            )
-        );
+    function testExpectRevertUpdateSubjectTemplateCallerIsNotTheModule()
+        public
+    {
+        vm.expectRevert("only controller");
         emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
     }
 
@@ -195,13 +200,10 @@ contract EmailAuthTest is StructHelper {
         emailAuth.getSubjectTemplate(templateId);
     }
 
-    function testExpectRevertDeleteSubjectTemplateCallerIsNotTheOwner() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                address(this)
-            )
-        );
+    function testExpectRevertDeleteSubjectTemplateCallerIsNotTheModule()
+        public
+    {
+        vm.expectRevert("only controller");
         emailAuth.deleteSubjectTemplate(templateId);
     }
 
@@ -242,7 +244,7 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
     }
 
-    function testExpectRevertAuthEmailCallerIsNotTheOwner() public {
+    function testExpectRevertAuthEmailCallerIsNotTheModule() public {
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
 
         assertEq(
@@ -251,12 +253,7 @@ contract EmailAuthTest is StructHelper {
         );
         assertEq(emailAuth.lastTimestamp(), 0);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                address(this)
-            )
-        );
+        vm.expectRevert("only controller");
         emailAuth.authEmail(emailAuthMsg);
     }
 
@@ -414,12 +411,7 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testExpectRevertSetTimestampCheckEnabled() public {
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                address(this)
-            )
-        );
+        vm.expectRevert("only controller");
         emailAuth.setTimestampCheckEnabled(false);
     }
 }

@@ -6,7 +6,7 @@ use sqlx::{postgres::PgPool, Row};
 #[derive(Debug, Clone)]
 pub struct Credentials {
     pub account_code: String,
-    pub wallet_eth_addr: String,
+    pub account_eth_addr: String,
     pub guardian_email_addr: String,
     pub is_set: bool,
 }
@@ -14,7 +14,8 @@ pub struct Credentials {
 #[derive(Debug, Clone)]
 pub struct Request {
     pub request_id: u32,
-    pub wallet_eth_addr: String,
+    pub account_eth_addr: String,
+    pub controller_eth_addr: String,
     pub guardian_email_addr: String,
     pub is_for_recovery: bool,
     pub template_idx: u64,
@@ -45,7 +46,7 @@ impl Database {
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS credentials (
                 account_code TEXT PRIMARY KEY,
-                wallet_eth_addr TEXT NOT NULL,
+                account_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
                 is_set BOOLEAN NOT NULL DEFAULT FALSE
             );",
@@ -56,7 +57,7 @@ impl Database {
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS requests (
                 request_id BIGINT PRIMARY KEY,
-                wallet_eth_addr TEXT NOT NULL,
+                account_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
                 is_for_recovery BOOLEAN NOT NULL DEFAULT FALSE,
                 template_idx INT NOT NULL,
@@ -81,12 +82,12 @@ impl Database {
         match row {
             Some(row) => {
                 let account_code: String = row.get("account_code");
-                let wallet_eth_addr: String = row.get("wallet_eth_addr");
+                let account_eth_addr: String = row.get("account_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_set: bool = row.get("is_set");
                 let codes_row = Credentials {
                     account_code,
-                    wallet_eth_addr,
+                    account_eth_addr,
                     guardian_email_addr,
                     is_set,
                 };
@@ -99,13 +100,13 @@ impl Database {
 
     pub(crate) async fn is_wallet_and_email_registered(
         &self,
-        wallet_eth_addr: &str,
+        account_eth_addr: &str,
         email_addr: &str,
     ) -> bool {
         let row = sqlx::query(
-            "SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2",
+            "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
-        .bind(wallet_eth_addr)
+        .bind(account_eth_addr)
         .bind(email_addr)
         .fetch_optional(&self.db)
         .await
@@ -118,8 +119,8 @@ impl Database {
     }
 
     pub(crate) async fn update_credentials_of_account_code(&self, row: &Credentials) -> Result<()> {
-        let res = sqlx::query("UPDATE credentials SET wallet_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
-            .bind(&row.wallet_eth_addr)
+        let res = sqlx::query("UPDATE credentials SET account_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
+            .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_set)
             .bind(&row.account_code)
@@ -132,10 +133,10 @@ impl Database {
         &self,
         row: &Credentials,
     ) -> Result<()> {
-        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE wallet_eth_addr = $3, guardian_email_addr = $4")
+        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3, guardian_email_addr = $4")
             .bind(&row.account_code)
             .bind(row.is_set)
-            .bind(&row.wallet_eth_addr)
+            .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .execute(&self.db)
             .await?;
@@ -146,10 +147,10 @@ impl Database {
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
-            "INSERT INTO credentials (account_code, wallet_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
+            "INSERT INTO credentials (account_code, account_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
         .bind(&row.account_code)
-        .bind(&row.wallet_eth_addr)
+        .bind(&row.account_eth_addr)
         .bind(&row.guardian_email_addr)
         .bind(row.is_set)
         .fetch_one(&self.db)
@@ -162,9 +163,9 @@ impl Database {
         Ok(())
     }
 
-    pub async fn is_guardian_set(&self, wallet_eth_addr: &str, guardian_email_addr: &str) -> bool {
-        let row = sqlx::query("SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
-            .bind(wallet_eth_addr)
+    pub async fn is_guardian_set(&self, account_eth_addr: &str, guardian_email_addr: &str) -> bool {
+        let row = sqlx::query("SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
+            .bind(account_eth_addr)
             .bind(guardian_email_addr)
             .fetch_optional(&self.db)
             .await
@@ -186,7 +187,8 @@ impl Database {
         match row {
             Some(row) => {
                 let request_id: i64 = row.get("request_id");
-                let wallet_eth_addr: String = row.get("wallet_eth_addr");
+                let account_eth_addr: String = row.get("account_eth_addr");
+                let controller_eth_addr: String = row.get("controller_eth_addr");
                 let guardian_email_addr: String = row.get("guardian_email_addr");
                 let is_for_recovery: bool = row.get("is_for_recovery");
                 let template_idx: i32 = row.get("template_idx");
@@ -196,7 +198,8 @@ impl Database {
                 let account_salt: Option<String> = row.get("account_salt");
                 let requests_row = Request {
                     request_id: request_id as u32,
-                    wallet_eth_addr,
+                    account_eth_addr,
+                    controller_eth_addr,
                     guardian_email_addr,
                     is_for_recovery,
                     template_idx: template_idx as u64,
@@ -213,8 +216,8 @@ impl Database {
     }
 
     pub(crate) async fn update_request(&self, row: &Request) -> Result<()> {
-        let res = sqlx::query("UPDATE requests SET wallet_eth_addr = $1, guardian_email_addr = $2, is_for_recovery = $3, template_idx = $4, is_processed = $5, is_success = $6, email_nullifier = $7, account_salt = $8 WHERE request_id = $9")
-            .bind(&row.wallet_eth_addr)
+        let res = sqlx::query("UPDATE requests SET account_eth_addr = $1, guardian_email_addr = $2, is_for_recovery = $3, template_idx = $4, is_processed = $5, is_success = $6, email_nullifier = $7, account_salt = $8 WHERE request_id = $9")
+            .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_for_recovery)
             .bind(row.template_idx as i64)
@@ -230,13 +233,13 @@ impl Database {
 
     pub(crate) async fn get_account_code_from_wallet_and_email(
         &self,
-        wallet_eth_addr: &str,
+        account_eth_addr: &str,
         email_addr: &str,
     ) -> Result<Option<String>> {
         let row = sqlx::query(
-            "SELECT * FROM credentials WHERE wallet_eth_addr = $1 AND guardian_email_addr = $2",
+            "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
-        .bind(wallet_eth_addr)
+        .bind(account_eth_addr)
         .bind(email_addr)
         .fetch_optional(&self.db)
         .await?;
@@ -254,10 +257,10 @@ impl Database {
     pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
-            "INSERT INTO requests (request_id, wallet_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+            "INSERT INTO requests (request_id, account_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
         )
         .bind(row.request_id as i64)
-        .bind(&row.wallet_eth_addr)
+        .bind(&row.account_eth_addr)
         .bind(&row.guardian_email_addr)
         .bind(row.is_for_recovery)
         .bind(row.template_idx as i64)

@@ -205,6 +205,26 @@ pub mod email_auth {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("controller"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("controller"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("deleteSubjectTemplate"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -225,28 +245,6 @@ pub mod email_auth {
                             outputs: ::std::vec![],
                             constant: ::core::option::Option::None,
                             state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                        },
-                    ],
-                ),
-                (
-                    ::std::borrow::ToOwned::to_owned("dkim"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("dkim"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned(
-                                            "contract ECDSAOwnedDKIMRegistry",
-                                        ),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
                         },
                     ],
                 ),
@@ -305,6 +303,46 @@ pub mod email_auth {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("initDKIMRegistry"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("initDKIMRegistry"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_dkimRegistryAddr"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("initVerifier"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("initVerifier"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_verifierAddr"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("initialize"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -324,6 +362,13 @@ pub mod email_auth {
                                     ),
                                     internal_type: ::core::option::Option::Some(
                                         ::std::borrow::ToOwned::to_owned("bytes32"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_controller"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
                                     ),
                                 },
                             ],
@@ -719,26 +764,6 @@ pub mod email_auth {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("verifier"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("verifier"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("contract Verifier"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("verifierAddr"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -760,6 +785,68 @@ pub mod email_auth {
                 ),
             ]),
             events: ::core::convert::From::from([
+                (
+                    ::std::borrow::ToOwned::to_owned("DKIMRegistryUpdated"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "DKIMRegistryUpdated",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("dkimRegistry"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    indexed: true,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("EmailAuthed"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned("EmailAuthed"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("emailNullifier"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    indexed: true,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("msgHash"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    indexed: true,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("accountSalt"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    indexed: true,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("isCodeExist"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    indexed: false,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: false,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
                 (
                     ::std::borrow::ToOwned::to_owned("Initialized"),
                     ::std::vec![
@@ -800,6 +887,84 @@ pub mod email_auth {
                     ],
                 ),
                 (
+                    ::std::borrow::ToOwned::to_owned("SubjectTemplateDeleted"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "SubjectTemplateDeleted",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: true,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("SubjectTemplateInserted"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "SubjectTemplateInserted",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: true,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("SubjectTemplateUpdated"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "SubjectTemplateUpdated",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: true,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("TimestampCheckEnabled"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "TimestampCheckEnabled",
+                            ),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("enabled"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    indexed: false,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
                     ::std::borrow::ToOwned::to_owned("Upgraded"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Event {
@@ -807,6 +972,22 @@ pub mod email_auth {
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::EventParam {
                                     name: ::std::borrow::ToOwned::to_owned("implementation"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    indexed: true,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
+                ),
+                (
+                    ::std::borrow::ToOwned::to_owned("VerifierUpdated"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned("VerifierUpdated"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("verifier"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Address,
                                     indexed: true,
                                 },
@@ -1056,6 +1237,17 @@ pub mod email_auth {
                 )
                 .expect("method not found (this should never happen)")
         }
+        ///Calls the contract's `controller` (0xf77c4791) function
+        pub fn controller(
+            &self,
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
+            self.0
+                .method_hash([247, 124, 71, 145], ())
+                .expect("method not found (this should never happen)")
+        }
         ///Calls the contract's `deleteSubjectTemplate` (0x519e50d1) function
         pub fn delete_subject_template(
             &self,
@@ -1063,17 +1255,6 @@ pub mod email_auth {
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([81, 158, 80, 209], template_id)
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `dkim` (0x400ad5ce) function
-        pub fn dkim(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
-            self.0
-                .method_hash([64, 10, 213, 206], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `dkimRegistryAddr` (0x1bc01b83) function
@@ -1099,14 +1280,36 @@ pub mod email_auth {
                 .method_hash([30, 5, 160, 40], template_id)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `initialize` (0xbe13f47c) function
+        ///Calls the contract's `initDKIMRegistry` (0x557cf5ef) function
+        pub fn init_dkim_registry(
+            &self,
+            dkim_registry_addr: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([85, 124, 245, 239], dkim_registry_addr)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `initVerifier` (0x4141407c) function
+        pub fn init_verifier(
+            &self,
+            verifier_addr: ::ethers::core::types::Address,
+        ) -> ::ethers::contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([65, 65, 64, 124], verifier_addr)
+                .expect("method not found (this should never happen)")
+        }
+        ///Calls the contract's `initialize` (0xd26b3e6e) function
         pub fn initialize(
             &self,
             initial_owner: ::ethers::core::types::Address,
             account_salt: [u8; 32],
+            controller: ::ethers::core::types::Address,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([190, 19, 244, 124], (initial_owner, account_salt))
+                .method_hash(
+                    [210, 107, 62, 110],
+                    (initial_owner, account_salt, controller),
+                )
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `insertSubjectTemplate` (0xc4b84df4) function
@@ -1247,17 +1450,6 @@ pub mod email_auth {
                 .method_hash([32, 97, 55, 170], p0)
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `verifier` (0x2b7ac3f3) function
-        pub fn verifier(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<
-            M,
-            ::ethers::core::types::Address,
-        > {
-            self.0
-                .method_hash([43, 122, 195, 243], ())
-                .expect("method not found (this should never happen)")
-        }
         ///Calls the contract's `verifierAddr` (0x663ea2e2) function
         pub fn verifier_addr(
             &self,
@@ -1268,6 +1460,26 @@ pub mod email_auth {
             self.0
                 .method_hash([102, 62, 162, 226], ())
                 .expect("method not found (this should never happen)")
+        }
+        ///Gets the contract's `DKIMRegistryUpdated` event
+        pub fn dkim_registry_updated_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            DkimregistryUpdatedFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `EmailAuthed` event
+        pub fn email_authed_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            EmailAuthedFilter,
+        > {
+            self.0.event()
         }
         ///Gets the contract's `Initialized` event
         pub fn initialized_filter(
@@ -1289,6 +1501,46 @@ pub mod email_auth {
         > {
             self.0.event()
         }
+        ///Gets the contract's `SubjectTemplateDeleted` event
+        pub fn subject_template_deleted_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            SubjectTemplateDeletedFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `SubjectTemplateInserted` event
+        pub fn subject_template_inserted_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            SubjectTemplateInsertedFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `SubjectTemplateUpdated` event
+        pub fn subject_template_updated_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            SubjectTemplateUpdatedFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `TimestampCheckEnabled` event
+        pub fn timestamp_check_enabled_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            TimestampCheckEnabledFilter,
+        > {
+            self.0.event()
+        }
         ///Gets the contract's `Upgraded` event
         pub fn upgraded_filter(
             &self,
@@ -1296,6 +1548,16 @@ pub mod email_auth {
             ::std::sync::Arc<M>,
             M,
             UpgradedFilter,
+        > {
+            self.0.event()
+        }
+        ///Gets the contract's `VerifierUpdated` event
+        pub fn verifier_updated_filter(
+            &self,
+        ) -> ::ethers::contract::builders::Event<
+            ::std::sync::Arc<M>,
+            M,
+            VerifierUpdatedFilter,
         > {
             self.0.event()
         }
@@ -1727,6 +1989,45 @@ pub mod email_auth {
         Eq,
         Hash
     )]
+    #[ethevent(name = "DKIMRegistryUpdated", abi = "DKIMRegistryUpdated(address)")]
+    pub struct DkimregistryUpdatedFilter {
+        #[ethevent(indexed)]
+        pub dkim_registry: ::ethers::core::types::Address,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(
+        name = "EmailAuthed",
+        abi = "EmailAuthed(bytes32,bytes32,bytes32,bool,uint256)"
+    )]
+    pub struct EmailAuthedFilter {
+        #[ethevent(indexed)]
+        pub email_nullifier: [u8; 32],
+        #[ethevent(indexed)]
+        pub msg_hash: [u8; 32],
+        #[ethevent(indexed)]
+        pub account_salt: [u8; 32],
+        pub is_code_exist: bool,
+        pub template_id: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
     #[ethevent(name = "Initialized", abi = "Initialized(uint64)")]
     pub struct InitializedFilter {
         pub version: u64,
@@ -1761,30 +2062,135 @@ pub mod email_auth {
         Eq,
         Hash
     )]
+    #[ethevent(name = "SubjectTemplateDeleted", abi = "SubjectTemplateDeleted(uint256)")]
+    pub struct SubjectTemplateDeletedFilter {
+        #[ethevent(indexed)]
+        pub template_id: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(
+        name = "SubjectTemplateInserted",
+        abi = "SubjectTemplateInserted(uint256)"
+    )]
+    pub struct SubjectTemplateInsertedFilter {
+        #[ethevent(indexed)]
+        pub template_id: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "SubjectTemplateUpdated", abi = "SubjectTemplateUpdated(uint256)")]
+    pub struct SubjectTemplateUpdatedFilter {
+        #[ethevent(indexed)]
+        pub template_id: ::ethers::core::types::U256,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "TimestampCheckEnabled", abi = "TimestampCheckEnabled(bool)")]
+    pub struct TimestampCheckEnabledFilter {
+        pub enabled: bool,
+    }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
     #[ethevent(name = "Upgraded", abi = "Upgraded(address)")]
     pub struct UpgradedFilter {
         #[ethevent(indexed)]
         pub implementation: ::ethers::core::types::Address,
     }
+    #[derive(
+        Clone,
+        ::ethers::contract::EthEvent,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethevent(name = "VerifierUpdated", abi = "VerifierUpdated(address)")]
+    pub struct VerifierUpdatedFilter {
+        #[ethevent(indexed)]
+        pub verifier: ::ethers::core::types::Address,
+    }
     ///Container type for all of the contract's events
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum EmailAuthEvents {
+        DkimregistryUpdatedFilter(DkimregistryUpdatedFilter),
+        EmailAuthedFilter(EmailAuthedFilter),
         InitializedFilter(InitializedFilter),
         OwnershipTransferredFilter(OwnershipTransferredFilter),
+        SubjectTemplateDeletedFilter(SubjectTemplateDeletedFilter),
+        SubjectTemplateInsertedFilter(SubjectTemplateInsertedFilter),
+        SubjectTemplateUpdatedFilter(SubjectTemplateUpdatedFilter),
+        TimestampCheckEnabledFilter(TimestampCheckEnabledFilter),
         UpgradedFilter(UpgradedFilter),
+        VerifierUpdatedFilter(VerifierUpdatedFilter),
     }
     impl ::ethers::contract::EthLogDecode for EmailAuthEvents {
         fn decode_log(
             log: &::ethers::core::abi::RawLog,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::Error> {
+            if let Ok(decoded) = DkimregistryUpdatedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::DkimregistryUpdatedFilter(decoded));
+            }
+            if let Ok(decoded) = EmailAuthedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::EmailAuthedFilter(decoded));
+            }
             if let Ok(decoded) = InitializedFilter::decode_log(log) {
                 return Ok(EmailAuthEvents::InitializedFilter(decoded));
             }
             if let Ok(decoded) = OwnershipTransferredFilter::decode_log(log) {
                 return Ok(EmailAuthEvents::OwnershipTransferredFilter(decoded));
             }
+            if let Ok(decoded) = SubjectTemplateDeletedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::SubjectTemplateDeletedFilter(decoded));
+            }
+            if let Ok(decoded) = SubjectTemplateInsertedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::SubjectTemplateInsertedFilter(decoded));
+            }
+            if let Ok(decoded) = SubjectTemplateUpdatedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::SubjectTemplateUpdatedFilter(decoded));
+            }
+            if let Ok(decoded) = TimestampCheckEnabledFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::TimestampCheckEnabledFilter(decoded));
+            }
             if let Ok(decoded) = UpgradedFilter::decode_log(log) {
                 return Ok(EmailAuthEvents::UpgradedFilter(decoded));
+            }
+            if let Ok(decoded) = VerifierUpdatedFilter::decode_log(log) {
+                return Ok(EmailAuthEvents::VerifierUpdatedFilter(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData)
         }
@@ -1792,12 +2198,41 @@ pub mod email_auth {
     impl ::core::fmt::Display for EmailAuthEvents {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
+                Self::DkimregistryUpdatedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::EmailAuthedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InitializedFilter(element) => ::core::fmt::Display::fmt(element, f),
                 Self::OwnershipTransferredFilter(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::SubjectTemplateDeletedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SubjectTemplateInsertedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::SubjectTemplateUpdatedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::TimestampCheckEnabledFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::UpgradedFilter(element) => ::core::fmt::Display::fmt(element, f),
+                Self::VerifierUpdatedFilter(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
             }
+        }
+    }
+    impl ::core::convert::From<DkimregistryUpdatedFilter> for EmailAuthEvents {
+        fn from(value: DkimregistryUpdatedFilter) -> Self {
+            Self::DkimregistryUpdatedFilter(value)
+        }
+    }
+    impl ::core::convert::From<EmailAuthedFilter> for EmailAuthEvents {
+        fn from(value: EmailAuthedFilter) -> Self {
+            Self::EmailAuthedFilter(value)
         }
     }
     impl ::core::convert::From<InitializedFilter> for EmailAuthEvents {
@@ -1810,9 +2245,34 @@ pub mod email_auth {
             Self::OwnershipTransferredFilter(value)
         }
     }
+    impl ::core::convert::From<SubjectTemplateDeletedFilter> for EmailAuthEvents {
+        fn from(value: SubjectTemplateDeletedFilter) -> Self {
+            Self::SubjectTemplateDeletedFilter(value)
+        }
+    }
+    impl ::core::convert::From<SubjectTemplateInsertedFilter> for EmailAuthEvents {
+        fn from(value: SubjectTemplateInsertedFilter) -> Self {
+            Self::SubjectTemplateInsertedFilter(value)
+        }
+    }
+    impl ::core::convert::From<SubjectTemplateUpdatedFilter> for EmailAuthEvents {
+        fn from(value: SubjectTemplateUpdatedFilter) -> Self {
+            Self::SubjectTemplateUpdatedFilter(value)
+        }
+    }
+    impl ::core::convert::From<TimestampCheckEnabledFilter> for EmailAuthEvents {
+        fn from(value: TimestampCheckEnabledFilter) -> Self {
+            Self::TimestampCheckEnabledFilter(value)
+        }
+    }
     impl ::core::convert::From<UpgradedFilter> for EmailAuthEvents {
         fn from(value: UpgradedFilter) -> Self {
             Self::UpgradedFilter(value)
+        }
+    }
+    impl ::core::convert::From<VerifierUpdatedFilter> for EmailAuthEvents {
+        fn from(value: VerifierUpdatedFilter) -> Self {
+            Self::VerifierUpdatedFilter(value)
         }
     }
     ///Container type for all input parameters for the `UPGRADE_INTERFACE_VERSION` function with signature `UPGRADE_INTERFACE_VERSION()` and selector `0xad3cb1cc`
@@ -1893,6 +2353,19 @@ pub mod email_auth {
         pub template_id: ::ethers::core::types::U256,
         pub subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
     }
+    ///Container type for all input parameters for the `controller` function with signature `controller()` and selector `0xf77c4791`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "controller", abi = "controller()")]
+    pub struct ControllerCall;
     ///Container type for all input parameters for the `deleteSubjectTemplate` function with signature `deleteSubjectTemplate(uint256)` and selector `0x519e50d1`
     #[derive(
         Clone,
@@ -1908,19 +2381,6 @@ pub mod email_auth {
     pub struct DeleteSubjectTemplateCall {
         pub template_id: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `dkim` function with signature `dkim()` and selector `0x400ad5ce`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "dkim", abi = "dkim()")]
-    pub struct DkimCall;
     ///Container type for all input parameters for the `dkimRegistryAddr` function with signature `dkimRegistryAddr()` and selector `0x1bc01b83`
     #[derive(
         Clone,
@@ -1949,7 +2409,7 @@ pub mod email_auth {
     pub struct GetSubjectTemplateCall {
         pub template_id: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `initialize` function with signature `initialize(address,bytes32)` and selector `0xbe13f47c`
+    ///Container type for all input parameters for the `initDKIMRegistry` function with signature `initDKIMRegistry(address)` and selector `0x557cf5ef`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1960,10 +2420,41 @@ pub mod email_auth {
         Eq,
         Hash
     )]
-    #[ethcall(name = "initialize", abi = "initialize(address,bytes32)")]
+    #[ethcall(name = "initDKIMRegistry", abi = "initDKIMRegistry(address)")]
+    pub struct InitDKIMRegistryCall {
+        pub dkim_registry_addr: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `initVerifier` function with signature `initVerifier(address)` and selector `0x4141407c`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "initVerifier", abi = "initVerifier(address)")]
+    pub struct InitVerifierCall {
+        pub verifier_addr: ::ethers::core::types::Address,
+    }
+    ///Container type for all input parameters for the `initialize` function with signature `initialize(address,bytes32,address)` and selector `0xd26b3e6e`
+    #[derive(
+        Clone,
+        ::ethers::contract::EthCall,
+        ::ethers::contract::EthDisplay,
+        Default,
+        Debug,
+        PartialEq,
+        Eq,
+        Hash
+    )]
+    #[ethcall(name = "initialize", abi = "initialize(address,bytes32,address)")]
     pub struct InitializeCall {
         pub initial_owner: ::ethers::core::types::Address,
         pub account_salt: [u8; 32],
+        pub controller: ::ethers::core::types::Address,
     }
     ///Container type for all input parameters for the `insertSubjectTemplate` function with signature `insertSubjectTemplate(uint256,string[])` and selector `0xc4b84df4`
     #[derive(
@@ -2189,19 +2680,6 @@ pub mod email_auth {
     )]
     #[ethcall(name = "usedNullifiers", abi = "usedNullifiers(bytes32)")]
     pub struct UsedNullifiersCall(pub [u8; 32]);
-    ///Container type for all input parameters for the `verifier` function with signature `verifier()` and selector `0x2b7ac3f3`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "verifier", abi = "verifier()")]
-    pub struct VerifierCall;
     ///Container type for all input parameters for the `verifierAddr` function with signature `verifierAddr()` and selector `0x663ea2e2`
     #[derive(
         Clone,
@@ -2223,10 +2701,12 @@ pub mod email_auth {
         AuthEmail(AuthEmailCall),
         AuthedHash(AuthedHashCall),
         ComputeMsgHash(ComputeMsgHashCall),
+        Controller(ControllerCall),
         DeleteSubjectTemplate(DeleteSubjectTemplateCall),
-        Dkim(DkimCall),
         DkimRegistryAddr(DkimRegistryAddrCall),
         GetSubjectTemplate(GetSubjectTemplateCall),
+        InitDKIMRegistry(InitDKIMRegistryCall),
+        InitVerifier(InitVerifierCall),
         Initialize(InitializeCall),
         InsertSubjectTemplate(InsertSubjectTemplateCall),
         IsValidSignature(IsValidSignatureCall),
@@ -2243,7 +2723,6 @@ pub mod email_auth {
         UpdateVerifier(UpdateVerifierCall),
         UpgradeToAndCall(UpgradeToAndCallCall),
         UsedNullifiers(UsedNullifiersCall),
-        Verifier(VerifierCall),
         VerifierAddr(VerifierAddrCall),
     }
     impl ::ethers::core::abi::AbiDecode for EmailAuthCalls {
@@ -2276,15 +2755,15 @@ pub mod email_auth {
             ) {
                 return Ok(Self::ComputeMsgHash(decoded));
             }
+            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::Controller(decoded));
+            }
             if let Ok(decoded) = <DeleteSubjectTemplateCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
                 return Ok(Self::DeleteSubjectTemplate(decoded));
-            }
-            if let Ok(decoded) = <DkimCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::Dkim(decoded));
             }
             if let Ok(decoded) = <DkimRegistryAddrCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2295,6 +2774,16 @@ pub mod email_auth {
                 data,
             ) {
                 return Ok(Self::GetSubjectTemplate(decoded));
+            }
+            if let Ok(decoded) = <InitDKIMRegistryCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::InitDKIMRegistry(decoded));
+            }
+            if let Ok(decoded) = <InitVerifierCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
+                return Ok(Self::InitVerifier(decoded));
             }
             if let Ok(decoded) = <InitializeCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -2376,11 +2865,6 @@ pub mod email_auth {
             ) {
                 return Ok(Self::UsedNullifiers(decoded));
             }
-            if let Ok(decoded) = <VerifierCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::Verifier(decoded));
-            }
             if let Ok(decoded) = <VerifierAddrCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -2407,14 +2891,22 @@ pub mod email_auth {
                 Self::ComputeMsgHash(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
+                Self::Controller(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::DeleteSubjectTemplate(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Dkim(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::DkimRegistryAddr(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::GetSubjectTemplate(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::InitDKIMRegistry(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::InitVerifier(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Initialize(element) => {
@@ -2463,9 +2955,6 @@ pub mod email_auth {
                 Self::UsedNullifiers(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Verifier(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::VerifierAddr(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -2482,14 +2971,16 @@ pub mod email_auth {
                 Self::AuthEmail(element) => ::core::fmt::Display::fmt(element, f),
                 Self::AuthedHash(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ComputeMsgHash(element) => ::core::fmt::Display::fmt(element, f),
+                Self::Controller(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DeleteSubjectTemplate(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::Dkim(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DkimRegistryAddr(element) => ::core::fmt::Display::fmt(element, f),
                 Self::GetSubjectTemplate(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
+                Self::InitDKIMRegistry(element) => ::core::fmt::Display::fmt(element, f),
+                Self::InitVerifier(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Initialize(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InsertSubjectTemplate(element) => {
                     ::core::fmt::Display::fmt(element, f)
@@ -2516,7 +3007,6 @@ pub mod email_auth {
                 Self::UpdateVerifier(element) => ::core::fmt::Display::fmt(element, f),
                 Self::UpgradeToAndCall(element) => ::core::fmt::Display::fmt(element, f),
                 Self::UsedNullifiers(element) => ::core::fmt::Display::fmt(element, f),
-                Self::Verifier(element) => ::core::fmt::Display::fmt(element, f),
                 Self::VerifierAddr(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
@@ -2546,14 +3036,14 @@ pub mod email_auth {
             Self::ComputeMsgHash(value)
         }
     }
+    impl ::core::convert::From<ControllerCall> for EmailAuthCalls {
+        fn from(value: ControllerCall) -> Self {
+            Self::Controller(value)
+        }
+    }
     impl ::core::convert::From<DeleteSubjectTemplateCall> for EmailAuthCalls {
         fn from(value: DeleteSubjectTemplateCall) -> Self {
             Self::DeleteSubjectTemplate(value)
-        }
-    }
-    impl ::core::convert::From<DkimCall> for EmailAuthCalls {
-        fn from(value: DkimCall) -> Self {
-            Self::Dkim(value)
         }
     }
     impl ::core::convert::From<DkimRegistryAddrCall> for EmailAuthCalls {
@@ -2564,6 +3054,16 @@ pub mod email_auth {
     impl ::core::convert::From<GetSubjectTemplateCall> for EmailAuthCalls {
         fn from(value: GetSubjectTemplateCall) -> Self {
             Self::GetSubjectTemplate(value)
+        }
+    }
+    impl ::core::convert::From<InitDKIMRegistryCall> for EmailAuthCalls {
+        fn from(value: InitDKIMRegistryCall) -> Self {
+            Self::InitDKIMRegistry(value)
+        }
+    }
+    impl ::core::convert::From<InitVerifierCall> for EmailAuthCalls {
+        fn from(value: InitVerifierCall) -> Self {
+            Self::InitVerifier(value)
         }
     }
     impl ::core::convert::From<InitializeCall> for EmailAuthCalls {
@@ -2646,11 +3146,6 @@ pub mod email_auth {
             Self::UsedNullifiers(value)
         }
     }
-    impl ::core::convert::From<VerifierCall> for EmailAuthCalls {
-        fn from(value: VerifierCall) -> Self {
-            Self::Verifier(value)
-        }
-    }
     impl ::core::convert::From<VerifierAddrCall> for EmailAuthCalls {
         fn from(value: VerifierAddrCall) -> Self {
             Self::VerifierAddr(value)
@@ -2716,7 +3211,7 @@ pub mod email_auth {
         Hash
     )]
     pub struct ComputeMsgHashReturn(pub [u8; 32]);
-    ///Container type for all return fields from the `dkim` function with signature `dkim()` and selector `0x400ad5ce`
+    ///Container type for all return fields from the `controller` function with signature `controller()` and selector `0xf77c4791`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -2727,7 +3222,7 @@ pub mod email_auth {
         Eq,
         Hash
     )]
-    pub struct DkimReturn(pub ::ethers::core::types::Address);
+    pub struct ControllerReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `dkimRegistryAddr` function with signature `dkimRegistryAddr()` and selector `0x1bc01b83`
     #[derive(
         Clone,
@@ -2836,18 +3331,6 @@ pub mod email_auth {
         Hash
     )]
     pub struct UsedNullifiersReturn(pub bool);
-    ///Container type for all return fields from the `verifier` function with signature `verifier()` and selector `0x2b7ac3f3`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct VerifierReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `verifierAddr` function with signature `verifierAddr()` and selector `0x663ea2e2`
     #[derive(
         Clone,

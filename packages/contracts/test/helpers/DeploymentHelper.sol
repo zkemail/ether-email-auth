@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
+import "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract DeploymentHelper is Test {
@@ -19,6 +20,8 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry overrideableDkim;
+    RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -43,10 +46,10 @@ contract DeploymentHelper is Test {
     function setUp() public virtual {
         // For zkSync computeEmailAuthAddress uses L2ContractHelper.computeCreate2Address
         // The gardian address should be different from other EVM chains
-        if(block.chainid == 300) {
+        if (block.chainid == 300) {
             guardian = address(0x4110796d50E5a4f51E626B00c38af39d236Ec8b9);
         } else {
-            guardian = address(0xA519C9A6D14041b4d7c7624Db1fbbd4D9e26490C);
+            guardian = address(0xfB1f91113157135BA8a461489c1Ae92Fb681beFF);
         }
 
         vm.startPrank(deployer);
@@ -72,6 +75,15 @@ contract DeploymentHelper is Test {
             signature
         );
 
+        // Create userOverrideable dkim registry
+        overrideableDkim = new UserOverrideableDKIMRegistry(deployer, deployer);
+        overrideableDkim.setDKIMPublicKeyHash(
+            domainName,
+            publicKeyHash,
+            deployer,
+            new bytes(0)
+        );
+
         // Create Verifier
         verifier = new Verifier();
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
@@ -85,18 +97,31 @@ contract DeploymentHelper is Test {
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
-        // Create SimpleWallet as EmailAccountRecovery implementation
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-            address(simpleWalletImpl),
+        // Create RecoveryController as EmailAccountRecovery implementation
+        RecoveryController recoveryControllerImpl = new RecoveryController();
+        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+            address(recoveryControllerImpl),
             abi.encodeCall(
-                simpleWalletImpl.initialize,
+                recoveryControllerImpl.initialize,
                 (
                     signer,
                     address(verifier),
                     address(dkim),
                     address(emailAuthImpl)
                 )
+            )
+        );
+        recoveryController = RecoveryController(
+            payable(address(recoveryControllerProxy))
+        );
+
+        // Create SimpleWallet
+        SimpleWallet simpleWalletImpl = new SimpleWallet();
+        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+            address(simpleWalletImpl),
+            abi.encodeCall(
+                simpleWalletImpl.initialize,
+                (signer, address(recoveryController))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));

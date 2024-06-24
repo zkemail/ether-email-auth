@@ -7,14 +7,14 @@ use tokio::fs::read_to_string;
 #[derive(Debug, Clone)]
 pub enum EmailAuthEvent {
     AcceptanceRequest {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
         subject: String,
         account_code: String,
     },
     GuardianAlreadyExists {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
     },
     Error {
@@ -22,27 +22,27 @@ pub enum EmailAuthEvent {
         error: String,
     },
     RecoveryRequest {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
         subject: String,
     },
     AcceptanceSuccess {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
     },
     RecoverySuccess {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
     },
     GuardianNotSet {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
     },
     GuardianNotRegistered {
-        wallet_eth_addr: String,
+        account_eth_addr: String,
         guardian_email_addr: String,
         subject: String,
         request_id: u32,
@@ -76,7 +76,7 @@ pub struct EmailAttachment {
 pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
     match event {
         EmailAuthEvent::AcceptanceRequest {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
             request_id,
             subject,
@@ -89,12 +89,12 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 Reply \"Confirm\" to this email to accept the request. \
                 Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
-                wallet_eth_addr, request_id
+                account_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "requestId": request_id,
             });
             let body_html = render_html("acceptance_request.html", render_data).await?;
@@ -138,18 +138,18 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::GuardianAlreadyExists {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
         } => {
             let subject = "Guardian Already Exists";
             let body_plain = format!(
                 "The guardian email address {} is already associated with the wallet address {}. \
                 If you did not initiate this request, please contact us immediately.",
-                guardian_email_addr, wallet_eth_addr
+                guardian_email_addr, account_eth_addr
             );
 
             let render_data = serde_json::json!({
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
             });
             let body_html = render_html("guardian_already_exists.html", render_data).await?;
@@ -167,7 +167,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::RecoveryRequest {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
             request_id,
             subject,
@@ -177,12 +177,12 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 Reply \"Confirm\" to this email to accept the request. \
                 Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
-                wallet_eth_addr, request_id
+                account_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "requestId": request_id,
             });
             let body_html = render_html("recovery_request.html", render_data).await?;
@@ -200,7 +200,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::AcceptanceSuccess {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
             request_id,
         } => {
@@ -208,11 +208,11 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             let body_plain = format!(
                 "Your guardian request for the wallet address {} has been set. \
                 Your request ID is #{} is now complete.",
-                wallet_eth_addr, request_id
+                account_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
                 "requestId": request_id,
             });
@@ -231,7 +231,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::RecoverySuccess {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
             request_id,
         } => {
@@ -239,11 +239,11 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             let body_plain = format!(
                 "Your recovery request for the wallet address {} is successful. \
                 Your request ID is #{}.",
-                wallet_eth_addr, request_id
+                account_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
                 "requestId": request_id,
             });
@@ -262,14 +262,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::GuardianNotSet {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
         } => {
             let subject = "Guardian Not Set";
-            let body_plain = format!("Guardian not set for wallet address {}", wallet_eth_addr);
+            let body_plain = format!("Guardian not set for wallet address {}", account_eth_addr);
 
             let render_data = serde_json::json!({
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
             });
             let body_html = render_html("guardian_not_set.html", render_data).await?;
@@ -287,7 +287,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             send_email(email).await?;
         }
         EmailAuthEvent::GuardianNotRegistered {
-            wallet_eth_addr,
+            account_eth_addr,
             guardian_email_addr,
             subject,
             request_id,
@@ -299,12 +299,12 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 Add the guardian's account code in the subject and reply to this email. \
                 Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
-                wallet_eth_addr, request_id
+                account_eth_addr, request_id
             );
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
-                "walletAddress": wallet_eth_addr,
+                "walletAddress": account_eth_addr,
                 "requestId": request_id,
             });
             let body_html = render_html("credential_not_present.html", render_data).await?;

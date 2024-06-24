@@ -15,13 +15,13 @@ contract ComputeCreate2AddressTest is StructHelper {
     constructor() {}
 
     function testComputeCreate2Address() public {
-
         // This test is not neccessary for non zkSync chains
-        if(block.chainid != 324 && block.chainid != 300) {
+        if (block.chainid != 324 && block.chainid != 300) {
             console.log("skip");
             return;
         }
-        
+
+        address recoveredAccount = address(0x1);
         bytes32 accountSalt = 0x0;
 
         // See the example code
@@ -37,29 +37,27 @@ contract ComputeCreate2AddressTest is StructHelper {
         console.logBytes32(bytes32(bytecodeHash));
 
         address computedAddress = L2ContractHelper.computeCreate2Address(
-                    address(this),
-                    accountSalt,
-                    bytes32(bytecodeHash),
-                    keccak256(
-                        abi.encode(
-                            simpleWallet.emailAuthImplementation(),
-                            abi.encodeCall(
-                                EmailAuth.initialize,
-                                (address(this), accountSalt)
-                            )
-                        )
+            address(this),
+            accountSalt,
+            bytes32(bytecodeHash),
+            keccak256(
+                abi.encode(
+                    address(emailAuth),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (recoveredAccount, accountSalt, address(this))
                     )
+                )
+            )
         );
 
         console.log("computedAddress", computedAddress);
 
-        ERC1967Proxy proxy = new ERC1967Proxy{
-            salt: accountSalt
-        }(
-            simpleWallet.emailAuthImplementation(),
+        ERC1967Proxy proxy = new ERC1967Proxy{salt: accountSalt}(
+            address(emailAuth),
             abi.encodeCall(
                 EmailAuth.initialize,
-                (address(this), accountSalt)
+                (recoveredAccount, accountSalt, address(this))
             )
         );
         console.log("proxy", address(proxy));

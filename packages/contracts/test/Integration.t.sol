@@ -11,7 +11,7 @@ import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
-
+import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
 
 contract IntegrationTest is Test {
@@ -21,6 +21,7 @@ contract IntegrationTest is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+    RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -36,12 +37,12 @@ contract IntegrationTest is Test {
     uint256 startTimestamp = 1711197564; // Tue Mar 26 2024 12:40:24 GMT+0000
 
     function setUp() public {
-        if(block.chainid == 300) {
+        if (block.chainid == 300) {
             vm.createSelectFork("https://sepolia.era.zksync.dev");
         } else {
             vm.createSelectFork("https://mainnet.base.org");
         }
-        
+
         vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
@@ -75,17 +76,31 @@ contract IntegrationTest is Test {
         console.log("emailAuthImpl");
         console.logAddress(address(emailAuthImpl));
 
+        // Create RecoveryController as EmailAccountRecovery implementation
+        RecoveryController recoveryControllerImpl = new RecoveryController();
+        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+            address(recoveryControllerImpl),
+            abi.encodeCall(
+                recoveryControllerImpl.initialize,
+                (
+                    signer,
+                    address(verifier),
+                    address(dkim),
+                    address(emailAuthImpl)
+                )
+            )
+        );
+        recoveryController = RecoveryController(
+            payable(address(recoveryControllerProxy))
+        );
+
         // Create SimpleWallet as EmailAccountRecovery implementation
         SimpleWallet simpleWalletImpl = new SimpleWallet();
-
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
-            abi.encodeWithSelector(
-                simpleWalletImpl.initialize.selector,
-                signer,
-                address(verifier),
-                address(dkim),
-                address(emailAuthImpl)
+            abi.encodeCall(
+                simpleWalletImpl.initialize,
+                (signer, address(recoveryController))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
@@ -109,7 +124,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1
+            0x336cb44fF973dC623de2A461715b0fC70caBE2C7
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -144,7 +159,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1";
+            .maskedSubject = "Accept guardian request for 0x336cb44fF973dC623de2A461715b0fC70caBE2C7";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -166,13 +181,14 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call Request guardian -> GuardianStatus.REQUESTED
-        simpleWallet.requestGuardian(
-            simpleWallet.computeEmailAuthAddress(accountSalt)
+        guardian = recoveryController.computeEmailAuthAddress(
+            address(simpleWallet),
+            accountSalt
         );
+        recoveryController.requestGuardian(guardian);
         require(
-            simpleWallet.guardians(
-                simpleWallet.computeEmailAuthAddress(accountSalt)
-            ) == SimpleWallet.GuardianStatus.REQUESTED,
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.REQUESTED,
             "GuardianStatus should be REQUESTED"
         );
 
@@ -180,16 +196,17 @@ contract IntegrationTest is Test {
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
         subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
-            templateId: simpleWallet.computeAcceptanceTemplateId(templateIdx),
+            templateId: recoveryController.computeAcceptanceTemplateId(
+                templateIdx
+            ),
             subjectParams: subjectParamsForAcceptance,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        simpleWallet.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         require(
-            simpleWallet.guardians(
-                simpleWallet.computeEmailAuthAddress(accountSalt)
-            ) == SimpleWallet.GuardianStatus.ACCEPTED,
+            recoveryController.guardians(guardian) ==
+                RecoveryController.GuardianStatus.ACCEPTED,
             "GuardianStatus should be ACCEPTED"
         );
 
@@ -221,7 +238,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Set the new signer of 0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+            .maskedSubject = "Set the new signer of 0x336cb44fF973dC623de2A461715b0fC70caBE2C7 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
@@ -252,19 +269,29 @@ contract IntegrationTest is Test {
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
-            templateId: simpleWallet.computeRecoveryTemplateId(templateIdx),
+            templateId: recoveryController.computeRecoveryTemplateId(
+                templateIdx
+            ),
             subjectParams: subjectParamsForRecovery,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        simpleWallet.handleRecovery(emailAuthMsg, templateIdx);
-        require(simpleWallet.isRecovering(), "isRecovering should be set");
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         require(
-            simpleWallet.newSignerCandidate() ==
-                0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
+            recoveryController.isRecovering(address(simpleWallet)),
+            "isRecovering should be set"
+        );
+        require(
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ) == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
             "newSignerCandidate should be set"
         );
-        require(simpleWallet.timelock() > 0, "timelock should be set");
+        require(
+            recoveryController.currentTimelockOfAccount(address(simpleWallet)) >
+                0,
+            "timelock should be set"
+        );
         require(
             simpleWallet.owner() == simpleWalletOwner,
             "simpleWallet owner should be old one"
@@ -273,14 +300,27 @@ contract IntegrationTest is Test {
         // Call completeRecovery
         // Warp at 3 days + 10 seconds later
         vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
-        simpleWallet.completeRecovery();
+        recoveryController.completeRecovery(
+            address(simpleWallet),
+            new bytes(0)
+        );
         console.log("simpleWallet owner: ", simpleWallet.owner());
-        require(!simpleWallet.isRecovering(), "isRecovering should be reset");
         require(
-            simpleWallet.newSignerCandidate() == address(0),
+            !recoveryController.isRecovering(address(simpleWallet)),
+            "isRecovering should be reset"
+        );
+        require(
+            recoveryController.newSignerCandidateOfAccount(
+                address(simpleWallet)
+            ) == address(0),
             "newSignerCandidate should be reset"
         );
-        require(simpleWallet.timelock() == 0, "timelock should be reset");
+        require(
+            recoveryController.currentTimelockOfAccount(
+                address(simpleWallet)
+            ) == 0,
+            "timelock should be reset"
+        );
         require(
             simpleWallet.owner() == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
             "simpleWallet owner should be new one"
