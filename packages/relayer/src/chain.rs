@@ -238,12 +238,12 @@ impl ChainClient {
 
     pub async fn get_recovered_account_from_acceptance_subject(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         subject_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let subject_params_bytes = subject_params
             .iter() // Change here: use iter() instead of map() directly on Vec
             .map(|s| {
@@ -263,12 +263,12 @@ impl ChainClient {
 
     pub async fn get_recovered_account_from_recovery_subject(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         subject_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let subject_params_bytes = subject_params
             .iter() // Change here: use iter() instead of map() directly on Vec
             .map(|s| {

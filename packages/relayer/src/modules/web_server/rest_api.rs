@@ -104,69 +104,6 @@ pub async fn request_status_api(payload: RequestStatusRequest) -> Result<Request
 }
 
 pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
-    if !CLIENT
-        .is_wallet_deployed(&payload.controller_eth_addr)
-        .await
-    {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Wallet not deployed"))
-            .unwrap();
-    }
-
-    // Check if hash of bytecode of proxy contract is equal or not
-    let bytecode = CLIENT
-        .get_bytecode(&payload.controller_eth_addr)
-        .await
-        .unwrap();
-    let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
-
-    let permitted_wallets: Vec<PermittedWallet> =
-        serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
-    let permitted_wallet = permitted_wallets
-        .iter()
-        .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
-
-    if let Some(permitted_wallet) = permitted_wallet {
-        let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
-        let impl_contract_from_proxy = {
-            let raw_hex = hex::encode(
-                CLIENT
-                    .get_storage_at(&payload.controller_eth_addr, slot_location)
-                    .await
-                    .unwrap(),
-            );
-            format!("0x{}", &raw_hex[24..])
-        };
-
-        if !permitted_wallet
-            .impl_contract_address
-            .eq_ignore_ascii_case(&impl_contract_from_proxy)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from(
-                    "Invalid bytecode, impl contract address mismatch",
-                ))
-                .unwrap();
-        }
-
-        if !permitted_wallet
-            .controller_eth_addr
-            .eq_ignore_ascii_case(&payload.controller_eth_addr)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from("Invalid controller eth addr"))
-                .unwrap();
-        }
-    } else {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Wallet not permitted"))
-            .unwrap();
-    }
-
     let subject_template = CLIENT
         .get_acceptance_subject_templates(&payload.controller_eth_addr, payload.template_idx)
         .await
@@ -190,137 +127,10 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             payload.template_idx,
         )
         .await
-        .unwrap();
-
-    if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Account code already used"))
-            .unwrap();
-    }
-
-    let mut request_id = rand::thread_rng().gen::<u32>();
-    while let Ok(Some(request)) = DB.get_request(request_id).await {
-        request_id = rand::thread_rng().gen::<u32>();
-    }
-
-    if DB
-        .is_guardian_set(&payload.controller_eth_addr, &payload.guardian_email_addr)
-        .await
-    {
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: None,
-        })
-        .await
-        .expect("Failed to insert request");
-
-        handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
-            account_eth_addr: account_eth_addr.to_string(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-        })
-        .await
-        .expect("Failed to send GuardianAlreadyExists event");
-    } else if DB
-        .is_wallet_and_email_registered(&payload.controller_eth_addr, &payload.guardian_email_addr)
-        .await
-    {
-        // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
-        // Therefore, the relayer will send an email to the guardian again with a fresh account code.
-        DB.update_credentials_of_wallet_and_email(&Credentials {
-            account_code: payload.account_code.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_set: false,
-        })
-        .await
-        .expect("Failed to insert credentials");
-
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: None,
-        })
-        .await
-        .expect("Failed to insert request");
-
-        handle_email_event(EmailAuthEvent::AcceptanceRequest {
-            account_eth_addr: account_eth_addr.to_string(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            request_id,
-            subject: payload.subject.clone(),
-            account_code: payload.account_code.clone(),
-        })
-        .await
-        .expect("Failed to send Acceptance event");
-    } else {
-        DB.insert_credentials(&Credentials {
-            account_code: payload.account_code.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_set: false,
-        })
-        .await
-        .expect("Failed to insert credentials");
-
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: None,
-        })
-        .await
-        .expect("Failed to insert request");
-
-        handle_email_event(EmailAuthEvent::AcceptanceRequest {
-            account_eth_addr: account_eth_addr.to_string(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            request_id,
-            subject: payload.subject.clone(),
-            account_code: payload.account_code.clone(),
-        })
-        .await
-        .expect("Failed to send Acceptance event");
-    }
-
-    Response::builder()
-        .status(StatusCode::OK)
-        .body(Body::from(
-            serde_json::to_string(&AcceptanceResponse {
-                request_id,
-                subject_params,
-            })
-            .unwrap(),
-        ))
         .unwrap()
-}
+        .to_string();
 
-pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
-    if !CLIENT
-        .is_wallet_deployed(&payload.controller_eth_addr)
-        .await
-    {
+    if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
             .body(Body::from("Wallet not deployed"))
@@ -328,10 +138,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     }
 
     // Check if hash of bytecode of proxy contract is equal or not
-    let bytecode = CLIENT
-        .get_bytecode(&payload.controller_eth_addr)
-        .await
-        .unwrap();
+    let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
     let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
 
     let permitted_wallets: Vec<PermittedWallet> =
@@ -345,7 +152,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         let impl_contract_from_proxy = {
             let raw_hex = hex::encode(
                 CLIENT
-                    .get_storage_at(&payload.controller_eth_addr, slot_location)
+                    .get_storage_at(&account_eth_addr, slot_location)
                     .await
                     .unwrap(),
             );
@@ -380,6 +187,131 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             .unwrap();
     }
 
+    if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Account code already used"))
+            .unwrap();
+    }
+
+    let mut request_id = rand::thread_rng().gen::<u32>();
+    while let Ok(Some(request)) = DB.get_request(request_id).await {
+        request_id = rand::thread_rng().gen::<u32>();
+    }
+
+    if DB
+        .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
+        .await
+    {
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
+            account_eth_addr,
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+        })
+        .await
+        .expect("Failed to send GuardianAlreadyExists event");
+    } else if DB
+        .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
+        .await
+    {
+        // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
+        // Therefore, the relayer will send an email to the guardian again with a fresh account code.
+        DB.update_credentials_of_wallet_and_email(&Credentials {
+            account_code: payload.account_code.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_set: false,
+        })
+        .await
+        .expect("Failed to insert credentials");
+
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        handle_email_event(EmailAuthEvent::AcceptanceRequest {
+            account_eth_addr,
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id,
+            subject: payload.subject.clone(),
+            account_code: payload.account_code.clone(),
+        })
+        .await
+        .expect("Failed to send Acceptance event");
+    } else {
+        DB.insert_credentials(&Credentials {
+            account_code: payload.account_code.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_set: false,
+        })
+        .await
+        .expect("Failed to insert credentials");
+
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: None,
+        })
+        .await
+        .expect("Failed to insert request");
+
+        handle_email_event(EmailAuthEvent::AcceptanceRequest {
+            account_eth_addr,
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            request_id,
+            subject: payload.subject.clone(),
+            account_code: payload.account_code.clone(),
+        })
+        .await
+        .expect("Failed to send Acceptance event");
+    }
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(
+            serde_json::to_string(&AcceptanceResponse {
+                request_id,
+                subject_params,
+            })
+            .unwrap(),
+        ))
+        .unwrap()
+}
+
+pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
     let subject_template = CLIENT
         .get_recovery_subject_templates(&payload.controller_eth_addr, payload.template_idx)
         .await
@@ -397,13 +329,71 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     let subject_params = subject_params.unwrap();
 
     let account_eth_addr = CLIENT
-        .get_recovered_account_from_acceptance_subject(
+        .get_recovered_account_from_recovery_subject(
             &payload.controller_eth_addr,
             subject_params.clone(),
             payload.template_idx,
         )
         .await
-        .unwrap();
+        .unwrap()
+        .to_string();
+
+    if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
+    }
+
+    // Check if hash of bytecode of proxy contract is equal or not
+    let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
+    let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
+
+    let permitted_wallets: Vec<PermittedWallet> =
+        serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    let permitted_wallet = permitted_wallets
+        .iter()
+        .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+
+    if let Some(permitted_wallet) = permitted_wallet {
+        let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+        let impl_contract_from_proxy = {
+            let raw_hex = hex::encode(
+                CLIENT
+                    .get_storage_at(&account_eth_addr, slot_location)
+                    .await
+                    .unwrap(),
+            );
+            format!("0x{}", &raw_hex[24..])
+        };
+
+        if !permitted_wallet
+            .impl_contract_address
+            .eq_ignore_ascii_case(&impl_contract_from_proxy)
+        {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Body::from(
+                    "Invalid bytecode, impl contract address mismatch",
+                ))
+                .unwrap();
+        }
+
+        if !permitted_wallet
+            .controller_eth_addr
+            .eq_ignore_ascii_case(&payload.controller_eth_addr)
+        {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Body::from("Invalid controller eth addr"))
+                .unwrap();
+        }
+    } else {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not permitted"))
+            .unwrap();
+    }
 
     let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = DB.get_request(request_id).await {
@@ -411,15 +401,15 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     }
 
     if !DB
-        .is_wallet_and_email_registered(&payload.controller_eth_addr, &payload.guardian_email_addr)
+        .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
         .await
     {
         DB.insert_request(&Request {
             request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr: account_eth_addr.clone(),
             controller_eth_addr: payload.controller_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
+            is_for_recovery: true,
             template_idx: payload.template_idx,
             is_processed: false,
             is_success: None,
@@ -430,7 +420,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::GuardianNotRegistered {
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             subject: payload.subject.clone(),
             request_id,
@@ -451,15 +441,15 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     }
 
     if DB
-        .is_guardian_set(&payload.controller_eth_addr, &payload.guardian_email_addr)
+        .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
         .await
     {
         DB.insert_request(&Request {
             request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr: account_eth_addr.clone(),
             controller_eth_addr: payload.controller_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
+            is_for_recovery: true,
             template_idx: payload.template_idx,
             is_processed: false,
             is_success: None,
@@ -470,7 +460,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::RecoveryRequest {
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
             subject: payload.subject.clone(),
@@ -480,10 +470,10 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     } else {
         DB.insert_request(&Request {
             request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr: account_eth_addr.clone(),
             controller_eth_addr: payload.controller_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
+            is_for_recovery: true,
             template_idx: payload.template_idx,
             is_processed: false,
             is_success: None,
@@ -494,7 +484,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::GuardianNotSet {
-            account_eth_addr: account_eth_addr.to_string(),
+            account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             // request_id,
             // subject: payload.subject.clone(),
