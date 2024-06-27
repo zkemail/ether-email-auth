@@ -27,11 +27,11 @@ contract ComputeCreate2AddressTest is StructHelper {
         // See the example code
         // https://github.com/matter-labs/foundry-zksync/blob/13497a550e4a097c57bec7430435ab810a6d10fc/zk-tests/src/Contracts.t.sol#L195
         string memory artifact = vm.readFile(
-            "zkout/ERC1967Proxy.sol/artifacts.json"
+            "zkout/ERC1967Proxy.sol/ERC1967Proxy.json"
         );
         bytes32 bytecodeHash = vm.parseJsonBytes32(
             artifact,
-            '.contracts.["../../node_modules/@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"].ERC1967Proxy.hash'
+            '.hash'
         );
         console.log("bytecodeHash");
         console.logBytes32(bytes32(bytecodeHash));
