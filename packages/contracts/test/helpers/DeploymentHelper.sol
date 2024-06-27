@@ -47,7 +47,7 @@ contract DeploymentHelper is Test {
         // For zkSync computeEmailAuthAddress uses L2ContractHelper.computeCreate2Address
         // The gardian address should be different from other EVM chains
         if (block.chainid == 300) {
-            guardian = address(0x4110796d50E5a4f51E626B00c38af39d236Ec8b9);
+            guardian = address(0x5BD638D229a146696d03b6EedE99c398bDCb6218);
         } else {
             guardian = address(0xfB1f91113157135BA8a461489c1Ae92Fb681beFF);
         }

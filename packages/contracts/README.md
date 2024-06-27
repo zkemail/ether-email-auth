@@ -192,7 +192,8 @@ It also provides the following entry functions with their default implementation
 You should use foundry-zksync, the installation process is following URL.
 https://github.com/matter-labs/foundry-zksync
 
-Current version foundry-zksync is forge 0.0.2 (13497a5 2024-05-16T00:24:48.304138000Z)
+Current version foundry-zksync is forge 0.0.2 (f505a53 2024-06-27T00:23:42.073876000Z).
+
 They can't use solc 0.8.25, so you should set appreciate solc version in foundry.toml.
 For ex. 
 
@@ -291,12 +292,12 @@ libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:De
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
 
 About Create2, `L2ContractHelper.computeCreate2Address` should be used.
-And `type(ERC1967Proxy).creationCode` doesn't work correctly.
+And `type(ERC1967Proxy).creationCode` doesn't work correctly in zkSync.
 We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
 Perhaps that is different value in each compiler version.
 
 You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L94 
+packages/contracts/src/EmailAccountRecovery.sol:L119
 
 See, test/ComputeCreate2Address.t.sol
 
@@ -313,13 +314,17 @@ Currently some test cases are not work correctly because there is a issue about 
 
 Failing test cases are here.
 
+EmailAuthWithUserOverrideableDkim.t.sol
+
+- testAuthEmail()
+
+EmailAuth.t.sol
+
 - testAuthEmail()
 - testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
 - testExpectRevertAuthEmailInvalidEmailProof()
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
-- testIsValidSignature()
-- testIsValidSignatureReturnsFalse()
 
 # For integration testing
 
