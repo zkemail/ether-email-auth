@@ -192,49 +192,28 @@ It also provides the following entry functions with their default implementation
 You should use foundry-zksync, the installation process is following URL.
 https://github.com/matter-labs/foundry-zksync
 
-Current version foundry-zksync is forge 0.0.2 (f505a53 2024-06-27T00:23:42.073876000Z).
+Current version foundry-zksync is forge 0.0.2 (6e1c282 2024-07-01T00:26:02.947919000Z)
 
-They can't use solc 0.8.25, so you should set appreciate solc version in foundry.toml.
-For ex. 
-
-```
-solc = "0.8.23"
-```
-
-Also the current foundry-zksync does not work correctly if your svm has 0.8.25 installed.
-In that case, please do the following:
-
-For Apple Silicon
+Now foundry-zksync supports solc 0.8.25, but it won't be automatically downloaded by foundry-zksync.
+First you should compile our contracts with foundry, and then install foundry-zksync.
 
 ```
-rm -rf  ~/Library/Application\ Support/svm/0.8.25
-```
+# Install foundry
+foundryup
 
-Or you can use docker too.
+cd packages/contracts
+yarn build
 
-```
-docker run -d -it -v $PWD:$PWD --name zksync-development --platform linux/amd64 ubuntu
-docker exec -it zksync-development bash
-```
+# Check if you have already had 0.8.25
+ls -l /Users/{USER_NAME}/Library/Application\ Support/svm/0.8.25
 
-In the docker container, you should execute following commands.
-
-```
-apt update
-apt -y install git curl nodejs npm
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-git clone https://github.com/matter-labs/foundry-zksync.git
-cd foundry-zksync
+# Install foundry-zksync
+cd YOUR_FOUNDRY_ZKSYNC_DIR
 chmod +x ./install-foundry-zksync
 ./install-foundry-zksync
-cd /Users/wataru_shinohara/GitHub/zkemail/ether-email-auth
-yarn
-cd packages/contracts
 ```
 
-Also, there are the problem with foundy-zksync. They can't resolve contracts in monorepo's node_modules.
+In addition, there are the problem with foundy-zksync. Currently they can't resolve contracts in monorepo's node_modules.
 
 https://github.com/matter-labs/foundry-zksync/issues/411
 
@@ -273,8 +252,8 @@ Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x91cc0f0A227b8dD56794f9391E8Af48B40420A0b
 Transaction hash: 0x4f94ab71443d01988105540c3abb09ed66f8af5d0bb6a88691e2dafa88b3583d
 [⠢] Compiling...
-[⠃] Compiling 68 files with 0.8.23
-[⠆] Solc 0.8.23 finished in 12.20s
+[⠃] Compiling 68 files with 0.8.25
+[⠆] Solc 0.8.25 finished in 12.20s
 Compiler run successful!
 Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
@@ -311,6 +290,8 @@ Even if the contract size is fine for EVM, it may exceed the bytecode size limit
 Therefore, EmailAccountRecovery.t.sol has been splited.
 
 Currently some test cases are not work correctly because there is a issue about missing libraries.
+
+https://github.com/matter-labs/foundry-zksync/issues/382
 
 Failing test cases are here.
 
