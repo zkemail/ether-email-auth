@@ -192,48 +192,28 @@ It also provides the following entry functions with their default implementation
 You should use foundry-zksync, the installation process is following URL.
 https://github.com/matter-labs/foundry-zksync
 
-Current version foundry-zksync is forge 0.0.2 (13497a5 2024-05-16T00:24:48.304138000Z)
-They can't use solc 0.8.25, so you should set appreciate solc version in foundry.toml.
-For ex. 
+Current version foundry-zksync is forge 0.0.2 (6e1c282 2024-07-01T00:26:02.947919000Z)
+
+Now foundry-zksync supports solc 0.8.25, but it won't be automatically downloaded by foundry-zksync.
+First you should compile our contracts with foundry, and then install foundry-zksync.
 
 ```
-solc = "0.8.23"
-```
+# Install foundry
+foundryup
 
-Also the current foundry-zksync does not work correctly if your svm has 0.8.25 installed.
-In that case, please do the following:
+cd packages/contracts
+yarn build
 
-For Apple Silicon
+# Check if you have already had 0.8.25
+ls -l /Users/{USER_NAME}/Library/Application\ Support/svm/0.8.25
 
-```
-rm -rf  ~/Library/Application\ Support/svm/0.8.25
-```
-
-Or you can use docker too.
-
-```
-docker run -d -it -v $PWD:$PWD --name zksync-development --platform linux/amd64 ubuntu
-docker exec -it zksync-development bash
-```
-
-In the docker container, you should execute following commands.
-
-```
-apt update
-apt -y install git curl nodejs npm
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-curl -L https://foundry.paradigm.xyz | bash
-source ~/.bashrc
-git clone https://github.com/matter-labs/foundry-zksync.git
-cd foundry-zksync
+# Install foundry-zksync
+cd YOUR_FOUNDRY_ZKSYNC_DIR
 chmod +x ./install-foundry-zksync
 ./install-foundry-zksync
-cd /Users/wataru_shinohara/GitHub/zkemail/ether-email-auth
-yarn
-cd packages/contracts
 ```
 
-Also, there are the problem with foundy-zksync. They can't resolve contracts in monorepo's node_modules.
+In addition, there are the problem with foundy-zksync. Currently they can't resolve contracts in monorepo's node_modules.
 
 https://github.com/matter-labs/foundry-zksync/issues/411
 
@@ -272,8 +252,8 @@ Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x91cc0f0A227b8dD56794f9391E8Af48B40420A0b
 Transaction hash: 0x4f94ab71443d01988105540c3abb09ed66f8af5d0bb6a88691e2dafa88b3583d
 [⠢] Compiling...
-[⠃] Compiling 68 files with 0.8.23
-[⠆] Solc 0.8.23 finished in 12.20s
+[⠃] Compiling 68 files with 0.8.25
+[⠆] Solc 0.8.25 finished in 12.20s
 Compiler run successful!
 Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
@@ -291,12 +271,12 @@ libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:De
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
 
 About Create2, `L2ContractHelper.computeCreate2Address` should be used.
-And `type(ERC1967Proxy).creationCode` doesn't work correctly.
+And `type(ERC1967Proxy).creationCode` doesn't work correctly in zkSync.
 We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
 Perhaps that is different value in each compiler version.
 
 You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L94 
+packages/contracts/src/EmailAccountRecovery.sol:L119
 
 See, test/ComputeCreate2Address.t.sol
 
@@ -311,15 +291,21 @@ Therefore, EmailAccountRecovery.t.sol has been splited.
 
 Currently some test cases are not work correctly because there is a issue about missing libraries.
 
+https://github.com/matter-labs/foundry-zksync/issues/382
+
 Failing test cases are here.
+
+EmailAuthWithUserOverrideableDkim.t.sol
+
+- testAuthEmail()
+
+EmailAuth.t.sol
 
 - testAuthEmail()
 - testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
 - testExpectRevertAuthEmailInvalidEmailProof()
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
-- testIsValidSignature()
-- testIsValidSignatureReturnsFalse()
 
 # For integration testing
 

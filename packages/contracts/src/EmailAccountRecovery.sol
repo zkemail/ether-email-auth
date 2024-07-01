@@ -116,7 +116,7 @@ abstract contract EmailAccountRecovery {
                     address(this),
                     accountSalt,
                     bytes32(
-                        0x010000830a636831d3678f83275e3c9257b482d6ee5dc76d741ced984134f9de
+                        0x01000083f30da117496892e53895c30802e6708d8cdbad6233c6d4ec63a96ebf
                     ),
                     keccak256(
                         abi.encode(
@@ -208,10 +208,6 @@ abstract contract EmailAccountRecovery {
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
-        // require(
-        //     address(guardian).code.length == 0,
-        //     "guardian is already deployed"
-        // );
         uint templateId = computeAcceptanceTemplateId(templateIdx);
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");

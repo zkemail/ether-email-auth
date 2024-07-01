@@ -8,9 +8,10 @@ optimizer-runs = 20_000
 fs_permissions = [
     { access = "read", path = "./artifacts/WETH9.sol/WETH9.json" },
     { access = "read", path = "./test/build_integration" },
-    { access = "read", path = "./zkout/ERC1967Proxy.sol/artifacts.json" },
+    { access = "read", path = "./zkout/ERC1967Proxy.sol/ERC1967Proxy.json" },
 ]
-solc = "0.8.23"
+
+solc = "0.8.25"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
