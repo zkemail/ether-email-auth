@@ -49,7 +49,7 @@ contract DeploymentHelper is Test {
         if (block.chainid == 300) {
             guardian = address(0x5BD638D229a146696d03b6EedE99c398bDCb6218);
         } else {
-            guardian = address(0xfB1f91113157135BA8a461489c1Ae92Fb681beFF);
+            guardian = address(0x525e666Db4318258d24d63D20Cf40210C2F75Ca5);
         }
 
         vm.startPrank(deployer);

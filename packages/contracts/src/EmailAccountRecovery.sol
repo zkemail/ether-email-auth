@@ -208,10 +208,6 @@ abstract contract EmailAccountRecovery {
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
-        // require(
-        //     address(guardian).code.length == 0,
-        //     "guardian is already deployed"
-        // );
         uint templateId = computeAcceptanceTemplateId(templateIdx);
         require(templateId == emailAuthMsg.templateId, "invalid template id");
         require(emailAuthMsg.proof.isCodeExist == true, "isCodeExist is false");
