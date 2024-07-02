@@ -58,6 +58,7 @@ impl Database {
             "CREATE TABLE IF NOT EXISTS requests (
                 request_id BIGINT PRIMARY KEY,
                 account_eth_addr TEXT NOT NULL,
+                controller_eth_addr TEXT NOT NULL,
                 guardian_email_addr TEXT NOT NULL,
                 is_for_recovery BOOLEAN NOT NULL DEFAULT FALSE,
                 template_idx INT NOT NULL,
@@ -216,8 +217,9 @@ impl Database {
     }
 
     pub(crate) async fn update_request(&self, row: &Request) -> Result<()> {
-        let res = sqlx::query("UPDATE requests SET account_eth_addr = $1, guardian_email_addr = $2, is_for_recovery = $3, template_idx = $4, is_processed = $5, is_success = $6, email_nullifier = $7, account_salt = $8 WHERE request_id = $9")
+        let res = sqlx::query("UPDATE requests SET account_eth_addr = $1, controller_eth_addr = $2, guardian_email_addr = $3, is_for_recovery = $4, template_idx = $5, is_processed = $6, is_success = $7, email_nullifier = $8, account_salt = $9 WHERE request_id = $10")
             .bind(&row.account_eth_addr)
+            .bind(&row.controller_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_for_recovery)
             .bind(row.template_idx as i64)
@@ -254,13 +256,47 @@ impl Database {
     }
 
     #[named]
+    pub(crate) async fn get_credentials_from_wallet_and_email(
+        &self,
+        account_eth_addr: &str,
+        email_addr: &str,
+    ) -> Result<Option<Credentials>> {
+        let row = sqlx::query(
+            "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
+        )
+        .bind(account_eth_addr)
+        .bind(email_addr)
+        .fetch_optional(&self.db)
+        .await?;
+
+        match row {
+            Some(row) => {
+                let account_code: String = row.get("account_code");
+                let account_eth_addr: String = row.get("account_eth_addr");
+                let guardian_email_addr: String = row.get("guardian_email_addr");
+                let is_set: bool = row.get("is_set");
+                let codes_row = Credentials {
+                    account_code,
+                    account_eth_addr,
+                    guardian_email_addr,
+                    is_set,
+                };
+                info!(LOG, "row {:?}", codes_row; "func" => function_name!());
+                Ok(Some(codes_row))
+            }
+            None => Ok(None),
+        }
+    }
+
+    #[named]
     pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
-            "INSERT INTO requests (request_id, account_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *",
+            "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
         )
         .bind(row.request_id as i64)
         .bind(&row.account_eth_addr)
+        .bind(&row.controller_eth_addr)
         .bind(&row.guardian_email_addr)
         .bind(row.is_for_recovery)
         .bind(row.template_idx as i64)

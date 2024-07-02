@@ -60,6 +60,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     check_and_update_dkim(
         &email,
         &parsed_email,
+        &request.controller_eth_addr,
         &request.account_eth_addr,
         request.account_salt.as_deref().unwrap_or_default(),
     )
@@ -78,7 +79,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
         if !request.is_for_recovery {
             let subject_template = CLIENT
-                .get_acceptance_subject_templates(&request.account_eth_addr, request.template_idx)
+                .get_acceptance_subject_templates(
+                    &request.controller_eth_addr,
+                    request.template_idx,
+                )
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -143,7 +147,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_acceptance(
-                    &request.account_eth_addr,
+                    &request.controller_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )
@@ -209,7 +213,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             }
         } else {
             let subject_template = CLIENT
-                .get_recovery_subject_templates(&request.account_eth_addr, request.template_idx)
+                .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -274,7 +278,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_recovery(
-                    &request.account_eth_addr,
+                    &request.controller_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )
@@ -333,7 +337,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     } else {
         if request.is_for_recovery {
             let subject_template = CLIENT
-                .get_recovery_subject_templates(&request.account_eth_addr, request.template_idx)
+                .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
             let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
@@ -398,7 +402,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             match CLIENT
                 .handle_recovery(
-                    &request.account_eth_addr,
+                    &request.controller_eth_addr,
                     email_auth_msg,
                     request.template_idx,
                 )

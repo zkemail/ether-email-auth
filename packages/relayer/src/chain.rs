@@ -1,4 +1,5 @@
 use crate::*;
+use abis::email_account_recovery::EmailAuthMsg;
 use ethers::middleware::Middleware;
 use ethers::prelude::*;
 use ethers::signers::Signer;
@@ -66,12 +67,11 @@ impl ChainClient {
 
     pub async fn get_dkim_from_wallet(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let dkim = contract.dkim().call().await?;
-
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
@@ -88,12 +88,14 @@ impl ChainClient {
 
     pub async fn get_email_auth_addr_from_wallet(
         &self,
+        controller_eth_addr: &String,
         wallet_addr: &String,
         account_salt: &String,
     ) -> Result<H160, anyhow::Error> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
-        let account_salt_bytes = hex::decode(account_salt)
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+        let account_salt_bytes = hex::decode(account_salt.trim_start_matches("0x"))
             .map_err(|e| anyhow!("Failed to decode account_salt: {}", e))?;
         let email_auth_addr = contract
             .compute_email_auth_address(
@@ -120,11 +122,11 @@ impl ChainClient {
 
     pub async fn get_acceptance_subject_templates(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         template_idx: u64,
     ) -> Result<Vec<String>, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
             .acceptance_subject_templates()
             .call()
@@ -135,11 +137,11 @@ impl ChainClient {
 
     pub async fn get_recovery_subject_templates(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         template_idx: u64,
     ) -> Result<Vec<String>, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
             .recovery_subject_templates()
             .call()
@@ -156,11 +158,13 @@ impl ChainClient {
     ) -> Result<bool, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+        let decoded_calldata =
+            hex::decode(&complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
         let call = contract.complete_recovery(
             account_eth_addr
                 .parse::<H160>()
                 .expect("Invalid H160 address"),
-            Bytes::from(complete_calldata.clone().into_bytes()),
+            Bytes::from(decoded_calldata),
         );
         let tx = call.send().await?;
         // If the transaction is successful, the function will return true and false otherwise.
@@ -177,12 +181,12 @@ impl ChainClient {
 
     pub async fn handle_acceptance(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> Result<bool, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let call = contract.handle_acceptance(email_auth_msg, template_idx.into());
         let tx = call.send().await?;
         // If the transaction is successful, the function will return true and false otherwise.
@@ -199,12 +203,12 @@ impl ChainClient {
 
     pub async fn handle_recovery(
         &self,
-        wallet_addr: &String,
+        controller_eth_addr: &String,
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> Result<bool, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(wallet_address, self.client.clone());
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let call = contract.handle_recovery(email_auth_msg, template_idx.into());
         let tx = call.send().await?;
         // If the transaction is successful, the function will return true and false otherwise.

@@ -127,8 +127,9 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             payload.template_idx,
         )
         .await
-        .unwrap()
-        .to_string();
+        .unwrap();
+
+    let account_eth_addr = format!("0x{:x}", account_eth_addr);
 
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
         return Response::builder()
@@ -141,51 +142,51 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
     let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
     let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
 
-    let permitted_wallets: Vec<PermittedWallet> =
-        serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
-    let permitted_wallet = permitted_wallets
-        .iter()
-        .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+    // let permitted_wallets: Vec<PermittedWallet> =
+    //     serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    // let permitted_wallet = permitted_wallets
+    //     .iter()
+    //     .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
 
-    if let Some(permitted_wallet) = permitted_wallet {
-        let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
-        let impl_contract_from_proxy = {
-            let raw_hex = hex::encode(
-                CLIENT
-                    .get_storage_at(&account_eth_addr, slot_location)
-                    .await
-                    .unwrap(),
-            );
-            format!("0x{}", &raw_hex[24..])
-        };
+    // if let Some(permitted_wallet) = permitted_wallet {
+    //     let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+    //     let impl_contract_from_proxy = {
+    //         let raw_hex = hex::encode(
+    //             CLIENT
+    //                 .get_storage_at(&account_eth_addr, slot_location)
+    //                 .await
+    //                 .unwrap(),
+    //         );
+    //         format!("0x{}", &raw_hex[24..])
+    //     };
 
-        if !permitted_wallet
-            .impl_contract_address
-            .eq_ignore_ascii_case(&impl_contract_from_proxy)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from(
-                    "Invalid bytecode, impl contract address mismatch",
-                ))
-                .unwrap();
-        }
+    //     if !permitted_wallet
+    //         .impl_contract_address
+    //         .eq_ignore_ascii_case(&impl_contract_from_proxy)
+    //     {
+    //         return Response::builder()
+    //             .status(StatusCode::BAD_REQUEST)
+    //             .body(Body::from(
+    //                 "Invalid bytecode, impl contract address mismatch",
+    //             ))
+    //             .unwrap();
+    //     }
 
-        if !permitted_wallet
-            .controller_eth_addr
-            .eq_ignore_ascii_case(&payload.controller_eth_addr)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from("Invalid controller eth addr"))
-                .unwrap();
-        }
-    } else {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Wallet not permitted"))
-            .unwrap();
-    }
+    //     if !permitted_wallet
+    //         .controller_eth_addr
+    //         .eq_ignore_ascii_case(&payload.controller_eth_addr)
+    //     {
+    //         return Response::builder()
+    //             .status(StatusCode::BAD_REQUEST)
+    //             .body(Body::from("Invalid controller eth addr"))
+    //             .unwrap();
+    //     }
+    // } else {
+    //     return Response::builder()
+    //         .status(StatusCode::BAD_REQUEST)
+    //         .body(Body::from("Wallet not permitted"))
+    //         .unwrap();
+    // }
 
     if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
         return Response::builder()
@@ -198,6 +199,8 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
+
+    let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
 
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
@@ -213,7 +216,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -249,7 +252,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -283,7 +286,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -335,8 +338,9 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             payload.template_idx,
         )
         .await
-        .unwrap()
-        .to_string();
+        .unwrap();
+
+    let account_eth_addr = format!("0x{:x}", account_eth_addr);
 
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
         return Response::builder()
@@ -349,56 +353,69 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
     let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
     let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
 
-    let permitted_wallets: Vec<PermittedWallet> =
-        serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
-    let permitted_wallet = permitted_wallets
-        .iter()
-        .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+    // let permitted_wallets: Vec<PermittedWallet> =
+    //     serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    // let permitted_wallet = permitted_wallets
+    //     .iter()
+    //     .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
 
-    if let Some(permitted_wallet) = permitted_wallet {
-        let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
-        let impl_contract_from_proxy = {
-            let raw_hex = hex::encode(
-                CLIENT
-                    .get_storage_at(&account_eth_addr, slot_location)
-                    .await
-                    .unwrap(),
-            );
-            format!("0x{}", &raw_hex[24..])
-        };
+    // if let Some(permitted_wallet) = permitted_wallet {
+    //     let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+    //     let impl_contract_from_proxy = {
+    //         let raw_hex = hex::encode(
+    //             CLIENT
+    //                 .get_storage_at(&account_eth_addr, slot_location)
+    //                 .await
+    //                 .unwrap(),
+    //         );
+    //         format!("0x{}", &raw_hex[24..])
+    //     };
 
-        if !permitted_wallet
-            .impl_contract_address
-            .eq_ignore_ascii_case(&impl_contract_from_proxy)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from(
-                    "Invalid bytecode, impl contract address mismatch",
-                ))
-                .unwrap();
-        }
+    //     if !permitted_wallet
+    //         .impl_contract_address
+    //         .eq_ignore_ascii_case(&impl_contract_from_proxy)
+    //     {
+    //         return Response::builder()
+    //             .status(StatusCode::BAD_REQUEST)
+    //             .body(Body::from(
+    //                 "Invalid bytecode, impl contract address mismatch",
+    //             ))
+    //             .unwrap();
+    //     }
 
-        if !permitted_wallet
-            .controller_eth_addr
-            .eq_ignore_ascii_case(&payload.controller_eth_addr)
-        {
-            return Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Body::from("Invalid controller eth addr"))
-                .unwrap();
-        }
-    } else {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Wallet not permitted"))
-            .unwrap();
-    }
+    //     if !permitted_wallet
+    //         .controller_eth_addr
+    //         .eq_ignore_ascii_case(&payload.controller_eth_addr)
+    //     {
+    //         return Response::builder()
+    //             .status(StatusCode::BAD_REQUEST)
+    //             .body(Body::from("Invalid controller eth addr"))
+    //             .unwrap();
+    //     }
+    // } else {
+    //     return Response::builder()
+    //         .status(StatusCode::BAD_REQUEST)
+    //         .body(Body::from("Wallet not permitted"))
+    //         .unwrap();
+    // }
 
     let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
+
+    let account = DB
+        .get_credentials_from_wallet_and_email(&account_eth_addr, &payload.guardian_email_addr)
+        .await;
+
+    let account_salt = if let Ok(Some(account_details)) = account {
+        calculate_account_salt(&payload.guardian_email_addr, &account_details.account_code)
+    } else {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Account details not found"))
+            .unwrap();
+    };
 
     if !DB
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
@@ -414,7 +431,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -454,7 +471,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -478,7 +495,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             is_processed: false,
             is_success: None,
             email_nullifier: None,
-            account_salt: None,
+            account_salt: Some(account_salt.clone()),
         })
         .await
         .expect("Failed to insert request");
@@ -553,14 +570,11 @@ pub async fn handle_complete_recovery_request(payload: CompleteRecoveryRequest) 
 }
 
 pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> {
-    let padded_email_addr = PaddedEmailAddr::from_email_addr(&payload.email_addr);
-    let account_code =
-        AccountCode::from(hex2field(&format!("0x{}", payload.account_code)).unwrap());
-    let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
+    let account_salt = calculate_account_salt(&payload.email_addr, &payload.account_code);
 
     Response::builder()
         .status(StatusCode::OK)
-        .body(Body::from(field2hex(&account_salt.0)))
+        .body(Body::from(account_salt))
         .unwrap()
 }
 
@@ -575,7 +589,7 @@ fn parse_error_message(error_data: String) -> String {
             }
         }
     }
-    "Failed to parse contract error".to_string()
+    format!("Failed to parse contract error: {}", error_data)
 }
 
 pub async fn receive_email_api_fn(email: String) -> Result<()> {
