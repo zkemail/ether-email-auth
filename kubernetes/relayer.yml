@@ -2,9 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: relayer-config-email-auth
-  namespace: email-auth
+  namespace: ar-base-sepolia
   labels:
-    app: relayer-email-auth
+    app: relayer
 data:
   EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ""
   CHAIN_RPC_PROVIDER: ""
@@ -23,9 +23,9 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: relayer-secret-email-auth
-  namespace: email-auth
+  namespace: ar-base-sepolia
   labels:
-    app: relayer-email-auth
+    app: relayer
 type: Opaque
 data:
   PRIVATE_KEY:
@@ -40,40 +40,68 @@ data:
   ICPEM:
 
 ---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-smtp-secret
+  namespace: ar-base-sepolia
+  labels:
+    app: relayer
+type: Opaque
+data:
+  SMTP_LOGIN_ID:
+  SMTP_LOGIN_PASSWORD:
+  SMTP_DOMAIN_NAME:
+  SERVER_HOST:
+  SERVER_PORT:
+  JSON_LOGGER:
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-imap-secret
+  namespace: ar-base-sepolia
+  labels:
+    app: relayer
+type: Opaque
+data:
+  RELAYER_ENDPOINT:
+  IMAP_LOGIN_ID:
+  IMAP_LOGIN_PASSWORD:
+  IMAP_PORT:
+  IMAP_DOMAIN_NAME:
+  SERVER_HOST:
+  AUTH_TYPE:
+  JSON_LOGGER:
+
+---
 apiVersion: apps/v1
-kind: ReplicaSet
+kind: Deployment
 metadata:
   name: relayer-email-auth
-  namespace: email-auth
+  namespace: ar-base-sepolia
   labels:
-    app: relayer-email-auth
+    app: relayer
 spec:
-  replicas: 1 # Number of initial replicas
   selector:
     matchLabels:
-      app: relayer-email-auth
+      app: relayer
   template:
     metadata:
       labels:
-        app: relayer-email-auth
+        app: relayer
     spec:
       containers:
-        - name: relayer-container-email-auth
-          image: bisht13/email-auth-relayer:latest
+        - name: relayer-container
+          image: bisht13/relayer-new-0:latest
           ports:
             - containerPort: 4500
           envFrom:
             - configMapRef:
-                name: relayer-config-email-auth
+                name: relayer-config
             - secretRef:
-                name: relayer-secret-email-auth
-          resources:
-            requests:
-              memory: "8Gi"
-              cpu: "4"
-            limits:
-              memory: "16Gi"
-              cpu: "8"
+                name: relayer-secret
           livenessProbe:
             httpGet:
               path: /api/echo
@@ -90,8 +118,32 @@ spec:
             - name: pem-volume
               mountPath: "/relayer/packages/relayer/.ic.pem"
               subPath: ".ic.pem"
-          command: ["/bin/sh", "-c", "sleep infinity"]
+        - name: smtp-container
+          image: bisht13/relayer-smtp-new:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: relayer-smtp-secret
+        - name: imap-container
+          image: bisht13/relayer-imap-new:latest
+          envFrom:
+            - secretRef:
+                name: relayer-imap-secret
+        - name: safe-tracker-container
+          image: bisht13/safe-tracker-0:latest
+          envFrom:
+            - configMapRef:
+                name: safe-tracker-config
+            - secretRef:
+                name: safe-tracker-secret
       volumes:
+        - name: pem-volume
+          secret:
+            secretName: relayer-secret
+            items:
+              - key: ICPEM
+                path: ".ic.pem"
         - name: pem-volume
           secret:
             secretName: relayer-secret-email-auth
@@ -104,12 +156,27 @@ apiVersion: v1
 kind: Service
 metadata:
   name: relayer-svc-email-auth
-  namespace: email-auth
+  namespace: ar-base-sepolia
 spec:
   selector:
-    app: relayer-email-auth
+    app: relayer
   ports:
     - protocol: TCP
       port: 443
       targetPort: 4500
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relayer-smtp-svc
+  namespace: ar-base-sepolia
+spec:
+  selector:
+    app: relayer
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 8080
   type: ClusterIP
