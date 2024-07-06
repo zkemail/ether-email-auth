@@ -100,7 +100,7 @@ pub async fn run_server() -> Result<()> {
             }),
         )
         .route(
-            "/api/completeRecovery",
+            "/api/completeRequest",
             axum::routing::post(move |payload: String| async move {
                 let payload: Result<CompleteRecoveryRequest> =
                     serde_json::from_str(&payload).map_err(|e| anyhow::Error::from(e));

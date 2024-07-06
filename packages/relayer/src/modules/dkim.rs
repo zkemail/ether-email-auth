@@ -69,6 +69,7 @@ impl<'a> DkimOracleClient<'a> {
 pub async fn check_and_update_dkim(
     email: &str,
     parsed_email: &ParsedEmail,
+    controller_eth_addr: &str,
     wallet_addr: &str,
     account_salt: &str,
 ) -> Result<()> {
@@ -83,15 +84,18 @@ pub async fn check_and_update_dkim(
         return Ok(());
     }
     let email_auth_addr = CLIENT
-        .get_email_auth_addr_from_wallet(&wallet_addr.to_string(), &account_salt.to_string())
+        .get_email_auth_addr_from_wallet(
+            &controller_eth_addr.to_string(),
+            &wallet_addr.to_string(),
+            &account_salt.to_string(),
+        )
         .await?;
+    let email_auth_addr = format!("0x{:x}", email_auth_addr);
     let mut dkim = CLIENT
-        .get_dkim_from_wallet(&wallet_addr.to_string())
+        .get_dkim_from_wallet(&controller_eth_addr.to_string())
         .await?;
-    if CLIENT.get_bytecode(&email_auth_addr.to_string()).await? != Bytes::from(vec![0u8; 20]) {
-        dkim = CLIENT
-            .get_dkim_from_email_auth(&email_auth_addr.to_string())
-            .await?;
+    if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::from(vec![]) {
+        dkim = CLIENT.get_dkim_from_email_auth(&email_auth_addr).await?;
     }
     info!(LOG, "dkim {:?}", dkim; "func" => function_name!());
     if CLIENT
