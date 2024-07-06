@@ -116,7 +116,7 @@ abstract contract EmailAccountRecovery {
                     address(this),
                     accountSalt,
                     bytes32(
-                        0x01000083f30da117496892e53895c30802e6708d8cdbad6233c6d4ec63a96ebf
+                        0x0100007934a4ec31a894c66e0d97810c45cade119a9dcba3f02c341c06aa8684
                     ),
                     keccak256(
                         abi.encode(

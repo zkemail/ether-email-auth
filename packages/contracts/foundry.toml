@@ -11,7 +11,7 @@ fs_permissions = [
     { access = "read", path = "./zkout/ERC1967Proxy.sol/ERC1967Proxy.json" },
 ]
 
-solc = "0.8.25"
+solc = "0.8.26"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
@@ -31,9 +31,11 @@ mainnet = "${MAINNET_RPC_URL}"
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
 
-[profile.zksync]
+[profile.default.zksync] 
 src = 'src'
-libs = ["../../node_modules", "lib"]
+libs = ["node_modules", "lib"]
 fallback_oz = true
 is_system = false
 mode = "3"
+
+zksolc = "1.5.0"

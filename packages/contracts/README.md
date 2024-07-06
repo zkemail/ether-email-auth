@@ -194,7 +194,7 @@ https://github.com/matter-labs/foundry-zksync
 
 Current version foundry-zksync is forge 0.0.2 (6e1c282 2024-07-01T00:26:02.947919000Z)
 
-Now foundry-zksync supports solc 0.8.25, but it won't be automatically downloaded by foundry-zksync.
+Now foundry-zksync supports solc 0.8.26, but it won't be automatically downloaded by foundry-zksync.
 First you should compile our contracts with foundry, and then install foundry-zksync.
 
 ```
@@ -204,13 +204,18 @@ foundryup
 cd packages/contracts
 yarn build
 
-# Check if you have already had 0.8.25
-ls -l /Users/{USER_NAME}/Library/Application\ Support/svm/0.8.25
+# Check if you have already had 0.8.26
+ls -l /Users/{USER_NAME}/Library/Application\ Support/svm/0.8.26
 
 # Install foundry-zksync
 cd YOUR_FOUNDRY_ZKSYNC_DIR
 chmod +x ./install-foundry-zksync
 ./install-foundry-zksync
+
+# Install zksolc-bin 1.5.0 manually
+# Download https://github.com/matter-labs/zksolc-bin/releases/tag/v1.5.0
+chmod a+x {BINARY_NAME}
+mv {BINARY_NAME} ~/.zksync/.
 ```
 
 In addition, there are the problem with foundy-zksync. Currently they can't resolve contracts in monorepo's node_modules.
@@ -252,8 +257,8 @@ Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x91cc0f0A227b8dD56794f9391E8Af48B40420A0b
 Transaction hash: 0x4f94ab71443d01988105540c3abb09ed66f8af5d0bb6a88691e2dafa88b3583d
 [⠢] Compiling...
-[⠃] Compiling 68 files with 0.8.25
-[⠆] Solc 0.8.25 finished in 12.20s
+[⠃] Compiling 68 files with 0.8.26
+[⠆] Solc 0.8.26 finished in 12.20s
 Compiler run successful!
 Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
 Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
