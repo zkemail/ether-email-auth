@@ -158,7 +158,7 @@ It provides the following functions.
     2. Set `timestampCheckEnabled` to `enabled`.
 
 ### `EmailAccountRecovery` Contract
-It is an abstract contract for each wallet contract to implement our email-based account recovery. **Each wallet provider only needs to implement the following functions in the wallet contract.**
+It is an abstract contract for each account contract brand to implement the email-based account recovery. **Each account contract provider only needs to implement the following functions in a new contract called controller.**
 - `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian.
 - `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery.
 - `acceptGuardian(address guardian, uint templateIdx, bytes[] subjectParams, bytes32 emailNullifier) internal virtual`: it takes as input the Ethereum address `guardian` corresponding to the guardian's email address, the index `templateIdx` of the subject template in the output of `acceptanceSubjectTemplates()`, the parameter values of the variable parts `subjectParams` in the template `acceptanceSubjectTemplates()[templateIdx]`, and an email nullifier `emailNullifier`. It is called after verifying the email-auth message to accept the role of the guardian; thus you can assume the arguments are already verified. 

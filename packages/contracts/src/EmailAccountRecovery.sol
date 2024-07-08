@@ -8,7 +8,7 @@ import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2Cont
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
-/// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering a wallet.
+/// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering an account contract.
 abstract contract EmailAccountRecovery {
     uint8 constant EMAIL_ACCOUNT_RECOVERY_VERSION_ID = 1;
     address public verifierAddr;
