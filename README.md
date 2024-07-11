@@ -25,6 +25,8 @@ Specifically, the user, the Relayer, and the contract collaborate as follows:
 4. (On-chain) After verifying the given email-auth message, the contract executes application-specific logic depending on the message in the Subject and the user's Ethereum address.
 5. (On-chain -> Off-chain) The Relayer sends the user an email to report the execution result of the contract.
 
+![Architecture Flow](./docs/images/architecture-flow.png)
+
 ## Novel Concepts
 ### Account Code and Salt
 An account code is a random integer in a finite scalar field of BN254 curve. 
@@ -63,6 +65,8 @@ The circuit is agnostic to application contexts such as subject templates.
 In a nutshell, our circuit 1) verifies the given RSA signature for the given email header and the RSA public key, 2) exposes the Subject field with removing the invitation code and the email address that appears in the Subject, and 3) computes the account salt derived from the email address in the From field and the given account code, which must be the same as the invitation code if it exists.
 In this way, it allows our on-chain verifier to authenticate the email sender and authorize the message in the Subject while protecting privacy.
 
+For detailed setup instructions, see [here](./packages/circuits/README.md).
+
 ### `contracts` Package
 It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
 
@@ -84,10 +88,14 @@ Your application contract can employ those contracts in the following manner:
 1. For a new email user, the application contract deploys (a proxy of) the email-auth contract. Subsequently, the application contract sets the addresses of the verifier and the DKIM registry contracts and some subject templates for your application to the email-auth contract.
 2. Given a new email-auth message from the email user, the application contract calls the `authEmail` function in the email-auth contract for that user. If it returns no error, the application contract can execute any processes based on the message in the email-auth message.
 
+For detailed setup instructions, see [here](./packages/contracts/README.md).
+
 ### `relayer` Package
 It has a Rust implementation of the Relayer server.
 Unfortunately, the current code only supports an application of the email-based account recovery described later.
 We will provide a more generic implementation in the future.
+
+For detailed setup instructions, see [here](./packages/relayer/README.md).
 
 ### `prover` Package
 It has some scripts for a prover server that generates a proof of the main circuit in the circuits package.
@@ -127,6 +135,8 @@ It then requests the account owner to send a transaction to register the guardia
 13. (Processing a recovery for each guardian 6/6) If the given email-auth message is valid, the states for the recovery is updated.
 14. (Completing a recovery 1/2) When the frontend finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the account contract, it requests the Relayer to complete the recovery.
 15. (Completing a recovery 2/2) The Relayer sends a transaction to call a function for completing the recovery. If it returns no error, the owner address should be rotated.
+
+![Account Recovery Flow](./docs/images/account-recovery-flow.png)
 
 ### Integration to your Wallet
 Using our SDK, you can integrate email-based account recovery into your account contracts. 
