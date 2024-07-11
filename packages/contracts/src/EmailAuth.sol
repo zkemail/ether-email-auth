@@ -25,13 +25,21 @@ struct EmailAuthMsg {
 /// @notice This contract provides functionalities for the authentication of the email sender and the authentication of the message in the email subject using DKIM and custom verification logic.
 /// @dev Inherits from OwnableUpgradeable and UUPSUpgradeable for upgradeability and ownership management.
 contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
+    /// The CREATE2 salt of this contract defined as a hash of an email address and an account code.
     bytes32 public accountSalt;
+    /// An instance of the DKIM registry contract.
     IDKIMRegistry internal dkim;
+    /// An instance of the Verifier contract.
     Verifier internal verifier;
+    /// An address of a controller contract, defining the subject templates supported by this contract.
     address public controller;
+    /// A mapping of the supported subject templates associated with its ID.
     mapping(uint => string[]) public subjectTemplates;
+    /// A mapping of the hash of the authorized message associated with its `emailNullifier`.
     uint public lastTimestamp;
+    /// The latest `timestamp` in the verified `EmailAuthMsg`.
     mapping(bytes32 => bool) public usedNullifiers;
+    /// A boolean whether timestamp check is enabled or not.
     bool public timestampCheckEnabled;
 
     event DKIMRegistryUpdated(address indexed dkimRegistry);
