@@ -171,7 +171,7 @@ It provides the following functions.
     2. Set `timestampCheckEnabled` to `enabled`.
 
 ### `EmailAccountRecovery` Contract
-It is an abstract contract for each account contract brand to implement the email-based account recovery. **Each account contract provider only needs to implement the following functions in a new contract called controller.**
+It is an abstract contract for each smart account brand to implement the email-based account recovery. **Each smart account provider only needs to implement the following functions in a new contract called controller.**
 - `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian (acceptance email).
 - `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery (recovery email).
 - `extractRecoveredAccountFromAcceptanceSubject(bytes[] memory subjectParams, uint templateIdx) public view virtual returns (address)`: it takes as input the parameters `subjectParams` and the index of the chosen subject template `templateIdx` in those for acceptance emails.
