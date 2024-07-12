@@ -55,7 +55,7 @@ Specifically, the subject template is an array of strings, each of which has som
 - `"{decimals}"`: a decimal string of the decimals. Its Solidity type is `uint256`. Its decimal size is fixed to 18. E.g., “2.7” ⇒ `abi.encode(2.7 * (10**18))`.
 - `"{ethAddr}"`: a hex string of the Ethereum address. Its Solidity type is `address`. Its value MUST satisfy the checksum of the Ethereum address.
 
-## How to Develop New Apps
+## Package Components
 There are four significant packages in this repo:
 ### `circuits` Package
 It has a main circom circuit for verifying the email along with its DKIM signature, revealing a Subject message that masks an email address and an invitation code, and deriving an account salt from the email address in the From field and the given account code, which should match with the invitation code if it exists in the email.
@@ -161,3 +161,5 @@ We show some important points to implement the email-based account recovery for 
 - **Timelock is strongly recommended.** It allows an account owner who **does not** lose the private key to cancel the processing recovery when malicious guardians start it.
 - **A single guardian might be not secure enough** because an adversary can start the recovery only by exploiting that guardian's email account, e.g., stealing the password for that email account. Although the account owner can cancel the recovery, it requires the account owner to become online before the timelock expires.
 - **If the main relayer goes down, users cannot continue the recovery until another relayer is available.** The frontend should allow the account owner to choose an arbitrary relayer's email address to improve service availability.
+
+For detailed implementation, see [docs/getting-started.md](./docs/getting-started.md).
