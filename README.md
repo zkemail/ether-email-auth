@@ -163,3 +163,5 @@ We show some important points to implement the email-based account recovery for 
 - **If the main relayer goes down, users cannot continue the recovery until another relayer is available.** The frontend should allow the account owner to choose an arbitrary relayer's email address to improve service availability.
 
 For detailed implementation, see [docs/getting-started.md](./docs/getting-started.md).
+
+Regarding the contract addresses already deployed on Base Sepolia, see [here](./docs/deployed-contracts.md).
