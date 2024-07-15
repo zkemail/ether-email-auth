@@ -8,12 +8,12 @@ Using the SDK, a developer can build a smart contract with the following feature
 2. (Authentication) The contract can authenticate that the given Ethereum address corresponds to the email address in the From field of the email.
 3. (Privacy) No on-chain information reveals the user's email address itself. In other words, any adversary who learns only public data cannot estimate the corresponding email address from the Ethereum address.
 
-One of its killer applications is email-based account recovery, social recovery for account abstraction (AA) wallets.
-In social recovery, the wallet owner must appoint trusted persons as guardians who are authorized to update the private key for controlling the wallet.
+One of its killer applications is email-based account recovery, social recovery for smart accounts such as Safe, Clave, and so on.
+In social recovery, the account owner must appoint trusted persons as guardians who are authorized to update the private key for controlling the account.
 However, not all such persons are necessarily Ethereum users.
 Our solution mitigates this constraint by allowing guardians to complete the recovery process simply by sending an email.
 In other words, any trusted persons can work as guardians as long as they can send emails.
-Using the ether email-auth SDK, we construct a library and tools for any AA wallet providers to integrate our email-based account recovery just by implementing a few Solidity functions and a frontend!
+Using the ether email-auth SDK, we construct a library and tools for any smart account providers to integrate our email-based account recovery just by implementing a few Solidity functions and a frontend!
 
 ## Architecture
 In addition to a user and a smart contract employing our SDK, there is a permissionless server called Relayer.
@@ -24,6 +24,8 @@ Specifically, the user, the Relayer, and the contract collaborate as follows:
 3. (Off-chain -> On-chain) The Relayer broadcasts an Ethereum transaction to call the contract with the email-auth message.
 4. (On-chain) After verifying the given email-auth message, the contract executes application-specific logic depending on the message in the Subject and the user's Ethereum address.
 5. (On-chain -> Off-chain) The Relayer sends the user an email to report the execution result of the contract.
+
+![Architecture Flow](./docs/images/architecture-flow.png)
 
 ## Novel Concepts
 ### Account Code and Salt
@@ -53,15 +55,17 @@ Specifically, the subject template is an array of strings, each of which has som
 - `"{decimals}"`: a decimal string of the decimals. Its Solidity type is `uint256`. Its decimal size is fixed to 18. E.g., “2.7” ⇒ `abi.encode(2.7 * (10**18))`.
 - `"{ethAddr}"`: a hex string of the Ethereum address. Its Solidity type is `address`. Its value MUST satisfy the checksum of the Ethereum address.
 
-## How to Develop New Apps
+## Package Components
 There are four significant packages in this repo:
 ### `circuits` Package
 It has a main circom circuit for verifying the email along with its DKIM signature, revealing a Subject message that masks an email address and an invitation code, and deriving an account salt from the email address in the From field and the given account code, which should match with the invitation code if it exists in the email.
 The circuit is agnostic to application contexts such as subject templates.
 **Therefore, a developer does not need to make new circuits.**
 
-In a nutshell, our circuit 1) verifies the given RSA signature for the given email header and the RSA public key, 2) exposes the Subject field with removing the invitation code and the email address that appears in the Subject, and 3) computes the account salt derived from the email address in the From field and the given account code, which must be the same as the invitation code if it exists.
+In a nutshell, our circuit 1) verifies the given RSA signature for the given email header and the RSA public key, 2) exposes the string in the Subject field except for the invitation code and the email address that appears in the Subject, and 3) computes the account salt derived from the email address in the From field and the given account code, which must be the same as the invitation code if it exists.
 In this way, it allows our on-chain verifier to authenticate the email sender and authorize the message in the Subject while protecting privacy.
+
+For detailed setup instructions, see [here](./packages/circuits/README.md).
 
 ### `contracts` Package
 It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
@@ -77,19 +81,21 @@ If you use the common trusted custodians for all users, you can deploy a new DKI
 If each user should be able to modify the registered public keys, a new DKIM registry contract needs to be deployed for each user.
 
 The email-auth contract in `EmailAuth.sol` is a contract for each email user.
-Its contract Ethereum address is calculated as the CREATE2 of the account salt, i.e., the hash of the user's email address and one account code held by the user. 
-It provides an entry function `authEmail` to verify the email-auth message by calling the verifier and the DKIM registry contracts.
-<!-- Besides, it supports [ERC-1271](https://eips.ethereum.org/EIPS/eip-1271).  -->
-After the email-auth message is processed in the `authEmail` function, the `isValidSignature` function of the email-auth contract returns true for the hash of the data in the email-auth message and its email nullifier, a 32-byte data unique to each email.
+Its contract Ethereum address is derived from 1) its initial owner address, 2) an address of a controller contract that can define the supported subject templates and 3) the account salt, i.e., the hash of the user's email address and one account code held by the user, through CREATE2.
+It provides a function `authEmail` to verify the email-auth message by calling the verifier and the DKIM registry contracts.
 
 Your application contract can employ those contracts in the following manner:
-1. For a new email user, the application contract deploys (a proxy of) the email-auth contract. Subsequently, the application contract sets the addresses of the verifier and the DKIM registry contracts and some subject templates for your application to the email-auth contract.
+1. For a new email user, the application contract deploys (a proxy of) the email-auth contract. Subsequently, the application contract sets the addresses of the verifier and the DKIM registry contracts and some subject templates for your application to the email-auth contract. Here, the email-auth contract registers the application contract as a controller contract that has permissions to modify the subject templates.
 2. Given a new email-auth message from the email user, the application contract calls the `authEmail` function in the email-auth contract for that user. If it returns no error, the application contract can execute any processes based on the message in the email-auth message.
+
+For detailed setup instructions, see [here](./packages/contracts/README.md).
 
 ### `relayer` Package
 It has a Rust implementation of the Relayer server.
 Unfortunately, the current code only supports an application of the email-based account recovery described later.
 We will provide a more generic implementation in the future.
+
+For detailed setup instructions, see [here](./packages/relayer/README.md).
 
 ### `prover` Package
 It has some scripts for a prover server that generates a proof of the main circuit in the circuits package.
@@ -103,53 +109,59 @@ Our SDK only performs the verification of the email-auth message.
 Here, we present a list of security notes that you should check.
 - As described in the Subsection of "Invitation Code", for each email user, your application contract must ensure that the value of `isCodeExist` in the first email-auth message is true.
 - The application contract can configure multiple subject templates for the same email-auth contract. However, the Relayer can choose any of the configured templates, as long as the message in the Subject matches with the chosen template. For example, if there are two templates "Send {decimals} {string}" and "Send {string}", the message "Send 1.23 ETH" matches with both templates. We recommend defining the subject templates without such ambiguities.
-- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server, which stores the users' account codes. For example, an adversary can breach that privacy by exploiting an API provided by the Relayer such that returns the Ethereum address for the given email address and its stored account code. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
+- To protect the privacy of the users' email addresses, you should carefully design not only the contracts but also the Relayer server, which stores the users' account codes. For example, an adversary can breach that privacy by exploiting an API provided by the Relayer that returns the Ethereum address for the given email address and its stored account code. Additionally, if any Relayer's API returns an error when no account code is stored for the given email address, the adversary can learn which email addresses are registered.
 
 ## Application: Email-based Account Recovery
-As a representative example of applications using our SDK, we provide contracts and a Relayer server for email-based account recovery. They assume a life cycle of the account recovery in four phases:
-1. (Requesting a guardian) A wallet owner requests a holder of a specified email address to become a guardian.
-2. (Accepting a guardian) If the requested guardian sends an email to accept the request, the wallet contract registers the Ethereum address corresponding to its email address.
-3. (Processing a recovery for each guardian) When a guardian sends an email to recover the wallet, the wallet contract updates state data for the recovery.
+Email-based account recovery can be used to recover any account type, the following representative example will illustrate how to use our SDK to recover an ECDSA-based smart account. We provide contracts and a production Relayer server for email-based account recovery. They assume a life cycle of the account recovery in four phases:
+1. (Requesting a guardian) An account owner requests a holder of a specified email address to become a guardian.
+2. (Accepting a guardian) If the requested guardian sends an email to accept the request, the Ethereum address of the email-auth contract corresponding to the guardian's email address is registered on-chain.
+3. (Processing a recovery for each guardian) When a guardian sends an email to recover the account, the state data for the recovery is updated.
 4. (Completing a recovery) If the required condition for the recovery holds, the account recovery is done.
 
 Specifically, we expect the following UX. **Notably, the guardian only needs to reply to emails sent from the Relayer in every process.**
-1. (Requesting a guardian 1/4) A web page to configure guardians for email-based account recovery requests the wallet owner to input the guardian's email address and some related data such as the length of timelock until that guardian's recovery request is enabled. 
-2. (Requesting a guardian 2/4) The frontend on the web page randomly generates a new account code and derives the guardian's Ethereum address from the input guardian's email address and that code. 
-It then requests the wallet owner to broadcast a transaction to register the guardian request into the wallet contract, passing the derived Ethereum address and the related data (not the private data such as the email address and the account code).
-3. (Requesting a guardian 3/4) The frontend also sends the wallet address, the guardian's email address, and the account code to the Relayer. 
-4. (Requesting a guardian 4/4) The Relayer then sends the guardian an email to say "The owner of this wallet address requests you to become a guardian".
+1. (Requesting a guardian 1/4) A web page to configure guardians for email-based account recovery requests the account owner to input the guardian's email address and some related data such as the length of timelock until that guardian's recovery request is enabled. 
+2. (Requesting a guardian 2/4) The frontend script on the web page randomly generates a new account code and derives the guardian's Ethereum address from the input guardian's email address and that code. 
+It then requests the account owner to send a transaction to register the guardian request on-chain, passing the derived Ethereum address and the related data (not the private data such as the email address and the account code).
+3. (Requesting a guardian 3/4) The frontend script also sends the account address, the guardian's email address, and the account code to the Relayer. 
+4. (Requesting a guardian 4/4) The Relayer then sends the guardian an email to say "The owner of this account address requests you to become a guardian".
 5. (Accepting a guardian 1/3) If confirming the request, the guardian replies to the Relayer's email.
-6. (Accepting a guardian 2/3) The Relayer generates an email-auth message for the guardian's email and then broadcasts a transaction to pass it to the wallet contract.
-7. (Accepting a guardian 3/3) If the given email-auth message is valid, the wallet contract deploys an email-auth contract for the guardian and stores its address as the guardian.
-8. (Processing a recovery for each guardian 1/6) When losing a private key for controlling the wallet, on the web page to recover the wallet, the wallet owner inputs the wallet address to be recovered, the guardian's email address and a new EOA address called owner address derived from a fresh private key.
-9.  (Processing a recovery for each guardian 2/6) The frontend on the web page sends the input data to the Relayer.
-10. (Processing a recovery for each guardian 3/6) The Relayer then sends the guardian an email to say "Please rotate the owner address for this wallet address to this EOA address".
+6. (Accepting a guardian 2/3) The Relayer sends an email-auth message for the guardian's email on-chain.
+7. (Accepting a guardian 3/3) If the given email-auth message is valid, an email-auth contract for the guardian is deployed, and its address is registered as the guardian.
+8. (Processing a recovery for each guardian 1/6) When losing a private key for controlling the account, on the web page to recover the account, the account owner inputs the account address to be recovered, the guardian's email address and a new EOA address called owner address derived from a fresh private key.
+9.  (Processing a recovery for each guardian 2/6) The frontend script sends the input data to the Relayer.
+10. (Processing a recovery for each guardian 3/6) The Relayer then sends the guardian an email to say "Please rotate the owner address for this account address to this EOA address".
 11. (Processing a recovery for each guardian 4/6) If confirming the requested recovery, the guardian replies to the Relayer's email.
-12. (Processing a recovery for each guardian 5/6) The Relayer generates an email-auth message for the guardian's email and then broadcasts a transaction to pass it to the wallet contract.
-13. (Processing a recovery for each guardian 6/6) If the given email-auth message is valid, the wallet contract updates states for the recovery.
-14. (Completing a recovery 1/2) When the frontend finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the wallet contract, it requests the Relayer to complete the recovery.
-15. (Completing a recovery 2/2) The Relayer broadcasts a transaction to call a function in the wallet contract for completing the recovery. If it returns no error, the owner address should be rotated.
+12. (Processing a recovery for each guardian 5/6) The Relayer sends an email-auth message for the guardian's email on-chain.
+13. (Processing a recovery for each guardian 6/6) If the given email-auth message is valid, the states for the recovery are updated.
+14. (Completing a recovery 1/2) When the frontend script finds that the required condition to complete the recovery holds on-chain, e.g., enough number of the guardian's confirmations are registered into the smart account, it requests the Relayer to complete the recovery.
+15. (Completing a recovery 2/2) The Relayer sends a transaction to call a function for completing the recovery. If it returns no error, the owner address should be rotated.
+
+![Account Recovery Flow](./docs/images/account-recovery-flow.png)
 
 ### Integration to your Wallet
-Using our SDK, you can integrate email-based account recovery into your wallet. 
-Specifically, it provides an abstract contract in `EmailAccountRecovery.sol` and a Relayer server compatible with that contract, agnostic to the specification of each wallet.
-By 1) having your wallet contract inherit the abstract contract, which requires you to implement five functions, and 2) building your frontend to call the contract and the Relayer, your wallet can support the email-based account recovery described above. 
-Notably, our SDK **does not** specify concrete wallet specifications and the logic **after** verifying the email-auth messages for accepting a guardian and processing a recovery.
+Using our SDK, you can integrate email-based account recovery into your smart accounts. 
+Specifically, it provides an abstract contract in `EmailAccountRecovery.sol` and a Relayer server compatible with that contract, agnostic to the specification of each smart account brand.
+In short, by 1) making a contract called **controller** that implements seven missing functions in the abstract contract, and 2) building your frontend to call the controller contract and the Relayer, you can support the email-based account recovery described above. For example, if your wallet supports a module system to extend the wallet functionality, you can make a new module contract for this email-based recovery as the controller. Notably, our SDK **does not** specify concrete account specifications and the logic in the controller **after** verifying the email-auth messages for accepting a guardian and processing a recovery.
 Our SDK cannot ensure security and privacy in the entire process without your careful implementation.
 
-You can integrate the email-based account recovery into your wallet in the following steps.
-1. (Contracts 1/5) First, you import the `EmailAccountRecovery` abstract contract in `EmailAccountRecovery.sol` and have your wallet contract inherit it. Your Solidity compiler will require you to implement five functions: `acceptanceSubjectTemplates`, `recoverySubjectTemplates`, `acceptGuardian`, `processRecovery`, and `completeRecovery`.
-2. (Contracts 2/5) You define expected subject templates for two types of emails sent from guardians, one for accepting the role of the guardian, and the other for confirming the account recovery. You can implement the former and latter subject templates in the `acceptanceSubjectTemplates` and `recoverySubjectTemplates` functions, respectively. This is an example of the subject templates:
-    - Template in `acceptanceSubjectTemplates`: `"Accept guardian request for {ethAddr}"`, where the value of `"{ethAddr}"` represents the wallet address.
-    - Template in `recoverySubjectTemplates`: `"Set the new signer of {ethAddr} to {ethAddr}"`, where the values of the first and second `"{ethAddr}"`, respectively, represent the wallet address and the new owner address.
-3. (Contracts 3/5) Before implementing the remaining functions in `EmailAccountRecovery`, you implement a requesting function for the wallet owner to request a guardian, which is expected to be called by the wallet owner directly. Our SDK **does not** specify any interface or implementation of this function. For example, it can simply take as input a new guardian's Ethereum address, which will be the contract address of the guardian's email-auth contract to be deployed later, and store the given address as a guardian candidate. If you want to set a timelock for each guardian, the requesting function can additionally receive the timelock length from the wallet owner. 
-4. (Contracts 4/5) You implement the `acceptGuardian` and `processRecovery` functions. These two functions are, respectively, called by your wallet contract itself after verifying the email-auth messages for accepting a guardian and processing a recovery. Each of them takes as input the contract address of the guardian's email-auth contract, an index of the chosen subject template, the values for the variable parts of the message in the Subject, and the email nullifier. You can assume these arguments are already verified. In the `acceptGuardian` function, for example, the wallet contract stores the given guardian's address as the confirmed guardian. In the `processRecovery` function, for instance, it stores the given new owner address or sets a timelock.
-5. (Contracts 5/5) You finally implement the `completeRecovery` function. It should rotate the owner address in the wallet contract if some required conditions hold. Notably, it does not take any arguments. Therefore, this function should only depend on the storage data.
-6. (Frontend 1/3) Next, you build a frontend for the account recovery. You prepare a page where the wallet owner configures guardians. It receives the wallet address (`wallet_eth_addr`) and the guardian's email address from the wallet owner (`guardian_email_addr`), generates a random account code (`account_code`), constructs an expected subject (`subject`) for the subject template whose index is `template_idx` in the output of the `acceptanceSubjectTemplates()` function. It then requests the wallet owner to call the requesting function in the wallet contract. After that, it calls the Relayer's `acceptanceRequest` API with those data.
-7. (Frontend 2/3) You also prepare a page where the wallet owner requests guardians to recover the wallet. It receives the wallet address (`wallet_eth_addr`) and the guardian's email address from the wallet owner (`guardian_email_addr`) and constructs an expected subject (`subject`) for the subject template whose index is `template_idx` in the output of the `recoverySubjectTemplates()` function. It calls the Relayer's `acceptanceRequest` API with those data.
-8. (Frontend 3/3) It simulates off-chain if the `completeRecovery` function in the wallet contract will return true at regular time intervals. When it holds, the frontend calls the Relayer's `completeRequest` API.  
+Specifically, you can integrate the email-based account recovery into your smart accounts in the following steps.
+1. (Contracts 1/6) First, you build a new controller contract with imports of the `EmailAccountRecovery` abstract contract in `EmailAccountRecovery.sol`. Your Solidity compiler will require you to implement the following seven functions: `acceptanceSubjectTemplates`, `recoverySubjectTemplates`, `extractRecoveredAccountFromAcceptanceSubject`, `extractRecoveredAccountFromRecoverySubject`, `acceptGuardian`, `processRecovery`, and `completeRecovery`.
+2. (Contracts 2/6) You define expected subject templates for two types of emails sent from guardians, one for accepting the role of the guardian, and the other for confirming the account recovery. You can implement the former and latter subject templates in the `acceptanceSubjectTemplates` and `recoverySubjectTemplates` functions, respectively. This is an example of the subject templates:
+    - Template in `acceptanceSubjectTemplates`: `"Accept guardian request for {ethAddr}"`, where the value of `"{ethAddr}"` represents the account address.
+    - Template in `recoverySubjectTemplates`: `"Set the new signer of {ethAddr} to {ethAddr}"`, where the values of the first and second `"{ethAddr}"`, respectively, represent the account address and the new owner address.
+3. (Contracts 3/6) You also define how to extract an account address to be recovered from the subject parameters for the templates in `acceptanceSubjectTemplates` and `recoverySubjectTemplates`, respectively.
+3. (Contracts 4/6) Before implementing the remaining functions in `EmailAccountRecovery`, you implement a requesting function into the controller that allows the account owner to request a guardian, which is expected to be called by the account owner directly. Our SDK **does not** specify any interface or implementation of this function. For example, the function can simply take as input a new guardian's email-auth contract address computed by CREATE2, and store it as a guardian candidate. If you want to set a timelock for each guardian, the requesting function can additionally take the timelock length as input.
+4. (Contracts 5/6) You implement the `acceptGuardian` and `processRecovery` functions into the controller. These two functions are, respectively, called by the controller itself after verifying the email-auth messages for accepting a guardian and processing a recovery. Each of them takes as input the guardian's email-auth contract address, an index of the chosen subject template, the values for the variable parts of the message in the Subject, and the email nullifier. You can assume these arguments are already verified. For example, the `acceptGuardian` function stores the given guardian's address as the confirmed guardian, and the `processRecovery` function stores the given new owner's address or sets a timelock.
+5. (Contracts 6/6) You finally implement the `completeRecovery` function into the controller. It should rotate the owner's address in the smart account if some required conditions hold. This function can be called by anyone, but is assumed to be called by the Relayer and can take as input arbitrary bytes.
+6. (Frontend 1/3) Next, you build a frontend for the account recovery. You prepare a page where the account owner configures guardians. It requests the account owner to input the account address (`account_eth_addr`) and the guardian's email address  (`guardian_email_addr`), generates a random account code (`account_code`), constructs an expected subject (`subject`) for the subject template whose index is `template_idx` in the output of the `acceptanceSubjectTemplates()` function. It then requests the account owner to call the requesting function in the controller contract. After that, it calls the Relayer's `acceptanceRequest` API with `guardian_email_addr`, `account_code`, `template_idx`, and the address of the controller contract `controller_eth_addr`.
+7. (Frontend 2/3) You also prepare a page where the account owner requests guardians to recover the account. It requests the account owner to input the account address (`account_eth_addr`) and the guardian's email address (`guardian_email_addr`), and constructs an expected subject (`subject`) for the subject template whose index is `template_idx` in the output of the `recoverySubjectTemplates()` function. It calls the Relayer's `recoveryRequest` API with those data and `controller_eth_addr`.
+8. (Frontend 3/3) It simulates off-chain if the `completeRecovery` function in the smart account will return no error at regular time intervals. When it stands, the frontend calls the Relayer's `completeRequest` API with sending `account_eth_addr`, `controller_eth_addr`, and a calldata for the `completeRecovery` function `complete_calldata`.  
 
-We show some points to implement the email-based account recovery in your wallet securely.
-- **Timelock is strongly recommended.** It allows a wallet owner who **does not** lose the private key to cancel the processing recovery when malicious guardians start it.
-- **A single guardian might be not secure enough** because an adversary can start the recovery only by exploiting that guardian's email account, e.g., stealing the password for that email account. Although the wallet owner can cancel the recovery, it requires the wallet owner to become online before the timelock expires.
-- **If the main relayer goes down, users cannot continue the recovery until another relayer is available.** The frontend should allow the wallet owner to choose an arbitrary relayer's email address to improve service availability.
+We show some important points to implement the email-based account recovery for your smart accounts securely.
+- **Timelock is strongly recommended.** It allows an account owner who **does not** lose the private key to cancel the processing recovery when malicious guardians start it.
+- **A single guardian might be not secure enough** because an adversary can start the recovery only by exploiting that guardian's email account, e.g., stealing the password for that email account. Although the account owner can cancel the recovery, it requires the account owner to become online before the timelock expires.
+- **If the main relayer goes down, users cannot continue the recovery until another relayer is available.** The frontend should allow the account owner to choose an arbitrary relayer's email address to improve service availability.
+
+For detailed implementation, see [docs/getting-started.md](./docs/getting-started.md).
+
+Regarding the contract addresses already deployed on Base Sepolia, see [here](./docs/deployed-contracts.md).

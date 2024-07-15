@@ -8,7 +8,7 @@ import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2Cont
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
-/// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering a wallet.
+/// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering an account contract.
 abstract contract EmailAccountRecovery {
     uint8 constant EMAIL_ACCOUNT_RECOVERY_VERSION_ID = 1;
     address public verifierAddr;
@@ -100,7 +100,7 @@ abstract contract EmailAccountRecovery {
     /// and the hash of the encoded ERC1967Proxy creation code concatenated with the encoded email auth contract implementation
     /// address and the initialization call data. This ensures that the computed address is deterministic and unique per account salt.
     /// @param recoveredAccount The address of the account to be recovered.
-    /// @param accountSalt A bytes32 salt value, which is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
+    /// @param accountSalt A bytes32 salt value defined as a hash of the guardian's email address and an account code. This is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
     /// @return address The computed address.
     function computeEmailAuthAddress(
         address recoveredAccount,

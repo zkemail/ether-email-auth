@@ -94,6 +94,7 @@ It has the following storage variables.
 - `bytes32 accountSalt`: an `accountSalt` used for the CREATE2 salt of this contract.
 - `DKIMRegistry dkim`: an instance of the DKIM registry contract.
 - `Verifier verifier`: an instance of the Verifier contract.
+- `address controller`: an address of a controller contract, defining the subject templates supported by this contract. 
 - `mapping(uint=>string[]) subjectTemplates`: a mapping of the supported subject templates associated with its ID.  
 - `mapping(bytes32⇒bytes32) authedHash`: a mapping of the hash of the authorized message associated with its `emailNullifier`. 
 - `uint lastTimestamp`: the latest `timestamp` in the verified `EmailAuthMsg`. 
@@ -101,22 +102,31 @@ It has the following storage variables.
 - `bool timestampCheckEnabled`: a boolean whether timestamp check is enabled or not.
 
 It provides the following functions.
-- `initialize(address _initialOwner, bytes32 _accountSalt)`
+- `initialize(address _initialOwner, bytes32 _accountSalt, address _controller)`
     1. Set `owner=_initialOwner` .
     2. Set `accountSalt=_accountSalt`.
     3. Set `timestampCheckEnabled=true`.
-- `updateDKIMRegistry(address _dkim)`
-    1. Assert `msg.sender==owner`.
-    2. Assert `_dkim` is not zero.
-    3. Set `dkim=DKIMRegistry(_dkim)`.
-- `updateVerifier(address _verifier)`
-    1. Assert `msg.sender==owner`.
-    2. Assert `_verifier` is not zero.
-    3. Set `verifier=Verifier(_verifier)`.
+    4. Set `controller=_controller`.
 - `dkimRegistryAddr() view returns (address)`
     Return `address(dkim)`
 - `verifierAddr() view returns (address)`
     Return `address(verifier)` .
+- `initDKIMRegistry(address _dkimRegistryAddr)`
+    1. Assert `msg.sender==controller`.
+    2. Assert `dkim` is zero.
+    3. Set `dkim=IDKIMRegistry(_dkimRegistryAddr)`.
+- `initVerifier(address _verifierAddr)`
+    1. Assert `msg.sender==controller`.
+    2. Assert `verifier` is zero.
+    3. Set `verifier=Verifier(_verifierAddr)`.
+- `updateDKIMRegistry(address _dkimRegistryAddr)`
+    1. Assert `msg.sender==owner`.
+    2. Assert `_dkimRegistryAddr` is not zero.
+    3. Set `dkim=DKIMRegistry(_dkimRegistryAddr)`.
+- `updateVerifier(address _verifier)`
+    1. Assert `msg.sender==owner`.
+    2. Assert `_verifier` is not zero.
+    3. Set `verifier=Verifier(_verifier)`.
 - `updateVerifier(address _verifierAddr)`
     1. Assert `msg.sender==owner` .
     2. Assert `_verifierAddr!=0`.
@@ -125,22 +135,25 @@ It provides the following functions.
     1. Assert `msg.sender==owner` .
     2. Assert `_dkimRegistryAddr!=0`.
     3. Update `dkim` to `DKIMRegistry(_dkimRegistryAddr)`.
+- `getSubjectTemplate(uint _templateId) public view returns (string[] memory)`
+    1. Assert that the template for `_templateId` exists, i.e., `subjectTemplates[_templateId].length >0` holds.
+    2. Return `subjectTemplates[_templateId]`.
 - `insertSubjectTemplate(uint _templateId, string[] _subjectTemplate)`
     1. Assert `_subjectTemplate.length>0` .
-    2. Assert `msg.sender==owner`.
+    2. Assert `msg.sender==controller`.
     3. Assert `subjectTemplates[_templateId].length == 0`, i.e., no template has not been registered with `_templateId`.
     4. Set  `subjectTemplates[_templateId]=_subjectTemplate`.
 - `updateSubjectTemplate(uint _templateId, string[] _subjectTemplate)`
     1. Assert `_subjectTemplate.length>0` .
-    2. Assert `msg.sender==owner`.
+    2. Assert `msg.sender==controller`.
     3. Assert `subjectTemplates[_templateId].length != 0` , i.e., any template has been already registered with `_templateId`.
     4. Set  `subjectTemplates[_templateId]=_subjectTemplate`.
 - `deleteSubjectTemplate(uint _templateId)`
-    1. Assert `msg.sender==owner`.
+    1. Assert `msg.sender==controller`.
     2. Assert `subjectTemplates[_templateId].length > 0`, i.e., any template has been already registered with `_templateId`.
     3. `delete subjectTemplates[_templateId]`.
 - `authEmail(EmailAuthMsg emailAuthMsg) returns (bytes32)`
-    1. Assert `msg.sender==owner`.
+    1. Assert `msg.sender==controller`.
     2. Let `string[] memory template = subjectTemplates[emailAuthMsg.templateId]`.
     3. Assert `template.length > 0`.
     4. Assert `dkim.isDKIMPublicKeyHashValid(emailAuthMsg.proof.domain, emailAuthMsg.proof.publicKeyHash)==true`.
@@ -154,32 +167,37 @@ It provides the following functions.
     1. Parse `_signature` as `(bytes32 emailNullifier)`.
     2. If `authedHash[emailNullifier]== _hash`, return `0x1626ba7e`; otherwise return `0xffffffff`.
 - `setTimestampCheckEnabled(bool enabled) public`
-    1. Assert `msg.sender==owner`.
+    1. Assert `msg.sender==controller`.
     2. Set `timestampCheckEnabled` to `enabled`.
 
 ### `EmailAccountRecovery` Contract
-It is an abstract contract for each wallet contract to implement our email-based account recovery. **Each wallet provider only needs to implement the following functions in the wallet contract.**
-- `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian.
-- `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery.
+It is an abstract contract for each smart account brand to implement the email-based account recovery. **Each smart account provider only needs to implement the following functions in a new contract called controller.** In the following, the `templateIdx` is different from `templateId` in the email-auth contract in the sense that the `templateIdx` is an incremental index defined for each of the subject templates in `acceptanceSubjectTemplates()` and `recoverySubjectTemplates()`.
+
+- `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian (acceptance email).
+- `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery (recovery email).
+- `extractRecoveredAccountFromAcceptanceSubject(bytes[] memory subjectParams, uint templateIdx) public view virtual returns (address)`: it takes as input the parameters `subjectParams` and the index of the chosen subject template `templateIdx` in those for acceptance emails.
+- `extractRecoveredAccountFromRecoverySubject(bytes[] memory subjectParams, uint templateIdx) public view virtual returns (address)`: it takes as input the parameters `subjectParams` and the index of the chosen subject template `templateIdx` in those for recovery emails.
 - `acceptGuardian(address guardian, uint templateIdx, bytes[] subjectParams, bytes32 emailNullifier) internal virtual`: it takes as input the Ethereum address `guardian` corresponding to the guardian's email address, the index `templateIdx` of the subject template in the output of `acceptanceSubjectTemplates()`, the parameter values of the variable parts `subjectParams` in the template `acceptanceSubjectTemplates()[templateIdx]`, and an email nullifier `emailNullifier`. It is called after verifying the email-auth message to accept the role of the guardian; thus you can assume the arguments are already verified. 
 - `processRecovery(address guardian, uint templateIdx, bytes[] subjectParams, bytes32 emailNullifier) internal virtual`: it takes as input the Ethereum address `guardian` corresponding to the guardian's email address, the index `templateIdx` of the subject template in the output of `recoverySubjectTemplates()`, the parameter values of the variable parts `subjectParams` in the template `recoverySubjectTemplates()[templateIdx]`, and an email nullifier `emailNullifier`. It is called after verifying the email-auth message to confirm the recovery; thus you can assume the arguments are already verified.
-- `completeRecovery() external virtual`: it can be called by anyone, in particular a Relayer, when completing the account recovery. It should first check if the condition for the account recovery holds and then update the owner address in the wallet contract.
+- `completeRecovery(address account, bytes memory completeCalldata) external virtual`: it can be called by anyone, in particular a Relayer, when completing the account recovery. It should first check if the condition for the recovery of `account` holds and then update its owner's address in the wallet contract.
 
 It also provides the following entry functions with their default implementations, called by the Relayer.
 - `handleAcceptance(EmailAuthMsg emailAuthMsg, uint templateIdx) external`
-    1. Let `address guardian = CREATE2(emailAuthMsg.proof.accountSalt, ERC1967Proxy.creationCode, emailAuthImplementation(), (emailAuthMsg.proof.accountSalt))`.
-    2. Assert that the contract of `guardian` has not been deployed.
+    1. Extract an account address to be recovered `recoveredAccount` by calling `extractRecoveredAccountFromAcceptanceSubject`.
+    2. Let `address guardian = CREATE2(emailAuthMsg.proof.accountSalt, ERC1967Proxy.creationCode, emailAuthImplementation(), (emailAuthMsg.proof.accountSalt))`.
     3. Let `uint templateId = keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "ACCEPTANCE", templateIdx)`.
     4. Assert that  `templateId` is equal to `emailAuthMsg.templateId`.
     5. Assert that `emailAuthMsg.proof.isCodeExist` is true.
-    6. Deploy the proxy contract of `emailAuthImplementation()`. Its salt is `emailAuthMsg.proof.accountSalt` and its initialization parameter is  `mailAuthMsg.proof.accountSalt`.
-    7. Call `EmailAuth(guardian).setDkim(dkim())`.
-    8. Call `EmailAuth(guardian).setVerifier(verifier())`.
-    9. For each `template` in `acceptanceSubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "ACCEPTANCE", idx), template)`.
-    10. For each `template` in `recoverySubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "RECOVERY", idx), template)`.
+    6. If the `EmailAuth` contract of `guardian` has not been deployed, deploy the proxy contract of `emailAuthImplementation()`. Its salt is `emailAuthMsg.proof.accountSalt` and its initialization parameter is `recoveredAccount`, `emailAuthMsg.proof.accountSalt`, and `address(this)`, which is a controller of the deployed contract.
+    7. If the `EmailAuth` contract of `guardian` has not been deployed, call `EmailAuth(guardian).initDKIMRegistry(dkim())`.
+    8. If the `EmailAuth` contract of `guardian` has not been deployed, call `EmailAuth(guardian).initVerifier(verifier())`.
+    9. If the `EmailAuth` contract of `guardian` has not been deployed, for each `template` in `acceptanceSubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "ACCEPTANCE", idx), template)`.
+    10. If the `EmailAuth` contract of `guardian` has not been deployed, for each `template` in `recoverySubjectTemplates()` along with its index `idx`, call `EmailAuth(guardian).insertSubjectTemplate(keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "RECOVERY", idx), template)`.
+    11. If the `EmailAuth` contract of `guardian` has been already deployed, assert that its `controller` is equal to `address(this)`.
     11. Assert that `EmailAuth(guardian).authEmail(1emailAuthMsg)` returns no error.
     12. Call `acceptGuardian(guardian, templateIdx, emailAuthMsg.subjectParams, emailAuthMsg.proof.emailNullifier)`.
 - `handleRecovery(EmailAuthMsg emailAuthMsg, uint templateIdx) external`
+    1. Extract an account address to be recovered `recoveredAccount` by calling `extractRecoveredAccountFromRecoverySubject`.
     1. Let `address guardian = CREATE2(emailAuthMsg.proof.accountSalt, ERC1967Proxy.creationCode, emailAuthImplementation(), (emailAuthMsg.proof.accountSalt))`.
     2. Assert that the contract of `guardian` has been already deployed.
     3. Let `uint templateId=keccak256(EMAIL_ACCOUNT_RECOVERY_VERSION_ID, "RECOVERY", templateIdx)`.
