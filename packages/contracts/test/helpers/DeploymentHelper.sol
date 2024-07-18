@@ -22,6 +22,7 @@ contract DeploymentHelper is Test {
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
+    SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -116,7 +117,7 @@ contract DeploymentHelper is Test {
         );
 
         // Create SimpleWallet
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
+        simpleWalletImpl = new SimpleWallet();
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
             abi.encodeCall(
