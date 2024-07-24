@@ -10,6 +10,7 @@ import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 
 contract Deploy is Script {
     using ECDSA for *;
@@ -19,8 +20,13 @@ contract Deploy is Script {
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWallet;
     RecoveryController recoveryController;
+    UserOverrideableDKIMRegistry userOverrideableDKIMRegistry;
 
     function run() external {
+
+        // TODO: Change this to your salt
+        bytes32 salt = "YOUR_SALT";
+
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         if (deployerPrivateKey == 0) {
             console.log("PRIVATE_KEY env var not set");
@@ -34,19 +40,24 @@ contract Deploy is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
+        // Deploy User Overrideable DKIM registry
+        userOverrideableDKIMRegistry = new UserOverrideableDKIMRegistry{salt: salt}(signer, signer);
+        console.log("UserOverrideableDKIMRegistry deployed at: %s", address(userOverrideableDKIMRegistry));
+        vm.setEnv("USER_OVERRIDEABLE_DKIM_REGISTRY", vm.toString(address(userOverrideableDKIMRegistry)));
+
         // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        dkim = new ECDSAOwnedDKIMRegistry{salt: salt}(signer);
         console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
         vm.setEnv("DKIM", vm.toString(address(dkim)));
 
         // Deploy Verifier
-        verifier = new Verifier();
+        verifier = new Verifier{salt: salt}();
         console.log("Verifier deployed at: %s", address(verifier));
         vm.setEnv("VERIFIER", vm.toString(address(verifier)));
 
         // Deploy EmailAuth Implementation
         {
-            emailAuthImpl = new EmailAuth();
+            emailAuthImpl = new EmailAuth{salt: salt}();
             console.log(
                 "EmailAuth implementation deployed at: %s",
                 address(emailAuthImpl)
@@ -56,8 +67,8 @@ contract Deploy is Script {
 
         // Create RecoveryController as EmailAccountRecovery implementation
         {
-            RecoveryController recoveryControllerImpl = new RecoveryController();
-            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+            RecoveryController recoveryControllerImpl = new RecoveryController{salt: salt}();
+            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy{salt: salt}(
                 address(recoveryControllerImpl),
                 abi.encodeCall(
                     recoveryControllerImpl.initialize,
@@ -81,7 +92,7 @@ contract Deploy is Script {
 
         // Deploy SimpleWallet Implementation
         {
-            SimpleWallet simpleWalletImpl = new SimpleWallet();
+            SimpleWallet simpleWalletImpl = new SimpleWallet{salt: salt}();
             console.log(
                 "SimpleWallet implementation deployed at: %s",
                 address(simpleWalletImpl)
@@ -90,7 +101,7 @@ contract Deploy is Script {
                 "SIMPLE_WALLET_IMPL",
                 vm.toString(address(simpleWalletImpl))
             );
-            ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+            ERC1967Proxy simpleWalletProxy = new ERC1967Proxy{salt: salt}(
                 address(simpleWalletImpl),
                 abi.encodeCall(
                     simpleWalletImpl.initialize,
