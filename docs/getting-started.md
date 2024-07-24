@@ -39,9 +39,8 @@ yarn build
 
 ## SimpleWallet
 
-First, implement a simple wallet. Use the following implementation of SimpleWallet. (SimpleWallet.sol)[../packages/contracts/contracts/SimpleWallet.sol]
 
-As an example, we show how to implement the email-based account recovery into a simple wallet contract in (SimpleWallet.sol)[../packages/contracts/test/helpers/SimpleWallet.sol]. First, copy-paste SimpleWallet.sol to [the expected filepath of SimpleWallet.sol in the reader's working directory].
+As an example, we show how to implement the email-based account recovery into a simple wallet contract in [SimpleWallet.sol](../packages/contracts/test/helpers/SimpleWallet.sol). First, copy-paste SimpleWallet.sol to [the expected filepath of SimpleWallet.sol in the reader's working directory].
 
 This implementation inherits OwnableUpgradeable.
 
@@ -62,7 +61,7 @@ function changeOwner(address newOwner) public {
 ## RecoveryController
 
 Implement the following implementation of RecoveryController.
-(RecoveryController.sol)[../packages/contracts/test/helpers/RecoveryController.sol]
+[RecoveryController.sol](../packages/contracts/test/helpers/RecoveryController.sol)
 
 The Recovery Controller inherits from EmailAccountRecovery and is used to define custom guardians and email templates. The implementation address of EmailAuth is set in the Recovery Controller, and the actual email template verification is performed by EmailAuth.
 
@@ -289,6 +288,12 @@ Then, set the following environment variables to .env
 ```sh
 PRIVATE_KEY= # Your private key with 0x prefix
 ETHERSCAN_API_KEY= # Your Basescan API key
+```
+
+Then Open [DeployRecoveryController.s.sol](../packages/contracts/script/DeployRecoveryController.s.sol) and change the following variables. Because this script are using create2 feature, you'll deploy the contracts with the same address if you use the same salt.
+
+```sh
+bytes32 salt = "YOUR_SALT";
 ```
 
 After that, deploy the contract by running the following command.
