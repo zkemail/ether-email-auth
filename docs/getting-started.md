@@ -39,14 +39,15 @@ yarn build
 
 ## SimpleWallet
 
-First, implement a simple wallet.
-Use the following implementation of SimpleWallet.
-(SimpleWallet.sol)[../packages/contracts/contracts/SimpleWallet.sol]
+First, implement a simple wallet. Use the following implementation of SimpleWallet. (SimpleWallet.sol)[../packages/contracts/contracts/SimpleWallet.sol]
+
+As an example, we show how to implement the email-based account recovery into a simple wallet contract in (SimpleWallet.sol)[../packages/contracts/test/helpers/SimpleWallet.sol]. First, copy-paste SimpleWallet.sol to [the expected filepath of SimpleWallet.sol in the reader's working directory].
+
 This implementation inherits OwnableUpgradeable.
 
 ### changeOwner(address newOwner) 
 
-This function is implemented to change the owner of this wallet.
+This function is implemented to change the owner of this wallet. When the account recovery is executed, the recovery controller calls this function. Regarding the recovery controller, see the following section.
 
 ```solidity
 function changeOwner(address newOwner) public {
@@ -60,9 +61,10 @@ function changeOwner(address newOwner) public {
 
 ## RecoveryController
 
-Implement a RecoveryController to execute EmailAuth.
 Implement the following implementation of RecoveryController.
-(RecoveryController.sol)[../packages/contracts/contracts/RecoveryController.sol]
+(RecoveryController.sol)[../packages/contracts/test/helpers/RecoveryController.sol]
+
+The Recovery Controller inherits from EmailAccountRecovery and is used to define custom guardians and email templates. The implementation address of EmailAuth is set in the Recovery Controller, and the actual email template verification is performed by EmailAuth.
 
 ### Inheritance
 
@@ -75,6 +77,8 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
 ### GuardianStatus
 
 Implement the status of the Guardian to execute Account Recovery.
+
+Each address is initialized to NONE. If the guardian requests to accept the account recovery, the status is set to REQUESTED. If the guardian accepts the account recovery, the status is set to ACCEPTED.
 
 ```solidity
 enum GuardianStatus {
@@ -147,7 +151,8 @@ function recoverySubjectTemplates()
 
 Implement a method to return the account address to be recovered from AcceptanceSubject.
 The account address to be recovered is stored in `templates[0][4]` in the implementation of `acceptanceSubjectTemplates`.
-This is the first element of `subjectParams`, so return `subjectParams[0]`.
+In this subject template, the variable `{ethAddr}` is first defined in `templates[0][4]`. Therefore, `subjectParams[0]` contains this value.
+
 
 ```solidity
 function extractRecoveredAccountFromAcceptanceSubject(
@@ -181,7 +186,7 @@ function extractRecoveredAccountFromRecoverySubject(
 
 Implement a method to accept the guardian.
 If AcceptanceSubject is used, the account address to be recovered is stored in `subjectParams[0]`.
-This address must not be in `isRecovering`.
+`isRecovering` is defined in the contract, it's a mapping that stores whether the account address is being recovered. At this stage, this address must not be in `isRecovering`.
 Next, check if the guardian is in the `REQUESTED` status.
 Finally, change the status of the guardian to `ACCEPTED`.
 
@@ -209,7 +214,8 @@ function acceptGuardian(
 ### processRecovery(address guardian, uint templateIdx, bytes[] memory subjectParams, bytes32)
 
 Implement a method to execute recovery.
-If RecoverySubject is used, the new signer is stored in `subjectParams[1]`.
+RecoverySubjectTemplate has already been defined in the implementation of `recoverySubjectTemplates`.
+When this RecoverySubjectTemplate is used, the new signer is stored in `subjectParams[1]`.
 `subjectParams[0]` is the account address to be recovered.
 Check if this address is not in `isRecovering`.
 Next, check if the guardian is in the `ACCEPTED` status.
@@ -244,10 +250,10 @@ function processRecovery(
 ### completeRecovery(address account, bytes memory recoveryCalldata)
 
 Implement a method to complete recovery.
-Check if this address is being recovered.
-Next, check if the timelock is not expired.
+Check if the given account address account is being recovered and the timelock for account is not expired.
 Finally, set `isRecovering` to false and update `newSignerCandidateOfAccount` and `currentTimelockOfAccount`.
-Then, call `SimpleWallet.changeOwner` to change the owner to the new signer.
+This change only changes the state of the account in the Recovery Controller.
+Then, call `SimpleWallet.changeOwner` to change the actual owner to the new signer.
 
 ```solidity
 function completeRecovery(
