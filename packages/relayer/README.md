@@ -101,6 +101,34 @@ Refer to the following help link. If you do not see the 'App passwords' option, 
 8. Apply `relayer.yml` , ssh into the pod and run `nohup cargo run &` , this step should be done under a min to pass the liveness check.
 9. Apply `ingress.yml`
 
+#### Appendix
+
+##### How to change the values in ConfigMap and Secrets
+
+1. Open `relayer.yml` and change the values in `ConfigMap` and `Secrets`.
+2. Apply the changes by running `kubectl apply -f kubernetes/relayer.yml`.
+
+If you want to change the values via GUI, you can only edit the values in `ConfigMap`.
+
+1. Open GCP Console.
+2. Go to Kubernetes Engine -> Secrets & ConfigMaps.
+3. Click on `relayer-config` and then click on `EDIT`.
+4. Change the values and then click on `UPDATE`.
+
+##### How to reset the database
+
+1. Open GCP Console.
+2. Go to SQL -> email-wallet-db -> Cloud SQL Studio.
+3. Select YOUR_DATABASE_NAME and fill in the user and password.
+4. Run the DELETE statement to each table.
+
+##### Restart relayer
+
+```sh
+# e.g. 
+kubectl rollout restart deployment relayer -n ar-base-sepolia
+```
+
 ## Specification
 ### Database
 It has the following tables in the DB.
