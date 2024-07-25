@@ -108,7 +108,7 @@ abstract contract EmailAccountRecovery {
     ) public view returns (address) {
         // If on zksync, we use L2ContractHelper.computeCreate2Address
         if (block.chainid == 324 || block.chainid == 300) {
-            // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+            // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
             // If you failed some test cases, check the bytecodeHash by yourself
             // see, test/ComputeCreate2Address.t.sol
             return
