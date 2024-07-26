@@ -299,7 +299,7 @@ We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
 Perhaps that is different value in each compiler version.
 
 You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L119
+packages/contracts/src/EmailAccountRecovery.sol:L111
 
 See, test/ComputeCreate2Address.t.sol
 
