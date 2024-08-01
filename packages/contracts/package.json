@@ -4,7 +4,7 @@
   "license": "MIT",
   "scripts": {
     "build": "forge build",
-    "zkbuild": "forge build --zksync",
+    "zkbuild": "forge build -- --zksync",
     "test": "forge test --no-match-test \"testIntegration\"",
     "zktest": "forge test --no-match-test \"testIntegration\" --zksync --chain 300",
     "lint": "solhint 'src/**/*.sol'"
