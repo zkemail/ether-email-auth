@@ -60,6 +60,15 @@ You can run the relayer either on your local environments or cloud instances (we
 
         JSON_LOGGER=false
         ```
+    3. Generate the `.ic.pem` file and password.
+        - Create the `.ic.pem` file using OpenSSL:
+        ```sh
+        openssl genpkey -algorithm RSA -out .ic.pem -aes-256-cbc -pass pass:your_password
+        ```
+        - If you need a password, you can generate a random password using:
+        ```sh
+        openssl rand -base64 32
+        ```
 7. You should have your entire setup up and running!
 
 NOTE: You need to turn on IMAP on the email id you’d be using for the relayer.
