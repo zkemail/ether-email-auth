@@ -49,7 +49,14 @@ contract IntegrationTest is Test {
         address signer = deployer;
 
         // Create DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        {
+            ECDSAOwnedDKIMRegistry dkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
+                abi.encodeCall(dkimImpl.initialize, (address(0), signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+        }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
             selector,

@@ -57,7 +57,14 @@ contract DeploymentHelper is Test {
         address signer = deployer;
 
         // Create DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        {
+            ECDSAOwnedDKIMRegistry dkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
+                abi.encodeCall(dkimImpl.initialize, (msg.sender, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+        }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
             selector,
@@ -86,7 +93,18 @@ contract DeploymentHelper is Test {
         );
 
         // Create Verifier
-        verifier = new Verifier();
+        {
+            Verifier verifierImpl = new Verifier();
+            console.log(
+                "Verifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+            );
+            verifier = Verifier(address(verifierProxy));
+        }
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
         // Create EmailAuth

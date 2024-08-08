@@ -2,6 +2,8 @@
 pragma solidity ^0.8.9;
 
 import "./Groth16Verifier.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 struct EmailProof {
     string domainName; // Domain name of the sender's email
@@ -14,7 +16,7 @@ struct EmailProof {
     bytes proof; // ZK Proof of Email
 }
 
-contract Verifier {
+contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
     Groth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
@@ -22,7 +24,12 @@ contract Verifier {
     uint256 public constant SUBJECT_FIELDS = 20;
     uint256 public constant SUBJECT_BYTES = 605;
 
-    constructor() {
+    constructor() {}
+
+    /// @notice Initialize the contract with the initial owner and deploy Groth16Verifier
+    /// @param _initialOwner The address of the initial owner
+    function initialize(address _initialOwner) public initializer {
+        __Ownable_init(_initialOwner);
         groth16Verifier = new Groth16Verifier();
     }
 
@@ -93,4 +100,10 @@ contract Verifier {
         }
         return fields;
     }
+
+    /// @notice Upgrade the implementation of the proxy.
+    /// @param newImplementation Address of the new implementation.
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }

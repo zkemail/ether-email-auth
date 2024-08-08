@@ -41,7 +41,15 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
 
         vm.startPrank(deployer);
-        ECDSAOwnedDKIMRegistry newDKIM = new ECDSAOwnedDKIMRegistry(msg.sender);
+        ECDSAOwnedDKIMRegistry newDKIM;
+        {
+            ECDSAOwnedDKIMRegistry dkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
+                abi.encodeCall(dkimImpl.initialize, (msg.sender, msg.sender))
+            );
+            newDKIM = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+        }
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
         emailAuth.updateDKIMRegistry(address(newDKIM));

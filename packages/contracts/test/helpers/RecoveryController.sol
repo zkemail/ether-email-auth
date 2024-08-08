@@ -164,10 +164,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         currentTimelockOfAccount[account] = 0;
     }
 
-    function completeRecovery(
-        address account,
-        bytes memory recoveryCalldata
-    ) public override {
+    function completeRecovery(address account, bytes memory) public override {
         require(account != address(0), "invalid account");
         require(isRecovering[account], "recovery not in progress");
         require(

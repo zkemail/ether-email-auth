@@ -8,11 +8,14 @@ import "../test/helpers/SimpleWallet.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {
     using ECDSA for *;
 
+    ECDSAOwnedDKIMRegistry dkimImpl;
     ECDSAOwnedDKIMRegistry dkim;
+    Verifier verifierImpl;
     Verifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWalletImpl;
@@ -28,18 +31,48 @@ contract Deploy is Script {
             console.log("SIGNER env var not set");
             return;
         }
+        bool isUpgradable = vm.envOr("UPGRADABLE", true);
+        address initialOwner = address(0);
+        if (isUpgradable) {
+            initialOwner = signer;
+        }
 
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
-        console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
-        vm.setEnv("DKIM", vm.toString(address(dkim)));
+        {
+            dkimImpl = new ECDSAOwnedDKIMRegistry();
+            console.log(
+                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
+                address(dkimImpl)
+            );
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
+                abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+            console.log(
+                "ECDSAOwnedDKIMRegistry deployed at: %s",
+                address(dkim)
+            );
+            vm.setEnv("DKIM", vm.toString(address(dkim)));
+        }
 
         // Deploy Verifier
-        verifier = new Verifier();
-        console.log("Verifier deployed at: %s", address(verifier));
-        vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        {
+            verifierImpl = new Verifier();
+            console.log(
+                "Verifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(verifierImpl.initialize, (initialOwner))
+            );
+            verifier = Verifier(address(verifierProxy));
+            console.log("Verifier deployed at: %s", address(verifier));
+            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        }
 
         // Deploy EmailAuth Implementation
         {
