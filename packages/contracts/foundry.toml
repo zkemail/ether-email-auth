@@ -35,7 +35,7 @@ mainnet = { key = "${ETHERSCAN_API_KEY}" }
 src = 'src'
 libs = ["node_modules", "lib"]
 fallback_oz = true
-is_system = false
+is_system = true
 mode = "3"
 
 zksolc = "1.5.0"
