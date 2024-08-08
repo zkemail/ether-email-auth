@@ -43,11 +43,21 @@ contract ForwardDKIMRegistry is
             );
     }
 
+    /// @notice Sets a new souce DKIMRegistry contract to forward outputs from.
+    /// @param _newSourceDKIMRegistry The address of the new source DKIMRegistry contract.
     function changeSourceDKIMRegistry(
-        address _sourceDKIMRegistry
+        address _newSourceDKIMRegistry
     ) public onlyOwner {
-        require(_sourceDKIMRegistry != address(0), "Invalid address");
-        sourceDKIMRegistry = IDKIMRegistry(_sourceDKIMRegistry);
+        require(_newSourceDKIMRegistry != address(0), "Invalid address");
+        require(
+            _newSourceDKIMRegistry != address(sourceDKIMRegistry),
+            "Same source DKIMRegistry"
+        );
+        require(
+            _newSourceDKIMRegistry != address(this),
+            "Cannot set self as source DKIMRegistry"
+        );
+        sourceDKIMRegistry = IDKIMRegistry(_newSourceDKIMRegistry);
     }
 
     /// @notice Upgrade the implementation of the proxy.

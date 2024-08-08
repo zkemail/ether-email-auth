@@ -54,7 +54,7 @@ contract Deploy is Script {
                 "ECDSAOwnedDKIMRegistry deployed at: %s",
                 address(ecdsaDkim)
             );
-            // vm.setEnv("DKIM", vm.toString(address(dkim)));
+            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
         }
 
         // Deploy Forward DKIM registry

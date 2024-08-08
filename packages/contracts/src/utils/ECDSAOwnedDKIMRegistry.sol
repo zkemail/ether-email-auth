@@ -154,6 +154,14 @@ contract ECDSAOwnedDKIMRegistry is
             );
     }
 
+    /// @notice Changes the signer address to a new address.
+    /// @param _newSigner The address of the new signer.
+    function changeSigner(address _newSigner) public onlyOwner {
+        require(_newSigner != address(0), "Invalid signer");
+        require(_newSigner != signer, "Same signer");
+        signer = _newSigner;
+    }
+
     /// @notice Upgrade the implementation of the proxy.
     /// @param newImplementation Address of the new implementation.
     function _authorizeUpgrade(
