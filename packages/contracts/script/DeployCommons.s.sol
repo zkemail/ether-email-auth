@@ -36,7 +36,7 @@ contract Deploy is Script {
         }
 
         vm.startBroadcast(deployerPrivateKey);
-        address initialOwner = msg.sender;
+        address initialOwner = vm.addr(deployerPrivateKey);
         console.log("Initial owner: %s", vm.toString(initialOwner));
         // Deploy ECDSA DKIM registry
         {
