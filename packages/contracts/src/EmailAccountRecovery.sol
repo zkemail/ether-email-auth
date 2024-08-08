@@ -5,6 +5,8 @@ import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
+import {SystemContractsCaller} from "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
+import {DEPLOYER_SYSTEM_CONTRACT} from "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -14,6 +16,7 @@ abstract contract EmailAccountRecovery {
     address public verifierAddr;
     address public dkimAddr;
     address public emailAuthImplementationAddr;
+    bytes32 public proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -116,7 +119,7 @@ abstract contract EmailAccountRecovery {
                     address(this),
                     accountSalt,
                     bytes32(
-                        0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951
+                        proxyBytecodeHash
                     ),
                     keccak256(
                         abi.encode(
@@ -215,20 +218,50 @@ abstract contract EmailAccountRecovery {
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
             // Deploy proxy of the guardian's EmailAuth contract
-            ERC1967Proxy proxy = new ERC1967Proxy{
-                salt: emailAuthMsg.proof.accountSalt
-            }(
-                emailAuthImplementation(),
-                abi.encodeCall(
-                    EmailAuth.initialize,
-                    (
-                        recoveredAccount,
-                        emailAuthMsg.proof.accountSalt,
-                        address(this)
+           if (block.chainid == 324 || block.chainid == 300) {
+                (bool success, bytes memory returnData) = SystemContractsCaller
+                    .systemCallWithReturndata(
+                        uint32(gasleft()),
+                        address(DEPLOYER_SYSTEM_CONTRACT),
+                        uint128(0),
+                        abi.encodeCall(
+                            DEPLOYER_SYSTEM_CONTRACT.create2,
+                            (
+                                emailAuthMsg.proof.accountSalt,
+                                proxyBytecodeHash,
+                                abi.encode(
+                                    emailAuthImplementation(),
+                                    abi.encodeCall(
+                                        EmailAuth.initialize,
+                                        (
+                                            recoveredAccount,
+                                            emailAuthMsg.proof.accountSalt,
+                                            address(this)
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    );
+                address payable proxyAddress = abi.decode(returnData, (address));
+                ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
+                guardianEmailAuth = EmailAuth(address(proxy));
+                guardianEmailAuth.initialize(
+                    recoveredAccount,
+                    emailAuthMsg.proof.accountSalt,
+                    address(this)
+                );
+            } else {
+                // Deploy proxy of the guardian's EmailAuth contract
+                ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
+                    emailAuthImplementation(),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (recoveredAccount, emailAuthMsg.proof.accountSalt, address(this))
                     )
-                )
-            );
-            guardianEmailAuth = EmailAuth(address(proxy));
+                );
+                guardianEmailAuth = EmailAuth(address(proxy));
+            }            
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
             for (

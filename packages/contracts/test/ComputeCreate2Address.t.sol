@@ -36,7 +36,6 @@ contract ComputeCreate2AddressTest is StructHelper {
         );
         console.log("bytecodeHash");
         console.logBytes32(bytes32(bytecodeHash));
-        bytecodeHash = hex"0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951"; // TODO: FIX ME
         address computedAddress = L2ContractHelper.computeCreate2Address(
             address(this),
             accountSalt,
