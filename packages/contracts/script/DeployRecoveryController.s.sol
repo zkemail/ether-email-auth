@@ -34,9 +34,8 @@ contract Deploy is Script {
             return;
         }
 
-        address initialOwner = msg.sender;
-
         vm.startBroadcast(deployerPrivateKey);
+        address initialOwner = msg.sender;
 
         // Deploy Forward DKIM registry
         dkim = ForwardDKIMRegistry(vm.envOr("DKIM", address(0)));

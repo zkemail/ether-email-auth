@@ -34,10 +34,10 @@ contract Deploy is Script {
             console.log("SIGNER env var not set");
             return;
         }
-        address initialOwner = msg.sender;
 
         vm.startBroadcast(deployerPrivateKey);
-
+        address initialOwner = msg.sender;
+        console.log("Initial owner: %s", vm.toString(initialOwner));
         // Deploy ECDSA DKIM registry
         {
             ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
@@ -54,7 +54,7 @@ contract Deploy is Script {
                 "ECDSAOwnedDKIMRegistry deployed at: %s",
                 address(ecdsaDkim)
             );
-            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
+            vm.setEnv("ECDSA_DKIM", vm.toString(address(ecdsaDkim)));
         }
 
         // Deploy Forward DKIM registry
