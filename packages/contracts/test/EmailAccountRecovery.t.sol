@@ -128,7 +128,6 @@ contract EmailAccountRecoveryTest is StructHelper {
 
     function testRequestGuardian() public {
         setUp();
-
         require(
             recoveryController.guardians(guardian) ==
                 RecoveryController.GuardianStatus.NONE

@@ -50,7 +50,7 @@ contract DeploymentHelper is Test {
         if (block.chainid == 300) {
             guardian = address(0x894B4AeFE4c0a145ecac5E433918F0C4BC212C48);
         } else {
-            guardian = address(0x4F1102177DD38b7ab19207c9846172B0c30FEAD5);
+            guardian = address(0x96B829Ded6b727B8c4a9A46EfA6c7b57490F97ba);
         }
 
         vm.startPrank(deployer);
@@ -107,7 +107,7 @@ contract DeploymentHelper is Test {
         }
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
-        // Create EmailAuth
+        // Create EmailAuth implementation
         EmailAuth emailAuthImpl = new EmailAuth();
         emailAuth = emailAuthImpl;
 
