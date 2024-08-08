@@ -22,21 +22,21 @@ contract Upgrades is Script {
         address dkim = vm.envOr("DKIM", address(0));
 
         vm.startBroadcast(deployerPrivateKey);
-        if (verifier == address(0)) {
+        if (verifier != address(0)) {
             Verifier newVerifierImpl = new Verifier();
             UUPSUpgradeable(verifier).upgradeToAndCall(
                 address(newVerifierImpl),
                 bytes("")
             );
         }
-        if (ecdsaDkim == address(0)) {
+        if (ecdsaDkim != address(0)) {
             ECDSAOwnedDKIMRegistry newECDSAOwnedDKIMRegistryImpl = new ECDSAOwnedDKIMRegistry();
             UUPSUpgradeable(ecdsaDkim).upgradeToAndCall(
                 address(newECDSAOwnedDKIMRegistryImpl),
                 bytes("")
             );
         }
-        if (dkim == address(0)) {
+        if (dkim != address(0)) {
             ForwardDKIMRegistry newForwardDKIMRegistryImpl = new ForwardDKIMRegistry();
             UUPSUpgradeable(dkim).upgradeToAndCall(
                 address(newForwardDKIMRegistryImpl),
