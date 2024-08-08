@@ -330,6 +330,22 @@ EmailAuth.t.sol
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
 
+DeployCommons.t.sol
+
+- test_run()
+
+DeployRecoveryController.t.sol
+
+- test_run()
+
+DeploySimpleWallet.t.sol
+
+- test_run()
+- test_run_no_dkim()
+- test_run_no_email_auth()
+- test_run_no_simple_wallet()
+- test_run_no_verifier()
+
 # For integration testing
 
 forge test --match-test 'testIntegration_Account_Recovery'  --zksync --chain 300 -vvv --ffi
