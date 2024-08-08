@@ -43,6 +43,13 @@ contract ForwardDKIMRegistry is
             );
     }
 
+    function changeSourceDKIMRegistry(
+        address _sourceDKIMRegistry
+    ) public onlyOwner {
+        require(_sourceDKIMRegistry != address(0), "Invalid address");
+        sourceDKIMRegistry = IDKIMRegistry(_sourceDKIMRegistry);
+    }
+
     /// @notice Upgrade the implementation of the proxy.
     /// @param newImplementation Address of the new implementation.
     function _authorizeUpgrade(
