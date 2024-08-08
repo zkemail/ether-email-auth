@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "../src/utils/ForwardDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
@@ -20,7 +21,9 @@ contract IntegrationTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry dkim;
+    ECDSAOwnedDKIMRegistry ecdsaDkim;
+    ForwardDKIMRegistry dkim;
+
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
@@ -50,15 +53,24 @@ contract IntegrationTest is Test {
 
         // Create DKIM registry
         {
-            ECDSAOwnedDKIMRegistry dkimImpl = new ECDSAOwnedDKIMRegistry();
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            );
+            ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
             ERC1967Proxy dkimProxy = new ERC1967Proxy(
                 address(dkimImpl),
-                abi.encodeCall(dkimImpl.initialize, (address(0), signer))
+                abi.encodeCall(
+                    dkimImpl.initialize,
+                    (msg.sender, address(ecdsaDkim))
+                )
             );
-            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+            dkim = ForwardDKIMRegistry(address(dkimProxy));
         }
-        string memory signedMsg = dkim.computeSignedMsg(
-            dkim.SET_PREFIX(),
+        string memory signedMsg = ecdsaDkim.computeSignedMsg(
+            ecdsaDkim.SET_PREFIX(),
             selector,
             domainName,
             publicKeyHash
@@ -68,7 +80,7 @@ contract IntegrationTest is Test {
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(
+        ecdsaDkim.setDKIMPublicKeyHash(
             selector,
             domainName,
             publicKeyHash,

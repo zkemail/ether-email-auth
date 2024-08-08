@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "../../src/utils/ForwardDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
 import "./RecoveryController.sol";
@@ -19,7 +20,8 @@ contract DeploymentHelper is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry dkim;
+    ECDSAOwnedDKIMRegistry ecdsaDkim;
+    ForwardDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
@@ -45,28 +47,29 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     function setUp() public virtual {
-        // For zkSync computeEmailAuthAddress uses L2ContractHelper.computeCreate2Address
-        // The gardian address should be different from other EVM chains
-        if (block.chainid == 300) {
-            guardian = address(0x894B4AeFE4c0a145ecac5E433918F0C4BC212C48);
-        } else {
-            guardian = address(0x96B829Ded6b727B8c4a9A46EfA6c7b57490F97ba);
-        }
-
         vm.startPrank(deployer);
         address signer = deployer;
 
         // Create DKIM registry
         {
-            ECDSAOwnedDKIMRegistry dkimImpl = new ECDSAOwnedDKIMRegistry();
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            );
+            ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
             ERC1967Proxy dkimProxy = new ERC1967Proxy(
                 address(dkimImpl),
-                abi.encodeCall(dkimImpl.initialize, (msg.sender, signer))
+                abi.encodeCall(
+                    dkimImpl.initialize,
+                    (msg.sender, address(ecdsaDkim))
+                )
             );
-            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+            dkim = ForwardDKIMRegistry(address(dkimProxy));
         }
-        string memory signedMsg = dkim.computeSignedMsg(
-            dkim.SET_PREFIX(),
+        string memory signedMsg = ecdsaDkim.computeSignedMsg(
+            ecdsaDkim.SET_PREFIX(),
             selector,
             domainName,
             publicKeyHash
@@ -76,7 +79,7 @@ contract DeploymentHelper is Test {
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(
+        ecdsaDkim.setDKIMPublicKeyHash(
             selector,
             domainName,
             publicKeyHash,
@@ -145,6 +148,10 @@ contract DeploymentHelper is Test {
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
         vm.deal(address(simpleWallet), 1 ether);
+
+        // Set guardian address
+        guardian = EmailAccountRecovery(address(recoveryController))
+            .computeEmailAuthAddress(address(simpleWallet), accountSalt);
         vm.stopPrank();
     }
 }
