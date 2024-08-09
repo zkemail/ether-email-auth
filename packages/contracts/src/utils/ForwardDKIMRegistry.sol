@@ -26,10 +26,7 @@ contract ForwardDKIMRegistry is
         address _sourceDKIMRegistry
     ) public initializer {
         __Ownable_init(_initialOwner);
-        assembly {
-            sstore(sourceDKIMRegistry.slot, _sourceDKIMRegistry)
-            sstore(add(sourceDKIMRegistry.slot, 1), _sourceDKIMRegistry)
-        }
+        sourceDKIMRegistry = IDKIMRegistry(_sourceDKIMRegistry);
     }
 
     /// @notice Checks if a DKIM public key hash is valid and not revoked for a given domain name.
@@ -62,6 +59,15 @@ contract ForwardDKIMRegistry is
             "Cannot set self as source DKIMRegistry"
         );
         sourceDKIMRegistry = IDKIMRegistry(_newSourceDKIMRegistry);
+    }
+
+    function resetStorageForUpgradeFromECDSAOwnedDKIMRegistry()
+        public
+        onlyOwner
+    {
+        assembly {
+            sstore(add(sourceDKIMRegistry.slot, 1), 0)
+        }
     }
 
     /// @notice Upgrade the implementation of the proxy.

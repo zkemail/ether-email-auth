@@ -54,7 +54,7 @@ contract DeploymentHelper is Test {
             ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
             ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
                 address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+                abi.encodeCall(ecdsaDkimImpl.initialize, (deployer, signer))
             );
             dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
         }
