@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 
 import {Deploy} from "../../script/DeployCommons.s.sol";
 import {ChangeSigner} from "../../script/ChangeSignerInECDSAOwnedDKIMRegistry.s.sol";
-import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDkimRegistry.sol";
+import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 
 contract ChangeSignerInECDSAOwnedDKIMRegistryTest is Test {
     function setUp() public {
