@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import {Deploy} from "../../script/DeployCommons.s.sol";
+import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
 import {ChangeSource} from "../../script/ChangeSourceInForwardDKIMRegistry.s.sol";
 import {ForwardDKIMRegistry} from "../../src/utils/ForwardDKIMRegistry.sol";
 
@@ -21,6 +22,9 @@ contract ChangeSourceInForwardDKIMRegistryTest is Test {
     function test_run() public {
         Deploy deploy = new Deploy();
         deploy.run();
+        vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));
+        Deploy2 deploy2 = new Deploy2();
+        deploy2.run();
         ChangeSource changeSource = new ChangeSource();
         changeSource.run();
         address dkimAddr = vm.envAddress("DKIM");

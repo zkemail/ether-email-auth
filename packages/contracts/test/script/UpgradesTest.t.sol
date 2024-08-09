@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import {Deploy} from "../../script/DeployCommons.s.sol";
+import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
 import {Upgrades} from "../../script/Upgrades.s.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -24,6 +25,9 @@ contract UpgradesTest is Test {
     function test_run() public {
         Deploy deploy = new Deploy();
         deploy.run();
+        vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));
+        Deploy2 deploy2 = new Deploy2();
+        deploy2.run();
         // address verifier = vm.envAddress("VERIFIER");
         // address ecdsaDkimAddr = vm.envAddress("ECDSA_DKIM");
         // address dkim = vm.envAddress("DKIM");

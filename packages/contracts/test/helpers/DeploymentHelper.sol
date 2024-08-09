@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../../src/utils/ForwardDKIMRegistry.sol";
+// import "../../src/utils/ForwardDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
 import "./RecoveryController.sol";
@@ -20,8 +20,7 @@ contract DeploymentHelper is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry ecdsaDkim;
-    ForwardDKIMRegistry dkim;
+    ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
@@ -57,19 +56,10 @@ contract DeploymentHelper is Test {
                 address(ecdsaDkimImpl),
                 abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
             );
-            ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
-            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy dkimProxy = new ERC1967Proxy(
-                address(dkimImpl),
-                abi.encodeCall(
-                    dkimImpl.initialize,
-                    (msg.sender, address(ecdsaDkim))
-                )
-            );
-            dkim = ForwardDKIMRegistry(address(dkimProxy));
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
         }
-        string memory signedMsg = ecdsaDkim.computeSignedMsg(
-            ecdsaDkim.SET_PREFIX(),
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
             selector,
             domainName,
             publicKeyHash
@@ -79,7 +69,7 @@ contract DeploymentHelper is Test {
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        ecdsaDkim.setDKIMPublicKeyHash(
+        dkim.setDKIMPublicKeyHash(
             selector,
             domainName,
             publicKeyHash,

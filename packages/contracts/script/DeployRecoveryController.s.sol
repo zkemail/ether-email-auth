@@ -8,15 +8,14 @@ import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
+// import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 contract Deploy is Script {
     using ECDSA for *;
 
-    ForwardDKIMRegistry dkimImpl;
-    ForwardDKIMRegistry dkim;
+    ECDSAOwnedDKIMRegistry dkim;
     Verifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWallet;
@@ -37,8 +36,8 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
         address initialOwner = msg.sender;
 
-        // Deploy Forward DKIM registry
-        dkim = ForwardDKIMRegistry(vm.envOr("DKIM", address(0)));
+        // Deploy ECDSAOwned DKIM registry
+        dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
         if (address(dkim) == address(0)) {
             ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
             console.log(
@@ -49,25 +48,24 @@ contract Deploy is Script {
                 address(ecdsaDkimImpl),
                 abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
             );
-            ECDSAOwnedDKIMRegistry ecdsaDkim = ECDSAOwnedDKIMRegistry(
-                address(ecdsaDkimProxy)
-            );
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
             console.log(
                 "ECDSAOwnedDKIMRegistry deployed at: %s",
-                address(ecdsaDkim)
+                address(dkim)
             );
-            dkimImpl = new ForwardDKIMRegistry();
-            console.log(
-                "ForwardDKIMRegistry implementation deployed at: %s",
-                address(dkimImpl)
-            );
-            ERC1967Proxy dkimProxy = new ERC1967Proxy(
-                address(dkimImpl),
-                abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
-            );
-            dkim = ForwardDKIMRegistry(address(dkimProxy));
-            console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
-            vm.setEnv("DKIM", vm.toString(address(dkim)));
+            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
+            // dkimImpl = new ForwardDKIMRegistry();
+            // console.log(
+            //     "ForwardDKIMRegistry implementation deployed at: %s",
+            //     address(dkimImpl)
+            // );
+            // ERC1967Proxy dkimProxy = new ERC1967Proxy(
+            //     address(dkimImpl),
+            //     abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
+            // );
+            // dkim = ForwardDKIMRegistry(address(dkimProxy));
+            // console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
+            // vm.setEnv("DKIM", vm.toString(address(dkim)));
         }
         // Deploy Verifier
         verifier = Verifier(vm.envOr("VERIFIER", address(0)));

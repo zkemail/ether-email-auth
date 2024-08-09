@@ -5,6 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import {Deploy} from "../../script/DeployCommons.s.sol";
+import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
 import {ChangeOwners} from "../../script/ChangeOwners.s.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -21,6 +22,9 @@ contract ChangeOwnersTest is Test {
     function test_run() public {
         Deploy deploy = new Deploy();
         deploy.run();
+        vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));
+        Deploy2 deploy2 = new Deploy2();
+        deploy2.run();
         ChangeOwners changeOwners = new ChangeOwners();
         changeOwners.run();
         address verifier = vm.envAddress("VERIFIER");
