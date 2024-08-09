@@ -21,6 +21,7 @@ contract IntegrationTest is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
@@ -49,7 +50,14 @@ contract IntegrationTest is Test {
         address signer = deployer;
 
         // Create DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        {
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+        }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
             selector,

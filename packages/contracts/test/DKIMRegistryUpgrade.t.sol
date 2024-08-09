@@ -13,40 +13,34 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
-    ForwardDKIMRegistry forwardDkim;
+contract DKIMRegistryUpgradeTest is StructHelper {
     function setUp() public override {
         super.setUp();
 
         vm.startPrank(deployer);
-
-        ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
-        ERC1967Proxy forwardDKIMRegistryProxy = new ERC1967Proxy(
-            address(forwardDkimImpl),
-            abi.encodeCall(
-                forwardDkimImpl.initialize,
-                (deployer, address(overrideableDkim))
-            )
-        );
-        forwardDkim = ForwardDKIMRegistry(address(forwardDKIMRegistryProxy));
-
         emailAuth.initialize(deployer, accountSalt, deployer);
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.VerifierUpdated(address(verifier));
         emailAuth.updateVerifier(address(verifier));
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.DKIMRegistryUpdated(address(forwardDkim));
-        emailAuth.updateDKIMRegistry(address(forwardDkim));
+        emit EmailAuth.DKIMRegistryUpdated(address(dkim));
+        emailAuth.updateDKIMRegistry(address(dkim));
+
+        ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
+        dkim.upgradeToAndCall(
+            address(forwardDkimImpl),
+            abi.encodeCall(
+                forwardDkimImpl
+                    .resetStorageForUpgradeFromECDSAOwnedDKIMRegistry,
+                (address(overrideableDkim))
+            )
+        );
         vm.stopPrank();
     }
 
     function testDkimRegistryAddr() public view {
         address dkimAddr = emailAuth.dkimRegistryAddr();
-        assertEq(dkimAddr, address(forwardDkim));
-        assertEq(
-            address(forwardDkim.sourceDKIMRegistry()),
-            address(overrideableDkim)
-        );
+        assertEq(dkimAddr, address(dkim));
     }
 
     function _testInsertSubjectTemplate() private {
