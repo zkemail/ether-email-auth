@@ -20,7 +20,6 @@ contract ForwardDKIMRegistry is
     /// @notice Initializes the contract with a predefined signer and deploys a new DKIMRegistry.
     /// @param _initialOwner The address of the initial owner of the contract.
     /// @param _sourceDKIMRegistry The address of the source DKIMRegistry contract to forward outputs from.
-    /// @dev A proxy of ECDSAOwnedDKIMRegistry can be upgraded to this contract. This is why the initialize function resets the storage at sourceDKIMRegistry.slot+1.
     function initialize(
         address _initialOwner,
         address _sourceDKIMRegistry
@@ -61,11 +60,14 @@ contract ForwardDKIMRegistry is
         sourceDKIMRegistry = IDKIMRegistry(_newSourceDKIMRegistry);
     }
 
-    function resetStorageForUpgradeFromECDSAOwnedDKIMRegistry()
-        public
-        onlyOwner
-    {
+    /// @notice Upgrade the implementation of the proxy from the ECDSAOwnedDKIMRegistry.
+    /// @param _sourceDKIMRegistry The address of the source DKIMRegistry contract to forward outputs from.
+    /// @dev This function resets the storage at sourceDKIMRegistry.slot+1, which is `signer` in the ECDSAOwnedDKIMRegistry contract.
+    function resetStorageForUpgradeFromECDSAOwnedDKIMRegistry(
+        address _sourceDKIMRegistry
+    ) public onlyOwner {
         assembly {
+            sstore(sourceDKIMRegistry.slot, _sourceDKIMRegistry)
             sstore(add(sourceDKIMRegistry.slot, 1), 0)
         }
     }
