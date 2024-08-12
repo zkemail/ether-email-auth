@@ -37,11 +37,15 @@ contract IntegrationTest is Test {
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
     uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
 
+    bool isZksync = false;
+
     function setUp() public {
         if (block.chainid == 300) {
             vm.createSelectFork("https://sepolia.era.zksync.dev");
+            isZksync = true;
         } else {
             vm.createSelectFork("https://mainnet.base.org");
+            isZksync = false;
         }
 
         vm.warp(startTimestamp);
@@ -137,10 +141,17 @@ contract IntegrationTest is Test {
         vm.deal(address(relayer), 1 ether);
 
         console.log("SimpleWallet is at ", address(simpleWallet));
-        assertEq(
-            address(simpleWallet),
-            0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A
-        );
+        if (isZksync) {
+            assertEq(
+                address(simpleWallet),
+                0x05A78D3dB903a58B5FA373E07e5044B95B12aec4
+            );
+        } else {
+            assertEq(
+                address(simpleWallet),
+                0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A
+            );
+        }
         address simpleWalletOwner = simpleWallet.owner();
 
         // Verify the email proof for acceptance
@@ -173,8 +184,13 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-        emailProof
-            .maskedSubject = "Accept guardian request for 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A";
+        if (isZksync) {
+            emailProof
+                .maskedSubject = "Accept guardian request for 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4";
+        } else {
+            emailProof
+                .maskedSubject = "Accept guardian request for 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A";
+        }
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -252,8 +268,16 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-        emailProof
-            .maskedSubject = "Set the new signer of 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+        
+        // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+        if (isZksync) {
+            emailProof
+                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; 
+        } else {
+            emailProof
+                .maskedSubject = "Set the new signer of 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+        }
+
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
