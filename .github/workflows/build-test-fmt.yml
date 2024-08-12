@@ -33,7 +33,7 @@ jobs:
       run: forge build
     
     - name: Build
-      run: cargo build
+      run: cargo build --release
       
     - name: Test
-      run: cargo test
+      run: cargo test --release
