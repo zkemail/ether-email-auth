@@ -1,88 +1,90 @@
 Delivered-To: rrelayerbob@gmail.com
-Received: by 2002:a54:2645:0:b0:257:e735:1f15 with SMTP id a5csp4993476ecp;
-        Sat, 18 May 2024 04:30:15 -0700 (PDT)
-X-Received: by 2002:a25:748b:0:b0:dda:a7a9:7b59 with SMTP id 3f1490d57ef6-dee4f360105mr24674235276.50.1716031815441;
-        Sat, 18 May 2024 04:30:15 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1716031815; cv=none;
+Received: by 2002:a50:45c6:0:b0:264:9270:cc66 with SMTP id c6csp1312972ecu;
+        Mon, 12 Aug 2024 07:26:02 -0700 (PDT)
+X-Received: by 2002:a05:6214:4388:b0:6b0:90b4:1ca9 with SMTP id 6a1803df08f44-6bf4f66c992mr4233056d6.6.1723472762703;
+        Mon, 12 Aug 2024 07:26:02 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1723472762; cv=none;
         d=google.com; s=arc-20160816;
-        b=dzAAw+Dzadghto1AZ3jwUgNDWHpFa6C5RQ+nXbFf3dXBugUxNXfqZWaM5l2FcYHmoX
-         talugKAXOAQPOYwu+Gsn3aeCnCh9uoEWfFJlzcxqHpEm2+n4O3r9Ya005oVHVYZqSJgb
-         XWoSIgRi0nUexGSYk5WYGhaQEH7dyFZ3rxc8AGKn9GdkQ7y5fnZ8auU/fCwGzT06fwwF
-         5YusDxuX5EM4nSpPjuKmaWPdRO3DeFvmK1isZBKM0nLtyoSFg93e2yGmqkW5Ar7XScpf
-         gZPltiGvYXD6bvCOtL6VIK7Zj7UGicTwNxjDggUpgV+V7cDUSIgD2lsQkEPFbLzeis9s
-         udJg==
+        b=vcvdTjMIx6jVaoyYdgwc/lQQLkGzwzJkejj++NHvdRMrTAUrmBcq4P3uRlETlg4QI/
+         YZ5UTmDkqn+nsu0P1zNU9zoe8CiQk6bJQnaKsEqN2o6GAVf28p1K2b5HGxYYjbwPPjns
+         pVrwGO4oV3m91G7tDoKAcHTJ02K1yz4Ge7uOQd2LF3c8a/6m4PIxCD30+5gg1/qWjAfk
+         Obt40LmhxX4/yfqcuWf0F3SdXl3krrABX343FDLAewOw07JQwQHIQlBY+Y+2qolt0Grc
+         xuLA3sOJVUC5uNOaDJzA1G4TisX9DIL/tfjweqF/d9Q5va13JvruTptBqRowwilXqX5P
+         CLZw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
         h=to:subject:message-id:date:from:mime-version:dkim-signature;
-        bh=PE7jJB6p9QTMEWi7IkXoy/h6JPlP+em5530kp4TGSHM=;
+        bh=dAcGAR4My5Lv5E1hBYZpLjIn3d3hkexlA4mfbt+aoNg=;
         fh=OYPr0JdXtRRlM3Htj/E6+khbD9huvtdqkRTmPoW0wko=;
-        b=KbP/2Os99b/FrkzeFSdq+PmZk5kOxoVg1AsmjvcQVVzBJIcwtFws1T3Zhif4NBKUfb
-         oCd6zcO7GwylHPRBEavLp8nbfW0Nsiuox9GKFBR4u7PjEGptZKC932WQEqUVuhaE8ld6
-         SQzB2ZLfdvOy6hDrw1Qy1nKwcmpm6B2UKy0gnFesMx2u3GGZ6bPffx5k8NoVN/xjW50z
-         YOI4DsMIe1Ar/DCamkfWsjkIQ3cfnY8E+JwOv1uvgImrnKa9doSpGHQCmaHSL4OQhQ7W
-         d3DJL5vxq519er6AucnZFX+o1+hWUoO/VF5VV0SdlS+gvTIZGvYP+oG6WdkH/i4YgzS4
-         SozA==;
+        b=id73VLGPEdCHON1/1BV42acaxe0SQj63bwZMLiqIPI/ull9ayrGcrO77bSO37r2v1t
+         XiP4Bnb+5+EmBOOno3mOJwwlE5F+MoD1OXJOtYnaRw/wsjz0x4O+OYyfFL9v7SPkfQDV
+         NhjnFbxOyrXs9rfsfi79misBR4LUmJQCdgiLs+9QWDUq0ckYtOrXJUs6fke3yijTZEkm
+         +oECBc4vh5apTkfJXlerRzjRD8UQUdPfHW5lO3/JHRJj4MIgumabeb97gcBoh++VcEZO
+         qTX8uOx0/j+0fl/Qz1WPnKEsHlN/OitzCbDxjZ4KiIYSGKM13Jm0rEwmQl3fkaP2zeZK
+         be9g==;
         dara=google.com
 ARC-Authentication-Results: i=1; mx.google.com;
-       dkim=pass header.i=@gmail.com header.s=20230601 header.b=ZEByvvZz;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=AbjyPZA+;
        spf=pass (google.com: domain of emailwalletrelayer987@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emailwalletrelayer987@gmail.com;
-       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
 Return-Path: <emailwalletrelayer987@gmail.com>
 Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
-        by mx.google.com with SMTPS id 3f1490d57ef6-df445999694sor3210099276.9.2024.05.18.04.30.15
+        by mx.google.com with SMTPS id 6a1803df08f44-6bd82e7d133sor35657466d6.10.2024.08.12.07.26.02
         for <rrelayerbob@gmail.com>
         (Google Transport Security);
-        Sat, 18 May 2024 04:30:15 -0700 (PDT)
+        Mon, 12 Aug 2024 07:26:02 -0700 (PDT)
 Received-SPF: pass (google.com: domain of emailwalletrelayer987@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
 Authentication-Results: mx.google.com;
-       dkim=pass header.i=@gmail.com header.s=20230601 header.b=ZEByvvZz;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=AbjyPZA+;
        spf=pass (google.com: domain of emailwalletrelayer987@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emailwalletrelayer987@gmail.com;
-       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1716031815; x=1716636615; dara=google.com;
+        d=gmail.com; s=20230601; t=1723472762; x=1724077562; dara=google.com;
         h=to:subject:message-id:date:from:mime-version:from:to:cc:subject
          :date:message-id:reply-to;
-        bh=PE7jJB6p9QTMEWi7IkXoy/h6JPlP+em5530kp4TGSHM=;
-        b=ZEByvvZzoUdx21n8KumDzdWhpuM3KM2GT4vpyxZjj5Hvs0rdhyh9oYf1E6H5nQT0ht
-         /aaM7Vj3xNR2JF1HHntk8KlTl0tWhItrU3PxAuYqnAkt6BOL4W1OKFTu7ffSQZONSQ3Z
-         96W5L8CVp84rC0a79eop+uj/OJklYhEyV+oktuuxG7aidrXxr+IKo647k+8njNsuO3+z
-         JPgp8/bZc+V//jLlgT+pYlafiuFQtQJb31zhL0X/Nm0nNvDAdQeoUb/0ieogfYzRDcSa
-         zlYaUgvSB6Eh9SQT9j9qcVbVD4Bs5bYBE3JolA6TPUgZWrb4+7SF10MzOPmgBu6yOQQw
-         T7Qw==
+        bh=dAcGAR4My5Lv5E1hBYZpLjIn3d3hkexlA4mfbt+aoNg=;
+        b=AbjyPZA+Xu7/aQThoDilu0ukN07IBlywWk8F4S+yMXD6q+GOaXB90gTU2subhJts26
+         H5SYRTNnvcXMqPOJtb88TzynpxUpej5DLR48ROGtpR7X3q1iQQyRRRZFEUOSS6Utxt7D
+         S1Jwx2kGOu/OSN3xamxMyuAWoi7ikWQJSjJ9g/b2IWmIly9v2FE+gl8doPPrZCumR3/F
+         1WwDcqh6aL0MLgUPy5Uz+FVlU4aK3Md2SFKDRipW9whWoxun6dSjCHMLiZZSL0bV/ZHJ
+         loxolU3peA+0YhVd/Q7ZISaQ4DTg/qjNtVI6OmK09P475EhMNX39et6189GgbwVndGFq
+         hgCw==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1716031815; x=1716636615;
+        d=1e100.net; s=20230601; t=1723472762; x=1724077562;
         h=to:subject:message-id:date:from:mime-version:x-gm-message-state
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=PE7jJB6p9QTMEWi7IkXoy/h6JPlP+em5530kp4TGSHM=;
-        b=OhP9J8RdFq5mWWn+5EDdKZU/wsjXZs5e23au98KusW06klc2XY6jGwn9gW7pR6Ro2g
-         HgV/WnFqHQ0qmd+AVnGgTbHJCl1kkprNbuTpHSeJAys1CkVoUP+0VAuXqbh0h/PfoWMK
-         ZxCaZ37zHyZWfPJmiyD/xyFbILh/TNG2umjdcQKHbMq9FziqX8MRArGGm9PDwOZilGnH
-         WKdNTvk5xg2JYzfQtn0R+F2HGMGfTmlYHUqIX6s4MUyn92snIYL89k3Ok3fBYXa1IIoi
-         HT5ivs98IuypIzGiMF0Go7v00Za6xQfd119MP9KY94Io9+9unX2hPcr3ROnplMTwwwbG
-         hsbA==
-X-Gm-Message-State: AOJu0YzQ3I0eT62MxIJ62ewrpumCHKV1RhSLUNtAVKZlY0wXZb3dMBKn
-	qYaNea/Mswt/k+M+J6xs/mm2MKz0UZpN82ycXnV5RfOPQVWBE17vRK4FB5rRyYzfMS/6E9N65+9
-	iI/l5BUekpVwtO+F7gXcm54qxebYQ
-X-Google-Smtp-Source: AGHT+IH9W6bCY/FOb3FBd2oQfI1N7DYz8nRJ7j3fQgQKGSgaOdS6fssek5CFHdHHOhxl7fqXP0Csh4TKAtcTOOlfWeg=
-X-Received: by 2002:a25:27c6:0:b0:de5:a7c:dff8 with SMTP id
- 3f1490d57ef6-dee4f392e06mr21829960276.63.1716031814890; Sat, 18 May 2024
- 04:30:14 -0700 (PDT)
+        bh=dAcGAR4My5Lv5E1hBYZpLjIn3d3hkexlA4mfbt+aoNg=;
+        b=Q8hiZxgOauaTndhqxya7bEZJoH/1U8K7nrW/yizA+fUpTGrejdh3/SfmTb/OJNHpZQ
+         fTsGJqEHEDIhJds1PdK6/qbMD/C1OY88BVScJ/UauzGid9Gis9AbpmwzOARnhV8+HgaL
+         kWQBl36PHOhbXtaX8UxEQrk7jE83lgXqvDVjdcE618P505L92eT+EzTCM+jWB3ShAK7i
+         92e57Qr7M4JhLIj/W0BUoRjEDl7GEpjv4uLeHoIPONI9UOt7rYlKTEZtBJuCCt8I5tuO
+         zMY2T2QYcOASwc2TCWJ3rijf8WZaoxpSK4cJFtq7Drz8xSFHPfdcIc+onRVF5wQbVEbm
+         eZGg==
+X-Gm-Message-State: AOJu0Yw7LeKO/8TWPHdDWwfvkXjVBzc7O37fDC2MDvtMq/djeJ1X+zXy
+	t90nn2xwzgEV3VUxU4CsA3Dfz4sJgUtgwkhOseIQ5pWRGWJc2DEOHZaqosy+EKtcd74uRf9Z4O/
+	oBDfsRhNOdyvhHyJqjnkmedzxZN/y
+X-Google-Smtp-Source: AGHT+IFMoDCfSFZzXjpvIXfeTd4IrAJgBhwtjJEGUhl8i59puhKhpNeQizDSDGG/AOZxbcx06wG5xnYU/yO39Qn8VJ0=
+X-Received: by 2002:a05:6214:5f0b:b0:6b7:980b:e0ac with SMTP id
+ 6a1803df08f44-6bf4f7e2315mr3150516d6.32.1723472761940; Mon, 12 Aug 2024
+ 07:26:01 -0700 (PDT)
 MIME-Version: 1.0
 From: "emailwallet.relayer.2" <emailwalletrelayer987@gmail.com>
-Date: Sat, 18 May 2024 20:30:04 +0900
-Message-ID: <CAKizYf=9Y_W73KQopqv3K5J8d=LH-zxMURsrGCFyMjdJ4X-EmA@mail.gmail.com>
-Subject: Accept guardian request for 0x8f8580AA521fA7545da39a062eCb7dd91e2a96a1
+Date: Mon, 12 Aug 2024 23:25:51 +0900
+Message-ID: <CAKizYf=gQ4A0j_wEQK6KTJu6abskxj7DT9LziXLjtR6RW3oGUQ@mail.gmail.com>
+Subject: Accept guardian request for 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4
  Code 1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54
 To: rrelayerbob@gmail.com
-Content-Type: multipart/alternative; boundary="000000000000bffdc70618b8ca0b"
+Content-Type: multipart/alternative; boundary="000000000000c1738a061f7d45eb"
 
---000000000000bffdc70618b8ca0b
+--000000000000c1738a061f7d45eb
 Content-Type: text/plain; charset="UTF-8"
 
 
 
---000000000000bffdc70618b8ca0b
+--000000000000c1738a061f7d45eb
 Content-Type: text/html; charset="UTF-8"
 
 <div dir="ltr"><br></div>
 
---000000000000bffdc70618b8ca0b--
+--000000000000c1738a061f7d45eb--
