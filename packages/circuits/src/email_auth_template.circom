@@ -131,8 +131,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     // INVITATION CODE REGEX
     signal code_regex_out, code_regex_reveal[max_header_bytes];
     (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_header_bytes)(padded_header);
-    signal code_consistency <== IsZero()(is_code_exist * (1 - code_regex_out));
-    code_consistency === 1;
+    is_code_exist * (1 - code_regex_out) === 0;
     signal replaced_code_regex_reveal[max_header_bytes];
     for(var i=0; i<max_header_bytes; i++) {
         if(i==0) {
