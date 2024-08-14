@@ -175,6 +175,7 @@ It provides the following functions.
 ### `EmailAccountRecovery` Contract
 It is an abstract contract for each smart account brand to implement the email-based account recovery. **Each smart account provider only needs to implement the following functions in a new contract called controller.** In the following, the `templateIdx` is different from `templateId` in the email-auth contract in the sense that the `templateIdx` is an incremental index defined for each of the subject templates in `acceptanceSubjectTemplates()` and `recoverySubjectTemplates()`.
 
+- `isActivated(address recoveredAccount) public view virtual returns (bool)`: it returns if the account to be recovered has already activated the controller (the contract implementing `EmailAccountRecovery`). 
 - `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian (acceptance email).
 - `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery (recovery email).
 - `extractRecoveredAccountFromAcceptanceSubject(bytes[] memory subjectParams, uint templateIdx) public view virtual returns (address)`: it takes as input the parameters `subjectParams` and the index of the chosen subject template `templateIdx` in those for acceptance emails.
