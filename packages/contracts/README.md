@@ -32,7 +32,7 @@ Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `pa
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
-Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 31337 --ffi
+Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 8453 --ffi
 ```
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
@@ -57,6 +57,8 @@ It requires a function `isDKIMPublicKeyHashValid(string domainName, bytes32 publ
 
 One of its implementations is [`ECDSAOwnedDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ECDSAOwnedDKIMRegistry.sol).
 It stores the Ethereum address `signer` who can update the registry.
+
+We also provide another implementation called [`ForwardDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ForwardDKIMRegistry.sol). It stores an address of any internal DKIM registry and forwards its outputs. We can use it to upgrade a proxy of the ECDSAOwnedDKIMRegistry registry to a new DKIM registry with a different storage slots design by 1) upgrading its implementation into ForwardDKIMRegistry and 2) calling resetStorageForUpgradeFromECDSAOwnedDKIMRegistry function with an address of the internal DKIM registry.
 
 ### `Verifier` Contract
 It has a responsibility to verify a ZK proof for the [`email_auth.circom` circuit](https://github.com/zkemail/ether-email-auth/blob/main/packages/circuits/src/email_auth.circom).
@@ -173,6 +175,7 @@ It provides the following functions.
 ### `EmailAccountRecovery` Contract
 It is an abstract contract for each smart account brand to implement the email-based account recovery. **Each smart account provider only needs to implement the following functions in a new contract called controller.** In the following, the `templateIdx` is different from `templateId` in the email-auth contract in the sense that the `templateIdx` is an incremental index defined for each of the subject templates in `acceptanceSubjectTemplates()` and `recoverySubjectTemplates()`.
 
+- `isActivated(address recoveredAccount) public view virtual returns (bool)`: it returns if the account to be recovered has already activated the controller (the contract implementing `EmailAccountRecovery`). 
 - `acceptanceSubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to accept becoming a guardian (acceptance email).
 - `recoverySubjectTemplates() public view virtual returns (string[][])`: it returns multiple subject templates for an email to confirm the account recovery (recovery email).
 - `extractRecoveredAccountFromAcceptanceSubject(bytes[] memory subjectParams, uint templateIdx) public view virtual returns (address)`: it takes as input the parameters `subjectParams` and the index of the chosen subject template `templateIdx` in those for acceptance emails.
@@ -329,6 +332,22 @@ EmailAuth.t.sol
 - testExpectRevertAuthEmailInvalidEmailProof()
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
+
+DeployCommons.t.sol
+
+- test_run()
+
+DeployRecoveryController.t.sol
+
+- test_run()
+
+DeploySimpleWallet.t.sol
+
+- test_run()
+- test_run_no_dkim()
+- test_run_no_email_auth()
+- test_run_no_simple_wallet()
+- test_run_no_verifier()
 
 # For integration testing
 

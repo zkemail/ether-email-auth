@@ -8,6 +8,7 @@ import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+// import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -33,19 +34,59 @@ contract Deploy is Script {
         }
 
         vm.startBroadcast(deployerPrivateKey);
+        address initialOwner = msg.sender;
 
-        // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
-        console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
-        vm.setEnv("DKIM", vm.toString(address(dkim)));
-
+        // Deploy ECDSAOwned DKIM registry
+        dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
+        if (address(dkim) == address(0)) {
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            console.log(
+                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
+                address(ecdsaDkimImpl)
+            );
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            console.log(
+                "ECDSAOwnedDKIMRegistry deployed at: %s",
+                address(dkim)
+            );
+            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
+            // dkimImpl = new ForwardDKIMRegistry();
+            // console.log(
+            //     "ForwardDKIMRegistry implementation deployed at: %s",
+            //     address(dkimImpl)
+            // );
+            // ERC1967Proxy dkimProxy = new ERC1967Proxy(
+            //     address(dkimImpl),
+            //     abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
+            // );
+            // dkim = ForwardDKIMRegistry(address(dkimProxy));
+            // console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
+            // vm.setEnv("DKIM", vm.toString(address(dkim)));
+        }
         // Deploy Verifier
-        verifier = new Verifier();
-        console.log("Verifier deployed at: %s", address(verifier));
-        vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        verifier = Verifier(vm.envOr("VERIFIER", address(0)));
+        if (address(verifier) == address(0)) {
+            Verifier verifierImpl = new Verifier();
+            console.log(
+                "Verifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(verifierImpl.initialize, (initialOwner))
+            );
+            verifier = Verifier(address(verifierProxy));
+            console.log("Verifier deployed at: %s", address(verifier));
+            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        }
 
         // Deploy EmailAuth Implementation
-        {
+        emailAuthImpl = EmailAuth(vm.envOr("EMAIL_AUTH_IMPL", address(0)));
+        if (address(emailAuthImpl) == address(0)) {
             emailAuthImpl = new EmailAuth();
             console.log(
                 "EmailAuth implementation deployed at: %s",
@@ -76,7 +117,10 @@ contract Deploy is Script {
                 "RecoveryController deployed at: %s",
                 address(recoveryController)
             );
-            vm.setEnv("RECOVERY_CONTROLLER", vm.toString(address(recoveryController)));
+            vm.setEnv(
+                "RECOVERY_CONTROLLER",
+                vm.toString(address(recoveryController))
+            );
         }
 
         // Deploy SimpleWallet Implementation
@@ -94,19 +138,11 @@ contract Deploy is Script {
                 address(simpleWalletImpl),
                 abi.encodeCall(
                     simpleWalletImpl.initialize,
-                    (
-                        signer,
-                        address(recoveryController)
-                    )
+                    (signer, address(recoveryController))
                 )
             );
-            simpleWallet = SimpleWallet(
-                payable(address(simpleWalletProxy))
-            );
-            console.log(
-                "SimpleWallet deployed at: %s",
-                address(simpleWallet)
-            );
+            simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
+            console.log("SimpleWallet deployed at: %s", address(simpleWallet));
             vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
         }
         vm.stopBroadcast();

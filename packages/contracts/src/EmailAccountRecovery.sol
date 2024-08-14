@@ -5,7 +5,6 @@ import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
-
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
 /// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering an account contract.
@@ -35,6 +34,15 @@ abstract contract EmailAccountRecovery {
     function emailAuthImplementation() public view virtual returns (address) {
         return emailAuthImplementationAddr;
     }
+
+    /// @notice Returns if the account to be recovered has already activated the controller (this contract).
+    /// @dev This function is virtual and should be implemented by inheriting contracts.
+    /// @dev This function helps a relayer inactivate the guardians' data after the account inactivates the controller (this contract).
+    /// @param recoveredAccount The address of the account to be recovered.
+    /// @return bool True if the account is already activated, false otherwise.
+    function isActivated(
+        address recoveredAccount
+    ) public view virtual returns (bool);
 
     /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
@@ -116,7 +124,7 @@ abstract contract EmailAccountRecovery {
                     address(this),
                     accountSalt,
                     bytes32(
-                        0x0100007934a4ec31a894c66e0d97810c45cade119a9dcba3f02c341c06aa8684
+                        0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951
                     ),
                     keccak256(
                         abi.encode(

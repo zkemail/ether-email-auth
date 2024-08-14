@@ -145,7 +145,9 @@ In short, by 1) making a contract called **controller** that implements seven mi
 Our SDK cannot ensure security and privacy in the entire process without your careful implementation.
 
 Specifically, you can integrate the email-based account recovery into your smart accounts in the following steps.
-1. (Contracts 1/6) First, you build a new controller contract with imports of the `EmailAccountRecovery` abstract contract in `EmailAccountRecovery.sol`. Your Solidity compiler will require you to implement the following seven functions: `acceptanceSubjectTemplates`, `recoverySubjectTemplates`, `extractRecoveredAccountFromAcceptanceSubject`, `extractRecoveredAccountFromRecoverySubject`, `acceptGuardian`, `processRecovery`, and `completeRecovery`.
+1. (Contracts 1/6) First, you build a new controller contract with imports of the `EmailAccountRecovery` abstract contract in `EmailAccountRecovery.sol`. Your Solidity compiler will require you to implement the following seven functions: 
+`isActivated`,
+`acceptanceSubjectTemplates`, `recoverySubjectTemplates`, `extractRecoveredAccountFromAcceptanceSubject`, `extractRecoveredAccountFromRecoverySubject`, `acceptGuardian`, `processRecovery`, and `completeRecovery`.
 2. (Contracts 2/6) You define expected subject templates for two types of emails sent from guardians, one for accepting the role of the guardian, and the other for confirming the account recovery. You can implement the former and latter subject templates in the `acceptanceSubjectTemplates` and `recoverySubjectTemplates` functions, respectively. This is an example of the subject templates:
     - Template in `acceptanceSubjectTemplates`: `"Accept guardian request for {ethAddr}"`, where the value of `"{ethAddr}"` represents the account address.
     - Template in `recoverySubjectTemplates`: `"Set the new signer of {ethAddr} to {ethAddr}"`, where the values of the first and second `"{ethAddr}"`, respectively, represent the account address and the new owner address.
