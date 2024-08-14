@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+// import "../../src/utils/ForwardDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
 import "./RecoveryController.sol";
@@ -22,6 +23,7 @@ contract DeploymentHelper is Test {
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
+    SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -44,19 +46,18 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     function setUp() public virtual {
-        // For zkSync computeEmailAuthAddress uses L2ContractHelper.computeCreate2Address
-        // The gardian address should be different from other EVM chains
-        if (block.chainid == 300) {
-            guardian = address(0x894B4AeFE4c0a145ecac5E433918F0C4BC212C48);
-        } else {
-            guardian = address(0x4F1102177DD38b7ab19207c9846172B0c30FEAD5);
-        }
-
         vm.startPrank(deployer);
         address signer = deployer;
 
         // Create DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        {
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (deployer, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+        }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
             selector,
@@ -85,10 +86,21 @@ contract DeploymentHelper is Test {
         );
 
         // Create Verifier
-        verifier = new Verifier();
+        {
+            Verifier verifierImpl = new Verifier();
+            console.log(
+                "Verifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+            );
+            verifier = Verifier(address(verifierProxy));
+        }
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
-        // Create EmailAuth
+        // Create EmailAuth implementation
         EmailAuth emailAuthImpl = new EmailAuth();
         emailAuth = emailAuthImpl;
 
@@ -116,7 +128,7 @@ contract DeploymentHelper is Test {
         );
 
         // Create SimpleWallet
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
+        simpleWalletImpl = new SimpleWallet();
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
             abi.encodeCall(
@@ -126,6 +138,10 @@ contract DeploymentHelper is Test {
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
         vm.deal(address(simpleWallet), 1 ether);
+
+        // Set guardian address
+        guardian = EmailAccountRecovery(address(recoveryController))
+            .computeEmailAuthAddress(address(simpleWallet), accountSalt);
         vm.stopPrank();
     }
 }

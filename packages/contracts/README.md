@@ -32,7 +32,7 @@ Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `pa
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
-Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 31337 --ffi
+Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 8453 --ffi
 ```
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
@@ -57,6 +57,8 @@ It requires a function `isDKIMPublicKeyHashValid(string domainName, bytes32 publ
 
 One of its implementations is [`ECDSAOwnedDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ECDSAOwnedDKIMRegistry.sol).
 It stores the Ethereum address `signer` who can update the registry.
+
+We also provide another implementation called [`ForwardDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ForwardDKIMRegistry.sol). It stores an address of any internal DKIM registry and forwards its outputs. We can use it to upgrade a proxy of the ECDSAOwnedDKIMRegistry registry to a new DKIM registry with a different storage slots design by 1) upgrading its implementation into ForwardDKIMRegistry and 2) calling resetStorageForUpgradeFromECDSAOwnedDKIMRegistry function with an address of the internal DKIM registry.
 
 ### `Verifier` Contract
 It has a responsibility to verify a ZK proof for the [`email_auth.circom` circuit](https://github.com/zkemail/ether-email-auth/blob/main/packages/circuits/src/email_auth.circom).
@@ -299,7 +301,7 @@ We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
 Perhaps that is different value in each compiler version.
 
 You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L119
+packages/contracts/src/EmailAccountRecovery.sol:L111
 
 See, test/ComputeCreate2Address.t.sol
 
@@ -329,6 +331,22 @@ EmailAuth.t.sol
 - testExpectRevertAuthEmailInvalidEmailProof()
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
+
+DeployCommons.t.sol
+
+- test_run()
+
+DeployRecoveryController.t.sol
+
+- test_run()
+
+DeploySimpleWallet.t.sol
+
+- test_run()
+- test_run_no_dkim()
+- test_run_no_email_auth()
+- test_run_no_simple_wallet()
+- test_run_no_verifier()
 
 # For integration testing
 

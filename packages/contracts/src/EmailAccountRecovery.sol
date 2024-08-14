@@ -5,7 +5,6 @@ import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
-
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
 /// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering an account contract.
@@ -117,7 +116,7 @@ abstract contract EmailAccountRecovery {
     ) public view returns (address) {
         // If on zksync, we use L2ContractHelper.computeCreate2Address
         if (block.chainid == 324 || block.chainid == 300) {
-            // TODO: The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+            // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
             // If you failed some test cases, check the bytecodeHash by yourself
             // see, test/ComputeCreate2Address.t.sol
             return
@@ -125,7 +124,7 @@ abstract contract EmailAccountRecovery {
                     address(this),
                     accountSalt,
                     bytes32(
-                        0x0100007934a4ec31a894c66e0d97810c45cade119a9dcba3f02c341c06aa8684
+                        0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951
                     ),
                     keccak256(
                         abi.encode(
