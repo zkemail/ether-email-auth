@@ -289,4 +289,16 @@ impl ChainClient {
             .await?;
         Ok(recovered_account)
     }
+
+    pub async fn get_is_activated(
+        &self,
+        controller_eth_addr: &String,
+        account_eth_addr: &String,
+    ) -> Result<bool, anyhow::Error> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+        let account_eth_addr: H160 = account_eth_addr.parse()?;
+        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+        let is_activated = contract.is_activated(account_eth_addr).call().await?;
+        Ok(is_activated)
+    }
 }
