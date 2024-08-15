@@ -12,6 +12,7 @@ fs_permissions = [
 ]
 
 solc = "0.8.26"
+via_ir = true
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 

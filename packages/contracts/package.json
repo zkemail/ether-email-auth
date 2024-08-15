@@ -6,7 +6,7 @@
     "build": "forge build",
     "zkbuild": "forge build --zksync",
     "test": "forge test --no-match-test \"testIntegration\"",
-    "zktest": "forge test --no-match-test \"testIntegration\" --via-ir --zksync --chain 300",
+    "zktest": "forge test --no-match-test \"testIntegration\" --zksync --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },
   "dependencies": {
