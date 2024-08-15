@@ -144,6 +144,21 @@ impl Database {
         Ok(())
     }
 
+    pub(crate) async fn update_credentials_of_inactive_guardian(
+        &self,
+        is_set: bool,
+        account_eth_addr: &str,
+    ) -> Result<()> {
+        let res = sqlx::query(
+            "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2 AND is_set = true",
+        )
+        .bind(is_set)
+        .bind(account_eth_addr)
+        .execute(&self.db)
+        .await?;
+        Ok(())
+    }
+
     #[named]
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());

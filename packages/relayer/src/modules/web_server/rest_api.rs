@@ -80,6 +80,12 @@ struct PermittedWallet {
     slot_location: String,
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct InactiveGuardianRequest {
+    pub account_eth_addr: String,
+    pub controller_eth_addr: String,
+}
+
 // Create request status API
 pub async fn request_status_api(payload: RequestStatusRequest) -> Result<RequestStatusResponse> {
     let row = DB.get_request(payload.request_id).await?;
@@ -575,6 +581,36 @@ pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> 
     Response::builder()
         .status(StatusCode::OK)
         .body(Body::from(account_salt))
+        .unwrap()
+}
+
+pub async fn inactive_guardian(payload: InactiveGuardianRequest) -> Response<Body> {
+    let is_activated = CLIENT
+        .get_is_activated(&payload.controller_eth_addr, &payload.account_eth_addr)
+        .await;
+    match is_activated {
+        Ok(true) => {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Body::from("Wallet is activated"))
+                .unwrap()
+        }
+        Ok(false) => {}
+        Err(e) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(e.to_string()))
+                .unwrap()
+        }
+    }
+
+    DB.update_credentials_of_inactive_guardian(false, &payload.account_eth_addr)
+        .await
+        .expect("Failed to update credentials");
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from("Guardian inactivated"))
         .unwrap()
 }
 
