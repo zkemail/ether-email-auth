@@ -1,5 +1,5 @@
 {
-  "name": "@ether-email-auth/circom",
+  "name": "@zk-email/ether-email-auth-circom",
   "license": "MIT",
   "version": "1.0.0",
   "scripts": {

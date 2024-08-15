@@ -39,6 +39,15 @@ abstract contract EmailAccountRecovery {
         return emailAuthImplementationAddr;
     }
 
+    /// @notice Returns if the account to be recovered has already activated the controller (this contract).
+    /// @dev This function is virtual and should be implemented by inheriting contracts.
+    /// @dev This function helps a relayer inactivate the guardians' data after the account inactivates the controller (this contract).
+    /// @param recoveredAccount The address of the account to be recovered.
+    /// @return bool True if the account is already activated, false otherwise.
+    function isActivated(
+        address recoveredAccount
+    ) public view virtual returns (bool);
+
     /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
     /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.

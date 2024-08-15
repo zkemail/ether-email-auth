@@ -1,5 +1,5 @@
 {
-  "name": "@ether-email-auth/contracts",
+  "name": "@zk-email/ether-email-auth-contracts",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
