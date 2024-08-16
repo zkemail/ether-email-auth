@@ -3,7 +3,9 @@ src = "src"
 out = "artifacts"
 libs = ["../../node_modules", "lib"]
 optimizer = true
-# via-ir = true
+# The following line `via-ir = true` is needed to compile this project using zksync features
+# See README.md for more details -> TODO
+# via-ir = true 
 optimizer-runs = 20_000
 fs_permissions = [
     { access = "read", path = "./artifacts/WETH9.sol/WETH9.json" },
@@ -12,7 +14,6 @@ fs_permissions = [
 ]
 
 solc = "0.8.26"
-via_ir = true
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 
