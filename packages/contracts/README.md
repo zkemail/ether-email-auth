@@ -245,6 +245,21 @@ https://github.com/matter-labs/foundry-zksync/issues/411
 
 To fix this, you should copy `node_modules` in the project root dir to `packages/contracts/node_modules`. And then you should replace `libs = ["../../node_modules", "lib"]` to `libs = ["node_modules", "lib"]` in `foundry.toml`. At the end, you should replace `../../node_modules` to `node_modules` in `remappings.txt`.
 
+Next, you should uncomment the following lines in `foundry.toml`.
+
+```
+# via-ir = true 
+```
+
+And then you should uncomment the following lines in `src/EmailAccountRecovery.sol`.
+
+```
+// import {SystemContractsCaller} from "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
+// import {DEPLOYER_SYSTEM_CONTRACT} from "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
+```
+
+And lines 229 - 263 in the `handleAcceptance` function too.
+
 At the first forge build, you got the following warning like the following.
 
 ```
