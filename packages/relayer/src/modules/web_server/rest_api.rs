@@ -6,6 +6,7 @@ use rand::Rng;
 use relayer_utils::LOG;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use slog::log;
 use std::str;
 
 #[derive(Serialize, Deserialize)]
@@ -603,7 +604,7 @@ pub async fn inactive_guardian(payload: InactiveGuardianRequest) -> Response<Bod
                 .unwrap()
         }
     }
-
+    trace!(LOG, "Inactive guardian"; "is_activated" => is_activated.unwrap());
     DB.update_credentials_of_inactive_guardian(false, &payload.account_eth_addr)
         .await
         .expect("Failed to update credentials");
