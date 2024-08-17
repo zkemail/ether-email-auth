@@ -150,10 +150,11 @@ impl Database {
         account_eth_addr: &str,
     ) -> Result<()> {
         let res = sqlx::query(
-            "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2 AND is_set = true",
+            "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2, is_set = $3",
         )
         .bind(is_set)
         .bind(account_eth_addr)
+        .bind(true)
         .execute(&self.db)
         .await?;
         Ok(())
