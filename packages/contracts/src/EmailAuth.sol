@@ -221,6 +221,15 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
+        require(
+            bytes(emailAuthMsg.proof.maskedSubject).length <=
+                verifier.SUBJECT_BYTES(),
+            "invalid masked subject length"
+        );
+        require(
+            emailAuthMsg.skipedSubjectPrefix < verifier.SUBJECT_BYTES(),
+            "invalid size of the skiped subject prefix"
+        );
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
         string memory expectedSubject = SubjectUtils.computeExpectedSubject(
@@ -241,7 +250,9 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
 
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        lastTimestamp = emailAuthMsg.proof.timestamp;
+        if (timestampCheckEnabled) {
+            lastTimestamp = emailAuthMsg.proof.timestamp;
+        }
         emit EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
             emailAuthMsg.proof.accountSalt,
