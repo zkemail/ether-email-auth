@@ -21,7 +21,9 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     let guardian_email_addr = parsed_email.get_from_addr()?;
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&guardian_email_addr);
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
-    let subject = parsed_email.get_subject_all()?;
+    let email_body = parsed_email.get_body()?;
+
+    println!("Email body1: {}", email_body);
 
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
@@ -85,7 +87,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 )
                 .await?;
 
-            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            println!("Subject template: {:?}", subject_template);
+
+            let result =
+                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
             let (subject_params, skipped_subject_prefix) = match result {
                 Ok((subject_params, skipped_subject_prefix)) => {
                     (subject_params, skipped_subject_prefix)
@@ -216,7 +221,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
-            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            let result =
+                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
             let (subject_params, skipped_subject_prefix) = match result {
                 Ok((subject_params, skipped_subject_prefix)) => {
                     (subject_params, skipped_subject_prefix)
@@ -340,7 +346,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
-            let result = extract_template_vals_and_skipped_subject_idx(&subject, subject_template);
+            let result =
+                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
             let (subject_params, skipped_subject_prefix) = match result {
                 Ok((subject_params, skipped_subject_prefix)) => {
                     (subject_params, skipped_subject_prefix)
