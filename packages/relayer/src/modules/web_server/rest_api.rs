@@ -267,7 +267,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            subject: payload.subject.clone(),
+            command: payload.subject.clone(),
             account_code: payload.account_code.clone(),
         })
         .await
@@ -301,7 +301,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            subject: payload.subject.clone(),
+            command: payload.subject.clone(),
             account_code: payload.account_code.clone(),
         })
         .await

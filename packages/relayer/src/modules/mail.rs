@@ -10,7 +10,7 @@ pub enum EmailAuthEvent {
         account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
-        subject: String,
+        command: String,
         account_code: String,
     },
     GuardianAlreadyExists {
@@ -79,22 +79,26 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             account_eth_addr,
             guardian_email_addr,
             request_id,
-            subject,
+            command,
             account_code,
         } => {
-            let subject = format!("{} Code {}", subject, account_code);
+            let command = format!("{} Code {}", command, account_code);
 
             let body_plain = format!(
                 "You have received an guardian request from the wallet address {}. \
+                {} Code {}. \
                 Reply \"Confirm\" to this email to accept the request. \
                 Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
-                account_eth_addr, request_id
+                account_eth_addr, command, account_code, request_id
             );
+
+            let subject = format!("Email Recovery: Acceptance Request");
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
+                "command": command,
                 "requestId": request_id,
             });
             let body_html = render_html("acceptance_request.html", render_data).await?;
