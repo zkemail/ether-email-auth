@@ -23,8 +23,6 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
     let email_body = parsed_email.get_body()?;
 
-    println!("Email body1: {}", email_body);
-
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
@@ -86,8 +84,6 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     request.template_idx,
                 )
                 .await?;
-
-            println!("Subject template: {:?}", subject_template);
 
             let result =
                 extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
