@@ -232,18 +232,33 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
-        string memory expectedSubject = SubjectUtils.computeExpectedSubject(
-            emailAuthMsg.subjectParams,
-            template
-        );
+        // string memory expectedSubject = SubjectUtils.computeExpectedSubject(
+        //     emailAuthMsg.subjectParams,
+        //     template
+        // );
         string memory trimmedMaskedSubject = removePrefix(
             emailAuthMsg.proof.maskedSubject,
             emailAuthMsg.skipedSubjectPrefix
         );
-        require(
-            Strings.equal(expectedSubject, trimmedMaskedSubject),
-            "invalid subject"
-        );
+        // require(
+        //     Strings.equal(expectedSubject, trimmedMaskedSubject),
+        //     "invalid subject"
+        // );
+        string memory expectedSubject = "";
+        for (uint stringCase = 0; stringCase < 3; stringCase++) {
+            expectedSubject = SubjectUtils.computeExpectedSubject(
+                emailAuthMsg.subjectParams,
+                template,
+                stringCase
+            );
+            if (Strings.equal(expectedSubject, trimmedMaskedSubject)) {
+                break;
+            }
+            if (stringCase == 2) {
+                revert("invalid subject");
+            }
+        }
+
         require(
             verifier.verifyEmailProof(emailAuthMsg.proof) == true,
             "invalid email proof"
