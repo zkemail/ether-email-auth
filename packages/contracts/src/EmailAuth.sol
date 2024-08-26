@@ -228,7 +228,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
         require(
             emailAuthMsg.skipedSubjectPrefix < verifier.SUBJECT_BYTES(),
-            "invalid size of the skiped subject prefix"
+            "invalid size of the skipped subject prefix"
         );
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
