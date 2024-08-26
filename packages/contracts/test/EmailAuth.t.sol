@@ -432,6 +432,48 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
+    function testExpectRevertAuthEmailInvalidMaskedSubjectLength() public {
+        vm.startPrank(deployer);
+        _testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.stopPrank();
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            false
+        );
+        assertEq(emailAuth.lastTimestamp(), 0);
+
+        // Set masked subject length to 606, which should be 605 or less defined in the verifier.
+        emailAuthMsg.proof.maskedSubject = string(new bytes(606));
+
+        vm.startPrank(deployer);
+        vm.expectRevert(bytes("invalid masked subject length"));
+        emailAuth.authEmail(emailAuthMsg);
+        vm.stopPrank();
+    }
+
+    function testExpectRevertAuthEmailInvalidSizeOfTheSkippedSubjectPrefix() public {
+        vm.startPrank(deployer);
+        _testInsertSubjectTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.stopPrank();
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            false
+        );
+        assertEq(emailAuth.lastTimestamp(), 0);
+
+        // Set skipped subject prefix length to 605, it should be less than 605.
+        emailAuthMsg.skipedSubjectPrefix = 605;
+
+        vm.startPrank(deployer);
+        vm.expectRevert(bytes("invalid size of the skipped subject prefix"));
+        emailAuth.authEmail(emailAuthMsg);
+        vm.stopPrank();
+    }
+
     function testSetTimestampCheckEnabled() public {
         vm.startPrank(deployer);
 
