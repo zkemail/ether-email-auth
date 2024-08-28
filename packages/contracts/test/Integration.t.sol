@@ -156,7 +156,7 @@ contract IntegrationTest is Test {
         } else {
             assertEq(
                 address(simpleWallet),
-                0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A
+                0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2
             );
         }
         address simpleWalletOwner = simpleWallet.owner();
@@ -196,7 +196,7 @@ contract IntegrationTest is Test {
                 .maskedSubject = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
         } else {
             emailProof
-                .maskedSubject = "Accept guardian request for 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A";
+                .maskedSubject = "Accept guardian request for 0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2";
         }
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -282,7 +282,7 @@ contract IntegrationTest is Test {
                 .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; 
         } else {
             emailProof
-                .maskedSubject = "Set the new signer of 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedSubject = "Set the new signer of 0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         }
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));

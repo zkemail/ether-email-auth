@@ -251,14 +251,15 @@ Next, you should uncomment the following lines in `foundry.toml`.
 # via-ir = true 
 ```
 
-And then you should uncomment the following lines in `src/EmailAccountRecovery.sol`.
+And then you should uncomment the commented imports and functions in `src/utils/ZKSyncCreate2Factory.sol`
 
-```
-// import {SystemContractsCaller} from "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
-// import {DEPLOYER_SYSTEM_CONTRACT} from "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
-```
+Also uncomment the following lines in `src/EmailAccountRecovery.sol` too.
 
-And lines 229 - 263 in the `handleAcceptance` function too.
+- L7 import `ZKSyncCreate2Factory`
+- L133 - L143 in `computeEmailAuthAddress` function
+- L232 - L253 in `handleAcceptance` function
+
+Regarding test cases, you should uncomment `test/ComputeCreate2Address.t.sol`
 
 At the first forge build, you got the following warning like the following.
 

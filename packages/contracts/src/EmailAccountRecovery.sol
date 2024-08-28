@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
+// import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -130,17 +130,17 @@ abstract contract EmailAccountRecovery {
     ) public view returns (address) {
         // If on zksync, we use another logic to calculate create2 address.
         if (block.chainid == 324 || block.chainid == 300) {
-            return ZKSyncCreate2Factory(factory()).computeAddress(
-                accountSalt,
-                proxyBytecodeHash,
-                abi.encode(
-                    emailAuthImplementation(),
-                    abi.encodeCall(
-                        EmailAuth.initialize,
-                        (recoveredAccount, accountSalt, address(this))
-                    )
-                )
-            );
+            // return ZKSyncCreate2Factory(factory()).computeAddress(
+            //     accountSalt,
+            //     proxyBytecodeHash,
+            //     abi.encode(
+            //         emailAuthImplementation(),
+            //         abi.encodeCall(
+            //             EmailAuth.initialize,
+            //             (recoveredAccount, accountSalt, address(this))
+            //         )
+            //     )
+            // );
         } else {
             return
                 Create2.computeAddress(
@@ -229,24 +229,28 @@ abstract contract EmailAccountRecovery {
         if (guardian.code.length == 0) {
             // Deploy proxy of the guardian's EmailAuth contract
             if (block.chainid == 324 || block.chainid == 300) {
-                (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
-                    emailAuthMsg.proof.accountSalt, 
-                    proxyBytecodeHash, 
-                    abi.encode(
-                        emailAuthImplementation(),
-                        abi.encodeCall(
-                            EmailAuth.initialize,
-                            (
-                                recoveredAccount,
-                                emailAuthMsg.proof.accountSalt,
-                                address(this)
-                            )
-                        )
-                    )
-                );
-                address payable proxyAddress = abi.decode(returnData, (address));
-                ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
-                guardianEmailAuth = EmailAuth(address(proxy));
+                // (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
+                //     emailAuthMsg.proof.accountSalt, 
+                //     proxyBytecodeHash, 
+                //     abi.encode(
+                //         emailAuthImplementation(),
+                //         abi.encodeCall(
+                //             EmailAuth.initialize,
+                //             (
+                //                 recoveredAccount,
+                //                 emailAuthMsg.proof.accountSalt,
+                //                 address(this)
+                //             )
+                //         )
+                //     )
+                // );
+                // address payable proxyAddress = abi.decode(returnData, (address));
+                // console.log("proxyAddress: ");
+                // console.logAddress(proxyAddress);
+                // ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
+                // guardianEmailAuth = EmailAuth(address(proxy));
+                // console.log("guardianEmailAuth: ");
+                // console.logAddress(address(guardianEmailAuth));
             } else {
                 // Deploy proxy of the guardian's EmailAuth contract
                 ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
