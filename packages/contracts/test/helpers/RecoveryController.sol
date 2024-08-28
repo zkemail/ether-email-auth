@@ -7,13 +7,17 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import "forge-std/console.sol";
 
+interface CbSmartWallet {
+    function addOwnerPublicKey(bytes32 x, bytes32 y);
+}
+
 contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     enum GuardianStatus {
         NONE,
         REQUESTED,
         ACCEPTED
     }
-    uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
+    uint public constant DEFAULT_TIMELOCK_PERIOD = 0 days;
 
     mapping(address => bool) public isActivatedOfAccount;
     mapping(address => bool) public isRecovering;
@@ -185,6 +189,8 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         isRecovering[account] = false;
         currentTimelockOfAccount[account] = 0;
         newSignerCandidateOfAccount[account] = address(0);
-        SimpleWallet(payable(account)).changeOwner(newSigner);
+        // TODO: make code changes to enable getting x and y
+        CbSmartWallet(payable(account)).addOwnerPublicKey(x, y);
+        // SimpleWallet(payable(account)).changeOwner(newSigner);
     }
 }
