@@ -86,6 +86,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     domain_name_bytes <== SelectRegexReveal(email_max_bytes, domain_len)(domain_regex_reveal, domain_idx);
     domain_name <== Bytes2Ints(domain_len)(domain_name_bytes);
     
+    /// EMAIL NULLIFIER
     signal sign_hash;
     signal sign_ints[k2_chunked_size];
     (sign_hash, sign_ints) <== HashSign(n,k)(signature);
@@ -102,12 +103,13 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     // Timestamp regex + convert to decimal format
     signal timestamp_regex_out, timestamp_regex_reveal[max_header_bytes];
     (timestamp_regex_out, timestamp_regex_reveal) <== TimestampRegex(max_header_bytes)(padded_header);
-    // timestamp_regex_out === 1;
     signal timestamp_str[timestamp_len];
     timestamp_str <== SelectRegexReveal(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
     signal raw_timestamp <== Digit2Int(timestamp_len)(timestamp_str);
     timestamp <== timestamp_regex_out * raw_timestamp;
     
+    /// MASKED SUBJECT
+    /// INVITATION CODE WITH PREFIX REGEX
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_subject_bytes];
     (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_subject_bytes)(subject_all);
     is_code_exist <== IsZero()(prefixed_code_regex_out-1);
@@ -115,6 +117,8 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
     }
+    /// EMAIL ADDRESS REGEX
+    /// Note: the email address in the subject should not overlap with the invitation code
     signal subject_email_addr_regex_out, subject_email_addr_regex_reveal[max_subject_bytes];
     (subject_email_addr_regex_out, subject_email_addr_regex_reveal) <== EmailAddrRegex(max_subject_bytes)(subject_all);
     signal is_subject_email_addr_exist <== IsZero()(subject_email_addr_regex_out-1);
@@ -148,7 +152,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal embedded_account_code <== Hex2Field()(invitation_code_hex);
     is_code_exist * (embedded_account_code - account_code) === 0;
 
-    // Account salt
+    // ACCOUNT SALT
     var num_email_addr_ints = compute_ints_size(email_max_bytes);
     signal from_addr_ints[num_email_addr_ints] <== Bytes2Ints(email_max_bytes)(from_email_addr);
     account_salt <== AccountSalt(num_email_addr_ints)(from_addr_ints, account_code);
@@ -159,7 +163,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
         signal output recipient_email_addr_commit;
         has_email_recipient <== is_subject_email_addr_exist;
         
-        // Email address commitment
+        // EMAIL ADDRESS COMMITMENT
         signal cm_rand_input[k2_chunked_size+1];
         for(var i=0; i<k2_chunked_size;i++){
             cm_rand_input[i] <== sign_ints[i];
