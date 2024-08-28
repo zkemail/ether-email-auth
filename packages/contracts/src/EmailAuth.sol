@@ -26,6 +26,8 @@ struct EmailAuthMsg {
 /// @dev Inherits from OwnableUpgradeable and UUPSUpgradeable for upgradeability and ownership management.
 contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// The CREATE2 salt of this contract defined as a hash of an email address and an account code.
+    // account code is a random number
+    // accountSalt = hash(guardian email addr, account code)
     bytes32 public accountSalt;
     /// An instance of the DKIM registry contract.
     IDKIMRegistry internal dkim;

@@ -22,6 +22,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     mapping(address => bool) public isActivatedOfAccount;
     mapping(address => bool) public isRecovering;
     mapping(address => bytes) public newSignerCandidateOfAccount;
+    // How is an email address tied to an address?
     mapping(address => GuardianStatus) public guardians;
     mapping(address => uint) public timelockPeriodOfAccount;
     mapping(address => uint) public currentTimelockOfAccount;
@@ -157,6 +158,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 2, "invalid subject params");
+        // subjectParams[1] will be in the form 0xAAAAAAAA...
         bytes memory newSignerInEmail = abi.decode(subjectParams[1], (bytes));
         isRecovering[account] = true;
         // TODO: how will we represent x,y public key in email
