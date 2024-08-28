@@ -83,7 +83,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         templates[0][4] = "of";
         templates[0][5] = "{ethAddr}";
         templates[0][6] = "to";
-        templates[0][7] = "{ethAddr}";
+        templates[0][7] = "{string}";
         return templates;
     }
 
