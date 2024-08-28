@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../../src/EmailAuth.sol";
 import "../../src/utils/Verifier.sol";
 import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
 // import "../../src/utils/ForwardDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "./SimpleWallet.sol";
@@ -104,6 +105,9 @@ contract DeploymentHelper is Test {
         EmailAuth emailAuthImpl = new EmailAuth();
         emailAuth = emailAuthImpl;
 
+        // Create zkSync Factory implementation
+        ZKSyncCreate2Factory factoryImpl = new ZKSyncCreate2Factory();
+
         uint templateIdx = 0;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
@@ -119,7 +123,8 @@ contract DeploymentHelper is Test {
                     signer,
                     address(verifier),
                     address(dkim),
-                    address(emailAuthImpl)
+                    address(emailAuthImpl),
+                    address(factoryImpl)
                 )
             )
         );

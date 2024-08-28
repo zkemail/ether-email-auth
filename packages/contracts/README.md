@@ -336,7 +336,7 @@ https://github.com/matter-labs/foundry-zksync/issues/382
 
 Failing test cases are here.
 
-EmailAuthWithUserOverrideableDkim.t.sol
+DKIMRegistryUpgrade.t.sol
 
 - testAuthEmail()
 
@@ -347,6 +347,18 @@ EmailAuth.t.sol
 - testExpectRevertAuthEmailInvalidEmailProof()
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
+
+EmailAuthWithUserOverrideableDkim.t.sol
+
+- testAuthEmail()
+
+ChangeOwners.t.sol
+
+- test_run()
+
+ChangeSignerInECDSAOwnedDKIMRegistry.t.sol
+
+- test_run()
 
 DeployCommons.t.sol
 
@@ -363,6 +375,10 @@ DeploySimpleWallet.t.sol
 - test_run_no_email_auth()
 - test_run_no_simple_wallet()
 - test_run_no_verifier()
+
+RenounceOwners.t.sol
+
+- test_run()
 
 # For integration testing
 

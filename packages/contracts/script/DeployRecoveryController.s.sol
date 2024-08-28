@@ -11,6 +11,7 @@ import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 // import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
 
 contract Deploy is Script {
     using ECDSA for *;
@@ -18,6 +19,7 @@ contract Deploy is Script {
     ECDSAOwnedDKIMRegistry dkim;
     Verifier verifier;
     EmailAuth emailAuthImpl;
+    ZKSyncCreate2Factory factoryImpl;
     SimpleWallet simpleWallet;
     RecoveryController recoveryController;
 
@@ -95,6 +97,17 @@ contract Deploy is Script {
             vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
+        // Deploy Factory
+        factoryImpl = ZKSyncCreate2Factory(vm.envOr("FACTORY", address(0)));
+        if (address(factoryImpl) == address(0)) {
+            factoryImpl = new ZKSyncCreate2Factory();
+            console.log(
+                "Factory implementation deployed at: %s",
+                address(factoryImpl)
+            );
+            vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
+        }
+
         // Create RecoveryController as EmailAccountRecovery implementation
         {
             RecoveryController recoveryControllerImpl = new RecoveryController();
@@ -106,7 +119,8 @@ contract Deploy is Script {
                         signer,
                         address(verifier),
                         address(dkim),
-                        address(emailAuthImpl)
+                        address(emailAuthImpl),
+                        address(factoryImpl)
                     )
                 )
             );

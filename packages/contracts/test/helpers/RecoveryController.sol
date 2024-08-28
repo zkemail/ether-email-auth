@@ -34,12 +34,14 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         address _initialOwner,
         address _verifier,
         address _dkim,
-        address _emailAuthImplementation
+        address _emailAuthImplementation,
+        address _factory
     ) public initializer {
         __Ownable_init(_initialOwner);
         verifierAddr = _verifier;
         dkimAddr = _dkim;
         emailAuthImplementationAddr = _emailAuthImplementation;
+        factoryAddr = _factory;
     }
 
     function isActivated(

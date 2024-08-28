@@ -4,9 +4,7 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
-// import {SystemContractsCaller} from "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
-// import {DEPLOYER_SYSTEM_CONTRACT} from "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
+import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -16,7 +14,12 @@ abstract contract EmailAccountRecovery {
     address public verifierAddr;
     address public dkimAddr;
     address public emailAuthImplementationAddr;
-    bytes32 public proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
+    address public factoryAddr;
+
+    // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+    // If you failed some test cases, check the bytecodeHash by yourself
+    // see, test/ComputeCreate2Address.t.sol
+    bytes32 public constant proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -37,6 +40,13 @@ abstract contract EmailAccountRecovery {
     /// @return address The address of the email authentication contract implementation.
     function emailAuthImplementation() public view virtual returns (address) {
         return emailAuthImplementationAddr;
+    }
+
+    /// @notice Returns the address of the zkSyncfactory contract.
+    /// @dev This function is virtual and can be overridden by inheriting contracts.
+    /// @return address The address of the zkSync factory contract.
+    function factory() public view virtual returns (address) {
+        return factoryAddr;
     }
 
     /// @notice Returns if the account to be recovered has already activated the controller (this contract).
@@ -118,28 +128,19 @@ abstract contract EmailAccountRecovery {
         address recoveredAccount,
         bytes32 accountSalt
     ) public view returns (address) {
-        // If on zksync, we use L2ContractHelper.computeCreate2Address
+        // If on zksync, we use another logic to calculate create2 address.
         if (block.chainid == 324 || block.chainid == 300) {
-            // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
-            // If you failed some test cases, check the bytecodeHash by yourself
-            // see, test/ComputeCreate2Address.t.sol
-            return
-                L2ContractHelper.computeCreate2Address(
-                    address(this),
-                    accountSalt,
-                    bytes32(
-                        proxyBytecodeHash
-                    ),
-                    keccak256(
-                        abi.encode(
-                            emailAuthImplementation(),
-                            abi.encodeCall(
-                                EmailAuth.initialize,
-                                (recoveredAccount, accountSalt, address(this))
-                            )
-                        )
+            return ZKSyncCreate2Factory(factory()).computeAddress(
+                accountSalt,
+                proxyBytecodeHash,
+                abi.encode(
+                    emailAuthImplementation(),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (recoveredAccount, accountSalt, address(this))
                     )
-                );
+                )
+            );
         } else {
             return
                 Create2.computeAddress(
@@ -226,41 +227,27 @@ abstract contract EmailAccountRecovery {
 
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
-        //     // Deploy proxy of the guardian's EmailAuth contract
-        //    if (block.chainid == 324 || block.chainid == 300) {
-        //         (bool success, bytes memory returnData) = SystemContractsCaller
-        //             .systemCallWithReturndata(
-        //                 uint32(gasleft()),
-        //                 address(DEPLOYER_SYSTEM_CONTRACT),
-        //                 uint128(0),
-        //                 abi.encodeCall(
-        //                     DEPLOYER_SYSTEM_CONTRACT.create2,
-        //                     (
-        //                         emailAuthMsg.proof.accountSalt,
-        //                         proxyBytecodeHash,
-        //                         abi.encode(
-        //                             emailAuthImplementation(),
-        //                             abi.encodeCall(
-        //                                 EmailAuth.initialize,
-        //                                 (
-        //                                     recoveredAccount,
-        //                                     emailAuthMsg.proof.accountSalt,
-        //                                     address(this)
-        //                                 )
-        //                             )
-        //                         )
-        //                     )
-        //                 )
-        //             );
-        //         address payable proxyAddress = abi.decode(returnData, (address));
-        //         ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
-        //         guardianEmailAuth = EmailAuth(address(proxy));
-        //         guardianEmailAuth.initialize(
-        //             recoveredAccount,
-        //             emailAuthMsg.proof.accountSalt,
-        //             address(this)
-        //         );
-        //     } else {
+            // Deploy proxy of the guardian's EmailAuth contract
+            if (block.chainid == 324 || block.chainid == 300) {
+                (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
+                    emailAuthMsg.proof.accountSalt, 
+                    proxyBytecodeHash, 
+                    abi.encode(
+                        emailAuthImplementation(),
+                        abi.encodeCall(
+                            EmailAuth.initialize,
+                            (
+                                recoveredAccount,
+                                emailAuthMsg.proof.accountSalt,
+                                address(this)
+                            )
+                        )
+                    )
+                );
+                address payable proxyAddress = abi.decode(returnData, (address));
+                ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
+                guardianEmailAuth = EmailAuth(address(proxy));
+            } else {
                 // Deploy proxy of the guardian's EmailAuth contract
                 ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
                     emailAuthImplementation(),
@@ -270,7 +257,7 @@ abstract contract EmailAccountRecovery {
                     )
                 );
                 guardianEmailAuth = EmailAuth(address(proxy));
-        // }            
+            }            
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
             for (

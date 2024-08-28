@@ -13,6 +13,7 @@ import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
+import "../src/utils/ZKSyncCreate2Factory.sol";
 
 contract IntegrationTest is Test {
     using Strings for *;
@@ -95,6 +96,11 @@ contract IntegrationTest is Test {
         console.log("emailAuthImpl");
         console.logAddress(address(emailAuthImpl));
 
+        // Create zkSync Factory
+        ZKSyncCreate2Factory factoryImpl = new ZKSyncCreate2Factory();
+        console.log("factoryImpl");
+        console.logAddress(address(factoryImpl));
+
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
         ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
@@ -105,7 +111,8 @@ contract IntegrationTest is Test {
                     signer,
                     address(verifier),
                     address(dkim),
-                    address(emailAuthImpl)
+                    address(emailAuthImpl),
+                    address(factoryImpl)
                 )
             )
         );
