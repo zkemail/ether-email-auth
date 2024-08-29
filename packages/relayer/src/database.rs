@@ -134,7 +134,7 @@ impl Database {
         &self,
         row: &Credentials,
     ) -> Result<()> {
-        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3, guardian_email_addr = $4")
+        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3 AND guardian_email_addr = $4")
             .bind(&row.account_code)
             .bind(row.is_set)
             .bind(&row.account_eth_addr)
