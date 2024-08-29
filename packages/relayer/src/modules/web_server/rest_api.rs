@@ -604,7 +604,11 @@ pub async fn inactive_guardian(payload: InactiveGuardianRequest) -> Response<Bod
                 .unwrap()
         }
     }
-    DB.update_credentials_of_inactive_guardian(false, &payload.account_eth_addr)
+    trace!(LOG, "Inactive guardian"; "is_activated" => is_activated.unwrap());
+    let account_eth_addr: Address = payload.account_eth_addr.parse().unwrap();
+    let account_eth_addr = format!("0x{:x}", &account_eth_addr);
+    trace!(LOG, "Inactive guardian"; "account_eth_addr" => &account_eth_addr);
+    DB.update_credentials_of_inactive_guardian(false, &account_eth_addr)
         .await
         .expect("Failed to update credentials");
 
