@@ -383,7 +383,7 @@ RenounceOwners.t.sol
 
 # For integration testing
 
-forge test --match-test 'testIntegration_Account_Recovery' --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+forge test --match-test 'testIntegration_Account_Recovery' --system-mode true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
 
 # For zkSync deployment (For test net)
 
@@ -392,6 +392,6 @@ Second just run the following commands with `--zksync`
 
 ```
 source .env
-forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
+forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
 ```
 
