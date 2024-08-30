@@ -5,6 +5,7 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/poseidon.circom";
 include "@zk-email/circuits/email-verifier.circom";
 include "@zk-email/circuits/utils/regex.circom";
+include "@zk-email/circuits/utils/array.circom";
 include "./utils/constants.circom";
 include "./utils/account_salt.circom";
 include "./utils/hash_sign.circom";
@@ -194,7 +195,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
 // * max_header_bytes - max number of bytes in the email header
 // * max_body_bytes - max number of bytes in the email body
 // * recipient_enabled - whether the email address commitment of the recipient = email address in the subject is exposed
-template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipient_enabled) {
+template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_command_bytes, recipient_enabled) {
     signal input padded_header[max_header_bytes]; // email data (only header part)
     signal input padded_header_len; // length of in email data including the padding
     signal input public_key[k]; // RSA public key (modulus), k parts of n bits each.
@@ -208,10 +209,12 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipi
     signal input domain_idx; // Index of the domain name in the from email address
     signal input timestamp_idx; // Index of the timestamp in the header
     signal input code_idx; // index of the invitation code in the header
+    signal input command_idx; // index of the command in the body
+    signal input command_len; // length of the command
 
 
     var email_max_bytes = email_max_bytes_const();
-    var body_field_len = compute_ints_size(max_body_bytes);
+    var command_field_len = compute_ints_size(max_command_bytes);
     var domain_len = domain_len_const();
     var domain_field_len = compute_ints_size(domain_len);
     var k2_chunked_size = k >> 1;
@@ -226,7 +229,7 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipi
     signal output public_key_hash;
     signal output email_nullifier;
     signal output timestamp;
-    signal output masked_body[body_field_len];
+    signal output masked_command[command_field_len];
     signal output account_salt;
     signal output is_code_exist;
     
@@ -269,26 +272,31 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipi
     timestamp_str <== SelectRegexReveal(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
     signal raw_timestamp <== Digit2Int(timestamp_len)(timestamp_str);
     timestamp <== timestamp_regex_out * raw_timestamp;
+
+    // Extract the command from the body
+    signal command_reveal[max_command_bytes];
+    component select_command_sub_array = SelectSubArray(max_body_bytes, max_command_bytes)(padded_body, command_idx, command_len);
+    command_reveal <== select_command_sub_array.out;
     
-    signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_body_bytes];
-    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_body_bytes)(padded_body);
+    signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_command_bytes];
+    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_command_bytes)(command_reveal);
     is_code_exist <== IsZero()(prefixed_code_regex_out-1);
-    signal removed_code[max_body_bytes];
-    for(var i = 0; i < max_body_bytes; i++) {
+    signal removed_code[max_command_bytes];
+    for(var i = 0; i < max_command_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
     }
-    signal body_email_addr_regex_out, body_email_addr_regex_reveal[max_body_bytes];
-    (body_email_addr_regex_out, body_email_addr_regex_reveal) <== EmailAddrRegex(max_body_bytes)(padded_body);
-    signal is_body_email_addr_exist <== IsZero()(body_email_addr_regex_out-1);
-    signal removed_body_email_addr[max_body_bytes];
-    for(var i = 0; i < max_body_bytes; i++) {
-        removed_body_email_addr[i] <== is_body_email_addr_exist * body_email_addr_regex_reveal[i];
+    signal command_email_addr_regex_out, command_email_addr_regex_reveal[max_command_bytes];
+    (command_email_addr_regex_out, command_email_addr_regex_reveal) <== EmailAddrRegex(max_command_bytes)(command_reveal);
+    signal is_command_email_addr_exist <== IsZero()(command_email_addr_regex_out-1);
+    signal removed_command_email_addr[max_command_bytes];
+    for(var i = 0; i < max_command_bytes; i++) {
+        removed_command_email_addr[i] <== is_command_email_addr_exist * command_email_addr_regex_reveal[i];
     }
-    signal masked_body_bytes[max_body_bytes];
-    for(var i = 0; i < max_body_bytes; i++) {
-        masked_body_bytes[i] <== padded_body[i] - removed_code[i] - removed_body_email_addr[i];
+    signal masked_command_bytes[max_command_bytes];
+    for(var i = 0; i < max_command_bytes; i++) {
+        masked_command_bytes[i] <== command_reveal[i] - removed_code[i] - removed_command_email_addr[i];
     }
-    masked_body <== Bytes2Ints(max_body_bytes)(masked_body_bytes);
+    masked_command <== Bytes2Ints(max_command_bytes)(masked_command_bytes);
 
     // INVITATION CODE REGEX
     signal code_regex_out, code_regex_reveal[max_header_bytes];
@@ -317,10 +325,10 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipi
     account_salt <== AccountSalt(num_email_addr_ints)(from_addr_ints, account_code);
 
     if(recipient_enabled==1) {
-        signal input body_email_addr_idx;
+        signal input command_email_addr_idx;
         signal output has_email_recipient;
         signal output recipient_email_addr_commit;
-        has_email_recipient <== is_body_email_addr_exist;
+        has_email_recipient <== is_command_email_addr_exist;
         
         // Email address commitment
         signal cm_rand_input[k2_chunked_size+1];
@@ -329,16 +337,16 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, recipi
         }
         cm_rand_input[k2_chunked_size] <== 1;
         signal cm_rand <== Poseidon(k2_chunked_size+1)(cm_rand_input);
-        signal replaced_email_addr_regex_reveal[max_body_bytes];
-        for(var i=0; i < max_body_bytes; i++) {
+        signal replaced_email_addr_regex_reveal[max_command_bytes];
+        for(var i=0; i < max_command_bytes; i++) {
             if(i==0) {
-                replaced_email_addr_regex_reveal[i] <== (body_email_addr_regex_reveal[i] - 1) * has_email_recipient + 1;
+                replaced_email_addr_regex_reveal[i] <== (command_email_addr_regex_reveal[i] - 1) * has_email_recipient + 1;
             } else {
-                replaced_email_addr_regex_reveal[i] <== body_email_addr_regex_reveal[i] * has_email_recipient;
+                replaced_email_addr_regex_reveal[i] <== command_email_addr_regex_reveal[i] * has_email_recipient;
             }
         }
         signal shifted_email_addr[email_max_bytes];
-        shifted_email_addr <== SelectRegexReveal(max_body_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, body_email_addr_idx);
+        shifted_email_addr <== SelectRegexReveal(max_command_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, command_email_addr_idx);
         signal recipient_email_addr[email_max_bytes];
         for(var i=0; i < email_max_bytes; i++) {
             recipient_email_addr[i] <== shifted_email_addr[i] * has_email_recipient;
