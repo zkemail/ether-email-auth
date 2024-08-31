@@ -382,4 +382,17 @@ describe("Email Auth", () => {
     }
     await expect(failFn).rejects.toThrow();
   });
+
+  it("Verify a sent email with a too large code_idx 2", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.code_idx = 1024 * 4;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
 });
