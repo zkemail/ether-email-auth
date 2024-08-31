@@ -1820,10 +1820,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@^6.1.1":
-  version "6.1.2"
-  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.1.2.tgz#bde32294e11723bf5880219c274fb720c95aeb3f"
-  integrity sha512-pmZsGo2Kz/CC5T4/VUA/ngJpzP2g05WvXj4X4j4/y30mjdz9oocGYLqsMZEl2Fx3rmH4mZXkGhm0sA0C7hAReg==
+"@zk-email/circuits@^6.1.5":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.1.5.tgz#53462456638edf97bbc206ead01c302ba11e7850"
+  integrity sha512-Hx+R7ARIZ1JLJ6Ba3qqkWdGweOS63P2VyldVgZ5z0KZ5PvgAsM1ka8AUWzq1RFZCmgbluY8yiHLzWREbQm9bOQ==
   dependencies:
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
