@@ -10,7 +10,7 @@
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "^6.1.1",
+    "@zk-email/circuits": "^6.1.5",
     "@zk-email/zk-regex-circom": "^2.1.0",
     "@zk-email/relayer-utils": "^0.2.4",
     "commander": "^11.0.0",

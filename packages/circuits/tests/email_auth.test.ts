@@ -316,4 +316,70 @@ describe("Email Auth", () => {
     }
     await expect(failFn).rejects.toThrow();
   });
+
+
+  it("Verify a sent email with a too large from_addr_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.from_addr_idx = 1024;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
+
+  it("Verify a sent email with a too large domain_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.domain_idx = 256;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
+
+  it("Verify a sent email with a too large subject_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.subject_idx = 1024;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
+
+  it("Verify a sent email with a too large timestamp_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.timestamp_idx = 1024;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
+
+  it("Verify a sent email with a too large code_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const circuitInputs = await genEmailAuthInput(emailFilePath, accountCode);
+    circuitInputs.code_idx = 1024;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
 });
