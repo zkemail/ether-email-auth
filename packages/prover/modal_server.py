@@ -1,5 +1,9 @@
 import modal
-
+import logging
+from google.cloud.logging import Client
+from google.cloud.logging.handlers import CloudLoggingHandler
+from google.cloud.logging_v2.handlers import setup_logging
+from google.oauth2 import service_account
 
 app = modal.App("email-auth-prover-v1.0.4")
 
@@ -21,10 +25,6 @@ def flask_app():
     import sys
     import json
     import os
-    import logging
-    from google.cloud.logging import Client
-    from google.cloud.logging.handlers import CloudLoggingHandler
-    from google.oauth2 import service_account
     from core import (
         gen_email_auth_proof,
     )
@@ -35,23 +35,28 @@ def flask_app():
         service_account_info
     )
     logging_client = Client(project="zkairdrop", credentials=credentials)
+    print(logging_client)
     handler = CloudLoggingHandler(logging_client, name="ether-email-auth-prover")
+    print(handler)
+    setup_logging(handler)
 
     @app.post("/prove/email_auth")
     def prove_email_auth():
-        logger = logging.getLogger()
-        logger.setLevel(logging.INFO)
-        logger.addHandler(handler)
+        print("prove_email_auth")
         req = request.get_json()
         input = req["input"]
-        logger.info(jsonify(req))
+        logger = logging.getLogger(__name__)
+        logger.info(req)
+        print(req)
         nonce = random.randint(
             0,
             sys.maxsize,
         )
         logger.info(nonce)
-        proof = gen_email_auth_proof(str(nonce), False, input, logger)
-        logger.info(jsonify(proof))
+        print(nonce)
+        proof = gen_email_auth_proof(str(nonce), False, input)
+        logger.info(proof)
+        print(proof)
         return jsonify(proof)
 
     return app
