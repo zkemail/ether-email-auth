@@ -14,6 +14,7 @@ app = Flask(__name__)
 @app.route("/prove/email_auth", methods=["POST"])
 def prove_email_auth():
     req = request.get_json()
+    logger.info(req)
     input = req["input"]
     print(input)
     print(type(input))
@@ -21,7 +22,9 @@ def prove_email_auth():
         0,
         sys.maxsize,
     )
-    proof = gen_email_auth_proof(str(nonce), True, input)
+    logger.info(nonce)
+    proof = gen_email_auth_proof(str(nonce), True, input, logger)
+    logger.info(proof)
     return jsonify(proof)
 
 
