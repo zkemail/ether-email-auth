@@ -12,7 +12,7 @@
   "dependencies": {
     "@zk-email/circuits": "^6.1.5",
     "@zk-email/zk-regex-circom": "^2.1.0",
-    "@zk-email/relayer-utils": "^0.2.8",
+    "@zk-email/relayer-utils": "^0.2.9",
     "commander": "^11.0.0",
     "snarkjs": "^0.7.0"
   },
