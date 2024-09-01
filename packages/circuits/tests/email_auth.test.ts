@@ -12,6 +12,7 @@ describe("Email Auth", () => {
     beforeAll(async () => {
         const option = {
             include: path.join(__dirname, "../../../node_modules"),
+            recompile: true,
         };
         circuit = await wasm_tester(
             path.join(__dirname, "../src/email_auth.circom"),
@@ -36,7 +37,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         console.log(circuitInputsRelevant);
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
@@ -98,7 +102,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -159,7 +166,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -220,7 +230,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -282,7 +295,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -343,7 +359,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
@@ -403,7 +422,10 @@ describe("Email Auth", () => {
             command_idx,
             padded_cleaned_body,
             ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode);
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
         circuitInputsRelevant.from_addr_idx = circuitInputsRelevant.subject_idx;
         async function failFn() {
             const witness = await circuit.calculateWitness(
