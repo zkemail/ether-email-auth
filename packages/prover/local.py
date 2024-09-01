@@ -7,26 +7,21 @@ import sys
 from core import (
     gen_email_auth_proof,
 )
-import logging
 
 app = Flask(__name__)
 
 
 @app.route("/prove/email_auth", methods=["POST"])
 def prove_email_auth():
-    logger = logging.getLogger(__name__)
     req = request.get_json()
-    logger.info(jsonify(req))
     input = req["input"]
-    # print(input)
-    # print(type(input))
+    print(input)
+    print(type(input))
     nonce = random.randint(
         0,
         sys.maxsize,
     )
-    logger.info(nonce)
-    proof = gen_email_auth_proof(str(nonce), True, input, logger)
-    logger.info(jsonify(proof))
+    proof = gen_email_auth_proof(str(nonce), True, input)
     return jsonify(proof)
 
 
