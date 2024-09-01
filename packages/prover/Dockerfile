@@ -1,8 +1,4 @@
 FROM python:3.10
-# FROM aayushg0/rapidsnark:latest AS rapidsnark
-# FROM rust:latest
-# FROM node:18
-
 
 RUN apt-get update && apt-get upgrade -y 
 # Update the package list and install necessary dependencies
