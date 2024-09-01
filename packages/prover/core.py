@@ -1,7 +1,6 @@
 import subprocess
 import os
 import json
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -72,9 +71,6 @@ def gen_proof(circuit_name: str, nonce: str, is_local: bool):
             str(is_local_int),
         ]
     )
-    logger.info(f"Proof generation result: {result.returncode}")
-    if result.stderr is not None:
-        logger.error(result.stderr)
     print(result.stdout)
     print(result.stderr)
 
