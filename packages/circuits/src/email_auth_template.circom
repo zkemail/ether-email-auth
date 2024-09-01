@@ -16,6 +16,7 @@ include "./utils/hex2int.circom";
 include "./utils/email_addr_commit.circom";
 include "./regexes/invitation_code_with_prefix_regex.circom";
 include "./regexes/invitation_code_regex.circom";
+include "./regexes/command_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/from_addr_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/email_addr_regex.circom";
 include "@zk-email/zk-regex-circom/circuits/common/email_domain_regex.circom";
@@ -34,7 +35,6 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal input public_key[k]; // RSA public key (modulus), k parts of n bits each.
     signal input signature[k]; // RSA signature, k parts of n bits each.
     signal input padded_header_len; // length of in email data including the padding
-    // signal input sender_relayer_rand; // Private randomness of the relayer
     signal input account_code;
     signal input from_addr_idx; // Index of the from email address (= sender email address) in the email header
     signal input subject_idx; // Index of the subject in the header
@@ -194,8 +194,10 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
 // * k - the number of chunks in the RSA public key (n * k > 2048)
 // * max_header_bytes - max number of bytes in the email header
 // * max_body_bytes - max number of bytes in the email body
+// * max_command_bytes - max number of bytes in the command
 // * recipient_enabled - whether the email address commitment of the recipient = email address in the subject is exposed
-template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_command_bytes, recipient_enabled) {
+// * is_qp_encoded - whether the email body is qp encoded
+template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_command_bytes, recipient_enabled, is_qp_encoded) {
     signal input padded_header[max_header_bytes]; // email data (only header part)
     signal input padded_header_len; // length of in email data including the padding
     signal input public_key[k]; // RSA public key (modulus), k parts of n bits each.
@@ -210,8 +212,9 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     signal input timestamp_idx; // Index of the timestamp in the header
     signal input code_idx; // index of the invitation code in the header
     signal input command_idx; // index of the command in the body
-    signal input command_len; // length of the command
-
+    /// Note: padded_cleaned_body is only used for qp encoded email body, 
+    /// for non-qp encoded email body, it should be equal to padded_body
+    signal input padded_cleaned_body[max_body_bytes]; // cleaned email body
 
     var email_max_bytes = email_max_bytes_const();
     var command_field_len = compute_ints_size(max_command_bytes);
@@ -224,7 +227,6 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     var timestamp_len = timestamp_len_const();
     var code_len = invitation_code_len_const();
 
-
     signal output domain_name[domain_field_len];
     signal output public_key_hash;
     signal output email_nullifier;
@@ -234,7 +236,7 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     signal output is_code_exist;
     
     // Verify Email Signature
-    component email_verifier = EmailVerifier(max_header_bytes, max_body_bytes, n, k, 0, 0, 0);
+    component email_verifier = EmailVerifier(max_header_bytes, max_body_bytes, n, k, 0, is_qp_encoded, 0);
     email_verifier.emailHeader <== padded_header;
     email_verifier.emailHeaderLength <== padded_header_len;
     email_verifier.pubkey <== public_key;
@@ -243,6 +245,9 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     email_verifier.precomputedSHA <== precomputed_sha;
     email_verifier.emailBody <== padded_body;
     email_verifier.emailBodyLength <== padded_body_len;
+    if (is_qp_encoded == 1) {
+        email_verifier.decodedEmailBodyIn <== padded_cleaned_body;
+    }
     public_key_hash <== email_verifier.pubkeyHash;
 
     // FROM HEADER REGEX
@@ -274,19 +279,25 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     timestamp <== timestamp_regex_out * raw_timestamp;
 
     // Extract the command from the body
-    signal command_reveal[max_command_bytes];
-    component select_command_sub_array = SelectSubArray(max_body_bytes, max_command_bytes)(padded_body, command_idx, command_len);
-    command_reveal <== select_command_sub_array.out;
+    signal command_regex_out, command_regex_reveal[max_body_bytes];
+    if (is_qp_encoded != 1) {
+        (command_regex_out, command_regex_reveal) <== CommandRegex(max_body_bytes)(padded_body);
+    } else {
+        (command_regex_out, command_regex_reveal) <== CommandRegex(max_body_bytes)(padded_cleaned_body);
+    }
+    command_regex_out === 1;
+    signal command_all[max_command_bytes];
+    command_all <== SelectRegexReveal(max_body_bytes, max_command_bytes)(command_regex_reveal, command_idx);
     
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_command_bytes];
-    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_command_bytes)(command_reveal);
+    (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_command_bytes)(command_all);
     is_code_exist <== IsZero()(prefixed_code_regex_out-1);
     signal removed_code[max_command_bytes];
     for(var i = 0; i < max_command_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
     }
     signal command_email_addr_regex_out, command_email_addr_regex_reveal[max_command_bytes];
-    (command_email_addr_regex_out, command_email_addr_regex_reveal) <== EmailAddrRegex(max_command_bytes)(command_reveal);
+    (command_email_addr_regex_out, command_email_addr_regex_reveal) <== EmailAddrRegex(max_command_bytes)(command_all);
     signal is_command_email_addr_exist <== IsZero()(command_email_addr_regex_out-1);
     signal removed_command_email_addr[max_command_bytes];
     for(var i = 0; i < max_command_bytes; i++) {
@@ -294,24 +305,28 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     }
     signal masked_command_bytes[max_command_bytes];
     for(var i = 0; i < max_command_bytes; i++) {
-        masked_command_bytes[i] <== command_reveal[i] - removed_code[i] - removed_command_email_addr[i];
+        masked_command_bytes[i] <== command_all[i] - removed_code[i] - removed_command_email_addr[i];
     }
     masked_command <== Bytes2Ints(max_command_bytes)(masked_command_bytes);
 
     // INVITATION CODE REGEX
-    signal code_regex_out, code_regex_reveal[max_header_bytes];
-    (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_header_bytes)(padded_header);
+    signal code_regex_out, code_regex_reveal[max_body_bytes];
+    if (is_qp_encoded != 1) {
+        (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_body_bytes)(padded_body);
+    } else {
+        (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_body_bytes)(padded_cleaned_body);
+    }
     signal code_consistency <== IsZero()(is_code_exist * (1 - code_regex_out));
     code_consistency === 1;
-    signal replaced_code_regex_reveal[max_header_bytes];
-    for(var i=0; i<max_header_bytes; i++) {
+    signal replaced_code_regex_reveal[max_body_bytes];
+    for(var i=0; i<max_body_bytes; i++) {
         if(i==0) {
             replaced_code_regex_reveal[i] <== (code_regex_reveal[i] - 1) * is_code_exist + 1;
         } else {
             replaced_code_regex_reveal[i] <== code_regex_reveal[i] * is_code_exist;
         }
     }
-    signal shifted_code_hex[code_len] <== SelectRegexReveal(max_header_bytes, code_len)(replaced_code_regex_reveal, code_idx);
+    signal shifted_code_hex[code_len] <== SelectRegexReveal(max_body_bytes, code_len)(replaced_code_regex_reveal, code_idx);
     signal invitation_code_hex[code_len];
     for(var i=0; i<code_len; i++) {
         invitation_code_hex[i] <== is_code_exist * (shifted_code_hex[i] - 48) + 48;
