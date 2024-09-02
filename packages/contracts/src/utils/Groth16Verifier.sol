@@ -37,126 +37,84 @@ contract Groth16Verifier {
     uint256 constant gammax2 = 10857046999023057135944570762232829481370756359578518086990519993285655852781;
     uint256 constant gammay1 = 4082367875863433681332203403145435568316851327593401208105741076214120093531;
     uint256 constant gammay2 = 8495653923123431417604973247489272438418190587263600148770280649306958101930;
-    uint256 constant deltax1 = 12348375662783824431360707906202475009449369812921990201376235771680861701966;
-    uint256 constant deltax2 = 1390621091717691233659791897033569945783127756008503250856151404215287127098;
-    uint256 constant deltay1 = 21545653682963288007472972452138234474169143155774752223643789231933860474340;
-    uint256 constant deltay2 = 10610549897370405036411988417557836327116891506639515374316821127902275605593;
+    uint256 constant deltax1 = 7512310166790179922504683523654316114051222191831169356747444038269967648305;
+    uint256 constant deltax2 = 14358591220354673294638423548838009163329059984271248943224595375523946440844;
+    uint256 constant deltay1 = 10945165491323316120158090062372436583843822551186653547350912773785745492908;
+    uint256 constant deltay2 = 12977491133002118873088909332652159965708924468719154246248274593582873461934;
 
     
-    uint256 constant IC0x = 5901406458595327327953646561359621442218448144107991955344827840671354857930;
-    uint256 constant IC0y = 21253883398616811363937453025480398551698716152192802899988370991179418894921;
+    uint256 constant IC0x = 13963177540950809295782204463516277073432173625654096650299395551650393709604;
+    uint256 constant IC0y = 15602945741766824338761981015932856359177200661747787110583509305519171311689;
     
-    uint256 constant IC1x = 1112924942971302135990579038492068551965379862222416146684206705079782572000;
-    uint256 constant IC1y = 6845816202276549205403237603547410855545803354942552863847676397548741086071;
+    uint256 constant IC1x = 13901364820478321928616223034286870916279818972373410460098510478160011053099;
+    uint256 constant IC1y = 14236131152778024758629670193607195289980506228078730330692122051313154306570;
     
-    uint256 constant IC2x = 14146397086704743317768846126489596483634956428235300380826232977310804058751;
-    uint256 constant IC2y = 19618883007025739156467626277666586024401705866552606313791444982720962403992;
+    uint256 constant IC2x = 9230583203032536232829062152692285477328633564550620828795526551927932673258;
+    uint256 constant IC2y = 12823968485634865433296790678185713696956177429058503916497795155602629992619;
     
-    uint256 constant IC3x = 3901572409202614942721645284047738923242593674037512752046910139604415193490;
-    uint256 constant IC3y = 20492449392704526941468738279820790768424887146903635663987211396806301809154;
+    uint256 constant IC3x = 17639740392526803545767112437667038900196736383732820044731439393404104455892;
+    uint256 constant IC3y = 185489738400311207281216872971624070048902329723183825977411360815457155921;
     
-    uint256 constant IC4x = 18540181064351079043471661082110994395960833330341135578479476830087776228683;
-    uint256 constant IC4y = 11176005255132390129621080493002450161350701375862520723126575901394028996036;
+    uint256 constant IC4x = 12069519432129553376683732542057521791951300837387868001349505113926238600603;
+    uint256 constant IC4y = 5179805167216122560022161376021253470175122378869865440572964817206688034995;
     
-    uint256 constant IC5x = 19561918792572579721654605669351975749853953476158354443105355794367963998057;
-    uint256 constant IC5y = 8218678694141104830016990002861269810060858478661593498963178088127632633272;
+    uint256 constant IC5x = 13341741969026085479452747303102949204889069730043799331450553531777313415027;
+    uint256 constant IC5y = 12622154326191207141879122439134936928996883243183804472561540303328627402611;
     
-    uint256 constant IC6x = 9430924798221081020093287735191121193795036835461664479209198319741867653703;
-    uint256 constant IC6y = 8320455794218847878770580093897658145962468495286236900439725456006531945699;
+    uint256 constant IC6x = 5524249138004641558839056031282734507960291855160204994698994244702630374695;
+    uint256 constant IC6y = 2838545179481365224586078663128105413457151412717798861182352117115080523068;
     
-    uint256 constant IC7x = 5026847283727041400632489144741052290976729570767028644525050581059876916251;
-    uint256 constant IC7y = 18709603090338372683001965035561848282369713676288357172691730209331905334650;
+    uint256 constant IC7x = 19554330184893289081351857198918890940131287920028938901123258851925997091096;
+    uint256 constant IC7y = 21187120635590833154352478658750104019492268925659795328629826170424237790467;
     
-    uint256 constant IC8x = 17783950150020738154914534833285662833687830065154708170534593149023190841571;
-    uint256 constant IC8y = 6711670108831861054349992265875143708175087706665287716580642850559233815182;
+    uint256 constant IC8x = 7760862852091446869454661318724098439035438362089550104244769932517916868839;
+    uint256 constant IC8y = 19254393654613960117332409830738981805954756960359620518017135829429172873772;
     
-    uint256 constant IC9x = 6456809683101221239825536925658971026995917443342977471616457395354933010826;
-    uint256 constant IC9y = 2014292748365982904981992383163603273504856743882959093701478470668783800522;
+    uint256 constant IC9x = 15564940155024906142999107362340815858137284449493640983339345075622293100658;
+    uint256 constant IC9y = 1617046506300089432116787730161816212709927386986013437340513810060016149022;
     
-    uint256 constant IC10x = 6628245325000975286546535223213930648454767286000819266622720989919128655736;
-    uint256 constant IC10y = 14513751619334179776611945559238333965209884013883320491822197554011245102668;
+    uint256 constant IC10x = 8761289037800026614344829900088226723021361306934107788103479929938837644308;
+    uint256 constant IC10y = 18887041123828916694468022436722879291739062402223689213701674861638998067598;
     
-    uint256 constant IC11x = 18570424159211943648550772570282559547250130191621494465657111355378707354500;
-    uint256 constant IC11y = 3142881938352899028782850032628554749777583832256141371247984173352247988131;
+    uint256 constant IC11x = 15078796297798212555417977593995358910740633024789147595871485081022877594688;
+    uint256 constant IC11y = 8470804935050612973272335097844258163084303298699216060651895502152836140266;
     
-    uint256 constant IC12x = 5223991002378260090449510454796281831282905631623677469960113091483024319301;
-    uint256 constant IC12y = 9427018011817145184335218137442223127741016816822775509206816206494077869941;
+    uint256 constant IC12x = 13148554463252000159734437740750147355285467799702838626674782427621833651862;
+    uint256 constant IC12y = 4154912502683952848865244880904626773017467395251182073432201348576612338512;
     
-    uint256 constant IC13x = 17733384847564503082934979078550596341075160377145956961996412508907155849602;
-    uint256 constant IC13y = 15345500273986785785979010183753446192836470842052033037545791683924216389909;
+    uint256 constant IC13x = 9971258020291304535684934520409197417844738102841933849336209194551684387260;
+    uint256 constant IC13y = 11597854766455209249051872024659116726914370916348872165676874573511692371038;
     
-    uint256 constant IC14x = 6541603162653988673614876540286498610416711433782997011446804048984497507717;
-    uint256 constant IC14y = 9471585496716317833911101487553454694761435169521054429602533117895220539092;
+    uint256 constant IC14x = 2930562317584608077941323563288223695503253706485531251156544883634158242043;
+    uint256 constant IC14y = 9240840788488657599771118100535077289767006523619812853863860241862442262419;
     
-    uint256 constant IC15x = 6574110840837190171512762164893486105535576711656029901056739039814628526912;
-    uint256 constant IC15y = 12107221022070295505274408663667253928323650746131661962928553805430682213730;
+    uint256 constant IC15x = 16422784168814990015933552338417309538225820837997155930682270086046353015844;
+    uint256 constant IC15y = 19869469930650174203989020181864562320111438711593759069952187898326610664818;
     
-    uint256 constant IC16x = 2983775925467162306639671044788352921278318217335490557023737802970494396161;
-    uint256 constant IC16y = 15155657642358487296835454918514213311356981076876734700573166757257484354564;
+    uint256 constant IC16x = 13790631431800806141462691434744099435298278652239216597838090515088257481073;
+    uint256 constant IC16y = 5970741811988419030089819655471571807951451817787149436342954581604814989654;
     
-    uint256 constant IC17x = 8967042914633055089306636825844718647849951037719728238537295360572488150548;
-    uint256 constant IC17y = 16316365584620447093615538375124020157614277415345119540410103156547686499616;
+    uint256 constant IC17x = 14976736427051209441599895542115651186815700359766023720088346036777288255538;
+    uint256 constant IC17y = 12852402101788491586826305692493329786060447274461406286947282250831762004864;
     
-    uint256 constant IC18x = 10539075382040152021577786214341262536565753081943101851679620745620126843721;
-    uint256 constant IC18y = 4734602432159888257161632785059762380496749946015675717019228118945872853040;
+    uint256 constant IC18x = 4280125422602481644778681032156727291998269141310669530728230860253156845126;
+    uint256 constant IC18y = 16682143429272254699133459970696787349636739657860469986526142128107512434480;
     
-    uint256 constant IC19x = 16904274081002162388173688128412241495718571792446724759784404749590000812400;
-    uint256 constant IC19y = 10801084318813806801902242112307629808119029411792686266329164737317751231217;
+    uint256 constant IC19x = 10147951062270258918013679058779577570351008390025368069146440787810065746771;
+    uint256 constant IC19y = 5090148640187367354670039734538337475397977849830533292031088125570710070678;
     
-    uint256 constant IC20x = 15575787937775277998941372228242544347460724933647624890935023166333401850163;
-    uint256 constant IC20y = 7296638718677056910701470329118855562874930285186351569007798599358833717218;
+    uint256 constant IC20x = 578255745441773075639210078803617950558342577360305877996037440974850723995;
+    uint256 constant IC20y = 12520655905142699409929405181761549544517927774724036032382536924347165049220;
     
-    uint256 constant IC21x = 4551313941391400232712859196059035637265126775160423752556164701565012171961;
-    uint256 constant IC21y = 21401656423982733211718420214626338184514587667446979844631973864641456629261;
+    uint256 constant IC21x = 3355415877559605146458275122957543229539987007795496380499840576047274644423;
+    uint256 constant IC21y = 20476643636313926200244212968226317708756519977425220516640115874928427933331;
     
-    uint256 constant IC22x = 2935540066773152386094450378156329519379475479888931777862603161088003692041;
-    uint256 constant IC22y = 3754706265995206762948051647660125270465347882441656302776943004798594006627;
+    uint256 constant IC22x = 21449378479565844466348985747983272828741700435723692245161366305682834816693;
+    uint256 constant IC22y = 506562745742676866252077181735736358296299192584367348641528429905789575988;
     
-    uint256 constant IC23x = 14941485327978437375521006241254634444037644973379906367567115351627139641414;
-    uint256 constant IC23y = 10702407562034274430221897944829443699402512693373259167588271091307663372710;
+    uint256 constant IC23x = 20726751273737403605532121718064449872454430937365235084763999011467146824138;
+    uint256 constant IC23y = 2569317581613789680208520789013703218069888753995406910612291831117799394742;
     
-    uint256 constant IC24x = 8275896680177260146907953439805305572759478043924598922328323793281943403370;
-    uint256 constant IC24y = 4247674182996730416195978445155055073549714994568066175487529509583649388873;
-    
-    uint256 constant IC25x = 5689003246975774737588871342271076456426408075813318043434367952407244465697;
-    uint256 constant IC25y = 5331139184498747881817447962895230742876804067387026910085264060106931675015;
-    
-    uint256 constant IC26x = 9133389296516422045582607363916275184958302548102626374643142889003044665947;
-    uint256 constant IC26y = 21212127989644328313744743046359043793974008456261367858588476558007302881330;
-    
-    uint256 constant IC27x = 1846381662521291690941661313906009843371539776920831630929177290350683400816;
-    uint256 constant IC27y = 14037588365801936321970551415842797526891505906435930017587651178284699267713;
-    
-    uint256 constant IC28x = 9781100104817210330466721014252420484088695894046800561845749556748658092046;
-    uint256 constant IC28y = 5247283488585909287681175111965979900241094426050812131890410213638115643151;
-    
-    uint256 constant IC29x = 2601884709396729070900092103586635418201773412881087270429648554918650589212;
-    uint256 constant IC29y = 9908981325212548797939830108274909156521241172863051558205007650971279318517;
-    
-    uint256 constant IC30x = 9939266818987304280716292846681442246091197219658249578844451051169120630547;
-    uint256 constant IC30y = 2572015044563341438903424542575536095020061887469225890988354903901552937232;
-    
-    uint256 constant IC31x = 13118893670705126645185968274218628155008227884751114852720068135196260630881;
-    uint256 constant IC31y = 6230722867526865558981774022287077378574474669760549030286133277816703673143;
-    
-    uint256 constant IC32x = 17212407207955414163237618089196466668701707894128397707051726962337098549169;
-    uint256 constant IC32y = 8404846513505663468605283225980364311579458231305844344066234966448248022846;
-    
-    uint256 constant IC33x = 11738484603497709502459820489878480711987723990943728339865918189223648597498;
-    uint256 constant IC33y = 4876663067150136827802187921986818211983158246723787276826534383019800886864;
-    
-    uint256 constant IC34x = 10388736566666345681097260475847864743327046424517259125467497894377198799740;
-    uint256 constant IC34y = 18058504066267363666256588143336895545386092144245446448007719752461244713629;
-
-    // For zksync mainnet TODO: Current addresses are on zkSync sepolia, 
-    // Please deploy them before you deploy the Groth16Verifier.
-    address constant ecAddAddrZkSync = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
-    address constant ecMulAddrZkSync = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
-    address constant ecPairingAddrZkSync = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
-    // For zksync sepolia
-    address constant ecAddAddrZkSyncSepolia = 0x4cc3aa31951FADa114cBAd54686E2A082Df6C4fa;
-    address constant ecMulAddrZkSyncSepolia = 0x2abE798291c05B054475BDEB017161737A6A1b4F;
-    address constant ecPairingAddrZkSyncSepolia = 0x9F7D2961D2E522D5B1407dD1e364A520DdC8a77F;    
  
     // Memory data
     uint16 constant pVk = 0;
@@ -164,45 +122,25 @@ contract Groth16Verifier {
 
     uint16 constant pLastMem = 896;
 
-    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[34] calldata _pubSignals) public view returns (bool) {
-
-        uint16 zksync;
-        if(block.chainid == 300) {
-            zksync = 2; // zkSync sepolia
-        } else if(block.chainid == 324) {
-            zksync = 1; // zkSync mainnet
-        } else {
-            zksync = 0; // others
-        }
-
+    function verifyProof(uint[2] calldata _pA, uint[2][2] calldata _pB, uint[2] calldata _pC, uint[23] calldata _pubSignals) public view returns (bool) {
         assembly {
-
             function checkField(v) {
-                if iszero(lt(v, q)) {
+                if iszero(lt(v, r)) {
                     mstore(0, 0)
                     return(0, 0x20)
                 }
             }
             
             // G1 function to multiply a G1 value(x,y) to value in an address
-            function g1_mulAccC(pR, x, y, s, z) {
+            function g1_mulAccC(pR, x, y, s) {
                 let success
                 let mIn := mload(0x40)
                 mstore(mIn, x)
                 mstore(add(mIn, 32), y)
                 mstore(add(mIn, 64), s)
 
-                switch z
-                case 1 { 
-                    success := staticcall(sub(gas(), 2000), ecMulAddrZkSync, mIn, 96, mIn, 64)
-                }
-                case 2 {
-                    success := staticcall(sub(gas(), 2000), ecMulAddrZkSyncSepolia, mIn, 96, mIn, 64)
-                }
-                default { 
-                    success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
-                }
-                
+                success := staticcall(sub(gas(), 2000), 7, mIn, 96, mIn, 64)
+
                 if iszero(success) {
                     mstore(0, 0)
                     return(0, 0x20)
@@ -211,17 +149,7 @@ contract Groth16Verifier {
                 mstore(add(mIn, 64), mload(pR))
                 mstore(add(mIn, 96), mload(add(pR, 32)))
 
-                switch z
-                case 1 { 
-                    success := staticcall(sub(gas(), 2000), ecAddAddrZkSync, mIn, 128, pR, 64)
-                }
-                case 2 {
-                    success := staticcall(sub(gas(), 2000), ecAddAddrZkSyncSepolia, mIn, 128, pR, 64)
-                }
-                default { 
-                    success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
-                }
-
+                success := staticcall(sub(gas(), 2000), 6, mIn, 128, pR, 64)
 
                 if iszero(success) {
                     mstore(0, 0)
@@ -229,7 +157,7 @@ contract Groth16Verifier {
                 }
             }
 
-            function checkPairing(pA, pB, pC, pubSignals, pMem, z) -> isOk {
+            function checkPairing(pA, pB, pC, pubSignals, pMem) -> isOk {
                 let _pPairing := add(pMem, pPairing)
                 let _pVk := add(pMem, pVk)
 
@@ -238,73 +166,51 @@ contract Groth16Verifier {
 
                 // Compute the linear combination vk_x
                 
-                g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)), z)
+                g1_mulAccC(_pVk, IC1x, IC1y, calldataload(add(pubSignals, 0)))
                 
-                g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)), z)
+                g1_mulAccC(_pVk, IC2x, IC2y, calldataload(add(pubSignals, 32)))
                 
-                g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)), z)
+                g1_mulAccC(_pVk, IC3x, IC3y, calldataload(add(pubSignals, 64)))
                 
-                g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)), z)
+                g1_mulAccC(_pVk, IC4x, IC4y, calldataload(add(pubSignals, 96)))
                 
-                g1_mulAccC(_pVk, IC5x, IC5y, calldataload(add(pubSignals, 128)), z)
+                g1_mulAccC(_pVk, IC5x, IC5y, calldataload(add(pubSignals, 128)))
                 
-                g1_mulAccC(_pVk, IC6x, IC6y, calldataload(add(pubSignals, 160)), z)
+                g1_mulAccC(_pVk, IC6x, IC6y, calldataload(add(pubSignals, 160)))
                 
-                g1_mulAccC(_pVk, IC7x, IC7y, calldataload(add(pubSignals, 192)), z)
+                g1_mulAccC(_pVk, IC7x, IC7y, calldataload(add(pubSignals, 192)))
                 
-                g1_mulAccC(_pVk, IC8x, IC8y, calldataload(add(pubSignals, 224)), z)
+                g1_mulAccC(_pVk, IC8x, IC8y, calldataload(add(pubSignals, 224)))
                 
-                g1_mulAccC(_pVk, IC9x, IC9y, calldataload(add(pubSignals, 256)), z)
+                g1_mulAccC(_pVk, IC9x, IC9y, calldataload(add(pubSignals, 256)))
                 
-                g1_mulAccC(_pVk, IC10x, IC10y, calldataload(add(pubSignals, 288)), z)
+                g1_mulAccC(_pVk, IC10x, IC10y, calldataload(add(pubSignals, 288)))
                 
-                g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)), z)
+                g1_mulAccC(_pVk, IC11x, IC11y, calldataload(add(pubSignals, 320)))
                 
-                g1_mulAccC(_pVk, IC12x, IC12y, calldataload(add(pubSignals, 352)), z)
+                g1_mulAccC(_pVk, IC12x, IC12y, calldataload(add(pubSignals, 352)))
                 
-                g1_mulAccC(_pVk, IC13x, IC13y, calldataload(add(pubSignals, 384)), z)
+                g1_mulAccC(_pVk, IC13x, IC13y, calldataload(add(pubSignals, 384)))
                 
-                g1_mulAccC(_pVk, IC14x, IC14y, calldataload(add(pubSignals, 416)), z)
+                g1_mulAccC(_pVk, IC14x, IC14y, calldataload(add(pubSignals, 416)))
                 
-                g1_mulAccC(_pVk, IC15x, IC15y, calldataload(add(pubSignals, 448)), z)
+                g1_mulAccC(_pVk, IC15x, IC15y, calldataload(add(pubSignals, 448)))
                 
-                g1_mulAccC(_pVk, IC16x, IC16y, calldataload(add(pubSignals, 480)), z)
+                g1_mulAccC(_pVk, IC16x, IC16y, calldataload(add(pubSignals, 480)))
                 
-                g1_mulAccC(_pVk, IC17x, IC17y, calldataload(add(pubSignals, 512)), z)
+                g1_mulAccC(_pVk, IC17x, IC17y, calldataload(add(pubSignals, 512)))
                 
-                g1_mulAccC(_pVk, IC18x, IC18y, calldataload(add(pubSignals, 544)), z)
+                g1_mulAccC(_pVk, IC18x, IC18y, calldataload(add(pubSignals, 544)))
                 
-                g1_mulAccC(_pVk, IC19x, IC19y, calldataload(add(pubSignals, 576)), z)
+                g1_mulAccC(_pVk, IC19x, IC19y, calldataload(add(pubSignals, 576)))
                 
-                g1_mulAccC(_pVk, IC20x, IC20y, calldataload(add(pubSignals, 608)), z)
+                g1_mulAccC(_pVk, IC20x, IC20y, calldataload(add(pubSignals, 608)))
                 
-                g1_mulAccC(_pVk, IC21x, IC21y, calldataload(add(pubSignals, 640)), z)
+                g1_mulAccC(_pVk, IC21x, IC21y, calldataload(add(pubSignals, 640)))
                 
-                g1_mulAccC(_pVk, IC22x, IC22y, calldataload(add(pubSignals, 672)), z)
+                g1_mulAccC(_pVk, IC22x, IC22y, calldataload(add(pubSignals, 672)))
                 
-                g1_mulAccC(_pVk, IC23x, IC23y, calldataload(add(pubSignals, 704)), z)
-                
-                g1_mulAccC(_pVk, IC24x, IC24y, calldataload(add(pubSignals, 736)), z)
-                
-                g1_mulAccC(_pVk, IC25x, IC25y, calldataload(add(pubSignals, 768)), z)
-                
-                g1_mulAccC(_pVk, IC26x, IC26y, calldataload(add(pubSignals, 800)), z)
-                
-                g1_mulAccC(_pVk, IC27x, IC27y, calldataload(add(pubSignals, 832)), z)
-                
-                g1_mulAccC(_pVk, IC28x, IC28y, calldataload(add(pubSignals, 864)), z)
-                
-                g1_mulAccC(_pVk, IC29x, IC29y, calldataload(add(pubSignals, 896)), z)
-                
-                g1_mulAccC(_pVk, IC30x, IC30y, calldataload(add(pubSignals, 928)), z)
-                
-                g1_mulAccC(_pVk, IC31x, IC31y, calldataload(add(pubSignals, 960)), z)
-                
-                g1_mulAccC(_pVk, IC32x, IC32y, calldataload(add(pubSignals, 992)), z)
-                
-                g1_mulAccC(_pVk, IC33x, IC33y, calldataload(add(pubSignals, 1024)), z)
-                
-                g1_mulAccC(_pVk, IC34x, IC34y, calldataload(add(pubSignals, 1056)), z)
+                g1_mulAccC(_pVk, IC23x, IC23y, calldataload(add(pubSignals, 704)))
                 
 
                 // -A
@@ -349,17 +255,7 @@ contract Groth16Verifier {
                 mstore(add(_pPairing, 736), deltay2)
 
 
-                let success := false
-                switch z
-                case 1 { 
-                    success := staticcall(sub(gas(), 2000), ecPairingAddrZkSync, _pPairing, 768, _pPairing, 0x20)
-                }
-                case 2 {
-                    success := staticcall(sub(gas(), 2000), ecPairingAddrZkSyncSepolia, _pPairing, 768, _pPairing, 0x20)
-                }
-                default { 
-                    success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
-                }
+                let success := staticcall(sub(gas(), 2000), 8, _pPairing, 768, _pPairing, 0x20)
 
                 isOk := and(success, mload(_pPairing))
             }
@@ -417,31 +313,9 @@ contract Groth16Verifier {
             
             checkField(calldataload(add(_pubSignals, 736)))
             
-            checkField(calldataload(add(_pubSignals, 768)))
-            
-            checkField(calldataload(add(_pubSignals, 800)))
-            
-            checkField(calldataload(add(_pubSignals, 832)))
-            
-            checkField(calldataload(add(_pubSignals, 864)))
-            
-            checkField(calldataload(add(_pubSignals, 896)))
-            
-            checkField(calldataload(add(_pubSignals, 928)))
-            
-            checkField(calldataload(add(_pubSignals, 960)))
-            
-            checkField(calldataload(add(_pubSignals, 992)))
-            
-            checkField(calldataload(add(_pubSignals, 1024)))
-            
-            checkField(calldataload(add(_pubSignals, 1056)))
-            
-            checkField(calldataload(add(_pubSignals, 1088)))
-            
 
             // Validate all evaluations
-            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem, zksync)
+            let isValid := checkPairing(_pA, _pB, _pC, _pubSignals, pMem)
 
             mstore(0, isValid)
              return(0, 0x20)

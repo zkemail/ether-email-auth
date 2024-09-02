@@ -20,7 +20,8 @@ program
     "--output <string>",
     "Path to the directory storing output files"
   )
-  .option("--silent", "No console logs");
+  .option("--silent", "No console logs")
+  .option("--body", "Enable body parsing");
 
 program.parse();
 const args = program.opts();
@@ -140,14 +141,22 @@ async function exec() {
   await downloadPhase1(phase1Path);
   log("✓ Phase 1:", phase1Path);
 
-  const emailAuthR1csPath = path.join(buildDir, "email_auth.r1cs");
-  if (!fs.existsSync(emailAuthR1csPath)) {
-    throw new Error(`${emailAuthR1csPath} does not exist.`);
+  if (!args.body) {
+    const emailAuthR1csPath = path.join(buildDir, "email_auth.r1cs");
+    if (!fs.existsSync(emailAuthR1csPath)) {
+      throw new Error(`${emailAuthR1csPath} does not exist.`);
+    }
+    await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth.zkey"), path.join(buildDir, "email_auth.vkey"), path.join(buildDir, "Groth16Verifier.sol"));
+    log("✓ Keys for email auth circuit generated");
+  } else {
+    const emailAuthR1csPath = path.join(buildDir, "email_auth_with_body_parsing_with_qp_encoding.r1cs");
+    if (!fs.existsSync(emailAuthR1csPath)) {
+      throw new Error(`${emailAuthR1csPath} does not exist.`);
+    }
+    await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth_with_body_parsing_with_qp_encoding.zkey"), path.join(buildDir, "email_auth_with_body_parsing_with_qp_encoding.vkey"), path.join(buildDir, "Groth16BodyParsingVerifier.sol"));
+    log("✓ Keys for email auth with body parsing circuit generated");
   }
-  await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth.zkey"), path.join(buildDir, "email_auth.vkey"), path.join(buildDir, "Groth16Verifier.sol"));
-  log("✓ Keys for email auth circuit generated");
 
-  
 }
 
 
