@@ -1854,10 +1854,9 @@
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@^2.1.0":
+"@zk-email/zk-regex-circom@^2.1.0", "@zk-email/zk-regex-circom@https://gitpkg.vercel.app/zkemail/zk-regex/packages/circom?feat/fix-email-addr-regex":
   version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.1.0.tgz#cc2f1d93fb130a9f8ac88114d3559a296df97538"
-  integrity sha512-Ayq0Hk4m7w1UHPPx2c5bUWLdKUPnuK62AZFOyiIvA7x4NgRyvjxe+S4D5KFH5FIz4PgEnXVxgscSSbe5p/GCvQ==
+  resolved "https://gitpkg.vercel.app/zkemail/zk-regex/packages/circom?feat/fix-email-addr-regex#adf613c7b5b761eb080f616f18625a6f711ede29"
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.0"

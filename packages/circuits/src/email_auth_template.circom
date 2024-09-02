@@ -121,7 +121,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     /// INVITATION CODE WITH PREFIX REGEX
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_subject_bytes];
     (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_subject_bytes)(subject_all);
-    is_code_exist <== IsZero()(prefixed_code_regex_out-1);
+    is_code_exist <== prefixed_code_regex_out;
     signal removed_code[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
@@ -130,7 +130,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     /// Note: the email address in the subject should not overlap with the invitation code
     signal subject_email_addr_regex_out, subject_email_addr_regex_reveal[max_subject_bytes];
     (subject_email_addr_regex_out, subject_email_addr_regex_reveal) <== EmailAddrRegex(max_subject_bytes)(subject_all);
-    signal is_subject_email_addr_exist <== IsZero()(subject_email_addr_regex_out-1);
+    signal is_subject_email_addr_exist <== subject_email_addr_regex_out;
     signal removed_subject_email_addr[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_subject_email_addr[i] <== is_subject_email_addr_exist * subject_email_addr_regex_reveal[i];
