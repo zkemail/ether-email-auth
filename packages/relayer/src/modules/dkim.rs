@@ -3,6 +3,7 @@ use relayer_utils::extract_substr_idxes;
 use relayer_utils::LOG;
 
 use crate::*;
+use candid::CandidType;
 use ethers::types::Bytes;
 use ethers::utils::hex::FromHex;
 use ic_agent::agent::http_transport::ReqwestTransport;
@@ -17,7 +18,7 @@ pub struct DkimOracleClient<'a> {
     pub canister: Canister<'a>,
 }
 
-#[derive(Default, Deserialize, Debug, Clone)]
+#[derive(Default, CandidType, Deserialize, Debug, Clone)]
 pub struct SignedDkimPublicKey {
     pub selector: String,
     pub domain: String,
@@ -64,7 +65,6 @@ impl<'a> DkimOracleClient<'a> {
     }
 }
 
-#[named]
 pub async fn check_and_update_dkim(
     email: &str,
     parsed_email: &ParsedEmail,
@@ -75,11 +75,11 @@ pub async fn check_and_update_dkim(
     let mut public_key_n = parsed_email.public_key.clone();
     public_key_n.reverse();
     let public_key_hash = public_key_hash(&public_key_n)?;
-    info!(LOG, "public_key_hash {:?}", public_key_hash; "func" => function_name!());
+    info!(LOG, "public_key_hash {:?}", public_key_hash);
     let domain = parsed_email.get_email_domain()?;
-    info!(LOG, "domain {:?}", domain; "func" => function_name!());
+    info!(LOG, "domain {:?}", domain);
     if CLIENT.get_bytecode(&wallet_addr.to_string()).await? == Bytes::from(vec![0u8; 20]) {
-        info!(LOG, "wallet not deployed"; "func" => function_name!());
+        info!(LOG, "wallet not deployed");
         return Ok(());
     }
     let email_auth_addr = CLIENT
@@ -96,7 +96,7 @@ pub async fn check_and_update_dkim(
     if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::from(vec![]) {
         dkim = CLIENT.get_dkim_from_email_auth(&email_auth_addr).await?;
     }
-    info!(LOG, "dkim {:?}", dkim; "func" => function_name!());
+    info!(LOG, "dkim {:?}", dkim);
     if CLIENT
         .check_if_dkim_public_key_hash_valid(
             domain.clone(),
@@ -105,7 +105,7 @@ pub async fn check_and_update_dkim(
         )
         .await?
     {
-        info!(LOG, "public key registered"; "func" => function_name!());
+        info!(LOG, "public key registered");
         return Ok(());
     }
     let selector_decomposed_def =
@@ -116,18 +116,18 @@ pub async fn check_and_update_dkim(
         let str = parsed_email.canonicalized_header[idxes.0..idxes.1].to_string();
         str
     };
-    info!(LOG, "selector {}", selector; "func" => function_name!());
+    info!(LOG, "selector {}", selector);
     let ic_agent = DkimOracleClient::gen_agent(
         &env::var(PEM_PATH_KEY).unwrap(),
         &env::var(IC_REPLICA_URL_KEY).unwrap(),
     )?;
     let oracle_client = DkimOracleClient::new(&env::var(CANISTER_ID_KEY).unwrap(), &ic_agent)?;
     let oracle_result = oracle_client.request_signature(&selector, &domain).await?;
-    info!(LOG, "DKIM oracle result {:?}", oracle_result; "func" => function_name!());
+    info!(LOG, "DKIM oracle result {:?}", oracle_result);
     let public_key_hash = hex::decode(&oracle_result.public_key_hash[2..])?;
-    info!(LOG, "public_key_hash from oracle {:?}", public_key_hash; "func" => function_name!());
+    info!(LOG, "public_key_hash from oracle {:?}", public_key_hash);
     let signature = Bytes::from_hex(&oracle_result.signature[2..])?;
-    info!(LOG, "signature {:?}", signature; "func" => function_name!());
+    info!(LOG, "signature {:?}", signature);
     let tx_hash = CLIENT
         .set_dkim_public_key_hash(
             selector,
@@ -137,6 +137,6 @@ pub async fn check_and_update_dkim(
             dkim,
         )
         .await?;
-    info!(LOG, "DKIM registry updated {:?}", tx_hash; "func" => function_name!());
+    info!(LOG, "DKIM registry updated {:?}", tx_hash);
     Ok(())
 }

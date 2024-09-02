@@ -7,7 +7,7 @@ pub use email_account_recovery::*;
     clippy::upper_case_acronyms,
     clippy::type_complexity,
     dead_code,
-    non_camel_case_types
+    non_camel_case_types,
 )]
 pub mod email_account_recovery {
     #[allow(deprecated)]
@@ -17,431 +17,541 @@ pub mod email_account_recovery {
             functions: ::core::convert::From::from([
                 (
                     ::std::borrow::ToOwned::to_owned("acceptanceSubjectTemplates"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("acceptanceSubjectTemplates",),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Array(
-                                ::std::boxed::Box::new(
-                                    ::ethers::core::abi::ethabi::ParamType::Array(
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "acceptanceSubjectTemplates",
+                            ),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
                                         ::std::boxed::Box::new(
-                                            ::ethers::core::abi::ethabi::ParamType::String,
+                                            ::ethers::core::abi::ethabi::ParamType::Array(
+                                                ::std::boxed::Box::new(
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                ),
+                                            ),
                                         ),
                                     ),
-                                ),
-                            ),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("string[][]"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("string[][]"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("completeRecovery"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("completeRecovery"),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("account"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("address"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("completeCalldata"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("bytes"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("completeRecovery"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("account"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("completeCalldata"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("computeAcceptanceTemplateId"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("computeAcceptanceTemplateId",),
-                        inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint256"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "computeAcceptanceTemplateId",
                             ),
-                        },],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint256"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
-                    },],
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("computeEmailAuthAddress"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("computeEmailAuthAddress",),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("recoveredAccount"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("address"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("accountSalt"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("bytes32"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "computeEmailAuthAddress",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("recoveredAccount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("accountSalt"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes32"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("computeRecoveryTemplateId"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("computeRecoveryTemplateId",),
-                        inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint256"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "computeRecoveryTemplateId",
                             ),
-                        },],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("uint256"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
-                    },],
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::Pure,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("dkim"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("dkim"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("dkim"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("dkimAddr"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("dkimAddr"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("dkimAddr"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("emailAuthImplementation"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("emailAuthImplementation",),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "emailAuthImplementation",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("emailAuthImplementationAddr"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("emailAuthImplementationAddr",),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "emailAuthImplementationAddr",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned(
                         "extractRecoveredAccountFromAcceptanceSubject",
                     ),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned(
-                            "extractRecoveredAccountFromAcceptanceSubject",
-                        ),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("subjectParams"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Array(
-                                    ::std::boxed::Box::new(
-                                        ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    ),
-                                ),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("bytes[]"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("uint256"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "extractRecoveredAccountFromAcceptanceSubject",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("subjectParams"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
+                                        ::std::boxed::Box::new(
+                                            ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                        ),
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes[]"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("extractRecoveredAccountFromRecoverySubject"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned(
-                            "extractRecoveredAccountFromRecoverySubject",
-                        ),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("subjectParams"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Array(
-                                    ::std::boxed::Box::new(
-                                        ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    ),
-                                ),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("bytes[]"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("uint256"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
+                    ::std::borrow::ToOwned::to_owned(
+                        "extractRecoveredAccountFromRecoverySubject",
+                    ),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "extractRecoveredAccountFromRecoverySubject",
                             ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("subjectParams"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
+                                        ::std::boxed::Box::new(
+                                            ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                        ),
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bytes[]"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("handleAcceptance"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("handleAcceptance"),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("emailAuthMsg"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Tuple(::std::vec![
-                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Array(
-                                        ::std::boxed::Box::new(
-                                            ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                        ),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("handleAcceptance"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("emailAuthMsg"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Array(
+                                                ::std::boxed::Box::new(
+                                                    ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                                ),
+                                            ),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                                ::std::vec![
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Bool,
+                                                    ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                                ],
+                                            ),
+                                        ],
                                     ),
-                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Tuple(::std::vec![
-                                        ::ethers::core::abi::ethabi::ParamType::String,
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                        ::ethers::core::abi::ethabi::ParamType::String,
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::Bool,
-                                        ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    ],),
-                                ],),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("uint256"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("handleRecovery"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("handleRecovery"),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("emailAuthMsg"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Tuple(::std::vec![
-                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Array(
-                                        ::std::boxed::Box::new(
-                                            ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                        ),
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("handleRecovery"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("emailAuthMsg"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                        ::std::vec![
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Array(
+                                                ::std::boxed::Box::new(
+                                                    ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                                ),
+                                            ),
+                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                            ::ethers::core::abi::ethabi::ParamType::Tuple(
+                                                ::std::vec![
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
+                                                    ::ethers::core::abi::ethabi::ParamType::Bool,
+                                                    ::ethers::core::abi::ethabi::ParamType::Bytes,
+                                                ],
+                                            ),
+                                        ],
                                     ),
-                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Tuple(::std::vec![
-                                        ::ethers::core::abi::ethabi::ParamType::String,
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                        ::ethers::core::abi::ethabi::ParamType::String,
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                        ::ethers::core::abi::ethabi::ParamType::Bool,
-                                        ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                    ],),
-                                ],),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
-                                ),
-                            },
-                            ::ethers::core::abi::ethabi::Param {
-                                name: ::std::borrow::ToOwned::to_owned("templateIdx"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("uint256"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("templateIdx"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("isActivated"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("isActivated"),
-                        inputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::borrow::ToOwned::to_owned("recoveredAccount"),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Bool,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("bool"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("isActivated"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("recoveredAccount"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("bool"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("recoverySubjectTemplates"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("recoverySubjectTemplates",),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Array(
-                                ::std::boxed::Box::new(
-                                    ::ethers::core::abi::ethabi::ParamType::Array(
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned(
+                                "recoverySubjectTemplates",
+                            ),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
                                         ::std::boxed::Box::new(
-                                            ::ethers::core::abi::ethabi::ParamType::String,
+                                            ::ethers::core::abi::ethabi::ParamType::Array(
+                                                ::std::boxed::Box::new(
+                                                    ::ethers::core::abi::ethabi::ParamType::String,
+                                                ),
+                                            ),
                                         ),
                                     ),
-                                ),
-                            ),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("string[][]"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("string[][]"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("verifier"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("verifier"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("verifier"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("verifierAddr"),
-                    ::std::vec![::ethers::core::abi::ethabi::Function {
-                        name: ::std::borrow::ToOwned::to_owned("verifierAddr"),
-                        inputs: ::std::vec![],
-                        outputs: ::std::vec![::ethers::core::abi::ethabi::Param {
-                            name: ::std::string::String::new(),
-                            kind: ::ethers::core::abi::ethabi::ParamType::Address,
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("address"),
-                            ),
-                        },],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Function {
+                            name: ::std::borrow::ToOwned::to_owned("verifierAddr"),
+                            inputs: ::std::vec![],
+                            outputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::string::String::new(),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Address,
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("address"),
+                                    ),
+                                },
+                            ],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
+                        },
+                    ],
                 ),
             ]),
             events: ::std::collections::BTreeMap::new(),
@@ -451,8 +561,9 @@ pub mod email_account_recovery {
         }
     }
     ///The parsed JSON ABI of the contract.
-    pub static EMAILACCOUNTRECOVERY_ABI: ::ethers::contract::Lazy<::ethers::core::abi::Abi> =
-        ::ethers::contract::Lazy::new(__abi);
+    pub static EMAILACCOUNTRECOVERY_ABI: ::ethers::contract::Lazy<
+        ::ethers::core::abi::Abi,
+    > = ::ethers::contract::Lazy::new(__abi);
     pub struct EmailAccountRecovery<M>(::ethers::contract::Contract<M>);
     impl<M> ::core::clone::Clone for EmailAccountRecovery<M> {
         fn clone(&self) -> Self {
@@ -484,11 +595,13 @@ pub mod email_account_recovery {
             address: T,
             client: ::std::sync::Arc<M>,
         ) -> Self {
-            Self(::ethers::contract::Contract::new(
-                address.into(),
-                EMAILACCOUNTRECOVERY_ABI.clone(),
-                client,
-            ))
+            Self(
+                ::ethers::contract::Contract::new(
+                    address.into(),
+                    EMAILACCOUNTRECOVERY_ABI.clone(),
+                    client,
+                ),
+            )
         }
         ///Calls the contract's `acceptanceSubjectTemplates` (0x5bafadda) function
         pub fn acceptance_subject_templates(
@@ -525,7 +638,10 @@ pub mod email_account_recovery {
             &self,
             recovered_account: ::ethers::core::types::Address,
             account_salt: [u8; 32],
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([58, 142, 171, 20], (recovered_account, account_salt))
                 .expect("method not found (this should never happen)")
@@ -542,7 +658,10 @@ pub mod email_account_recovery {
         ///Calls the contract's `dkim` (0x400ad5ce) function
         pub fn dkim(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([64, 10, 213, 206], ())
                 .expect("method not found (this should never happen)")
@@ -550,7 +669,10 @@ pub mod email_account_recovery {
         ///Calls the contract's `dkimAddr` (0x73357f85) function
         pub fn dkim_addr(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([115, 53, 127, 133], ())
                 .expect("method not found (this should never happen)")
@@ -558,7 +680,10 @@ pub mod email_account_recovery {
         ///Calls the contract's `emailAuthImplementation` (0xb6201692) function
         pub fn email_auth_implementation(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([182, 32, 22, 146], ())
                 .expect("method not found (this should never happen)")
@@ -566,7 +691,10 @@ pub mod email_account_recovery {
         ///Calls the contract's `emailAuthImplementationAddr` (0x1098e02e) function
         pub fn email_auth_implementation_addr(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([16, 152, 224, 46], ())
                 .expect("method not found (this should never happen)")
@@ -576,7 +704,10 @@ pub mod email_account_recovery {
             &self,
             subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
             template_idx: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([232, 29, 202, 242], (subject_params, template_idx))
                 .expect("method not found (this should never happen)")
@@ -586,7 +717,10 @@ pub mod email_account_recovery {
             &self,
             subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
             template_idx: ::ethers::core::types::U256,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([48, 230, 165, 171], (subject_params, template_idx))
                 .expect("method not found (this should never happen)")
@@ -634,7 +768,10 @@ pub mod email_account_recovery {
         ///Calls the contract's `verifier` (0x2b7ac3f3) function
         pub fn verifier(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([43, 122, 195, 243], ())
                 .expect("method not found (this should never happen)")
@@ -642,15 +779,17 @@ pub mod email_account_recovery {
         ///Calls the contract's `verifierAddr` (0x663ea2e2) function
         pub fn verifier_addr(
             &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, ::ethers::core::types::Address> {
+        ) -> ::ethers::contract::builders::ContractCall<
+            M,
+            ::ethers::core::types::Address,
+        > {
             self.0
                 .method_hash([102, 62, 162, 226], ())
                 .expect("method not found (this should never happen)")
         }
     }
     impl<M: ::ethers::providers::Middleware> From<::ethers::contract::Contract<M>>
-        for EmailAccountRecovery<M>
-    {
+    for EmailAccountRecovery<M> {
         fn from(contract: ::ethers::contract::Contract<M>) -> Self {
             Self::new(contract.address(), contract.client())
         }
@@ -664,12 +803,9 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    #[ethcall(
-        name = "acceptanceSubjectTemplates",
-        abi = "acceptanceSubjectTemplates()"
-    )]
+    #[ethcall(name = "acceptanceSubjectTemplates", abi = "acceptanceSubjectTemplates()")]
     pub struct AcceptanceSubjectTemplatesCall;
     ///Container type for all input parameters for the `completeRecovery` function with signature `completeRecovery(address,bytes)` and selector `0xc18d09cf`
     #[derive(
@@ -680,7 +816,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "completeRecovery", abi = "completeRecovery(address,bytes)")]
     pub struct CompleteRecoveryCall {
@@ -696,7 +832,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "computeAcceptanceTemplateId",
@@ -714,7 +850,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "computeEmailAuthAddress",
@@ -733,7 +869,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "computeRecoveryTemplateId",
@@ -751,7 +887,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "dkim", abi = "dkim()")]
     pub struct DkimCall;
@@ -764,7 +900,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "dkimAddr", abi = "dkimAddr()")]
     pub struct DkimAddrCall;
@@ -777,7 +913,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "emailAuthImplementation", abi = "emailAuthImplementation()")]
     pub struct EmailAuthImplementationCall;
@@ -790,7 +926,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "emailAuthImplementationAddr",
@@ -806,7 +942,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "extractRecoveredAccountFromAcceptanceSubject",
@@ -825,7 +961,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "extractRecoveredAccountFromRecoverySubject",
@@ -844,7 +980,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "handleAcceptance",
@@ -863,7 +999,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(
         name = "handleRecovery",
@@ -882,7 +1018,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "isActivated", abi = "isActivated(address)")]
     pub struct IsActivatedCall {
@@ -897,7 +1033,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "recoverySubjectTemplates", abi = "recoverySubjectTemplates()")]
     pub struct RecoverySubjectTemplatesCall;
@@ -910,7 +1046,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "verifier", abi = "verifier()")]
     pub struct VerifierCall;
@@ -923,7 +1059,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     #[ethcall(name = "verifierAddr", abi = "verifierAddr()")]
     pub struct VerifierAddrCall;
@@ -942,7 +1078,9 @@ pub mod email_account_recovery {
         ExtractRecoveredAccountFromAcceptanceSubject(
             ExtractRecoveredAccountFromAcceptanceSubjectCall,
         ),
-        ExtractRecoveredAccountFromRecoverySubject(ExtractRecoveredAccountFromRecoverySubjectCall),
+        ExtractRecoveredAccountFromRecoverySubject(
+            ExtractRecoveredAccountFromRecoverySubjectCall,
+        ),
         HandleAcceptance(HandleAcceptanceCall),
         HandleRecovery(HandleRecoveryCall),
         IsActivated(IsActivatedCall),
@@ -955,45 +1093,49 @@ pub mod email_account_recovery {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) =
-                <AcceptanceSubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <AcceptanceSubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::AcceptanceSubjectTemplates(decoded));
             }
-            if let Ok(decoded) =
-                <CompleteRecoveryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <CompleteRecoveryCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::CompleteRecovery(decoded));
             }
-            if let Ok(decoded) =
-                <ComputeAcceptanceTemplateIdCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <ComputeAcceptanceTemplateIdCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::ComputeAcceptanceTemplateId(decoded));
             }
-            if let Ok(decoded) =
-                <ComputeEmailAuthAddressCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <ComputeEmailAuthAddressCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::ComputeEmailAuthAddress(decoded));
             }
-            if let Ok(decoded) =
-                <ComputeRecoveryTemplateIdCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <ComputeRecoveryTemplateIdCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::ComputeRecoveryTemplateId(decoded));
             }
-            if let Ok(decoded) = <DkimCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DkimCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::Dkim(decoded));
             }
-            if let Ok(decoded) = <DkimAddrCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <DkimAddrCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::DkimAddr(decoded));
             }
-            if let Ok(decoded) =
-                <EmailAuthImplementationCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <EmailAuthImplementationCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::EmailAuthImplementation(decoded));
             }
-            if let Ok(decoded) =
-                <EmailAuthImplementationAddrCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <EmailAuthImplementationAddrCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::EmailAuthImplementationAddr(decoded));
             }
             if let Ok(decoded) = <ExtractRecoveredAccountFromAcceptanceSubjectCall as ::ethers::core::abi::AbiDecode>::decode(
@@ -1006,29 +1148,34 @@ pub mod email_account_recovery {
             ) {
                 return Ok(Self::ExtractRecoveredAccountFromRecoverySubject(decoded));
             }
-            if let Ok(decoded) =
-                <HandleAcceptanceCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <HandleAcceptanceCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::HandleAcceptance(decoded));
             }
-            if let Ok(decoded) =
-                <HandleRecoveryCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <HandleRecoveryCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::HandleRecovery(decoded));
             }
-            if let Ok(decoded) = <IsActivatedCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <IsActivatedCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::IsActivated(decoded));
             }
-            if let Ok(decoded) =
-                <RecoverySubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <RecoverySubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::RecoverySubjectTemplates(decoded));
             }
-            if let Ok(decoded) = <VerifierCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <VerifierCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::Verifier(decoded));
             }
-            if let Ok(decoded) = <VerifierAddrCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <VerifierAddrCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::VerifierAddr(decoded));
             }
             Err(::ethers::core::abi::Error::InvalidData.into())
@@ -1040,7 +1187,9 @@ pub mod email_account_recovery {
                 Self::AcceptanceSubjectTemplates(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::CompleteRecovery(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::CompleteRecovery(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::ComputeAcceptanceTemplateId(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1051,7 +1200,9 @@ pub mod email_account_recovery {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Dkim(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::DkimAddr(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::DkimAddr(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::EmailAuthImplementation(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1064,29 +1215,51 @@ pub mod email_account_recovery {
                 Self::ExtractRecoveredAccountFromRecoverySubject(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::HandleAcceptance(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::HandleRecovery(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::IsActivated(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::HandleAcceptance(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::HandleRecovery(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::IsActivated(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::RecoverySubjectTemplates(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::Verifier(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::VerifierAddr(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::Verifier(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::VerifierAddr(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
             }
         }
     }
     impl ::core::fmt::Display for EmailAccountRecoveryCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::AcceptanceSubjectTemplates(element) => ::core::fmt::Display::fmt(element, f),
+                Self::AcceptanceSubjectTemplates(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::CompleteRecovery(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeAcceptanceTemplateId(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeEmailAuthAddress(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ComputeRecoveryTemplateId(element) => ::core::fmt::Display::fmt(element, f),
+                Self::ComputeAcceptanceTemplateId(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::ComputeEmailAuthAddress(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::ComputeRecoveryTemplateId(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Dkim(element) => ::core::fmt::Display::fmt(element, f),
                 Self::DkimAddr(element) => ::core::fmt::Display::fmt(element, f),
-                Self::EmailAuthImplementation(element) => ::core::fmt::Display::fmt(element, f),
-                Self::EmailAuthImplementationAddr(element) => ::core::fmt::Display::fmt(element, f),
+                Self::EmailAuthImplementation(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
+                Self::EmailAuthImplementationAddr(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::ExtractRecoveredAccountFromAcceptanceSubject(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -1096,13 +1269,16 @@ pub mod email_account_recovery {
                 Self::HandleAcceptance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HandleRecovery(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IsActivated(element) => ::core::fmt::Display::fmt(element, f),
-                Self::RecoverySubjectTemplates(element) => ::core::fmt::Display::fmt(element, f),
+                Self::RecoverySubjectTemplates(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::Verifier(element) => ::core::fmt::Display::fmt(element, f),
                 Self::VerifierAddr(element) => ::core::fmt::Display::fmt(element, f),
             }
         }
     }
-    impl ::core::convert::From<AcceptanceSubjectTemplatesCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<AcceptanceSubjectTemplatesCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: AcceptanceSubjectTemplatesCall) -> Self {
             Self::AcceptanceSubjectTemplates(value)
         }
@@ -1112,17 +1288,20 @@ pub mod email_account_recovery {
             Self::CompleteRecovery(value)
         }
     }
-    impl ::core::convert::From<ComputeAcceptanceTemplateIdCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<ComputeAcceptanceTemplateIdCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: ComputeAcceptanceTemplateIdCall) -> Self {
             Self::ComputeAcceptanceTemplateId(value)
         }
     }
-    impl ::core::convert::From<ComputeEmailAuthAddressCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<ComputeEmailAuthAddressCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: ComputeEmailAuthAddressCall) -> Self {
             Self::ComputeEmailAuthAddress(value)
         }
     }
-    impl ::core::convert::From<ComputeRecoveryTemplateIdCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<ComputeRecoveryTemplateIdCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: ComputeRecoveryTemplateIdCall) -> Self {
             Self::ComputeRecoveryTemplateId(value)
         }
@@ -1137,26 +1316,26 @@ pub mod email_account_recovery {
             Self::DkimAddr(value)
         }
     }
-    impl ::core::convert::From<EmailAuthImplementationCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<EmailAuthImplementationCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: EmailAuthImplementationCall) -> Self {
             Self::EmailAuthImplementation(value)
         }
     }
-    impl ::core::convert::From<EmailAuthImplementationAddrCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<EmailAuthImplementationAddrCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: EmailAuthImplementationAddrCall) -> Self {
             Self::EmailAuthImplementationAddr(value)
         }
     }
     impl ::core::convert::From<ExtractRecoveredAccountFromAcceptanceSubjectCall>
-        for EmailAccountRecoveryCalls
-    {
+    for EmailAccountRecoveryCalls {
         fn from(value: ExtractRecoveredAccountFromAcceptanceSubjectCall) -> Self {
             Self::ExtractRecoveredAccountFromAcceptanceSubject(value)
         }
     }
     impl ::core::convert::From<ExtractRecoveredAccountFromRecoverySubjectCall>
-        for EmailAccountRecoveryCalls
-    {
+    for EmailAccountRecoveryCalls {
         fn from(value: ExtractRecoveredAccountFromRecoverySubjectCall) -> Self {
             Self::ExtractRecoveredAccountFromRecoverySubject(value)
         }
@@ -1176,7 +1355,8 @@ pub mod email_account_recovery {
             Self::IsActivated(value)
         }
     }
-    impl ::core::convert::From<RecoverySubjectTemplatesCall> for EmailAccountRecoveryCalls {
+    impl ::core::convert::From<RecoverySubjectTemplatesCall>
+    for EmailAccountRecoveryCalls {
         fn from(value: RecoverySubjectTemplatesCall) -> Self {
             Self::RecoverySubjectTemplates(value)
         }
@@ -1200,7 +1380,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct AcceptanceSubjectTemplatesReturn(
         pub ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
@@ -1214,7 +1394,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ComputeAcceptanceTemplateIdReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `computeEmailAuthAddress` function with signature `computeEmailAuthAddress(address,bytes32)` and selector `0x3a8eab14`
@@ -1226,7 +1406,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ComputeEmailAuthAddressReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `computeRecoveryTemplateId` function with signature `computeRecoveryTemplateId(uint256)` and selector `0x6da99515`
@@ -1238,7 +1418,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ComputeRecoveryTemplateIdReturn(pub ::ethers::core::types::U256);
     ///Container type for all return fields from the `dkim` function with signature `dkim()` and selector `0x400ad5ce`
@@ -1250,7 +1430,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DkimReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `dkimAddr` function with signature `dkimAddr()` and selector `0x73357f85`
@@ -1262,7 +1442,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct DkimAddrReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `emailAuthImplementation` function with signature `emailAuthImplementation()` and selector `0xb6201692`
@@ -1274,7 +1454,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct EmailAuthImplementationReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `emailAuthImplementationAddr` function with signature `emailAuthImplementationAddr()` and selector `0x1098e02e`
@@ -1286,7 +1466,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct EmailAuthImplementationAddrReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `extractRecoveredAccountFromAcceptanceSubject` function with signature `extractRecoveredAccountFromAcceptanceSubject(bytes[],uint256)` and selector `0xe81dcaf2`
@@ -1298,7 +1478,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct ExtractRecoveredAccountFromAcceptanceSubjectReturn(
         pub ::ethers::core::types::Address,
@@ -1312,9 +1492,11 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
-    pub struct ExtractRecoveredAccountFromRecoverySubjectReturn(pub ::ethers::core::types::Address);
+    pub struct ExtractRecoveredAccountFromRecoverySubjectReturn(
+        pub ::ethers::core::types::Address,
+    );
     ///Container type for all return fields from the `isActivated` function with signature `isActivated(address)` and selector `0xc9faa7c5`
     #[derive(
         Clone,
@@ -1324,7 +1506,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct IsActivatedReturn(pub bool);
     ///Container type for all return fields from the `recoverySubjectTemplates` function with signature `recoverySubjectTemplates()` and selector `0x3e91cdcd`
@@ -1336,7 +1518,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct RecoverySubjectTemplatesReturn(
         pub ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
@@ -1350,7 +1532,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct VerifierReturn(pub ::ethers::core::types::Address);
     ///Container type for all return fields from the `verifierAddr` function with signature `verifierAddr()` and selector `0x663ea2e2`
@@ -1362,7 +1544,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct VerifierAddrReturn(pub ::ethers::core::types::Address);
     ///`EmailAuthMsg(uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes))`
@@ -1374,7 +1556,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct EmailAuthMsg {
         pub template_id: ::ethers::core::types::U256,
@@ -1391,7 +1573,7 @@ pub mod email_account_recovery {
         Debug,
         PartialEq,
         Eq,
-        Hash,
+        Hash
     )]
     pub struct EmailProof {
         pub domain_name: ::std::string::String,

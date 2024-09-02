@@ -3,7 +3,6 @@ use axum::Router;
 use relayer_utils::LOG;
 use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 
-#[named]
 pub async fn run_server() -> Result<()> {
     let addr = WEB_SERVER_ADDRESS.get().unwrap();
 
@@ -186,7 +185,7 @@ pub async fn run_server() -> Result<()> {
             .allow_origin(Any),
     );
 
-    trace!(LOG, "Listening API at {}", addr; "func" => function_name!());
+    trace!(LOG, "Listening API at {}", addr);
     axum::Server::bind(&addr.parse()?)
         .serve(app.into_make_service())
         .await?;

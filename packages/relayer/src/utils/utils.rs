@@ -52,14 +52,13 @@ impl ProofJson {
     }
 }
 
-#[named]
 pub async fn generate_proof(
     input: &str,
     request: &str,
     address: &str,
 ) -> Result<(Bytes, Vec<U256>)> {
     let client = reqwest::Client::new();
-    info!(LOG, "prover input {}", input; "func" => function_name!());
+    info!(LOG, "prover input {}", input);
     let res = client
         .post(format!("{}/prove/{}", address, request))
         .json(&serde_json::json!({ "input": input }))
@@ -67,7 +66,7 @@ pub async fn generate_proof(
         .await?
         .error_for_status()?;
     let res_json = res.json::<ProverRes>().await?;
-    info!(LOG, "prover response {:?}", res_json; "func" => function_name!());
+    info!(LOG, "prover response {:?}", res_json);
     let proof = res_json.proof.to_eth_bytes()?;
     let pub_signals = res_json
         .pub_signals
@@ -88,12 +87,12 @@ pub fn calculate_default_hash(input: &str) -> String {
 pub fn calculate_account_salt(email_addr: &str, account_code: &str) -> String {
     let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
     let account_code = if account_code.starts_with("0x") {
-        hex2field(&account_code).unwrap()
+        hex_to_field(&account_code).unwrap()
     } else {
-        hex2field(&format!("0x{}", account_code)).unwrap()
+        hex_to_field(&format!("0x{}", account_code)).unwrap()
     };
     let account_code = AccountCode::from(account_code);
     let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
 
-    field2hex(&account_salt.0)
+    field_to_hex(&account_salt.0)
 }

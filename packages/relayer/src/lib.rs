@@ -19,7 +19,6 @@ pub use modules::*;
 use relayer_utils::LOG;
 pub use utils::*;
 
-use ::function_name::named;
 use tokio::sync::Mutex;
 
 use anyhow::{anyhow, bail, Result};
@@ -69,9 +68,8 @@ lazy_static! {
     pub static ref SHARED_MUTEX: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
 }
 
-#[named]
 pub async fn run(config: RelayerConfig) -> Result<()> {
-    info!(LOG, "Starting relayer"; "func" => function_name!());
+    info!(LOG, "Starting relayer");
 
     CIRCUITS_DIR_PATH.set(config.circuits_dir_path).unwrap();
     WEB_SERVER_ADDRESS.set(config.web_server_address).unwrap();
@@ -93,11 +91,11 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
         loop {
             match run_server().await {
                 Ok(_) => {
-                    info!(LOG, "run_server exited normally"; "func" => function_name!());
+                    info!(LOG, "run_server exited normally");
                     break; // Exit loop if run_server exits normally
                 }
                 Err(err) => {
-                    error!(LOG, "Error api server: {}", err; "func" => function_name!());
+                    error!(LOG, "Error api server: {}", err);
                     // Optionally, add a delay before restarting
                     tokio::time::sleep(Duration::from_secs(5)).await;
                 }

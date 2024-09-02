@@ -48,10 +48,12 @@ slog-async = "2.8.0"
 slog-term = "2.9.0"
 slog-json = "2.6.1"
 file-rotate = "0.7.5"
-function_name = "0.3.0"
 base64 = "0.21.7"
 uuid = "1.8.0"
 http = "1.1.0"
+ic-agent = { version = "0.37.1", features = ["pem", "reqwest"] }
+ic-utils = "0.37.0"
+candid = "0.10.10"
 
 [build-dependencies]
 ethers = "2.0.10"

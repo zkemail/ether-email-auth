@@ -73,7 +73,6 @@ impl Database {
         Ok(())
     }
 
-    #[named]
     pub(crate) async fn get_credentials(&self, account_code: &str) -> Result<Option<Credentials>> {
         let row = sqlx::query("SELECT * FROM credentials WHERE account_code = $1")
             .bind(account_code)
@@ -92,7 +91,7 @@ impl Database {
                     guardian_email_addr,
                     is_set,
                 };
-                info!(LOG, "row {:?}", codes_row; "func" => function_name!());
+                info!(LOG, "row {:?}", codes_row);
                 Ok(Some(codes_row))
             }
             None => Ok(None),
@@ -159,9 +158,8 @@ impl Database {
         Ok(())
     }
 
-    #[named]
     pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
-        info!(LOG, "insert row {:?}", row; "func" => function_name!());
+        info!(LOG, "insert row {:?}", row);
         let row = sqlx::query(
             "INSERT INTO credentials (account_code, account_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
@@ -171,11 +169,7 @@ impl Database {
         .bind(row.is_set)
         .fetch_one(&self.db)
         .await?;
-        info!(
-            LOG,
-            "{} row inserted",
-            row.len(); "func" => function_name!()
-        );
+        info!(LOG, "{} row inserted", row.len());
         Ok(())
     }
 
@@ -193,7 +187,6 @@ impl Database {
         }
     }
 
-    #[named]
     pub(crate) async fn get_request(&self, request_id: u32) -> Result<Option<Request>> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
             .bind(request_id as i64)
@@ -224,7 +217,7 @@ impl Database {
                     email_nullifier,
                     account_salt,
                 };
-                info!(LOG, "row {:?}", requests_row; "func" => function_name!());
+                info!(LOG, "row {:?}", requests_row);
                 Ok(Some(requests_row))
             }
             None => Ok(None),
@@ -270,7 +263,6 @@ impl Database {
         }
     }
 
-    #[named]
     pub(crate) async fn get_credentials_from_wallet_and_email(
         &self,
         account_eth_addr: &str,
@@ -296,16 +288,15 @@ impl Database {
                     guardian_email_addr,
                     is_set,
                 };
-                info!(LOG, "row {:?}", codes_row; "func" => function_name!());
+                info!(LOG, "row {:?}", codes_row);
                 Ok(Some(codes_row))
             }
             None => Ok(None),
         }
     }
 
-    #[named]
     pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
-        info!(LOG, "insert row {:?}", row; "func" => function_name!());
+        info!(LOG, "insert row {:?}", row);
         let row = sqlx::query(
             "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
         )
@@ -321,11 +312,7 @@ impl Database {
         .bind(&row.account_salt)
         .fetch_one(&self.db)
         .await?;
-        info!(
-            LOG,
-            "{} row inserted",
-            row.len(); "func" => function_name!()
-        );
+        info!(LOG, "{} row inserted", row.len());
         Ok(())
     }
 }

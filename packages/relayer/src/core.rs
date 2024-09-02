@@ -8,19 +8,18 @@ use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use relayer_utils::{extract_substr_idxes, generate_email_auth_input, LOG};
+use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, LOG};
 
 const DOMAIN_FIELDS: usize = 9;
 const SUBJECT_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
-#[named]
 pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
-    trace!(LOG, "email: {}", email; "func" => function_name!());
+    trace!(LOG, "email: {}", email);
     let guardian_email_addr = parsed_email.get_from_addr()?;
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&guardian_email_addr);
-    trace!(LOG, "From address: {}", guardian_email_addr; "func" => function_name!());
+    trace!(LOG, "From address: {}", guardian_email_addr);
     let email_body = parsed_email.get_body()?;
 
     let request_decomposed_def =
@@ -29,7 +28,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     if request_idxes.is_empty() {
         bail!(WRONG_SUBJECT_FORMAT);
     }
-    info!(LOG, "Request idxes: {:?}", request_idxes; "func" => function_name!());
+    info!(LOG, "Request idxes: {:?}", request_idxes);
     let request_id = &email[request_idxes[0].0..request_idxes[0].1];
     let request_id_u32 = request_id
         .parse::<u32>()
@@ -66,8 +65,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     )
     .await?;
 
-    if let Ok(invitation_code) = parsed_email.get_invitation_code() {
-        trace!(LOG, "Email with account code"; "func" => function_name!());
+    if let Ok(invitation_code) = parsed_email.get_invitation_code(false) {
+        trace!(LOG, "Email with account code");
 
         if account_code_str != invitation_code {
             return Err(anyhow!(
@@ -112,9 +111,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(
+            let circuit_input = generate_email_circuit_input(
                 &email,
-                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
+                None,
             )
             .await?;
 
@@ -143,8 +143,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 proof: email_proof.clone(),
             };
 
-            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
-            info!(LOG, "Request: {:?}", request; "func" => function_name!());
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
+            info!(LOG, "Request: {:?}", request);
 
             match CLIENT
                 .handle_acceptance(
@@ -173,7 +173,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(true),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
@@ -197,7 +197,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(false),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
@@ -244,9 +244,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(
+            let circuit_input = generate_email_circuit_input(
                 &email,
-                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
+                None,
             )
             .await?;
 
@@ -275,8 +276,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 proof: email_proof.clone(),
             };
 
-            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
-            info!(LOG, "Request: {:?}", request; "func" => function_name!());
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
+            info!(LOG, "Request: {:?}", request);
 
             match CLIENT
                 .handle_recovery(
@@ -296,7 +297,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(true),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
@@ -320,7 +321,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(false),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
@@ -369,9 +370,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let template_id = keccak256(encode(&tokens));
 
-            let circuit_input = generate_email_auth_input(
+            let circuit_input = generate_email_circuit_input(
                 &email,
-                &AccountCode::from(hex2field(&format!("0x{}", &account_code_str))?),
+                &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
+                None,
             )
             .await?;
 
@@ -400,8 +402,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 proof: email_proof.clone(),
             };
 
-            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg; "func" => function_name!());
-            info!(LOG, "Request: {:?}", request; "func" => function_name!());
+            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
+            info!(LOG, "Request: {:?}", request);
 
             match CLIENT
                 .handle_recovery(
@@ -421,7 +423,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(true),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
@@ -445,7 +447,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                         is_processed: true,
                         request_id: request.request_id,
                         is_success: Some(false),
-                        email_nullifier: Some(field2hex(
+                        email_nullifier: Some(field_to_hex(
                             &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
                         )),
                         account_salt: Some(bytes32_to_hex(&account_salt)),
