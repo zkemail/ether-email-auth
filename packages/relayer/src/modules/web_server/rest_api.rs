@@ -6,7 +6,6 @@ use rand::Rng;
 use relayer_utils::LOG;
 use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
-use slog::log;
 use std::str;
 
 #[derive(Serialize, Deserialize)]

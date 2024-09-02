@@ -24,7 +24,7 @@ serde_json = "1.0.68"
 tiny_http = "0.12.0"
 lettre = { version = "0.10.4", features = ["tokio1", "tokio1-native-tls"] }
 ethers = { version = "2.0.10", features = ["abigen"] }
-relayer-utils = { git = "https://github.com/zkemail/relayer-utils", rev = "2c3e9b8" }
+relayer-utils = { git = "https://github.com/zkemail/relayer-utils", rev = "fd6c7bf" }
 futures = "0.3.28"
 sqlx = { version = "=0.7.3", features = ["postgres", "runtime-tokio"] }
 regex = "1.10.2"
@@ -39,9 +39,6 @@ ff = { version = "0.13.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
 handlebars = "4.4.0"
 graphql_client = { version = "0.13.0", features = ["reqwest"] }
-ic-utils = { version = "0.30.0" }
-ic-agent = { version = "0.30.0", features = ["pem", "reqwest"] }
-candid = "0.9.11"
 lazy_static = "1.4"
 slog = { version = "2.7.0", features = [
     "max_level_trace",

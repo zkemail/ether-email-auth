@@ -484,28 +484,6 @@ pub mod email_account_recovery {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("proxyBytecodeHash"),
-                    ::std::vec![
-                        ::ethers::core::abi::ethabi::Function {
-                            name: ::std::borrow::ToOwned::to_owned("proxyBytecodeHash"),
-                            inputs: ::std::vec![],
-                            outputs: ::std::vec![
-                                ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::string::String::new(),
-                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
-                                        32usize,
-                                    ),
-                                    internal_type: ::core::option::Option::Some(
-                                        ::std::borrow::ToOwned::to_owned("bytes32"),
-                                    ),
-                                },
-                            ],
-                            constant: ::core::option::Option::None,
-                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::View,
-                        },
-                    ],
-                ),
-                (
                     ::std::borrow::ToOwned::to_owned("recoverySubjectTemplates"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
@@ -774,14 +752,6 @@ pub mod email_account_recovery {
         ) -> ::ethers::contract::builders::ContractCall<M, bool> {
             self.0
                 .method_hash([201, 250, 167, 197], recovered_account)
-                .expect("method not found (this should never happen)")
-        }
-        ///Calls the contract's `proxyBytecodeHash` (0x85f60f7e) function
-        pub fn proxy_bytecode_hash(
-            &self,
-        ) -> ::ethers::contract::builders::ContractCall<M, [u8; 32]> {
-            self.0
-                .method_hash([133, 246, 15, 126], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `recoverySubjectTemplates` (0x3e91cdcd) function
@@ -1054,19 +1024,6 @@ pub mod email_account_recovery {
     pub struct IsActivatedCall {
         pub recovered_account: ::ethers::core::types::Address,
     }
-    ///Container type for all input parameters for the `proxyBytecodeHash` function with signature `proxyBytecodeHash()` and selector `0x85f60f7e`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthCall,
-        ::ethers::contract::EthDisplay,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    #[ethcall(name = "proxyBytecodeHash", abi = "proxyBytecodeHash()")]
-    pub struct ProxyBytecodeHashCall;
     ///Container type for all input parameters for the `recoverySubjectTemplates` function with signature `recoverySubjectTemplates()` and selector `0x3e91cdcd`
     #[derive(
         Clone,
@@ -1127,7 +1084,6 @@ pub mod email_account_recovery {
         HandleAcceptance(HandleAcceptanceCall),
         HandleRecovery(HandleRecoveryCall),
         IsActivated(IsActivatedCall),
-        ProxyBytecodeHash(ProxyBytecodeHashCall),
         RecoverySubjectTemplates(RecoverySubjectTemplatesCall),
         Verifier(VerifierCall),
         VerifierAddr(VerifierAddrCall),
@@ -1207,11 +1163,6 @@ pub mod email_account_recovery {
             ) {
                 return Ok(Self::IsActivated(decoded));
             }
-            if let Ok(decoded) = <ProxyBytecodeHashCall as ::ethers::core::abi::AbiDecode>::decode(
-                data,
-            ) {
-                return Ok(Self::ProxyBytecodeHash(decoded));
-            }
             if let Ok(decoded) = <RecoverySubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
@@ -1273,9 +1224,6 @@ pub mod email_account_recovery {
                 Self::IsActivated(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::ProxyBytecodeHash(element) => {
-                    ::ethers::core::abi::AbiEncode::encode(element)
-                }
                 Self::RecoverySubjectTemplates(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -1321,7 +1269,6 @@ pub mod email_account_recovery {
                 Self::HandleAcceptance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HandleRecovery(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IsActivated(element) => ::core::fmt::Display::fmt(element, f),
-                Self::ProxyBytecodeHash(element) => ::core::fmt::Display::fmt(element, f),
                 Self::RecoverySubjectTemplates(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -1406,11 +1353,6 @@ pub mod email_account_recovery {
     impl ::core::convert::From<IsActivatedCall> for EmailAccountRecoveryCalls {
         fn from(value: IsActivatedCall) -> Self {
             Self::IsActivated(value)
-        }
-    }
-    impl ::core::convert::From<ProxyBytecodeHashCall> for EmailAccountRecoveryCalls {
-        fn from(value: ProxyBytecodeHashCall) -> Self {
-            Self::ProxyBytecodeHash(value)
         }
     }
     impl ::core::convert::From<RecoverySubjectTemplatesCall>
@@ -1567,18 +1509,6 @@ pub mod email_account_recovery {
         Hash
     )]
     pub struct IsActivatedReturn(pub bool);
-    ///Container type for all return fields from the `proxyBytecodeHash` function with signature `proxyBytecodeHash()` and selector `0x85f60f7e`
-    #[derive(
-        Clone,
-        ::ethers::contract::EthAbiType,
-        ::ethers::contract::EthAbiCodec,
-        Default,
-        Debug,
-        PartialEq,
-        Eq,
-        Hash
-    )]
-    pub struct ProxyBytecodeHashReturn(pub [u8; 32]);
     ///Container type for all return fields from the `recoverySubjectTemplates` function with signature `recoverySubjectTemplates()` and selector `0x3e91cdcd`
     #[derive(
         Clone,

@@ -3,7 +3,6 @@ use relayer_utils::extract_substr_idxes;
 use relayer_utils::LOG;
 
 use crate::*;
-use candid::CandidType;
 use ethers::types::Bytes;
 use ethers::utils::hex::FromHex;
 use ic_agent::agent::http_transport::ReqwestTransport;
@@ -18,7 +17,7 @@ pub struct DkimOracleClient<'a> {
     pub canister: Canister<'a>,
 }
 
-#[derive(Default, CandidType, Deserialize, Debug, Clone)]
+#[derive(Default, Deserialize, Debug, Clone)]
 pub struct SignedDkimPublicKey {
     pub selector: String,
     pub domain: String,
