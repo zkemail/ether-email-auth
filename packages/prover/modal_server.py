@@ -6,7 +6,7 @@ from google.cloud.logging_v2.handlers import setup_logging
 from google.oauth2 import service_account
 
 
-app = modal.App("email-auth-prover-v1.0.4")
+app = modal.App("email-auth-prover-body-parsing-v1.0.0")
 
 image = modal.Image.from_dockerfile("Dockerfile")
 
