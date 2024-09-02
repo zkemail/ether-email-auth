@@ -265,7 +265,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
 
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        if (timestampCheckEnabled) {
+        if (timestampCheckEnabled && emailAuthMsg.proof.timestamp != 0) {
             lastTimestamp = emailAuthMsg.proof.timestamp;
         }
         emit EmailAuthed(
