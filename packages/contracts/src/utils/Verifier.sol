@@ -21,8 +21,8 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
-    uint256 public constant SUBJECT_FIELDS = 9;
-    uint256 public constant SUBJECT_BYTES = 256;
+    uint256 public constant SUBJECT_FIELDS = 20;
+    uint256 public constant SUBJECT_BYTES = 605;
 
     constructor() {}
 
