@@ -125,7 +125,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 0.12 ETH to ";
-        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 256);
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
             relayerUtils.bytes2Fields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
@@ -193,7 +193,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
 
         const maskedCommand =
             "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
-        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 256);
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
             relayerUtils.bytes2Fields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {

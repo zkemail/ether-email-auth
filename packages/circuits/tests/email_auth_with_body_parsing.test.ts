@@ -68,7 +68,7 @@ describe("Email Auth With Body Parsing", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 0.1 ETH to ";
-        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 256);
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
             relayerUtils.bytes2Fields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
@@ -135,7 +135,7 @@ describe("Email Auth With Body Parsing", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Swap 1 ETH to DAI";
-        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 256);
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
             relayerUtils.bytes2Fields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
@@ -204,7 +204,7 @@ describe("Email Auth With Body Parsing", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 1 ETH to ";
-        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 256);
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
             relayerUtils.bytes2Fields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
