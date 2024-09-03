@@ -17,6 +17,7 @@ image = modal.Image.from_dockerfile("Dockerfile")
         modal.Mount.from_local_python_packages("core"),
     ],
     cpu=14,
+    secrets=[modal.Secret.from_name("gc-ether-email-auth-prover")],
 )
 @modal.wsgi_app()
 def flask_app():
