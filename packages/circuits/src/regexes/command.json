@@ -1,16 +1,16 @@
 {
-    "parts": [
-        {
-            "is_public": false,
-            "regex_def": "<div id=3D\"zkemail\">"
-        },
-        {
-            "is_public": true,
-            "regex_def": "[^<>/]+"
-        },
-        {
-            "is_public": false,
-            "regex_def": "</div>"
-        }
-    ]
+  "parts": [
+    {
+      "is_public": false,
+      "regex_def": "(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?\"(=\r\n)?[^\"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^\"]*(=\r\n)?\"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?"
+    },
+    {
+      "is_public": true,
+      "regex_def": "[^<>/]+"
+    },
+    {
+      "is_public": false,
+      "regex_def": "(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>)"
+    }
+  ]
 }
