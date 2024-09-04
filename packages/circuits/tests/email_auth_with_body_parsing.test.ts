@@ -16,7 +16,7 @@ describe("Email Auth With Body Parsing", () => {
             recompile: true,
         };
         circuit = await wasm_tester(
-            path.join(__dirname, "../src/email_auth_with_body_parsing.circom"),
+            path.join(__dirname, "./circuits/test_email_auth_with_body_parsing.circom"),
             option
         );
     });
@@ -85,7 +85,7 @@ describe("Email Auth With Body Parsing", () => {
 
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });
@@ -152,7 +152,7 @@ describe("Email Auth With Body Parsing", () => {
 
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });
@@ -220,7 +220,7 @@ describe("Email Auth With Body Parsing", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });

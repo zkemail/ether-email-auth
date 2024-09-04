@@ -18,7 +18,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
         circuit = await wasm_tester(
             path.join(
                 __dirname,
-                "../src/email_auth_with_body_parsing_with_qp_encoding.circom"
+                "./circuits/test_email_auth_with_body_parsing_with_qp_encoding.circom"
             ),
             option
         );
@@ -142,7 +142,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
 
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });
@@ -209,7 +209,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
 
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });
@@ -277,7 +277,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
 
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
         );
     });
