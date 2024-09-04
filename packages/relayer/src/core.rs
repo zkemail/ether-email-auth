@@ -8,10 +8,10 @@ use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, LOG};
+use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, EmailCircuitParams, LOG};
 
 const DOMAIN_FIELDS: usize = 9;
-const SUBJECT_FIELDS: usize = 20;
+const SUBJECT_FIELDS: usize = 9;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
 pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
@@ -26,7 +26,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
     if request_idxes.is_empty() {
-        bail!(WRONG_SUBJECT_FORMAT);
+        bail!(WRONG_COMMAND_FORMAT);
     }
     info!(LOG, "Request idxes: {:?}", request_idxes);
     let request_id = &email[request_idxes[0].0..request_idxes[0].1];
@@ -77,7 +77,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
         }
 
         if !request.is_for_recovery {
-            let subject_template = CLIENT
+            let command_template = CLIENT
                 .get_acceptance_subject_templates(
                     &request.controller_eth_addr,
                     request.template_idx,
@@ -85,10 +85,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .await?;
 
             let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
-            let (subject_params, skipped_subject_prefix) = match result {
-                Ok((subject_params, skipped_subject_prefix)) => {
-                    (subject_params, skipped_subject_prefix)
+                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
+            let (command_params, skipped_command_prefix) = match result {
+                Ok((command_params, skipped_command_prefix)) => {
+                    (command_params, skipped_command_prefix)
                 }
                 Err(e) => {
                     return Ok(EmailAuthEvent::Error {
@@ -98,7 +98,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 }
             };
 
-            let subject_params_encoded: Vec<Bytes> = subject_params
+            let command_params_encoded: Vec<Bytes> = command_params
                 .iter()
                 .map(|param| param.abi_encode(None).unwrap())
                 .collect();
@@ -114,23 +114,30 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let circuit_input = generate_email_circuit_input(
                 &email,
                 &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
-                None,
+                Some(EmailCircuitParams {
+                    max_header_length: Some(1024),
+                    max_body_length: Some(5020),
+                    sha_precompute_selector: Some(SHA_PRECOMPUTE_SELECTOR.to_string()),
+                    ignore_body_hash_check: Some(false),
+                }),
             )
             .await?;
 
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
+            info!(LOG, "Public signals: {:?}", public_signals);
+
             let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+            let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
                 proof: proof,
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject,
+                masked_subject: masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -138,8 +145,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
-                subject_params: subject_params_encoded,
-                skiped_subject_prefix: skipped_subject_prefix.into(),
+                subject_params: command_params_encoded,
+                skiped_subject_prefix: skipped_command_prefix.into(),
                 proof: email_proof.clone(),
             };
 
@@ -213,15 +220,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 Err(e) => Err(anyhow!("Failed to handle acceptance: {}", e)),
             }
         } else {
-            let subject_template = CLIENT
+            let command_template = CLIENT
                 .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
             let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
-            let (subject_params, skipped_subject_prefix) = match result {
-                Ok((subject_params, skipped_subject_prefix)) => {
-                    (subject_params, skipped_subject_prefix)
+                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
+            let (command_params, skipped_command_prefix) = match result {
+                Ok((command_params, skipped_command_prefix)) => {
+                    (command_params, skipped_command_prefix)
                 }
                 Err(e) => {
                     return Ok(EmailAuthEvent::Error {
@@ -231,7 +238,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 }
             };
 
-            let subject_params_encoded: Vec<Bytes> = subject_params
+            let command_params_encoded: Vec<Bytes> = command_params
                 .iter()
                 .map(|param| param.abi_encode(None).unwrap())
                 .collect();
@@ -256,14 +263,14 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+            let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
                 proof: proof,
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject,
+                masked_subject: masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -271,8 +278,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
-                subject_params: subject_params_encoded,
-                skiped_subject_prefix: skipped_subject_prefix.into(),
+                subject_params: command_params_encoded,
+                skiped_subject_prefix: skipped_command_prefix.into(),
                 proof: email_proof.clone(),
             };
 
@@ -339,15 +346,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
         }
     } else {
         if request.is_for_recovery {
-            let subject_template = CLIENT
+            let command_template = CLIENT
                 .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
             let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, subject_template);
-            let (subject_params, skipped_subject_prefix) = match result {
-                Ok((subject_params, skipped_subject_prefix)) => {
-                    (subject_params, skipped_subject_prefix)
+                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
+            let (command_params, skipped_command_prefix) = match result {
+                Ok((command_params, skipped_command_prefix)) => {
+                    (command_params, skipped_command_prefix)
                 }
                 Err(e) => {
                     return Ok(EmailAuthEvent::Error {
@@ -357,7 +364,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 }
             };
 
-            let subject_params_encoded: Vec<Bytes> = subject_params
+            let command_params_encoded: Vec<Bytes> = command_params
                 .iter()
                 .map(|param| param.abi_encode(None).unwrap())
                 .collect();
@@ -382,14 +389,14 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
             let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+            let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
                 proof: proof,
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject,
+                masked_subject: masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -397,8 +404,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
-                subject_params: subject_params_encoded,
-                skiped_subject_prefix: skipped_subject_prefix.into(),
+                subject_params: command_params_encoded,
+                skiped_subject_prefix: skipped_command_prefix.into(),
                 proof: email_proof.clone(),
             };
 
@@ -471,21 +478,21 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     }
 }
 
-pub fn get_masked_subject(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
+pub fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
     // Gather signals from start_idx to start_idx + SUBJECT_FIELDS
-    let mut subject_bytes = Vec::new();
+    let mut command_bytes = Vec::new();
     for i in start_idx..start_idx + SUBJECT_FIELDS {
         let signal = public_signals[i as usize];
         if signal == U256::zero() {
             break;
         }
         let bytes = u256_to_bytes32_little(&signal);
-        subject_bytes.extend_from_slice(&bytes);
+        command_bytes.extend_from_slice(&bytes);
     }
 
     // Bytes to string, removing null bytes
-    let subject = String::from_utf8(subject_bytes.into_iter().filter(|&b| b != 0u8).collect())
+    let command = String::from_utf8(command_bytes.into_iter().filter(|&b| b != 0u8).collect())
         .map_err(|e| anyhow!("Failed to convert bytes to string: {}", e))?;
 
-    Ok(subject)
+    Ok(command)
 }

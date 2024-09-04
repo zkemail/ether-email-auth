@@ -21,7 +21,7 @@ pub const IMAP_RECONNECT_ERROR: &str = "Failed to reconnect";
 pub const SMTP_RECONNECT_ERROR: &str = "Failed to reconnect";
 pub const CANNOT_GET_EMAIL_FROM_QUEUE: &str = "Cannot get email from mpsc in handle email task";
 pub const NOT_MY_SENDER: &str = "NOT_MY_SENDER";
-pub const WRONG_SUBJECT_FORMAT: &str = "Wrong subject format";
+pub const WRONG_COMMAND_FORMAT: &str = "Wrong command format";
 
 // Core REGEX'es and Commands
 pub const STRING_REGEX: &str = r"\S+";
@@ -29,6 +29,7 @@ pub const UINT_REGEX: &str = r"\d+";
 pub const INT_REGEX: &str = r"-?\d+";
 pub const ETH_ADDR_REGEX: &str = r"0x[a-fA-F0-9]{40}";
 pub const DECIMALS_REGEX: &str = r"\d+\.\d+";
+pub const SHA_PRECOMPUTE_SELECTOR: &str = r#"(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?\"(=\r\n)?[^\"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^\"]*(=\r\n)?\"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>\/]+)(<(=\r\n)?\/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)"#;
 
 // DKIM ORACLE ARGS
 pub const CANISTER_ID_KEY: &str = "CANISTER_ID";

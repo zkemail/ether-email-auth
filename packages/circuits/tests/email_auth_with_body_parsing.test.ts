@@ -64,7 +64,7 @@ describe("Email Auth With Body Parsing", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1725116446n;
+        const timestamp = 1725333972n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 0.1 ETH to ";
@@ -90,7 +90,7 @@ describe("Email Auth With Body Parsing", () => {
         );
     });
 
-    it("Verify a sent email whose subject does not have an email address", async () => {
+    it("Verify a sent email whose body does not have an email address", async () => {
         const emailFilePath = path.join(
             __dirname,
             "./emails/email_auth_with_body_parsing_test2.eml"
@@ -131,7 +131,7 @@ describe("Email Auth With Body Parsing", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1725116459n;
+        const timestamp = 1725333989n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Swap 1 ETH to DAI";
@@ -200,7 +200,7 @@ describe("Email Auth With Body Parsing", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1725116474n;
+        const timestamp = 1725334002n;
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 1 ETH to ";

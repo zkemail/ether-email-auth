@@ -74,6 +74,7 @@ impl Database {
     }
 
     pub(crate) async fn get_credentials(&self, account_code: &str) -> Result<Option<Credentials>> {
+        println!("account_code: {}", account_code);
         let row = sqlx::query("SELECT * FROM credentials WHERE account_code = $1")
             .bind(account_code)
             .fetch_optional(&self.db)

@@ -110,10 +110,14 @@ pub async fn request_status_api(payload: RequestStatusRequest) -> Result<Request
 }
 
 pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
+    println!("Account Code: {:?}", payload.account_code);
+
     let subject_template = CLIENT
         .get_acceptance_subject_templates(&payload.controller_eth_addr, payload.template_idx)
         .await
         .unwrap();
+
+    println!("Subject template: {:?}", subject_template);
 
     let subject_params = extract_template_vals(&payload.subject, subject_template);
 
@@ -135,7 +139,11 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
         .await
         .unwrap();
 
+    println!("Account Eth Addr: {:?}", account_eth_addr);
+
     let account_eth_addr = format!("0x{:x}", account_eth_addr);
+
+    println!("Account Eth Addr: {:?}", account_eth_addr);
 
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
         return Response::builder()
@@ -146,7 +154,9 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
 
     // Check if hash of bytecode of proxy contract is equal or not
     let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
+    println!("Bytecode: {:?}", bytecode);
     let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
+    println!("Bytecode Hash: {:?}", bytecode_hash);
 
     // let permitted_wallets: Vec<PermittedWallet> =
     //     serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
@@ -194,6 +204,8 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
     //         .unwrap();
     // }
 
+    println!("Account Eth Addr123: {:?}", account_eth_addr);
+
     if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
@@ -201,12 +213,16 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             .unwrap();
     }
 
+    println!("Account Eth Addr123: {:?}", account_eth_addr);
+
     let mut request_id = rand::thread_rng().gen::<u32>();
+    println!("Request ID: {:?}", request_id);
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
 
     let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
+    println!("Account Salt: {:?}", account_salt);
 
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
