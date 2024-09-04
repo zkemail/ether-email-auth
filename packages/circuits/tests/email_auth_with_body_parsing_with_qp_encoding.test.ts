@@ -230,7 +230,7 @@ describe("Email Auth With Body Parsing (QP Encoded)", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '<div id=3D"zkemail">',
+                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
             });
         const witness = await circuit.calculateWitness(circuitInputsRelevant);
         await circuit.checkConstraints(witness);
