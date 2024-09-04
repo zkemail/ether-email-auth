@@ -1,5 +1,6 @@
 FROM python:3.10
 
+
 RUN apt-get update && apt-get upgrade -y 
 # Update the package list and install necessary dependencies
 RUN apt-get update && \
@@ -9,8 +10,7 @@ RUN apt-get update && \
 RUN npm install -g n 
 RUN n 18
 RUN npm install -g yarn snarkjs
-
-RUN git clone https://github.com/zkemail/ether-email-auth.git
+RUN git clone -b feat/body-parsing-circuit https://github.com/zkemail/ether-email-auth.git
 WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
