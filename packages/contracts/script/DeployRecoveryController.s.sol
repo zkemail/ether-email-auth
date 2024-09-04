@@ -8,6 +8,7 @@ import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+// import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
@@ -46,7 +47,7 @@ contract Deploy is Script {
         vm.setEnv("USER_OVERRIDEABLE_DKIM_REGISTRY", vm.toString(address(userOverrideableDKIMRegistry)));
 
         // Deploy DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry{salt: salt}(signer);
+        dkim = new ECDSAOwnedDKIMRegistry{salt: salt}();
         console.log("ECDSAOwnedDKIMRegistry deployed at: %s", address(dkim));
         vm.setEnv("DKIM", vm.toString(address(dkim)));
 

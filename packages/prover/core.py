@@ -1,12 +1,18 @@
 import subprocess
 import os
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def gen_email_auth_proof(nonce: str, is_local: bool, input: dict) -> dict:
     circuit_name = "email_auth"
+    print("Store input")
     store_input(circuit_name, nonce, input)
+    print("Generate proof")
     gen_proof(circuit_name, nonce, is_local)
+    print("Load proof")
     proof = load_proof(circuit_name, nonce)
     pub_signals = load_pub_signals(circuit_name, nonce)
     return {"proof": proof, "pub_signals": pub_signals}
@@ -22,6 +28,7 @@ def store_input(circuit_name: str, nonce: str, json_data: dict):
     json_file_path = os.path.join(
         build_dir, "input_" + circuit_name + "_" + nonce + ".json"
     )
+    logger.info(f"Store user input to {json_file_path}")
     with open(json_file_path, "w") as json_file:
         json_file.write(json_data)
 
@@ -32,6 +39,7 @@ def load_proof(circuit_name: str, nonce: str) -> dict:
     json_file_path = os.path.join(
         build_dir, "rapidsnark_proof_" + circuit_name + "_" + nonce + ".json"
     )
+    logger.info(f"Loading proof from {json_file_path}")
     with open(json_file_path, "r") as json_file:
         return json.loads(json_file.read())
 
@@ -42,6 +50,7 @@ def load_pub_signals(circuit_name: str, nonce: str) -> dict:
     json_file_path = os.path.join(
         build_dir, "rapidsnark_public_" + circuit_name + "_" + nonce + ".json"
     )
+    logger.info(f"Loading public signals from {json_file_path}")
     with open(json_file_path, "r") as json_file:
         return json.loads(json_file.read())
 
@@ -50,7 +59,9 @@ def gen_proof(circuit_name: str, nonce: str, is_local: bool):
     is_local_int: int = 1 if is_local else 0
     cur_dir = get_cur_dir()
     params_dir = os.path.join(cur_dir, "params")
+    logger.info(f"Params dir: {params_dir}")
     build_dir = os.path.join(cur_dir, "build")
+    logger.info(f"Build dir: {build_dir}")
     result = subprocess.run(
         [
             os.path.join(cur_dir, "circom_proofgen.sh"),
@@ -61,6 +72,9 @@ def gen_proof(circuit_name: str, nonce: str, is_local: bool):
             str(is_local_int),
         ]
     )
+    logger.info(f"Proof generation result: {result.returncode}")
+    if result.stderr is not None:
+        logger.error(result.stderr)
     print(result.stdout)
     print(result.stderr)
 

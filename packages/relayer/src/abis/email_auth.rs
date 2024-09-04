@@ -61,27 +61,16 @@ pub mod email_auth {
                                     ::std::boxed::Box::new(
                                         ::ethers::core::abi::ethabi::ParamType::Bytes,
                                     ),
-                                ),
-                                ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                ::ethers::core::abi::ethabi::ParamType::Tuple(::std::vec![
-                                    ::ethers::core::abi::ethabi::ParamType::String,
-                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
-                                    ::ethers::core::abi::ethabi::ParamType::String,
-                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                    ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize),
-                                    ::ethers::core::abi::ethabi::ParamType::Bool,
-                                    ::ethers::core::abi::ethabi::ParamType::Bytes,
-                                ],),
-                            ],),
-                            internal_type: ::core::option::Option::Some(
-                                ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
-                            ),
-                        },],
-                        outputs: ::std::vec![],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("struct EmailAuthMsg"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("controller"),
@@ -239,16 +228,27 @@ pub mod email_auth {
                                     ::std::boxed::Box::new(
                                         ::ethers::core::abi::ethabi::ParamType::String,
                                     ),
-                                ),
-                                internal_type: ::core::option::Option::Some(
-                                    ::std::borrow::ToOwned::to_owned("string[]"),
-                                ),
-                            },
-                        ],
-                        outputs: ::std::vec![],
-                        constant: ::core::option::Option::None,
-                        state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
-                    },],
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("uint256"),
+                                    ),
+                                },
+                                ::ethers::core::abi::ethabi::Param {
+                                    name: ::std::borrow::ToOwned::to_owned("_subjectTemplate"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Array(
+                                        ::std::boxed::Box::new(
+                                            ::ethers::core::abi::ethabi::ParamType::String,
+                                        ),
+                                    ),
+                                    internal_type: ::core::option::Option::Some(
+                                        ::std::borrow::ToOwned::to_owned("string[]"),
+                                    ),
+                                },
+                            ],
+                            outputs: ::std::vec![],
+                            constant: ::core::option::Option::None,
+                            state_mutability: ::ethers::core::abi::ethabi::StateMutability::NonPayable,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("lastTimestamp"),
@@ -527,32 +527,40 @@ pub mod email_auth {
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("EmailAuthed"),
-                    ::std::vec![::ethers::core::abi::ethabi::Event {
-                        name: ::std::borrow::ToOwned::to_owned("EmailAuthed"),
-                        inputs: ::std::vec![
-                            ::ethers::core::abi::ethabi::EventParam {
-                                name: ::std::borrow::ToOwned::to_owned("emailNullifier"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
-                                indexed: true,
-                            },
-                            ::ethers::core::abi::ethabi::EventParam {
-                                name: ::std::borrow::ToOwned::to_owned("accountSalt"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(32usize,),
-                                indexed: true,
-                            },
-                            ::ethers::core::abi::ethabi::EventParam {
-                                name: ::std::borrow::ToOwned::to_owned("isCodeExist"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Bool,
-                                indexed: false,
-                            },
-                            ::ethers::core::abi::ethabi::EventParam {
-                                name: ::std::borrow::ToOwned::to_owned("templateId"),
-                                kind: ::ethers::core::abi::ethabi::ParamType::Uint(256usize,),
-                                indexed: false,
-                            },
-                        ],
-                        anonymous: false,
-                    },],
+                    ::std::vec![
+                        ::ethers::core::abi::ethabi::Event {
+                            name: ::std::borrow::ToOwned::to_owned("EmailAuthed"),
+                            inputs: ::std::vec![
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("emailNullifier"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    indexed: true,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("accountSalt"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::FixedBytes(
+                                        32usize,
+                                    ),
+                                    indexed: true,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("isCodeExist"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Bool,
+                                    indexed: false,
+                                },
+                                ::ethers::core::abi::ethabi::EventParam {
+                                    name: ::std::borrow::ToOwned::to_owned("templateId"),
+                                    kind: ::ethers::core::abi::ethabi::ParamType::Uint(
+                                        256usize,
+                                    ),
+                                    indexed: false,
+                                },
+                            ],
+                            anonymous: false,
+                        },
+                    ],
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned("Initialized"),
@@ -1527,10 +1535,7 @@ pub mod email_auth {
         Eq,
         Hash,
     )]
-    #[ethevent(
-        name = "EmailAuthed",
-        abi = "EmailAuthed(bytes32,bytes32,bool,uint256)"
-    )]
+    #[ethevent(name = "EmailAuthed", abi = "EmailAuthed(bytes32,bytes32,bool,uint256)")]
     pub struct EmailAuthedFilter {
         #[ethevent(indexed)]
         pub email_nullifier: [u8; 32],
@@ -2213,7 +2218,9 @@ pub mod email_auth {
             if let Ok(decoded) = <AuthEmailCall as ::ethers::core::abi::AbiDecode>::decode(data) {
                 return Ok(Self::AuthEmail(decoded));
             }
-            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
+            if let Ok(decoded) = <ControllerCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::Controller(decoded));
             }
             if let Ok(decoded) =
@@ -2248,8 +2255,9 @@ pub mod email_auth {
             {
                 return Ok(Self::InsertSubjectTemplate(decoded));
             }
-            if let Ok(decoded) = <LastTimestampCall as ::ethers::core::abi::AbiDecode>::decode(data)
-            {
+            if let Ok(decoded) = <LastTimestampCall as ::ethers::core::abi::AbiDecode>::decode(
+                data,
+            ) {
                 return Ok(Self::LastTimestamp(decoded));
             }
             if let Ok(decoded) = <OwnerCall as ::ethers::core::abi::AbiDecode>::decode(data) {
@@ -2322,9 +2330,15 @@ pub mod email_auth {
                 Self::UpgradeInterfaceVersion(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::AccountSalt(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::AuthEmail(element) => ::ethers::core::abi::AbiEncode::encode(element),
-                Self::Controller(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::AccountSalt(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::AuthEmail(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
+                Self::Controller(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::DeleteSubjectTemplate(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
@@ -2338,7 +2352,9 @@ pub mod email_auth {
                 Self::InsertSubjectTemplate(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::LastTimestamp(element) => ::ethers::core::abi::AbiEncode::encode(element),
+                Self::LastTimestamp(element) => {
+                    ::ethers::core::abi::AbiEncode::encode(element)
+                }
                 Self::Owner(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::ProxiableUUID(element) => ::ethers::core::abi::AbiEncode::encode(element),
                 Self::RenounceOwnership(element) => ::ethers::core::abi::AbiEncode::encode(element),
@@ -2376,7 +2392,9 @@ pub mod email_auth {
                 Self::InitDKIMRegistry(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InitVerifier(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Initialize(element) => ::core::fmt::Display::fmt(element, f),
-                Self::InsertSubjectTemplate(element) => ::core::fmt::Display::fmt(element, f),
+                Self::InsertSubjectTemplate(element) => {
+                    ::core::fmt::Display::fmt(element, f)
+                }
                 Self::LastTimestamp(element) => ::core::fmt::Display::fmt(element, f),
                 Self::Owner(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ProxiableUUID(element) => ::core::fmt::Display::fmt(element, f),
@@ -2407,11 +2425,6 @@ pub mod email_auth {
     impl ::core::convert::From<AuthEmailCall> for EmailAuthCalls {
         fn from(value: AuthEmailCall) -> Self {
             Self::AuthEmail(value)
-        }
-    }
-    impl ::core::convert::From<ControllerCall> for EmailAuthCalls {
-        fn from(value: ControllerCall) -> Self {
-            Self::Controller(value)
         }
     }
     impl ::core::convert::From<ControllerCall> for EmailAuthCalls {

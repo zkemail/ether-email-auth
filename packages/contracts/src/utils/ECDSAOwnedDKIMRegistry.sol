@@ -5,11 +5,17 @@ import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
+import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /// @title ECDSA Owned DKIM Registry
 /// @notice This contract allows for the management of DKIM public key hashes through an ECDSA-signed mechanism. It enables the setting and revoking of DKIM public key hashes for domain names, ensuring that only the authorized signer can perform these operations. The contract leverages an underlying DKIMRegistry contract for the actual storage and validation of public key hashes.
 /// @dev The contract uses OpenZeppelin's ECDSA library for signature recovery and the DKIMRegistry for storing the DKIM public key hashes.
-contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
+contract ECDSAOwnedDKIMRegistry is
+    IDKIMRegistry,
+    OwnableUpgradeable,
+    UUPSUpgradeable
+{
     using Strings for *;
     using ECDSA for *;
 
@@ -19,9 +25,16 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
     string public constant SET_PREFIX = "SET:";
     string public constant REVOKE_PREFIX = "REVOKE:";
 
+    constructor() {}
+
     /// @notice Initializes the contract with a predefined signer and deploys a new DKIMRegistry.
+    /// @param _initialOwner The address of the initial owner of the contract.
     /// @param _signer The address of the authorized signer who can set or revoke DKIM public key hashes.
-    constructor(address _signer) {
+    function initialize(
+        address _initialOwner,
+        address _signer
+    ) public initializer {
+        __Ownable_init(_initialOwner);
         dkimRegistry = new DKIMRegistry(address(this));
         signer = _signer;
     }
@@ -140,4 +153,18 @@ contract ECDSAOwnedDKIMRegistry is IDKIMRegistry {
                 ";"
             );
     }
+
+    /// @notice Changes the signer address to a new address.
+    /// @param _newSigner The address of the new signer.
+    function changeSigner(address _newSigner) public onlyOwner {
+        require(_newSigner != address(0), "Invalid signer");
+        require(_newSigner != signer, "Same signer");
+        signer = _newSigner;
+    }
+
+    /// @notice Upgrade the implementation of the proxy.
+    /// @param newImplementation Address of the new implementation.
+    function _authorizeUpgrade(
+        address newImplementation
+    ) internal override onlyOwner {}
 }
