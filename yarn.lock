@@ -1828,10 +1828,10 @@
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.1.2":
-  version "6.1.2"
-  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.2.tgz#ce5b21c62103da72cad404724f2eb9649c773d86"
-  integrity sha512-cakbMmr+ox6nyhNXiJI8ZM0ZuKn3A60KIeiZsr3a1dYn4Rk03PL2MfHMv9ec8ivNnJNy+jDbOAkcTV5PYHoTIQ==
+"@zk-email/contracts@^6.1.5":
+  version "6.1.5"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.5.tgz#979c2aaa30cdcdb7433ff37d74c396df0cb60107"
+  integrity sha512-1RW3dpYGBQXjmIlcTGMtYsux7FQoR1MezA0D0pssrNEaCO2CuQd6oAxJLpbCxFQWPbujLKn8PiEVcjP+eiGvVw==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
@@ -1854,9 +1854,17 @@
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@^2.1.0", "@zk-email/zk-regex-circom@https://gitpkg.vercel.app/zkemail/zk-regex/packages/circom?feat/fix-email-addr-regex":
+"@zk-email/zk-regex-circom@^2.1.0":
   version "2.1.0"
   resolved "https://gitpkg.vercel.app/zkemail/zk-regex/packages/circom?feat/fix-email-addr-regex#adf613c7b5b761eb080f616f18625a6f711ede29"
+  dependencies:
+    commander "^11.0.0"
+    snarkjs "^0.7.0"
+
+"@zk-email/zk-regex-circom@^2.1.1":
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.1.1.tgz#e4f41fd873905d27dd05a9f07613717be4b2e5d1"
+  integrity sha512-tuU2Kb08fwYkAPDemL8RRvLTEKNGyUt2odYr5awkVKGCZGCV1hxIy/wke6+2fIOR8Lu82MnXVtdBk+G3gRZLbg==
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.0"

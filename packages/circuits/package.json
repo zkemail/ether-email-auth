@@ -12,7 +12,7 @@
   "dependencies": {
     "@zk-email/circuits": "^6.1.5",
     "@zk-email/relayer-utils": "^0.2.4",
-    "@zk-email/zk-regex-circom": "https://gitpkg.vercel.app/zkemail/zk-regex/packages/circom?feat/fix-email-addr-regex",
+    "@zk-email/zk-regex-circom": "^2.1.1",
     "commander": "^11.0.0",
     "snarkjs": "^0.7.4"
   },
