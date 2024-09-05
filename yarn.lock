@@ -1818,10 +1818,19 @@
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
 
-"@zk-email/relayer-utils@^0.2.4":
-  version "0.2.9"
-  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.2.9.tgz#81f34cab29a444f56d99a79514afd7759789aa2a"
-  integrity sha512-QlkGBo0OxxD7I+U1SoS32B8R/bzqd7gI6uhEZZAWEY4lPrMc8NiNeC45xYXHIVYi7olAVn27GpxLnURmL8FrDg==
+"@zk-email/relayer-utils@=0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.2.4.tgz#5f452bb2867e1efe8700a19351dbb7796f9a081f"
+  integrity sha512-T1N4hBL2NI7omerONdgS2HIYydNP0cRSKpyKEMRzWxelgam7HP3TgG7jYbehQn9BlCyL7o4ifNnyH9sQPaC0zA==
+  dependencies:
+    "@mapbox/node-pre-gyp" "^1.0"
+    "@zk-email/relayer-utils" "github:zkemail/relayer-utils"
+    cargo-cp-artifact "^0.1"
+    node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
+
+"@zk-email/relayer-utils@github:zkemail/relayer-utils":
+  version "0.3.2"
+  resolved "https://codeload.github.com/zkemail/relayer-utils/tar.gz/aefb00fdcfbfde7fced50e5a0b086e5cc2ff64cd"
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0"
     cargo-cp-artifact "^0.1"
