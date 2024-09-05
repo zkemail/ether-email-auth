@@ -80,7 +80,7 @@ pub fn calculate_default_hash(input: &str) -> String {
     hash_code.to_string()
 }
 
-pub fn calculate_account_salt(email_addr: &str, account_code: &str) -> String {
+pub fn calculate_account_salt(email_addr: &str, account_code: &str) -> Result<String> {
     let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
     let account_code = if account_code.starts_with("0x") {
         hex_to_field(&account_code).unwrap()
@@ -88,7 +88,7 @@ pub fn calculate_account_salt(email_addr: &str, account_code: &str) -> String {
         hex_to_field(&format!("0x{}", account_code)).unwrap()
     };
     let account_code = AccountCode::from(account_code);
-    let account_salt = AccountSalt::new(&padded_email_addr, account_code).unwrap();
+    let account_salt = AccountSalt::new(&padded_email_addr, account_code)?;
 
     field_to_hex(&account_salt.0)
 }
