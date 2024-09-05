@@ -8,7 +8,7 @@
 import { program } from "commander";
 import fs from "fs";
 import { promisify } from "util";
-import { genEmailAuthInput } from "../helpers/email_auth";
+import { genEmailCircuitInput } from "../helpers/email_auth";
 import path from "path";
 const snarkjs = require("snarkjs");
 
@@ -44,7 +44,7 @@ async function generate() {
 
     log("Generating Inputs for:", args);
 
-    const circuitInputs = await genEmailAuthInput(args.emailFile, args.accountCode);
+    const circuitInputs = await genEmailCircuitInput(args.emailFile, args.accountCode);
     log("\n\nGenerated Inputs:", circuitInputs, "\n\n");
 
     await promisify(fs.writeFile)(args.inputFile, JSON.stringify(circuitInputs, null, 2));
