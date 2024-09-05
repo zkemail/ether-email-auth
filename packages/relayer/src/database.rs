@@ -102,7 +102,7 @@ impl Database {
         &self,
         account_eth_addr: &str,
         email_addr: &str,
-    ) -> bool {
+    ) -> std::result::Result<bool, ApiError> {
         let row = sqlx::query(
             "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
@@ -110,11 +110,13 @@ impl Database {
         .bind(email_addr)
         .fetch_optional(&self.db)
         .await
-        .unwrap();
+        .map_err(|e| {
+            ApiError::database_error("Failed to check if wallet and email are registered", e)
+        })?;
 
         match row {
-            Some(_) => true,
-            None => false,
+            Some(_) => Ok(true),
+            None => Ok(false),
         }
     }
 
@@ -132,14 +134,17 @@ impl Database {
     pub(crate) async fn update_credentials_of_wallet_and_email(
         &self,
         row: &Credentials,
-    ) -> Result<()> {
+    ) -> std::result::Result<(), ApiError> {
         let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3 AND guardian_email_addr = $4")
             .bind(&row.account_code)
             .bind(row.is_set)
             .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .execute(&self.db)
-            .await?;
+            .await
+            .map_err(|e| {
+                ApiError::database_error("Failed to insert credentials of wallet and email", e)
+            })?;
         Ok(())
     }
 
@@ -147,19 +152,26 @@ impl Database {
         &self,
         is_set: bool,
         account_eth_addr: &str,
-    ) -> Result<()> {
+    ) -> std::result::Result<(), ApiError> {
         let res = sqlx::query(
             "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2 AND is_set = true",
         )
         .bind(is_set)
         .bind(account_eth_addr)
         .execute(&self.db)
-        .await?;
+        .await
+        .map_err(|e| {
+            ApiError::database_error("Failed to update credentials of inactive guardian", e)
+        })?;
         Ok(())
     }
 
-    pub(crate) async fn insert_credentials(&self, row: &Credentials) -> Result<()> {
-        info!(LOG, "insert row {:?}", row);
+    #[named]
+    pub(crate) async fn insert_credentials(
+        &self,
+        row: &Credentials,
+    ) -> std::result::Result<(), ApiError> {
+        info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO credentials (account_code, account_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
@@ -168,30 +180,44 @@ impl Database {
         .bind(&row.guardian_email_addr)
         .bind(row.is_set)
         .fetch_one(&self.db)
-        .await?;
-        info!(LOG, "{} row inserted", row.len());
+        .await
+        .map_err(|e| ApiError::database_error("Failed to insert credentials", e))?;
+        info!(
+            LOG,
+            "{} row inserted",
+            row.len(); "func" => function_name!()
+        );
         Ok(())
     }
 
-    pub async fn is_guardian_set(&self, account_eth_addr: &str, guardian_email_addr: &str) -> bool {
+    pub async fn is_guardian_set(
+        &self,
+        account_eth_addr: &str,
+        guardian_email_addr: &str,
+    ) -> std::result::Result<bool, ApiError> {
         let row = sqlx::query("SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
             .bind(account_eth_addr)
             .bind(guardian_email_addr)
             .fetch_optional(&self.db)
             .await
-            .unwrap();
+            .map_err(|e| ApiError::database_error("Failed to check if guardian is set", e))?;
 
         match row {
-            Some(_) => true,
-            None => false,
+            Some(_) => Ok(true),
+            None => Ok(false),
         }
     }
 
-    pub(crate) async fn get_request(&self, request_id: u32) -> Result<Option<Request>> {
+    #[named]
+    pub(crate) async fn get_request(
+        &self,
+        request_id: u32,
+    ) -> std::result::Result<Option<Request>, ApiError> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
             .bind(request_id as i64)
             .fetch_optional(&self.db)
-            .await?;
+            .await
+            .map_err(|e| ApiError::database_error("Failed to get request", e))?;
 
         match row {
             Some(row) => {
@@ -267,14 +293,17 @@ impl Database {
         &self,
         account_eth_addr: &str,
         email_addr: &str,
-    ) -> Result<Option<Credentials>> {
+    ) -> std::result::Result<Option<Credentials>, ApiError> {
         let row = sqlx::query(
             "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
         .bind(account_eth_addr)
         .bind(email_addr)
         .fetch_optional(&self.db)
-        .await?;
+        .await
+        .map_err(|e| {
+            ApiError::database_error("Failed to get credentials from wallet and email", e)
+        })?;
 
         match row {
             Some(row) => {
@@ -295,8 +324,9 @@ impl Database {
         }
     }
 
-    pub(crate) async fn insert_request(&self, row: &Request) -> Result<()> {
-        info!(LOG, "insert row {:?}", row);
+    #[named]
+    pub(crate) async fn insert_request(&self, row: &Request) -> std::result::Result<(), ApiError> {
+        info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
         )
@@ -311,8 +341,13 @@ impl Database {
         .bind(&row.email_nullifier)
         .bind(&row.account_salt)
         .fetch_one(&self.db)
-        .await?;
-        info!(LOG, "{} row inserted", row.len());
+        .await
+        .map_err(|e| ApiError::database_error("Failed to insert request", e))?;
+        info!(
+            LOG,
+            "{} row inserted",
+            row.len(); "func" => function_name!()
+        );
         Ok(())
     }
 }

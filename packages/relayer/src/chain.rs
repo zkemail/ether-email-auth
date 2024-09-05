@@ -108,14 +108,16 @@ impl ChainClient {
         Ok(email_auth_addr)
     }
 
-    pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> bool {
-        let wallet_addr: H160 = wallet_addr_str.parse().unwrap();
+    pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> Result<bool, ApiError> {
+        let wallet_addr: H160 = wallet_addr_str.parse().map_err(ApiError::HexError)?;
         match self.client.get_code(wallet_addr, None).await {
-            Ok(code) => !code.is_empty(),
+            Ok(code) => Ok(!code.is_empty()),
             Err(e) => {
                 // Log the error or handle it as needed
-                error!(LOG, "Error querying contract code: {:?}", e);
-                false
+                Err(ApiError::signer_middleware_error(
+                    "Failed to check if wallet is deployed",
+                    e,
+                ))
             }
         }
     }
@@ -124,14 +126,16 @@ impl ChainClient {
         &self,
         controller_eth_addr: &String,
         template_idx: u64,
-    ) -> Result<Vec<String>, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+    ) -> Result<Vec<String>, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
             .acceptance_command_templates()
             .call()
             .await
-            .map_err(|e| anyhow::Error::from(e))?;
+            .map_err(|e| {
+                ApiError::contract_error("Failed to get acceptance subject templates", e)
+            })?;
         Ok(templates[template_idx as usize].clone())
     }
 
@@ -139,14 +143,14 @@ impl ChainClient {
         &self,
         controller_eth_addr: &String,
         template_idx: u64,
-    ) -> Result<Vec<String>, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+    ) -> Result<Vec<String>, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
             .recovery_command_templates()
             .call()
             .await
-            .map_err(|e| anyhow::Error::from(e))?;
+            .map_err(|e| ApiError::contract_error("Failed to get recovery subject templates", e))?;
         Ok(templates[template_idx as usize].clone())
     }
 
@@ -155,23 +159,27 @@ impl ChainClient {
         controller_eth_addr: &String,
         account_eth_addr: &String,
         complete_calldata: &String,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+    ) -> Result<bool, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let decoded_calldata =
             hex::decode(&complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
-        let call = contract.complete_recovery(
-            account_eth_addr
-                .parse::<H160>()
-                .expect("Invalid H160 address"),
-            Bytes::from(decoded_calldata),
-        );
-        let tx = call.send().await?;
+        let account_eth_addr = account_eth_addr
+            .parse::<H160>()
+            .map_err(ApiError::HexError)?;
+        let call = contract.complete_recovery(account_eth_addr, Bytes::from(decoded_calldata));
+        let tx = call
+            .send()
+            .await
+            .map_err(|e| ApiError::contract_error("Failed to call complete_recovery", e))?;
         // If the transaction is successful, the function will return true and false otherwise.
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
-            .await?
+            .await
+            .map_err(|e| {
+                ApiError::provider_error("Failed to get receipt after calling complete_recovery", e)
+            })?
             .ok_or(anyhow!("No receipt"))?;
         Ok(receipt
             .status
@@ -223,9 +231,14 @@ impl ChainClient {
             .unwrap_or(false))
     }
 
-    pub async fn get_bytecode(&self, wallet_addr: &String) -> Result<Bytes, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        Ok(self.client.get_code(wallet_address, None).await?)
+    pub async fn get_bytecode(&self, wallet_addr: &String) -> Result<Bytes, ApiError> {
+        let wallet_address: H160 = wallet_addr.parse().map_err(ApiError::HexError)?;
+        let client_code = self
+            .client
+            .get_code(wallet_address, None)
+            .await
+            .map_err(|e| ApiError::signer_middleware_error("Failed to get bytecode", e))?;
+        Ok(client_code)
     }
 
     pub async fn get_storage_at(
@@ -245,8 +258,8 @@ impl ChainClient {
         controller_eth_addr: &String,
         command_params: Vec<TemplateValue>,
         template_idx: u64,
-    ) -> Result<H160, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+    ) -> Result<H160, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let command_params_bytes = command_params
             .iter() // Change here: use iter() instead of map() directly on Vec
@@ -261,7 +274,13 @@ impl ChainClient {
                 template_idx.into(),
             )
             .call()
-            .await?;
+            .await
+            .map_err(|e| {
+                ApiError::contract_error(
+                    "Failed to get recovered account from acceptance subject",
+                    e,
+                )
+            })?;
         Ok(recovered_account)
     }
 
@@ -270,23 +289,27 @@ impl ChainClient {
         controller_eth_addr: &String,
         command_params: Vec<TemplateValue>,
         template_idx: u64,
-    ) -> Result<H160, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+    ) -> Result<H160, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let command_params_bytes = command_params
             .iter() // Change here: use iter() instead of map() directly on Vec
             .map(|s| {
-                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
-                    .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
-            }) // Error handling
-            .collect::<Vec<_>>();
+                s.abi_encode(None).map_err(|_| {
+                    ApiError::Validation("Error encoding subject parameters".to_string())
+                })
+            })
+            .collect::<Result<Vec<_>, ApiError>>()?;
         let recovered_account = contract
             .extract_recovered_account_from_recovery_command(
                 command_params_bytes,
                 template_idx.into(),
             )
             .call()
-            .await?;
+            .await
+            .map_err(|e| {
+                ApiError::contract_error("Failed to get recovered account from recovery subject", e)
+            })?;
         Ok(recovered_account)
     }
 
@@ -294,11 +317,15 @@ impl ChainClient {
         &self,
         controller_eth_addr: &String,
         account_eth_addr: &String,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let account_eth_addr: H160 = account_eth_addr.parse()?;
+    ) -> Result<bool, ApiError> {
+        let controller_eth_addr: H160 = controller_eth_addr.parse().map_err(ApiError::HexError)?;
+        let account_eth_addr: H160 = account_eth_addr.parse().map_err(ApiError::HexError)?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let is_activated = contract.is_activated(account_eth_addr).call().await?;
+        let is_activated = contract
+            .is_activated(account_eth_addr)
+            .call()
+            .await
+            .map_err(|e| ApiError::contract_error("Failed to check if is activated", e))?;
         Ok(is_activated)
     }
 }
