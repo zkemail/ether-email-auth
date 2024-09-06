@@ -25,7 +25,7 @@ pub enum EmailAuthEvent {
         account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
-        subject: String,
+        command: String,
     },
     AcceptanceSuccess {
         account_eth_addr: String,
@@ -174,7 +174,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             account_eth_addr,
             guardian_email_addr,
             request_id,
-            subject,
+            command,
         } => {
             let body_plain = format!(
                 "You have received a recovery request from the wallet address {}. \
@@ -184,9 +184,12 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 account_eth_addr, request_id
             );
 
+            let subject = format!("Email Recovery: Recovery Request");
+
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
+                "command": command,
                 "requestId": request_id,
             });
             let body_html = render_html("recovery_request.html", render_data).await?;

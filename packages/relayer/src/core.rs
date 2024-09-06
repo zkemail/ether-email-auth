@@ -20,7 +20,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     let guardian_email_addr = parsed_email.get_from_addr()?;
     let padded_from_addr = PaddedEmailAddr::from_email_addr(&guardian_email_addr);
     trace!(LOG, "From address: {}", guardian_email_addr);
-    let email_body = parsed_email.get_body()?;
+    let email_body = parsed_email.get_cleaned_body()?;
 
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))?;
@@ -66,17 +66,17 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     .await?;
 
     if let Ok(invitation_code) = parsed_email.get_invitation_code(false) {
-        trace!(LOG, "Email with account code");
-
-        if account_code_str != invitation_code {
-            return Err(anyhow!(
-                "Stored account code is not equal to one in the email. Stored: {}, Email: {}",
-                account_code_str,
-                invitation_code
-            ));
-        }
-
         if !request.is_for_recovery {
+            trace!(LOG, "Email with account code");
+
+            if account_code_str != invitation_code {
+                return Err(anyhow!(
+                    "Stored account code is not equal to one in the email. Stored: {}, Email: {}",
+                    account_code_str,
+                    invitation_code
+                ));
+            }
+
             let command_template = CLIENT
                 .get_acceptance_subject_templates(
                     &request.controller_eth_addr,
@@ -84,19 +84,16 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 )
                 .await?;
 
-            let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
-            let (command_params, skipped_command_prefix) = match result {
-                Ok((command_params, skipped_command_prefix)) => {
-                    (command_params, skipped_command_prefix)
-                }
-                Err(e) => {
-                    return Ok(EmailAuthEvent::Error {
-                        email_addr: guardian_email_addr,
-                        error: format!("Invalid Subject, {}", e),
-                    });
-                }
-            };
+            let command_params =
+                match extract_template_vals_from_command(&email_body, command_template) {
+                    Ok(command_params) => command_params,
+                    Err(e) => {
+                        return Ok(EmailAuthEvent::Error {
+                            email_addr: guardian_email_addr,
+                            error: format!("Invalid Subject, {}", e),
+                        });
+                    }
+                };
 
             let command_params_encoded: Vec<Bytes> = command_params
                 .iter()
@@ -220,129 +217,10 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 Err(e) => Err(anyhow!("Failed to handle acceptance: {}", e)),
             }
         } else {
-            let command_template = CLIENT
-                .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
-                .await?;
-
-            let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
-            let (command_params, skipped_command_prefix) = match result {
-                Ok((command_params, skipped_command_prefix)) => {
-                    (command_params, skipped_command_prefix)
-                }
-                Err(e) => {
-                    return Ok(EmailAuthEvent::Error {
-                        email_addr: guardian_email_addr,
-                        error: format!("Invalid Subject, {}", e),
-                    });
-                }
-            };
-
-            let command_params_encoded: Vec<Bytes> = command_params
-                .iter()
-                .map(|param| param.abi_encode(None).unwrap())
-                .collect();
-
-            let tokens = vec![
-                Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
-                Token::String("RECOVERY".to_string()),
-                Token::Uint(request.template_idx.into()),
-            ];
-
-            let template_id = keccak256(encode(&tokens));
-
-            let circuit_input = generate_email_circuit_input(
-                &email,
-                &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
-                None,
-            )
-            .await?;
-
-            let (proof, public_signals) =
-                generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
-
-            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
-            let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
-            let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
-
-            let email_proof = EmailProof {
-                proof: proof,
-                domain_name: parsed_email.get_email_domain()?,
-                public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
-                timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject: masked_command,
-                email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
-                account_salt,
-                is_code_exist,
-            };
-
-            let email_auth_msg = EmailAuthMsg {
-                template_id: template_id.into(),
-                subject_params: command_params_encoded,
-                skiped_subject_prefix: skipped_command_prefix.into(),
-                proof: email_proof.clone(),
-            };
-
-            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
-            info!(LOG, "Request: {:?}", request);
-
-            match CLIENT
-                .handle_recovery(
-                    &request.controller_eth_addr,
-                    email_auth_msg,
-                    request.template_idx,
-                )
-                .await
-            {
-                Ok(true) => {
-                    let updated_request = Request {
-                        account_eth_addr: request.account_eth_addr.clone(),
-                        controller_eth_addr: request.controller_eth_addr.clone(),
-                        guardian_email_addr: guardian_email_addr.clone(),
-                        template_idx: request.template_idx,
-                        is_for_recovery: request.is_for_recovery,
-                        is_processed: true,
-                        request_id: request.request_id,
-                        is_success: Some(true),
-                        email_nullifier: Some(field_to_hex(
-                            &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
-                        )),
-                        account_salt: Some(bytes32_to_hex(&account_salt)),
-                    };
-
-                    DB.update_request(&updated_request).await?;
-
-                    Ok(EmailAuthEvent::RecoverySuccess {
-                        account_eth_addr: request.account_eth_addr,
-                        guardian_email_addr,
-                        request_id: request_id_u32,
-                    })
-                }
-                Ok(false) => {
-                    let updated_request = Request {
-                        account_eth_addr: request.account_eth_addr.clone(),
-                        controller_eth_addr: request.controller_eth_addr.clone(),
-                        guardian_email_addr: guardian_email_addr.clone(),
-                        template_idx: request.template_idx,
-                        is_for_recovery: request.is_for_recovery,
-                        is_processed: true,
-                        request_id: request.request_id,
-                        is_success: Some(false),
-                        email_nullifier: Some(field_to_hex(
-                            &bytes32_to_fr(&email_proof.email_nullifier).unwrap(),
-                        )),
-                        account_salt: Some(bytes32_to_hex(&account_salt)),
-                    };
-
-                    DB.update_request(&updated_request).await?;
-
-                    Ok(EmailAuthEvent::Error {
-                        email_addr: guardian_email_addr,
-                        error: "Failed to handle recovery".to_string(),
-                    })
-                }
-                Err(e) => Err(anyhow!("Failed to handle recovery: {}", e)),
-            }
+            return Ok(EmailAuthEvent::Error {
+                email_addr: guardian_email_addr,
+                error: "Account code found and for recovery".to_string(),
+            });
         }
     } else {
         if request.is_for_recovery {
@@ -350,19 +228,16 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
-            let result =
-                extract_template_vals_and_skipped_subject_idx(&email_body, command_template);
-            let (command_params, skipped_command_prefix) = match result {
-                Ok((command_params, skipped_command_prefix)) => {
-                    (command_params, skipped_command_prefix)
-                }
-                Err(e) => {
-                    return Ok(EmailAuthEvent::Error {
-                        email_addr: guardian_email_addr,
-                        error: format!("Invalid Subject, {}", e),
-                    });
-                }
-            };
+            let command_params =
+                match extract_template_vals_from_command(&email_body, command_template) {
+                    Ok(command_params) => command_params,
+                    Err(e) => {
+                        return Ok(EmailAuthEvent::Error {
+                            email_addr: guardian_email_addr,
+                            error: format!("Invalid Subject, {}", e),
+                        });
+                    }
+                };
 
             let command_params_encoded: Vec<Bytes> = command_params
                 .iter()
@@ -380,7 +255,12 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let circuit_input = generate_email_circuit_input(
                 &email,
                 &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
-                None,
+                Some(EmailCircuitParams {
+                    max_header_length: Some(1024),
+                    max_body_length: Some(1024),
+                    sha_precompute_selector: Some(SHA_PRECOMPUTE_SELECTOR.to_string()),
+                    ignore_body_hash_check: Some(false),
+                }),
             )
             .await?;
 
@@ -405,12 +285,9 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
                 subject_params: command_params_encoded,
-                skiped_subject_prefix: skipped_command_prefix.into(),
+                skiped_subject_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
-
-            info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
-            info!(LOG, "Request: {:?}", request);
 
             match CLIENT
                 .handle_recovery(
@@ -472,7 +349,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
         } else {
             return Ok(EmailAuthEvent::Error {
                 email_addr: guardian_email_addr,
-                error: "No account code found".to_string(),
+                error: "No account code found and not for recovery".to_string(),
             });
         }
     }
