@@ -11,7 +11,7 @@ use ethers::{
 use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, EmailCircuitParams, LOG};
 
 const DOMAIN_FIELDS: usize = 9;
-const SUBJECT_FIELDS: usize = 9;
+const SUBJECT_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
 pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
@@ -116,7 +116,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 &AccountCode::from(hex_to_field(&format!("0x{}", &account_code_str))?),
                 Some(EmailCircuitParams {
                     max_header_length: Some(1024),
-                    max_body_length: Some(5020),
+                    max_body_length: Some(1024),
                     sha_precompute_selector: Some(SHA_PRECOMPUTE_SELECTOR.to_string()),
                     ignore_body_hash_check: Some(false),
                 }),
@@ -146,7 +146,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
                 subject_params: command_params_encoded,
-                skiped_subject_prefix: skipped_command_prefix.into(),
+                skiped_subject_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
 
