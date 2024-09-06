@@ -149,7 +149,7 @@ contract IntegrationTest is Test {
         } else {
             assertEq(
                 address(simpleWallet),
-                0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A
+                0x0C06688e61C06466E2a5C6fE4E15c359260a33f3
             );
         }
         address simpleWalletOwner = simpleWallet.owner();
@@ -172,7 +172,7 @@ contract IntegrationTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -189,7 +189,7 @@ contract IntegrationTest is Test {
                 .maskedSubject = "Accept guardian request for 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4";
         } else {
             emailProof
-                .maskedSubject = "Accept guardian request for 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A";
+                .maskedSubject = "Accept guardian request for 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3";
         }
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -198,7 +198,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -259,7 +259,7 @@ contract IntegrationTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -268,14 +268,14 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-        
+
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         if (isZksync) {
             emailProof
-                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; 
+                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         } else {
             emailProof
-                .maskedSubject = "Set the new signer of 0x18ABd76E471dB6a75A307bf4dD53ceA89A975B1A to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedSubject = "Set the new signer of 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         }
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
@@ -288,7 +288,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
