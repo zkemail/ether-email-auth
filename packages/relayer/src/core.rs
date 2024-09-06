@@ -371,3 +371,61 @@ pub fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result
 
     Ok(command)
 }
+
+fn get_template_id(template_idx: u64) -> [u8; 32] {
+    let tokens = vec![
+        Token::Uint((*EMAIL_ACCOUNT_RECOVERY_VERSION_ID.get().unwrap()).into()),
+        Token::String("RECOVERY".to_string()),
+        Token::Uint(template_idx.into()),
+    ];
+    println!("tokens: {:?}", tokens);
+
+    let template_id = keccak256(encode(&tokens));
+    println!("template_id: {:?}", template_id);
+    template_id
+}
+
+async fn get_email_proof(params: &EmailRequestContext) -> Result<(EmailProof, [u8; 32])> {
+    let circuit_input = generate_email_auth_input(
+        &params.email,
+        &AccountCode::from(hex2field(&format!("0x{}", &params.account_code_str))?),
+    )
+    .await?;
+    println!("circuit_input: {:?}", circuit_input);
+
+    let (proof, public_signals) =
+        generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
+    println!("proof: {:?}", proof);
+    println!("public_signals: {:?}", public_signals);
+
+    let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
+    println!("account_salt: {:?}", account_salt);
+    let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
+    println!("is_code_exist: {:?}", is_code_exist);
+    let masked_subject = get_masked_subject(public_signals.clone(), DOMAIN_FIELDS + 3)?;
+    println!("masked_subject: {:?}", masked_subject);
+
+    let email_proof = EmailProof {
+        proof,
+        domain_name: params.parsed_email.get_email_domain()?,
+        public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
+        timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
+        masked_subject,
+        email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
+        account_salt,
+        is_code_exist,
+    };
+    println!("email_proof: {:?}", email_proof);
+    Ok((email_proof, account_salt))
+}
+
+#[derive(Debug, Clone)]
+struct EmailRequestContext {
+    request: Request,
+    guardian_email_addr: String,
+    subject: String,
+    invitation_code: Option<String>,
+    account_code_str: String,
+    email: String,
+    parsed_email: ParsedEmail,
+}
