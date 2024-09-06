@@ -7,17 +7,22 @@ import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import "forge-std/console.sol";
 
+interface CbSmartWallet {
+    function addOwnerPublicKey(bytes32 x, bytes32 y) external;
+}
+
 contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     enum GuardianStatus {
         NONE,
         REQUESTED,
         ACCEPTED
     }
-    uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
+    uint public constant DEFAULT_TIMELOCK_PERIOD = 0 days;
 
     mapping(address => bool) public isActivatedOfAccount;
     mapping(address => bool) public isRecovering;
-    mapping(address => address) public newSignerCandidateOfAccount;
+    mapping(address => bytes) public newSignerCandidateOfAccount;
+    // How is an email address tied to an address?
     mapping(address => GuardianStatus) public guardians;
     mapping(address => uint) public timelockPeriodOfAccount;
     mapping(address => uint) public currentTimelockOfAccount;
@@ -79,7 +84,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         templates[0][4] = "of";
         templates[0][5] = "{ethAddr}";
         templates[0][6] = "to";
-        templates[0][7] = "{ethAddr}";
+        templates[0][7] = "{string}";
         return templates;
     }
 
@@ -153,9 +158,10 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         );
         require(templateIdx == 0, "invalid template index");
         require(subjectParams.length == 2, "invalid subject params");
-        address newSignerInEmail = abi.decode(subjectParams[1], (address));
-        require(newSignerInEmail != address(0), "invalid new signer");
+        // subjectParams[1] will be in the form 0xAAAAAAAA...
+        bytes memory newSignerInEmail = abi.decode(subjectParams[1], (bytes));
         isRecovering[account] = true;
+        // TODO: how will we represent x,y public key in email
         newSignerCandidateOfAccount[account] = newSignerInEmail;
         currentTimelockOfAccount[account] =
             block.timestamp +
@@ -170,7 +176,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
             "timelock expired"
         );
         isRecovering[account] = false;
-        newSignerCandidateOfAccount[account] = address(0);
+        newSignerCandidateOfAccount[account] = bytes("");
         currentTimelockOfAccount[account] = 0;
     }
 
@@ -181,10 +187,11 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
             currentTimelockOfAccount[account] <= block.timestamp,
             "timelock not expired"
         );
-        address newSigner = newSignerCandidateOfAccount[account];
+        bytes memory newSigner = newSignerCandidateOfAccount[account];
+        (bytes32 x, bytes32 y) = abi.decode(newSigner, (bytes32, bytes32));
         isRecovering[account] = false;
         currentTimelockOfAccount[account] = 0;
-        newSignerCandidateOfAccount[account] = address(0);
-        SimpleWallet(payable(account)).changeOwner(newSigner);
+        newSignerCandidateOfAccount[account] = bytes("");
+        CbSmartWallet(payable(account)).addOwnerPublicKey(x, y);
     }
 }
