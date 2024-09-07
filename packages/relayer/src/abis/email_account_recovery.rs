@@ -16,11 +16,11 @@ pub mod email_account_recovery {
             constructor: ::core::option::Option::None,
             functions: ::core::convert::From::from([
                 (
-                    ::std::borrow::ToOwned::to_owned("acceptanceSubjectTemplates"),
+                    ::std::borrow::ToOwned::to_owned("acceptanceCommandTemplates"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned(
-                                "acceptanceSubjectTemplates",
+                                "acceptanceCommandTemplates",
                             ),
                             inputs: ::std::vec![],
                             outputs: ::std::vec![
@@ -265,16 +265,16 @@ pub mod email_account_recovery {
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned(
-                        "extractRecoveredAccountFromAcceptanceSubject",
+                        "extractRecoveredAccountFromAcceptanceCommand",
                     ),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned(
-                                "extractRecoveredAccountFromAcceptanceSubject",
+                                "extractRecoveredAccountFromAcceptanceCommand",
                             ),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("subjectParams"),
+                                    name: ::std::borrow::ToOwned::to_owned("commandParams"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Array(
                                         ::std::boxed::Box::new(
                                             ::ethers::core::abi::ethabi::ParamType::Bytes,
@@ -310,16 +310,16 @@ pub mod email_account_recovery {
                 ),
                 (
                     ::std::borrow::ToOwned::to_owned(
-                        "extractRecoveredAccountFromRecoverySubject",
+                        "extractRecoveredAccountFromRecoveryCommand",
                     ),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned(
-                                "extractRecoveredAccountFromRecoverySubject",
+                                "extractRecoveredAccountFromRecoveryCommand",
                             ),
                             inputs: ::std::vec![
                                 ::ethers::core::abi::ethabi::Param {
-                                    name: ::std::borrow::ToOwned::to_owned("subjectParams"),
+                                    name: ::std::borrow::ToOwned::to_owned("commandParams"),
                                     kind: ::ethers::core::abi::ethabi::ParamType::Array(
                                         ::std::boxed::Box::new(
                                             ::ethers::core::abi::ethabi::ParamType::Bytes,
@@ -506,11 +506,11 @@ pub mod email_account_recovery {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("recoverySubjectTemplates"),
+                    ::std::borrow::ToOwned::to_owned("recoveryCommandTemplates"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::Function {
                             name: ::std::borrow::ToOwned::to_owned(
-                                "recoverySubjectTemplates",
+                                "recoveryCommandTemplates",
                             ),
                             inputs: ::std::vec![],
                             outputs: ::std::vec![
@@ -625,15 +625,15 @@ pub mod email_account_recovery {
                 ),
             )
         }
-        ///Calls the contract's `acceptanceSubjectTemplates` (0x5bafadda) function
-        pub fn acceptance_subject_templates(
+        ///Calls the contract's `acceptanceCommandTemplates` (0x222f6cb5) function
+        pub fn acceptance_command_templates(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
             ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
         > {
             self.0
-                .method_hash([91, 175, 173, 218], ())
+                .method_hash([34, 47, 108, 181], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `completeRecovery` (0xc18d09cf) function
@@ -721,30 +721,30 @@ pub mod email_account_recovery {
                 .method_hash([16, 152, 224, 46], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `extractRecoveredAccountFromAcceptanceSubject` (0xe81dcaf2) function
-        pub fn extract_recovered_account_from_acceptance_subject(
+        ///Calls the contract's `extractRecoveredAccountFromAcceptanceCommand` (0x2c4ce129) function
+        pub fn extract_recovered_account_from_acceptance_command(
             &self,
-            subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
+            command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
             template_idx: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
             ::ethers::core::types::Address,
         > {
             self.0
-                .method_hash([232, 29, 202, 242], (subject_params, template_idx))
+                .method_hash([44, 76, 225, 41], (command_params, template_idx))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `extractRecoveredAccountFromRecoverySubject` (0x30e6a5ab) function
-        pub fn extract_recovered_account_from_recovery_subject(
+        ///Calls the contract's `extractRecoveredAccountFromRecoveryCommand` (0xa5e3ee70) function
+        pub fn extract_recovered_account_from_recovery_command(
             &self,
-            subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
+            command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
             template_idx: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
             ::ethers::core::types::Address,
         > {
             self.0
-                .method_hash([48, 230, 165, 171], (subject_params, template_idx))
+                .method_hash([165, 227, 238, 112], (command_params, template_idx))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `handleAcceptance` (0x0481af67) function
@@ -784,15 +784,15 @@ pub mod email_account_recovery {
                 .method_hash([133, 246, 15, 126], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `recoverySubjectTemplates` (0x3e91cdcd) function
-        pub fn recovery_subject_templates(
+        ///Calls the contract's `recoveryCommandTemplates` (0x3ef01b8f) function
+        pub fn recovery_command_templates(
             &self,
         ) -> ::ethers::contract::builders::ContractCall<
             M,
             ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
         > {
             self.0
-                .method_hash([62, 145, 205, 205], ())
+                .method_hash([62, 240, 27, 143], ())
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `verifier` (0x2b7ac3f3) function
@@ -824,7 +824,7 @@ pub mod email_account_recovery {
             Self::new(contract.address(), contract.client())
         }
     }
-    ///Container type for all input parameters for the `acceptanceSubjectTemplates` function with signature `acceptanceSubjectTemplates()` and selector `0x5bafadda`
+    ///Container type for all input parameters for the `acceptanceCommandTemplates` function with signature `acceptanceCommandTemplates()` and selector `0x222f6cb5`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -835,8 +835,8 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    #[ethcall(name = "acceptanceSubjectTemplates", abi = "acceptanceSubjectTemplates()")]
-    pub struct AcceptanceSubjectTemplatesCall;
+    #[ethcall(name = "acceptanceCommandTemplates", abi = "acceptanceCommandTemplates()")]
+    pub struct AcceptanceCommandTemplatesCall;
     ///Container type for all input parameters for the `completeRecovery` function with signature `completeRecovery(address,bytes)` and selector `0xc18d09cf`
     #[derive(
         Clone,
@@ -963,7 +963,7 @@ pub mod email_account_recovery {
         abi = "emailAuthImplementationAddr()"
     )]
     pub struct EmailAuthImplementationAddrCall;
-    ///Container type for all input parameters for the `extractRecoveredAccountFromAcceptanceSubject` function with signature `extractRecoveredAccountFromAcceptanceSubject(bytes[],uint256)` and selector `0xe81dcaf2`
+    ///Container type for all input parameters for the `extractRecoveredAccountFromAcceptanceCommand` function with signature `extractRecoveredAccountFromAcceptanceCommand(bytes[],uint256)` and selector `0x2c4ce129`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -975,14 +975,14 @@ pub mod email_account_recovery {
         Hash
     )]
     #[ethcall(
-        name = "extractRecoveredAccountFromAcceptanceSubject",
-        abi = "extractRecoveredAccountFromAcceptanceSubject(bytes[],uint256)"
+        name = "extractRecoveredAccountFromAcceptanceCommand",
+        abi = "extractRecoveredAccountFromAcceptanceCommand(bytes[],uint256)"
     )]
-    pub struct ExtractRecoveredAccountFromAcceptanceSubjectCall {
-        pub subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
+    pub struct ExtractRecoveredAccountFromAcceptanceCommandCall {
+        pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
         pub template_idx: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `extractRecoveredAccountFromRecoverySubject` function with signature `extractRecoveredAccountFromRecoverySubject(bytes[],uint256)` and selector `0x30e6a5ab`
+    ///Container type for all input parameters for the `extractRecoveredAccountFromRecoveryCommand` function with signature `extractRecoveredAccountFromRecoveryCommand(bytes[],uint256)` and selector `0xa5e3ee70`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -994,11 +994,11 @@ pub mod email_account_recovery {
         Hash
     )]
     #[ethcall(
-        name = "extractRecoveredAccountFromRecoverySubject",
-        abi = "extractRecoveredAccountFromRecoverySubject(bytes[],uint256)"
+        name = "extractRecoveredAccountFromRecoveryCommand",
+        abi = "extractRecoveredAccountFromRecoveryCommand(bytes[],uint256)"
     )]
-    pub struct ExtractRecoveredAccountFromRecoverySubjectCall {
-        pub subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
+    pub struct ExtractRecoveredAccountFromRecoveryCommandCall {
+        pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
         pub template_idx: ::ethers::core::types::U256,
     }
     ///Container type for all input parameters for the `handleAcceptance` function with signature `handleAcceptance((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)` and selector `0x0481af67`
@@ -1067,7 +1067,7 @@ pub mod email_account_recovery {
     )]
     #[ethcall(name = "proxyBytecodeHash", abi = "proxyBytecodeHash()")]
     pub struct ProxyBytecodeHashCall;
-    ///Container type for all input parameters for the `recoverySubjectTemplates` function with signature `recoverySubjectTemplates()` and selector `0x3e91cdcd`
+    ///Container type for all input parameters for the `recoveryCommandTemplates` function with signature `recoveryCommandTemplates()` and selector `0x3ef01b8f`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1078,8 +1078,8 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    #[ethcall(name = "recoverySubjectTemplates", abi = "recoverySubjectTemplates()")]
-    pub struct RecoverySubjectTemplatesCall;
+    #[ethcall(name = "recoveryCommandTemplates", abi = "recoveryCommandTemplates()")]
+    pub struct RecoveryCommandTemplatesCall;
     ///Container type for all input parameters for the `verifier` function with signature `verifier()` and selector `0x2b7ac3f3`
     #[derive(
         Clone,
@@ -1109,7 +1109,7 @@ pub mod email_account_recovery {
     ///Container type for all of the contract's call
     #[derive(Clone, ::ethers::contract::EthAbiType, Debug, PartialEq, Eq, Hash)]
     pub enum EmailAccountRecoveryCalls {
-        AcceptanceSubjectTemplates(AcceptanceSubjectTemplatesCall),
+        AcceptanceCommandTemplates(AcceptanceCommandTemplatesCall),
         CompleteRecovery(CompleteRecoveryCall),
         ComputeAcceptanceTemplateId(ComputeAcceptanceTemplateIdCall),
         ComputeEmailAuthAddress(ComputeEmailAuthAddressCall),
@@ -1118,17 +1118,17 @@ pub mod email_account_recovery {
         DkimAddr(DkimAddrCall),
         EmailAuthImplementation(EmailAuthImplementationCall),
         EmailAuthImplementationAddr(EmailAuthImplementationAddrCall),
-        ExtractRecoveredAccountFromAcceptanceSubject(
-            ExtractRecoveredAccountFromAcceptanceSubjectCall,
+        ExtractRecoveredAccountFromAcceptanceCommand(
+            ExtractRecoveredAccountFromAcceptanceCommandCall,
         ),
-        ExtractRecoveredAccountFromRecoverySubject(
-            ExtractRecoveredAccountFromRecoverySubjectCall,
+        ExtractRecoveredAccountFromRecoveryCommand(
+            ExtractRecoveredAccountFromRecoveryCommandCall,
         ),
         HandleAcceptance(HandleAcceptanceCall),
         HandleRecovery(HandleRecoveryCall),
         IsActivated(IsActivatedCall),
         ProxyBytecodeHash(ProxyBytecodeHashCall),
-        RecoverySubjectTemplates(RecoverySubjectTemplatesCall),
+        RecoveryCommandTemplates(RecoveryCommandTemplatesCall),
         Verifier(VerifierCall),
         VerifierAddr(VerifierAddrCall),
     }
@@ -1137,10 +1137,10 @@ pub mod email_account_recovery {
             data: impl AsRef<[u8]>,
         ) -> ::core::result::Result<Self, ::ethers::core::abi::AbiError> {
             let data = data.as_ref();
-            if let Ok(decoded) = <AcceptanceSubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <AcceptanceCommandTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::AcceptanceSubjectTemplates(decoded));
+                return Ok(Self::AcceptanceCommandTemplates(decoded));
             }
             if let Ok(decoded) = <CompleteRecoveryCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1182,15 +1182,15 @@ pub mod email_account_recovery {
             ) {
                 return Ok(Self::EmailAuthImplementationAddr(decoded));
             }
-            if let Ok(decoded) = <ExtractRecoveredAccountFromAcceptanceSubjectCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <ExtractRecoveredAccountFromAcceptanceCommandCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::ExtractRecoveredAccountFromAcceptanceSubject(decoded));
+                return Ok(Self::ExtractRecoveredAccountFromAcceptanceCommand(decoded));
             }
-            if let Ok(decoded) = <ExtractRecoveredAccountFromRecoverySubjectCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <ExtractRecoveredAccountFromRecoveryCommandCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::ExtractRecoveredAccountFromRecoverySubject(decoded));
+                return Ok(Self::ExtractRecoveredAccountFromRecoveryCommand(decoded));
             }
             if let Ok(decoded) = <HandleAcceptanceCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1212,10 +1212,10 @@ pub mod email_account_recovery {
             ) {
                 return Ok(Self::ProxyBytecodeHash(decoded));
             }
-            if let Ok(decoded) = <RecoverySubjectTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <RecoveryCommandTemplatesCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::RecoverySubjectTemplates(decoded));
+                return Ok(Self::RecoveryCommandTemplates(decoded));
             }
             if let Ok(decoded) = <VerifierCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1233,7 +1233,7 @@ pub mod email_account_recovery {
     impl ::ethers::core::abi::AbiEncode for EmailAccountRecoveryCalls {
         fn encode(self) -> Vec<u8> {
             match self {
-                Self::AcceptanceSubjectTemplates(element) => {
+                Self::AcceptanceCommandTemplates(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::CompleteRecovery(element) => {
@@ -1258,10 +1258,10 @@ pub mod email_account_recovery {
                 Self::EmailAuthImplementationAddr(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::ExtractRecoveredAccountFromAcceptanceSubject(element) => {
+                Self::ExtractRecoveredAccountFromAcceptanceCommand(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::ExtractRecoveredAccountFromRecoverySubject(element) => {
+                Self::ExtractRecoveredAccountFromRecoveryCommand(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::HandleAcceptance(element) => {
@@ -1276,7 +1276,7 @@ pub mod email_account_recovery {
                 Self::ProxyBytecodeHash(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::RecoverySubjectTemplates(element) => {
+                Self::RecoveryCommandTemplates(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::Verifier(element) => {
@@ -1291,7 +1291,7 @@ pub mod email_account_recovery {
     impl ::core::fmt::Display for EmailAccountRecoveryCalls {
         fn fmt(&self, f: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match self {
-                Self::AcceptanceSubjectTemplates(element) => {
+                Self::AcceptanceCommandTemplates(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::CompleteRecovery(element) => ::core::fmt::Display::fmt(element, f),
@@ -1312,17 +1312,17 @@ pub mod email_account_recovery {
                 Self::EmailAuthImplementationAddr(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::ExtractRecoveredAccountFromAcceptanceSubject(element) => {
+                Self::ExtractRecoveredAccountFromAcceptanceCommand(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
-                Self::ExtractRecoveredAccountFromRecoverySubject(element) => {
+                Self::ExtractRecoveredAccountFromRecoveryCommand(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::HandleAcceptance(element) => ::core::fmt::Display::fmt(element, f),
                 Self::HandleRecovery(element) => ::core::fmt::Display::fmt(element, f),
                 Self::IsActivated(element) => ::core::fmt::Display::fmt(element, f),
                 Self::ProxyBytecodeHash(element) => ::core::fmt::Display::fmt(element, f),
-                Self::RecoverySubjectTemplates(element) => {
+                Self::RecoveryCommandTemplates(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::Verifier(element) => ::core::fmt::Display::fmt(element, f),
@@ -1330,10 +1330,10 @@ pub mod email_account_recovery {
             }
         }
     }
-    impl ::core::convert::From<AcceptanceSubjectTemplatesCall>
+    impl ::core::convert::From<AcceptanceCommandTemplatesCall>
     for EmailAccountRecoveryCalls {
-        fn from(value: AcceptanceSubjectTemplatesCall) -> Self {
-            Self::AcceptanceSubjectTemplates(value)
+        fn from(value: AcceptanceCommandTemplatesCall) -> Self {
+            Self::AcceptanceCommandTemplates(value)
         }
     }
     impl ::core::convert::From<CompleteRecoveryCall> for EmailAccountRecoveryCalls {
@@ -1381,16 +1381,16 @@ pub mod email_account_recovery {
             Self::EmailAuthImplementationAddr(value)
         }
     }
-    impl ::core::convert::From<ExtractRecoveredAccountFromAcceptanceSubjectCall>
+    impl ::core::convert::From<ExtractRecoveredAccountFromAcceptanceCommandCall>
     for EmailAccountRecoveryCalls {
-        fn from(value: ExtractRecoveredAccountFromAcceptanceSubjectCall) -> Self {
-            Self::ExtractRecoveredAccountFromAcceptanceSubject(value)
+        fn from(value: ExtractRecoveredAccountFromAcceptanceCommandCall) -> Self {
+            Self::ExtractRecoveredAccountFromAcceptanceCommand(value)
         }
     }
-    impl ::core::convert::From<ExtractRecoveredAccountFromRecoverySubjectCall>
+    impl ::core::convert::From<ExtractRecoveredAccountFromRecoveryCommandCall>
     for EmailAccountRecoveryCalls {
-        fn from(value: ExtractRecoveredAccountFromRecoverySubjectCall) -> Self {
-            Self::ExtractRecoveredAccountFromRecoverySubject(value)
+        fn from(value: ExtractRecoveredAccountFromRecoveryCommandCall) -> Self {
+            Self::ExtractRecoveredAccountFromRecoveryCommand(value)
         }
     }
     impl ::core::convert::From<HandleAcceptanceCall> for EmailAccountRecoveryCalls {
@@ -1413,10 +1413,10 @@ pub mod email_account_recovery {
             Self::ProxyBytecodeHash(value)
         }
     }
-    impl ::core::convert::From<RecoverySubjectTemplatesCall>
+    impl ::core::convert::From<RecoveryCommandTemplatesCall>
     for EmailAccountRecoveryCalls {
-        fn from(value: RecoverySubjectTemplatesCall) -> Self {
-            Self::RecoverySubjectTemplates(value)
+        fn from(value: RecoveryCommandTemplatesCall) -> Self {
+            Self::RecoveryCommandTemplates(value)
         }
     }
     impl ::core::convert::From<VerifierCall> for EmailAccountRecoveryCalls {
@@ -1429,7 +1429,7 @@ pub mod email_account_recovery {
             Self::VerifierAddr(value)
         }
     }
-    ///Container type for all return fields from the `acceptanceSubjectTemplates` function with signature `acceptanceSubjectTemplates()` and selector `0x5bafadda`
+    ///Container type for all return fields from the `acceptanceCommandTemplates` function with signature `acceptanceCommandTemplates()` and selector `0x222f6cb5`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1440,7 +1440,7 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    pub struct AcceptanceSubjectTemplatesReturn(
+    pub struct AcceptanceCommandTemplatesReturn(
         pub ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
     );
     ///Container type for all return fields from the `computeAcceptanceTemplateId` function with signature `computeAcceptanceTemplateId(uint256)` and selector `0x32ccc2f2`
@@ -1527,7 +1527,7 @@ pub mod email_account_recovery {
         Hash
     )]
     pub struct EmailAuthImplementationAddrReturn(pub ::ethers::core::types::Address);
-    ///Container type for all return fields from the `extractRecoveredAccountFromAcceptanceSubject` function with signature `extractRecoveredAccountFromAcceptanceSubject(bytes[],uint256)` and selector `0xe81dcaf2`
+    ///Container type for all return fields from the `extractRecoveredAccountFromAcceptanceCommand` function with signature `extractRecoveredAccountFromAcceptanceCommand(bytes[],uint256)` and selector `0x2c4ce129`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1538,10 +1538,10 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    pub struct ExtractRecoveredAccountFromAcceptanceSubjectReturn(
+    pub struct ExtractRecoveredAccountFromAcceptanceCommandReturn(
         pub ::ethers::core::types::Address,
     );
-    ///Container type for all return fields from the `extractRecoveredAccountFromRecoverySubject` function with signature `extractRecoveredAccountFromRecoverySubject(bytes[],uint256)` and selector `0x30e6a5ab`
+    ///Container type for all return fields from the `extractRecoveredAccountFromRecoveryCommand` function with signature `extractRecoveredAccountFromRecoveryCommand(bytes[],uint256)` and selector `0xa5e3ee70`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1552,7 +1552,7 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    pub struct ExtractRecoveredAccountFromRecoverySubjectReturn(
+    pub struct ExtractRecoveredAccountFromRecoveryCommandReturn(
         pub ::ethers::core::types::Address,
     );
     ///Container type for all return fields from the `isActivated` function with signature `isActivated(address)` and selector `0xc9faa7c5`
@@ -1579,7 +1579,7 @@ pub mod email_account_recovery {
         Hash
     )]
     pub struct ProxyBytecodeHashReturn(pub [u8; 32]);
-    ///Container type for all return fields from the `recoverySubjectTemplates` function with signature `recoverySubjectTemplates()` and selector `0x3e91cdcd`
+    ///Container type for all return fields from the `recoveryCommandTemplates` function with signature `recoveryCommandTemplates()` and selector `0x3ef01b8f`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1590,7 +1590,7 @@ pub mod email_account_recovery {
         Eq,
         Hash
     )]
-    pub struct RecoverySubjectTemplatesReturn(
+    pub struct RecoveryCommandTemplatesReturn(
         pub ::std::vec::Vec<::std::vec::Vec<::std::string::String>>,
     );
     ///Container type for all return fields from the `verifier` function with signature `verifier()` and selector `0x2b7ac3f3`
@@ -1630,8 +1630,8 @@ pub mod email_account_recovery {
     )]
     pub struct EmailAuthMsg {
         pub template_id: ::ethers::core::types::U256,
-        pub subject_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
-        pub skiped_subject_prefix: ::ethers::core::types::U256,
+        pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
+        pub skiped_command_prefix: ::ethers::core::types::U256,
         pub proof: EmailProof,
     }
     ///`EmailProof(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)`
@@ -1649,7 +1649,7 @@ pub mod email_account_recovery {
         pub domain_name: ::std::string::String,
         pub public_key_hash: [u8; 32],
         pub timestamp: ::ethers::core::types::U256,
-        pub masked_subject: ::std::string::String,
+        pub masked_command: ::std::string::String,
         pub email_nullifier: [u8; 32],
         pub account_salt: [u8; 32],
         pub is_code_exist: bool,

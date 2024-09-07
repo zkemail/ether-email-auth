@@ -35,13 +35,13 @@ pub struct AcceptanceRequest {
     pub guardian_email_addr: String,
     pub account_code: String,
     pub template_idx: u64,
-    pub subject: String,
+    pub command: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
     pub request_id: u32,
-    pub subject_params: Vec<TemplateValue>,
+    pub command_params: Vec<TemplateValue>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -49,13 +49,13 @@ pub struct RecoveryRequest {
     pub controller_eth_addr: String,
     pub guardian_email_addr: String,
     pub template_idx: u64,
-    pub subject: String,
+    pub command: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
     pub request_id: u32,
-    pub subject_params: Vec<TemplateValue>,
+    pub command_params: Vec<TemplateValue>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -110,26 +110,26 @@ pub async fn request_status_api(payload: RequestStatusRequest) -> Result<Request
 }
 
 pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
-    let subject_template = CLIENT
-        .get_acceptance_subject_templates(&payload.controller_eth_addr, payload.template_idx)
+    let command_template = CLIENT
+        .get_acceptance_command_templates(&payload.controller_eth_addr, payload.template_idx)
         .await
         .unwrap();
 
-    let subject_params = extract_template_vals(&payload.subject, subject_template);
+    let command_params = extract_template_vals(&payload.command, command_template);
 
-    if subject_params.is_err() {
+    if command_params.is_err() {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Invalid subject"))
+            .body(Body::from("Invalid command"))
             .unwrap();
     }
 
-    let subject_params = subject_params.unwrap();
+    let command_params = command_params.unwrap();
 
     let account_eth_addr = CLIENT
-        .get_recovered_account_from_acceptance_subject(
+        .get_recovered_account_from_acceptance_command(
             &payload.controller_eth_addr,
-            subject_params.clone(),
+            command_params.clone(),
             payload.template_idx,
         )
         .await
@@ -267,7 +267,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.subject.clone(),
+            command: payload.command.clone(),
             account_code: payload.account_code.clone(),
         })
         .await
@@ -301,7 +301,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.subject.clone(),
+            command: payload.command.clone(),
             account_code: payload.account_code.clone(),
         })
         .await
@@ -313,7 +313,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
         .body(Body::from(
             serde_json::to_string(&AcceptanceResponse {
                 request_id,
-                subject_params,
+                command_params,
             })
             .unwrap(),
         ))
@@ -321,26 +321,26 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
 }
 
 pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
-    let subject_template = CLIENT
-        .get_recovery_subject_templates(&payload.controller_eth_addr, payload.template_idx)
+    let command_template = CLIENT
+        .get_recovery_command_templates(&payload.controller_eth_addr, payload.template_idx)
         .await
         .unwrap();
 
-    let subject_params = extract_template_vals(&payload.subject, subject_template);
+    let command_params = extract_template_vals(&payload.command, command_template);
 
-    if subject_params.is_err() {
+    if command_params.is_err() {
         return Response::builder()
             .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Invalid subject"))
+            .body(Body::from("Invalid command"))
             .unwrap();
     }
 
-    let subject_params = subject_params.unwrap();
+    let command_params = command_params.unwrap();
 
     let account_eth_addr = CLIENT
-        .get_recovered_account_from_recovery_subject(
+        .get_recovered_account_from_recovery_command(
             &payload.controller_eth_addr,
-            subject_params.clone(),
+            command_params.clone(),
             payload.template_idx,
         )
         .await
@@ -445,7 +445,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         handle_email_event(EmailAuthEvent::GuardianNotRegistered {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            subject: payload.subject.clone(),
+            subject: payload.command.clone(),
             request_id,
         })
         .await
@@ -456,7 +456,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             .body(Body::from(
                 serde_json::to_string(&RecoveryResponse {
                     request_id,
-                    subject_params,
+                    command_params,
                 })
                 .unwrap(),
             ))
@@ -486,7 +486,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.subject.clone(),
+            command: payload.command.clone(),
         })
         .await
         .expect("Failed to send Recovery event");
@@ -521,7 +521,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         .body(Body::from(
             serde_json::to_string(&RecoveryResponse {
                 request_id,
-                subject_params,
+                command_params,
             })
             .unwrap(),
         ))

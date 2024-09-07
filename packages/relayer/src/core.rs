@@ -11,7 +11,7 @@ use ethers::{
 use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, EmailCircuitParams, LOG};
 
 const DOMAIN_FIELDS: usize = 9;
-const SUBJECT_FIELDS: usize = 20;
+const COMMAND_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
 pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
@@ -78,7 +78,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             }
 
             let command_template = CLIENT
-                .get_acceptance_subject_templates(
+                .get_acceptance_command_templates(
                     &request.controller_eth_addr,
                     request.template_idx,
                 )
@@ -90,7 +90,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     Err(e) => {
                         return Ok(EmailAuthEvent::Error {
                             email_addr: guardian_email_addr,
-                            error: format!("Invalid Subject, {}", e),
+                            error: format!("Invalid Command, {}", e),
                         });
                     }
                 };
@@ -125,8 +125,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             info!(LOG, "Public signals: {:?}", public_signals);
 
-            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
-            let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
+            let account_salt = u256_to_bytes32(&public_signals[COMMAND_FIELDS + DOMAIN_FIELDS + 3]);
+            let is_code_exist = public_signals[COMMAND_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
             let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
@@ -134,7 +134,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject: masked_command,
+                masked_command: masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -142,8 +142,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
-                subject_params: command_params_encoded,
-                skiped_subject_prefix: 0.into(),
+                command_params: command_params_encoded,
+                skiped_command_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
 
@@ -225,7 +225,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
     } else {
         if request.is_for_recovery {
             let command_template = CLIENT
-                .get_recovery_subject_templates(&request.controller_eth_addr, request.template_idx)
+                .get_recovery_command_templates(&request.controller_eth_addr, request.template_idx)
                 .await?;
 
             let command_params =
@@ -234,7 +234,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                     Err(e) => {
                         return Ok(EmailAuthEvent::Error {
                             email_addr: guardian_email_addr,
-                            error: format!("Invalid Subject, {}", e),
+                            error: format!("Invalid Command, {}", e),
                         });
                     }
                 };
@@ -267,8 +267,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let (proof, public_signals) =
                 generate_proof(&circuit_input, "email_auth", PROVER_ADDRESS.get().unwrap()).await?;
 
-            let account_salt = u256_to_bytes32(&public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 3]);
-            let is_code_exist = public_signals[SUBJECT_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
+            let account_salt = u256_to_bytes32(&public_signals[COMMAND_FIELDS + DOMAIN_FIELDS + 3]);
+            let is_code_exist = public_signals[COMMAND_FIELDS + DOMAIN_FIELDS + 4] == 1u8.into();
             let masked_command = get_masked_command(public_signals.clone(), DOMAIN_FIELDS + 3)?;
 
             let email_proof = EmailProof {
@@ -276,7 +276,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_subject: masked_command,
+                masked_command: masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -284,8 +284,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
-                subject_params: command_params_encoded,
-                skiped_subject_prefix: 0.into(),
+                command_params: command_params_encoded,
+                skiped_command_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
 
@@ -356,9 +356,9 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
 }
 
 pub fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
-    // Gather signals from start_idx to start_idx + SUBJECT_FIELDS
+    // Gather signals from start_idx to start_idx + COMMAND_FIELDS
     let mut command_bytes = Vec::new();
-    for i in start_idx..start_idx + SUBJECT_FIELDS {
+    for i in start_idx..start_idx + COMMAND_FIELDS {
         let signal = public_signals[i as usize];
         if signal == U256::zero() {
             break;
