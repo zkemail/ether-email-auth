@@ -49,10 +49,10 @@ impl TemplateValue {
     }
 }
 
-pub fn extract_template_vals_and_skipped_subject_idx(
+pub fn extract_template_vals_from_command(
     input: &str,
     templates: Vec<String>,
-) -> Result<(Vec<TemplateValue>, usize), anyhow::Error> {
+) -> Result<Vec<TemplateValue>, anyhow::Error> {
     // Convert the template to a regex pattern, escaping necessary characters and replacing placeholders
     let pattern = templates
         .iter()
@@ -77,7 +77,7 @@ pub fn extract_template_vals_and_skipped_subject_idx(
         // Extract the values based on the matched pattern
         let current_input = &input[skipped_bytes..];
         match extract_template_vals(current_input, templates) {
-            Ok(vals) => Ok((vals, skipped_bytes)),
+            Ok(vals) => Ok(vals),
             Err(e) => Err(e),
         }
     } else {
@@ -151,9 +151,7 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                     .unwrap()
                     .find(input_decomposed[input_idx])
                     .ok_or(anyhow!("No address found"))?;
-                if address_match.start() != 0
-                    || address_match.end() != input_decomposed[input_idx].len()
-                {
+                if address_match.start() != 0 {
                     return Err(anyhow!("Address must be the whole word"));
                 }
                 let address = address_match.as_str().parse::<Address>().unwrap();

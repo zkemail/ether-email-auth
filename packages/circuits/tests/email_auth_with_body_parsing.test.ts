@@ -91,13 +91,13 @@ describe("Email Auth With Body Parsing", () => {
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
 
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs  =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
             });
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
@@ -158,13 +158,13 @@ describe("Email Auth With Body Parsing", () => {
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
 
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs  =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
             });
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
@@ -225,14 +225,14 @@ describe("Email Auth With Body Parsing", () => {
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
 
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs  =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
                 shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
             });
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
@@ -293,15 +293,13 @@ describe("Email Auth With Body Parsing", () => {
 
         const accountCode = await relayerUtils.genAccountCode();
 
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs  =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
             });
-        circuitInputsRelevant.padded_cleaned_body =
-            circuitInputsRelevant.padded_body;
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
@@ -360,15 +358,13 @@ describe("Email Auth With Body Parsing", () => {
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
 
         const accountCode = await relayerUtils.genAccountCode();
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
             });
-        circuitInputsRelevant.padded_cleaned_body =
-            circuitInputsRelevant.padded_body;
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
@@ -428,16 +424,13 @@ describe("Email Auth With Body Parsing", () => {
 
         const accountCode = await relayerUtils.genAccountCode();
 
-        const { subject_idx, ...circuitInputsRelevant } =
+        const circuitInputs =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
             });
-        circuitInputsRelevant.padded_cleaned_body =
-            circuitInputsRelevant.padded_body;
-
-        const witness = await circuit.calculateWitness(circuitInputsRelevant);
+        const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
