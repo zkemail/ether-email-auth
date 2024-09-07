@@ -34,8 +34,8 @@ contract DeploymentHelper is Test {
 
     bytes32 accountSalt;
     uint templateId;
-    string[] subjectTemplate;
-    string[] newSubjectTemplate;
+    string[] commandTemplate;
+    string[] newCommandTemplate;
     bytes mockProof = abi.encodePacked(bytes1(0x01));
 
     string selector = "12345";
@@ -106,8 +106,8 @@ contract DeploymentHelper is Test {
 
         uint templateIdx = 0;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
-        subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
-        newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
+        commandTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
+        newCommandTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();

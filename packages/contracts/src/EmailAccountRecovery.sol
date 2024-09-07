@@ -16,7 +16,8 @@ abstract contract EmailAccountRecovery {
     address public verifierAddr;
     address public dkimAddr;
     address public emailAuthImplementationAddr;
-    bytes32 public proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
+    bytes32 public proxyBytecodeHash =
+        0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -48,53 +49,53 @@ abstract contract EmailAccountRecovery {
         address recoveredAccount
     ) public view virtual returns (bool);
 
-    /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
-    /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
-    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
-    function acceptanceSubjectTemplates()
+    /// @notice Returns a two-dimensional array of strings representing the command templates for an acceptance by a new guardian's.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance command templates.
+    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a command template.
+    function acceptanceCommandTemplates()
         public
         view
         virtual
         returns (string[][] memory);
 
-    /// @notice Returns a two-dimensional array of strings representing the subject templates for email recovery.
-    /// @dev This function is virtual and should be implemented by inheriting contracts to define specific recovery subject templates.
-    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a subject template.
-    function recoverySubjectTemplates()
+    /// @notice Returns a two-dimensional array of strings representing the command templates for email recovery.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to define specific recovery command templates.
+    /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a command template.
+    function recoveryCommandTemplates()
         public
         view
         virtual
         returns (string[][] memory);
 
-    /// @notice Extracts the account address to be recovered from the subject parameters of an acceptance email.
-    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the subject parameters.
-    /// @param subjectParams The subject parameters of the acceptance email.
-    /// @param templateIdx The index of the acceptance subject template.
-    function extractRecoveredAccountFromAcceptanceSubject(
-        bytes[] memory subjectParams,
+    /// @notice Extracts the account address to be recovered from the command parameters of an acceptance email.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the command parameters.
+    /// @param commandParams The command parameters of the acceptance email.
+    /// @param templateIdx The index of the acceptance command template.
+    function extractRecoveredAccountFromAcceptanceCommand(
+        bytes[] memory commandParams,
         uint templateIdx
     ) public view virtual returns (address);
 
-    /// @notice Extracts the account address to be recovered from the subject parameters of a recovery email.
-    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the subject parameters.
-    /// @param subjectParams The subject parameters of the recovery email.
-    /// @param templateIdx The index of the recovery subject template.
-    function extractRecoveredAccountFromRecoverySubject(
-        bytes[] memory subjectParams,
+    /// @notice Extracts the account address to be recovered from the command parameters of a recovery email.
+    /// @dev This function is virtual and should be implemented by inheriting contracts to extract the account address from the command parameters.
+    /// @param commandParams The command parameters of the recovery email.
+    /// @param templateIdx The index of the recovery command template.
+    function extractRecoveredAccountFromRecoveryCommand(
+        bytes[] memory commandParams,
         uint templateIdx
     ) public view virtual returns (address);
 
     function acceptGuardian(
         address guardian,
         uint templateIdx,
-        bytes[] memory subjectParams,
+        bytes[] memory commandParams,
         bytes32 emailNullifier
     ) internal virtual;
 
     function processRecovery(
         address guardian,
         uint templateIdx,
-        bytes[] memory subjectParams,
+        bytes[] memory commandParams,
         bytes32 emailNullifier
     ) internal virtual;
 
@@ -127,9 +128,7 @@ abstract contract EmailAccountRecovery {
                 L2ContractHelper.computeCreate2Address(
                     address(this),
                     accountSalt,
-                    bytes32(
-                        proxyBytecodeHash
-                    ),
+                    bytes32(proxyBytecodeHash),
                     keccak256(
                         abi.encode(
                             emailAuthImplementation(),
@@ -164,10 +163,10 @@ abstract contract EmailAccountRecovery {
         }
     }
 
-    /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
+    /// @notice Calculates a unique command template ID for an acceptance command template using its index.
     /// @dev Encodes the email account recovery version ID, "ACCEPTANCE", and the template index,
     /// then uses keccak256 to hash these values into a uint ID.
-    /// @param templateIdx The index of the acceptance subject template.
+    /// @param templateIdx The index of the acceptance command template.
     /// @return uint The computed uint ID.
     function computeAcceptanceTemplateId(
         uint templateIdx
@@ -184,10 +183,10 @@ abstract contract EmailAccountRecovery {
             );
     }
 
-    /// @notice Calculates a unique ID for a recovery subject template using its index.
+    /// @notice Calculates a unique ID for a recovery command template using its index.
     /// @dev Encodes the email account recovery version ID, "RECOVERY", and the template index,
     /// then uses keccak256 to hash these values into a uint256 ID.
-    /// @param templateIdx The index of the recovery subject template.
+    /// @param templateIdx The index of the recovery command template.
     /// @return uint The computed uint ID.
     function computeRecoveryTemplateId(
         uint templateIdx
@@ -206,13 +205,13 @@ abstract contract EmailAccountRecovery {
     /// @notice Handles an acceptance by a new guardian.
     /// @dev This function validates the email auth message, deploys a new EmailAuth contract as a proxy if validations pass and initializes the contract.
     /// @param emailAuthMsg The email auth message for the email send from the guardian.
-    /// @param templateIdx The index of the subject template for acceptance, which should match with the subject in the given email auth message.
+    /// @param templateIdx The index of the command template for acceptance, which should match with the command in the given email auth message.
     function handleAcceptance(
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
-        address recoveredAccount = extractRecoveredAccountFromAcceptanceSubject(
-            emailAuthMsg.subjectParams,
+        address recoveredAccount = extractRecoveredAccountFromAcceptanceCommand(
+            emailAuthMsg.commandParams,
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
@@ -226,67 +225,73 @@ abstract contract EmailAccountRecovery {
 
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
-        //     // Deploy proxy of the guardian's EmailAuth contract
-        //    if (block.chainid == 324 || block.chainid == 300) {
-        //         (bool success, bytes memory returnData) = SystemContractsCaller
-        //             .systemCallWithReturndata(
-        //                 uint32(gasleft()),
-        //                 address(DEPLOYER_SYSTEM_CONTRACT),
-        //                 uint128(0),
-        //                 abi.encodeCall(
-        //                     DEPLOYER_SYSTEM_CONTRACT.create2,
-        //                     (
-        //                         emailAuthMsg.proof.accountSalt,
-        //                         proxyBytecodeHash,
-        //                         abi.encode(
-        //                             emailAuthImplementation(),
-        //                             abi.encodeCall(
-        //                                 EmailAuth.initialize,
-        //                                 (
-        //                                     recoveredAccount,
-        //                                     emailAuthMsg.proof.accountSalt,
-        //                                     address(this)
-        //                                 )
-        //                             )
-        //                         )
-        //                     )
-        //                 )
-        //             );
-        //         address payable proxyAddress = abi.decode(returnData, (address));
-        //         ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
-        //         guardianEmailAuth = EmailAuth(address(proxy));
-        //         guardianEmailAuth.initialize(
-        //             recoveredAccount,
-        //             emailAuthMsg.proof.accountSalt,
-        //             address(this)
-        //         );
-        //     } else {
-                // Deploy proxy of the guardian's EmailAuth contract
-                ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
-                    emailAuthImplementation(),
-                    abi.encodeCall(
-                        EmailAuth.initialize,
-                        (recoveredAccount, emailAuthMsg.proof.accountSalt, address(this))
+            //     // Deploy proxy of the guardian's EmailAuth contract
+            //    if (block.chainid == 324 || block.chainid == 300) {
+            //         (bool success, bytes memory returnData) = SystemContractsCaller
+            //             .systemCallWithReturndata(
+            //                 uint32(gasleft()),
+            //                 address(DEPLOYER_SYSTEM_CONTRACT),
+            //                 uint128(0),
+            //                 abi.encodeCall(
+            //                     DEPLOYER_SYSTEM_CONTRACT.create2,
+            //                     (
+            //                         emailAuthMsg.proof.accountSalt,
+            //                         proxyBytecodeHash,
+            //                         abi.encode(
+            //                             emailAuthImplementation(),
+            //                             abi.encodeCall(
+            //                                 EmailAuth.initialize,
+            //                                 (
+            //                                     recoveredAccount,
+            //                                     emailAuthMsg.proof.accountSalt,
+            //                                     address(this)
+            //                                 )
+            //                             )
+            //                         )
+            //                     )
+            //                 )
+            //             );
+            //         address payable proxyAddress = abi.decode(returnData, (address));
+            //         ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
+            //         guardianEmailAuth = EmailAuth(address(proxy));
+            //         guardianEmailAuth.initialize(
+            //             recoveredAccount,
+            //             emailAuthMsg.proof.accountSalt,
+            //             address(this)
+            //         );
+            //     } else {
+            // Deploy proxy of the guardian's EmailAuth contract
+            ERC1967Proxy proxy = new ERC1967Proxy{
+                salt: emailAuthMsg.proof.accountSalt
+            }(
+                emailAuthImplementation(),
+                abi.encodeCall(
+                    EmailAuth.initialize,
+                    (
+                        recoveredAccount,
+                        emailAuthMsg.proof.accountSalt,
+                        address(this)
                     )
-                );
-                guardianEmailAuth = EmailAuth(address(proxy));
-        // }            
+                )
+            );
+            guardianEmailAuth = EmailAuth(address(proxy));
+            // }
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
             for (
                 uint idx = 0;
-                idx < acceptanceSubjectTemplates().length;
+                idx < acceptanceCommandTemplates().length;
                 idx++
             ) {
-                guardianEmailAuth.insertSubjectTemplate(
+                guardianEmailAuth.insertCommandTemplate(
                     computeAcceptanceTemplateId(idx),
-                    acceptanceSubjectTemplates()[idx]
+                    acceptanceCommandTemplates()[idx]
                 );
             }
-            for (uint idx = 0; idx < recoverySubjectTemplates().length; idx++) {
-                guardianEmailAuth.insertSubjectTemplate(
+            for (uint idx = 0; idx < recoveryCommandTemplates().length; idx++) {
+                guardianEmailAuth.insertCommandTemplate(
                     computeRecoveryTemplateId(idx),
-                    recoverySubjectTemplates()[idx]
+                    recoveryCommandTemplates()[idx]
                 );
             }
         } else {
@@ -303,22 +308,22 @@ abstract contract EmailAccountRecovery {
         acceptGuardian(
             guardian,
             templateIdx,
-            emailAuthMsg.subjectParams,
+            emailAuthMsg.commandParams,
             emailAuthMsg.proof.emailNullifier
         );
     }
 
     /// @notice Processes the recovery based on an email from the guardian.
-    /// @dev Verify the provided email auth message for a deployed guardian's EmailAuth contract and a specific subject template for recovery.
+    /// @dev Verify the provided email auth message for a deployed guardian's EmailAuth contract and a specific command template for recovery.
     /// Requires that the guardian is already deployed, and the template ID corresponds to the `templateId` in the given email auth message. Once validated.
     /// @param emailAuthMsg The email auth message for recovery.
-    /// @param templateIdx The index of the subject template for recovery, which should match with the subject in the given email auth message.
+    /// @param templateIdx The index of the command template for recovery, which should match with the command in the given email auth message.
     function handleRecovery(
         EmailAuthMsg memory emailAuthMsg,
         uint templateIdx
     ) external {
-        address recoveredAccount = extractRecoveredAccountFromRecoverySubject(
-            emailAuthMsg.subjectParams,
+        address recoveredAccount = extractRecoveredAccountFromRecoveryCommand(
+            emailAuthMsg.commandParams,
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
@@ -348,7 +353,7 @@ abstract contract EmailAccountRecovery {
         processRecovery(
             guardian,
             templateIdx,
-            emailAuthMsg.subjectParams,
+            emailAuthMsg.commandParams,
             emailAuthMsg.proof.emailNullifier
         );
     }

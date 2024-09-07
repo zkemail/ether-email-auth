@@ -1,6 +1,5 @@
 FROM python:3.10
 
-
 RUN apt-get update && apt-get upgrade -y 
 # Update the package list and install necessary dependencies
 RUN apt-get update && \

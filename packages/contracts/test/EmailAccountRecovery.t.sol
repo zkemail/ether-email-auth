@@ -103,9 +103,9 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testAcceptanceSubjectTemplates() public {
+    function testAcceptanceCommandTemplates() public {
         setUp();
-        string[][] memory res = recoveryController.acceptanceSubjectTemplates();
+        string[][] memory res = recoveryController.acceptanceCommandTemplates();
         assertEq(res[0][0], "Accept");
         assertEq(res[0][1], "guardian");
         assertEq(res[0][2], "request");
@@ -113,9 +113,9 @@ contract EmailAccountRecoveryTest is StructHelper {
         assertEq(res[0][4], "{ethAddr}");
     }
 
-    function testRecoverySubjectTemplates() public {
+    function testRecoveryCommandTemplates() public {
         setUp();
-        string[][] memory res = recoveryController.recoverySubjectTemplates();
+        string[][] memory res = recoveryController.recoveryCommandTemplates();
         assertEq(res[0][0], "Set");
         assertEq(res[0][1], "the");
         assertEq(res[0][2], "new");
@@ -207,9 +207,9 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -248,9 +248,9 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
@@ -280,9 +280,9 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -296,7 +296,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertHandleAcceptanceInvalidSubjectParams() public {
+    function testExpectRevertHandleAcceptanceInvalidCommandParams() public {
         testRequestGuardian();
 
         require(
@@ -311,10 +311,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForAcceptance = new bytes[](2);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        subjectParamsForAcceptance[1] = abi.encode(address(simpleWallet));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](2);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        commandParamsForAcceptance[1] = abi.encode(address(simpleWallet));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -323,7 +323,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid subject params"));
+        vm.expectRevert(bytes("invalid command params"));
         recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
@@ -345,9 +345,9 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(0x0));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(0x0));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -384,10 +384,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -439,10 +439,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
@@ -476,10 +476,10 @@ contract EmailAccountRecoveryTest is StructHelper {
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -521,10 +521,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
         emailAuthMsg.proof.accountSalt = 0x0;
 
         // vm.mockCall(
@@ -574,10 +574,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -613,11 +613,11 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](3);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        subjectParamsForRecovery[1] = abi.encode(address(0x0));
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](3);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        commandParamsForRecovery[1] = abi.encode(address(0x0));
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -626,7 +626,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid subject params"));
+        vm.expectRevert(bytes("invalid command params"));
         recoveryController.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
@@ -649,10 +649,10 @@ contract EmailAccountRecoveryTest is StructHelper {
     //     EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
     //     uint templateId = recoveryController.computeRecoveryTemplateId(templateIdx);
     //     emailAuthMsg.templateId = templateId;
-    //     bytes[] memory subjectParamsForRecovery = new bytes[](2);
-    //     subjectParamsForRecovery[0] = abi.encode(address(0x0));
-    //     subjectParamsForRecovery[1] = abi.encode(newSigner);
-    //     emailAuthMsg.subjectParams = subjectParamsForRecovery;
+    //     bytes[] memory commandParamsForRecovery = new bytes[](2);
+    //     commandParamsForRecovery[0] = abi.encode(address(0x0));
+    //     commandParamsForRecovery[1] = abi.encode(newSigner);
+    //     emailAuthMsg.commandParams = commandParamsForRecovery;
 
     //     vm.mockCall(
     //         address(recoveryController.emailAuthImplementationAddr()),
@@ -688,10 +688,10 @@ contract EmailAccountRecoveryTest is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(address(0x0));
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(address(0x0));
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),

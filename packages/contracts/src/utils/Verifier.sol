@@ -9,7 +9,7 @@ struct EmailProof {
     string domainName; // Domain name of the sender's email
     bytes32 publicKeyHash; // Hash of the DKIM public key used in email/proof
     uint timestamp; // Timestamp of the email
-    string maskedSubject; // Masked subject of the email
+    string maskedCommand; // Masked command of the email
     bytes32 emailNullifier; // Nullifier of the email to prevent its reuse.
     bytes32 accountSalt; // Create2 salt of the account
     bool isCodeExist; // Check if the account code is exist
@@ -52,7 +52,7 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
         pubSignals[DOMAIN_FIELDS + 1] = uint256(proof.emailNullifier);
         pubSignals[DOMAIN_FIELDS + 2] = uint256(proof.timestamp);
         stringFields = _packBytes2Fields(
-            bytes(proof.maskedSubject),
+            bytes(proof.maskedCommand),
             SUBJECT_BYTES
         );
         for (uint256 i = 0; i < SUBJECT_FIELDS; i++) {

@@ -186,10 +186,10 @@ contract IntegrationTest is Test {
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         if (isZksync) {
             emailProof
-                .maskedSubject = "Accept guardian request for 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4";
+                .maskedCommand = "Accept guardian request for 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4";
         } else {
             emailProof
-                .maskedSubject = "Accept guardian request for 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3";
+                .maskedCommand = "Accept guardian request for 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3";
         }
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -224,14 +224,14 @@ contract IntegrationTest is Test {
         );
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
             templateId: recoveryController.computeAcceptanceTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForAcceptance,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForAcceptance,
+            skipedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
@@ -272,10 +272,10 @@ contract IntegrationTest is Test {
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         if (isZksync) {
             emailProof
-                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedCommand = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         } else {
             emailProof
-                .maskedSubject = "Set the new signer of 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedCommand = "Set the new signer of 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         }
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
@@ -302,17 +302,17 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call handleRecovery -> isRecovering = true;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(address(simpleWallet));
-        subjectParamsForRecovery[1] = abi.encode(
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(address(simpleWallet));
+        commandParamsForRecovery[1] = abi.encode(
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
             templateId: recoveryController.computeRecoveryTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForRecovery,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForRecovery,
+            skipedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleRecovery(emailAuthMsg, templateIdx);
