@@ -15,8 +15,6 @@ struct EmailAuthMsg {
     uint templateId;
     /// @notice The parameters in the command of the email body, which should be taken according to the specified command template.
     bytes[] commandParams;
-    /// @notice The number of skiiped bytes in the command.
-    uint skipedCommandPrefix;
     /// @notice The email proof containing the zk proof and other necessary information for the email verification by the verifier contract.
     EmailProof proof;
 }
@@ -227,12 +225,8 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             emailAuthMsg.commandParams,
             template
         );
-        string memory trimmedMaskedCommand = removePrefix(
-            emailAuthMsg.proof.maskedCommand,
-            emailAuthMsg.skipedCommandPrefix
-        );
         require(
-            Strings.equal(expectedCommand, trimmedMaskedCommand),
+            Strings.equal(expectedCommand, emailAuthMsg.proof.maskedCommand),
             "invalid command"
         );
         require(

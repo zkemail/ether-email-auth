@@ -77,7 +77,6 @@ pub mod email_auth {
                                                     ::ethers::core::abi::ethabi::ParamType::Bytes,
                                                 ),
                                             ),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Tuple(
                                                 ::std::vec![
                                                     ::ethers::core::abi::ethabi::ParamType::String,
@@ -1057,13 +1056,13 @@ pub mod email_auth {
                 .method_hash([108, 116, 146, 30], ())
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `authEmail` (0xad3f5f9b) function
+        ///Calls the contract's `authEmail` (0xce207018) function
         pub fn auth_email(
             &self,
             email_auth_msg: EmailAuthMsg,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([173, 63, 95, 155], (email_auth_msg,))
+                .method_hash([206, 32, 112, 24], (email_auth_msg,))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `commandTemplates` (0x091c1650) function
@@ -2115,7 +2114,7 @@ pub mod email_auth {
     )]
     #[ethcall(name = "accountSalt", abi = "accountSalt()")]
     pub struct AccountSaltCall;
-    ///Container type for all input parameters for the `authEmail` function with signature `authEmail((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)))` and selector `0xad3f5f9b`
+    ///Container type for all input parameters for the `authEmail` function with signature `authEmail((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)))` and selector `0xce207018`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -2128,7 +2127,7 @@ pub mod email_auth {
     )]
     #[ethcall(
         name = "authEmail",
-        abi = "authEmail((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)))"
+        abi = "authEmail((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)))"
     )]
     pub struct AuthEmailCall {
         pub email_auth_msg: EmailAuthMsg,
@@ -3014,7 +3013,7 @@ pub mod email_auth {
         Hash
     )]
     pub struct VerifierAddrReturn(pub ::ethers::core::types::Address);
-    ///`EmailAuthMsg(uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes))`
+    ///`EmailAuthMsg(uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes))`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -3028,7 +3027,6 @@ pub mod email_auth {
     pub struct EmailAuthMsg {
         pub template_id: ::ethers::core::types::U256,
         pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
-        pub skiped_command_prefix: ::ethers::core::types::U256,
         pub proof: EmailProof,
     }
     ///`EmailProof(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)`

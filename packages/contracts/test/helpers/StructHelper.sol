@@ -28,7 +28,6 @@ contract StructHelper is DeploymentHelper {
         emailAuthMsg = EmailAuthMsg({
             templateId: templateId,
             commandParams: commandParams,
-            skipedCommandPrefix: 0,
             proof: emailProof
         });
 

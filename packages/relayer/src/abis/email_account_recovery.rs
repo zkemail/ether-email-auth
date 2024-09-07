@@ -369,7 +369,6 @@ pub mod email_account_recovery {
                                                     ::ethers::core::abi::ethabi::ParamType::Bytes,
                                                 ),
                                             ),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Tuple(
                                                 ::std::vec![
                                                     ::ethers::core::abi::ethabi::ParamType::String,
@@ -420,7 +419,6 @@ pub mod email_account_recovery {
                                                     ::ethers::core::abi::ethabi::ParamType::Bytes,
                                                 ),
                                             ),
-                                            ::ethers::core::abi::ethabi::ParamType::Uint(256usize),
                                             ::ethers::core::abi::ethabi::ParamType::Tuple(
                                                 ::std::vec![
                                                     ::ethers::core::abi::ethabi::ParamType::String,
@@ -747,24 +745,24 @@ pub mod email_account_recovery {
                 .method_hash([165, 227, 238, 112], (command_params, template_idx))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `handleAcceptance` (0x0481af67) function
+        ///Calls the contract's `handleAcceptance` (0xd686b48a) function
         pub fn handle_acceptance(
             &self,
             email_auth_msg: EmailAuthMsg,
             template_idx: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([4, 129, 175, 103], (email_auth_msg, template_idx))
+                .method_hash([214, 134, 180, 138], (email_auth_msg, template_idx))
                 .expect("method not found (this should never happen)")
         }
-        ///Calls the contract's `handleRecovery` (0xb68126fa) function
+        ///Calls the contract's `handleRecovery` (0xb684742f) function
         pub fn handle_recovery(
             &self,
             email_auth_msg: EmailAuthMsg,
             template_idx: ::ethers::core::types::U256,
         ) -> ::ethers::contract::builders::ContractCall<M, ()> {
             self.0
-                .method_hash([182, 129, 38, 250], (email_auth_msg, template_idx))
+                .method_hash([182, 132, 116, 47], (email_auth_msg, template_idx))
                 .expect("method not found (this should never happen)")
         }
         ///Calls the contract's `isActivated` (0xc9faa7c5) function
@@ -1001,7 +999,7 @@ pub mod email_account_recovery {
         pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
         pub template_idx: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `handleAcceptance` function with signature `handleAcceptance((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)` and selector `0x0481af67`
+    ///Container type for all input parameters for the `handleAcceptance` function with signature `handleAcceptance((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)` and selector `0xd686b48a`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1014,13 +1012,13 @@ pub mod email_account_recovery {
     )]
     #[ethcall(
         name = "handleAcceptance",
-        abi = "handleAcceptance((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)"
+        abi = "handleAcceptance((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)"
     )]
     pub struct HandleAcceptanceCall {
         pub email_auth_msg: EmailAuthMsg,
         pub template_idx: ::ethers::core::types::U256,
     }
-    ///Container type for all input parameters for the `handleRecovery` function with signature `handleRecovery((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)` and selector `0xb68126fa`
+    ///Container type for all input parameters for the `handleRecovery` function with signature `handleRecovery((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)` and selector `0xb684742f`
     #[derive(
         Clone,
         ::ethers::contract::EthCall,
@@ -1033,7 +1031,7 @@ pub mod email_account_recovery {
     )]
     #[ethcall(
         name = "handleRecovery",
-        abi = "handleRecovery((uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)"
+        abi = "handleRecovery((uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)),uint256)"
     )]
     pub struct HandleRecoveryCall {
         pub email_auth_msg: EmailAuthMsg,
@@ -1617,7 +1615,7 @@ pub mod email_account_recovery {
         Hash
     )]
     pub struct VerifierAddrReturn(pub ::ethers::core::types::Address);
-    ///`EmailAuthMsg(uint256,bytes[],uint256,(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes))`
+    ///`EmailAuthMsg(uint256,bytes[],(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes))`
     #[derive(
         Clone,
         ::ethers::contract::EthAbiType,
@@ -1631,7 +1629,6 @@ pub mod email_account_recovery {
     pub struct EmailAuthMsg {
         pub template_id: ::ethers::core::types::U256,
         pub command_params: ::std::vec::Vec<::ethers::core::types::Bytes>,
-        pub skiped_command_prefix: ::ethers::core::types::U256,
         pub proof: EmailProof,
     }
     ///`EmailProof(string,bytes32,uint256,string,bytes32,bytes32,bool,bytes)`

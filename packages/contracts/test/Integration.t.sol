@@ -231,7 +231,6 @@ contract IntegrationTest is Test {
                 templateIdx
             ),
             commandParams: commandParamsForAcceptance,
-            skipedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
@@ -312,7 +311,6 @@ contract IntegrationTest is Test {
                 templateIdx
             ),
             commandParams: commandParamsForRecovery,
-            skipedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleRecovery(emailAuthMsg, templateIdx);

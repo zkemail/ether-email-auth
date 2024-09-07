@@ -143,7 +143,6 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
                 command_params: command_params_encoded,
-                skiped_command_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
 
@@ -285,7 +284,6 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
             let email_auth_msg = EmailAuthMsg {
                 template_id: template_id.into(),
                 command_params: command_params_encoded,
-                skiped_command_prefix: 0.into(),
                 proof: email_proof.clone(),
             };
 
