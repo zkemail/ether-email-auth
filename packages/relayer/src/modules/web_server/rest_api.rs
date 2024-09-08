@@ -445,7 +445,7 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         handle_email_event(EmailAuthEvent::GuardianNotRegistered {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            subject: payload.command.clone(),
+            command: payload.command.clone(),
             request_id,
         })
         .await
@@ -509,8 +509,6 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         handle_email_event(EmailAuthEvent::GuardianNotSet {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            // request_id,
-            // subject: payload.subject.clone(),
         })
         .await
         .expect("Failed to send Recovery event");
@@ -637,7 +635,7 @@ pub async fn receive_email_api_fn(email: String) -> Result<()> {
     tokio::spawn(async move {
         match handle_email_event(EmailAuthEvent::Ack {
             email_addr: from_addr.clone(),
-            subject: parsed_email.get_subject_all().unwrap_or_default(),
+            command: parsed_email.get_command(false).unwrap_or_default(),
             original_message_id: parsed_email.get_message_id().ok(),
         })
         .await

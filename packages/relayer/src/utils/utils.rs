@@ -11,10 +11,6 @@ use relayer_utils::*;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-const DOMAIN_FIELDS: usize = 9;
-const SUBJECT_FIELDS: usize = 17;
-const EMAIL_ADDR_FIELDS: usize = 9;
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct ProverRes {
     proof: ProofJson,
