@@ -85,7 +85,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .await?;
 
             let command_params =
-                match extract_template_vals_from_command(&email_body, command_template) {
+                match extract_template_vals_from_command_template(&email_body, command_template) {
                     Ok(command_params) => command_params,
                     Err(e) => {
                         return Ok(EmailAuthEvent::Error {
@@ -134,7 +134,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_command: masked_command,
+                masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
@@ -228,7 +228,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 .await?;
 
             let command_params =
-                match extract_template_vals_from_command(&email_body, command_template) {
+                match extract_template_vals_from_command_template(&email_body, command_template) {
                     Ok(command_params) => command_params,
                     Err(e) => {
                         return Ok(EmailAuthEvent::Error {
@@ -275,7 +275,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 domain_name: parsed_email.get_email_domain()?,
                 public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
                 timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
-                masked_command: masked_command,
+                masked_command,
                 email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),
                 account_salt,
                 is_code_exist,
