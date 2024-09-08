@@ -44,12 +44,12 @@ pub enum EmailAuthEvent {
     GuardianNotRegistered {
         account_eth_addr: String,
         guardian_email_addr: String,
-        subject: String,
+        command: String,
         request_id: u32,
     },
     Ack {
         email_addr: String,
-        subject: String,
+        command: String,
         original_message_id: Option<String>,
     },
     NoOp,
@@ -296,14 +296,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
         EmailAuthEvent::GuardianNotRegistered {
             account_eth_addr,
             guardian_email_addr,
-            subject,
+            command,
             request_id,
         } => {
-            let subject = format!("{} Code ", subject);
+            let command = format!("{} Code ", command);
 
             let body_plain = format!(
                 "You have received an guardian request from the wallet address {}. \
-                Add the guardian's account code in the subject and reply to this email. \
+                Reply to this email. \
                 Your request ID is #{}. \
                 If you did not initiate this request, please contact us immediately.",
                 account_eth_addr, request_id
@@ -313,7 +313,10 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
                 "requestId": request_id,
+                "command": command,
             });
+
+            let subject = "Guardian Not Registered".to_string();
             let body_html = render_html("credential_not_present.html", render_data).await?;
 
             let email = EmailMessage {
@@ -330,14 +333,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
         }
         EmailAuthEvent::Ack {
             email_addr,
-            subject,
+            command,
             original_message_id,
         } => {
             let body_plain = format!(
-                "Hi {}!\nYour email with the subject {} is received.",
-                email_addr, subject
+                "Hi {}!\nYour email with the command {} is received.",
+                email_addr, command
             );
-            let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": subject});
+            let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": command});
             let body_html = render_html("acknowledgement.html", render_data).await?;
             let subject = format!("Re: {}", subject);
             let email = EmailMessage {
