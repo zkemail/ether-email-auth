@@ -73,7 +73,7 @@ pub struct EmailAttachment {
     pub contents: Vec<u8>,
 }
 
-pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
+pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError> {
     match event {
         EmailAuthEvent::AcceptanceRequest {
             account_eth_addr,
@@ -360,15 +360,23 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
     Ok(())
 }
 
-pub async fn render_html(template_name: &str, render_data: Value) -> Result<String> {
+pub async fn render_html(template_name: &str, render_data: Value) -> Result<String, EmailError> {
     let email_template_filename = PathBuf::new()
         .join(EMAIL_TEMPLATES.get().unwrap())
         .join(template_name);
-    let email_template = read_to_string(&email_template_filename).await?;
+    let email_template = read_to_string(&email_template_filename)
+        .await
+        .map_err(|e| {
+            EmailError::FileNotFound(format!(
+                "Could not get email template {}: {}",
+                template_name, e
+            ))
+        })?;
 
     let reg = Handlebars::new();
 
-    Ok(reg.render_template(&email_template, &render_data)?)
+    let template = reg.render_template(&email_template, &render_data)?;
+    Ok(template)
 }
 
 pub fn parse_error(error: String) -> Result<Option<String>> {
@@ -394,7 +402,7 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
     }
 }
 
-pub async fn send_email(email: EmailMessage) -> Result<()> {
+pub async fn send_email(email: EmailMessage) -> Result<(), EmailError> {
     let smtp_server = SMTP_SERVER.get().unwrap();
 
     // Send POST request to email server
@@ -404,13 +412,13 @@ pub async fn send_email(email: EmailMessage) -> Result<()> {
         .json(&email)
         .send()
         .await
-        .map_err(|e| anyhow!("Failed to send email: {}", e))?;
+        .map_err(|e| EmailError::Send(format!("Failed to send email: {}", e)))?;
 
     if !response.status().is_success() {
-        return Err(anyhow!(
+        return Err(EmailError::Send(format!(
             "Failed to send email: {}",
             response.text().await.unwrap_or_default()
-        ));
+        )));
     }
 
     Ok(())

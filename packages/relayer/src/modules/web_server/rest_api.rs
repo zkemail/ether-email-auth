@@ -599,9 +599,9 @@ fn parse_error_message(error_data: String) -> String {
     format!("Failed to parse contract error: {}", error_data)
 }
 
-pub async fn receive_email_api_fn(email: String) -> Result<()> {
-    let parsed_email = ParsedEmail::new_from_raw_email(&email).await.unwrap();
-    let from_addr = parsed_email.get_from_addr().unwrap();
+pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
+    let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
+    let from_addr = parsed_email.get_from_addr()?;
     tokio::spawn(async move {
         match handle_email_event(EmailAuthEvent::Ack {
             email_addr: from_addr.clone(),
