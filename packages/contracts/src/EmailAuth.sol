@@ -232,18 +232,10 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
-        // string memory expectedSubject = SubjectUtils.computeExpectedSubject(
-        //     emailAuthMsg.subjectParams,
-        //     template
-        // );
         string memory trimmedMaskedSubject = removePrefix(
             emailAuthMsg.proof.maskedSubject,
             emailAuthMsg.skipedSubjectPrefix
         );
-        // require(
-        //     Strings.equal(expectedSubject, trimmedMaskedSubject),
-        //     "invalid subject"
-        // );
         string memory expectedSubject = "";
         for (uint stringCase = 0; stringCase < 3; stringCase++) {
             expectedSubject = SubjectUtils.computeExpectedSubject(
@@ -265,7 +257,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
 
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        if (timestampCheckEnabled) {
+        if (timestampCheckEnabled && emailAuthMsg.proof.timestamp != 0) {
             lastTimestamp = emailAuthMsg.proof.timestamp;
         }
         emit EmailAuthed(

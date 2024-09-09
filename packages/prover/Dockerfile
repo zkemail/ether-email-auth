@@ -1,8 +1,4 @@
 FROM python:3.10
-# FROM aayushg0/rapidsnark:latest AS rapidsnark
-# FROM rust:latest
-# FROM node:18
-
 
 RUN apt-get update && apt-get upgrade -y 
 # Update the package list and install necessary dependencies
@@ -28,7 +24,7 @@ RUN ls /root
 # RUN cp /email-wallet/packages/prover/params/email_sender.wasm /root/params
 RUN mkdir params
 WORKDIR /root/params
-RUN gdown "https://drive.google.com/uc?id=1TChinAnHr9eV8H_OV9SVReF8Rvu6h1XH"
+RUN gdown "https://drive.google.com/uc?id=1Ybtxe1TCVUtHzCPUs9cuZAGbM-MVwigE"
 RUN unzip params.zip
 RUN mv params/* /root/params
 WORKDIR /root

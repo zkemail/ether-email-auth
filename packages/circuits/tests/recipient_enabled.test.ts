@@ -271,4 +271,22 @@ describe("Email Auth", () => {
       witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 3]
     );
   });
+
+  it("Verify a sent email with a too large subject_email_addr_idx", async () => {
+    const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+    const accountCode =
+      "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+    const emailAuthInput = await genEmailAuthInput(emailFilePath, accountCode);
+    const recipientInput = await genRecipientInput(emailFilePath);
+    const circuitInputs = {
+      ...emailAuthInput,
+      subject_email_addr_idx: recipientInput.subject_email_addr_idx,
+    };
+    circuitInputs.subject_email_addr_idx = 605;
+    async function failFn() {
+      const witness = await circuit.calculateWitness(circuitInputs);
+      await circuit.checkConstraints(witness);
+    }
+    await expect(failFn).rejects.toThrow();
+  });
 });

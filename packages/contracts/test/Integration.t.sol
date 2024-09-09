@@ -156,7 +156,7 @@ contract IntegrationTest is Test {
         } else {
             assertEq(
                 address(simpleWallet),
-                0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2
+                0x0C06688e61C06466E2a5C6fE4E15c359260a33f3
             );
         }
         address simpleWalletOwner = simpleWallet.owner();
@@ -196,7 +196,7 @@ contract IntegrationTest is Test {
                 .maskedSubject = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
         } else {
             emailProof
-                .maskedSubject = "Accept guardian request for 0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2";
+                .maskedSubject = "Accept guardian request for 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3";
         }
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -275,14 +275,14 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-        
+
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         if (isZksync) {
             emailProof
-                .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; 
+                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         } else {
             emailProof
-                .maskedSubject = "Set the new signer of 0xE30A7957e1427399dEA48968Fb096DB10c5D9dD2 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedSubject = "Set the new signer of 0x0C06688e61C06466E2a5C6fE4E15c359260a33f3 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         }
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
