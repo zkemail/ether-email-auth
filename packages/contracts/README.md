@@ -369,10 +369,12 @@ To pass the instegration testing, you should use era-test-node.
 See the following URL and install it.
 https://github.com/matter-labs/era-test-node
 
-Run the era-test-node.
+Run the era-test-node
+
 ```
 era_test_node fork https://sepolia.era.zksync.dev
 ```
+
 You remove .zksolc-libraries-cache directory, and run the following command.
 
 ```
