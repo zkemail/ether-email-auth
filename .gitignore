@@ -80,6 +80,9 @@ book
 # Vs code settings
 .vscode
 
+# Editor settings
+.idea
+
 # For zksync
 zkout
 .cache

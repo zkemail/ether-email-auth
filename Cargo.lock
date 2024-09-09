@@ -1658,6 +1658,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "fancy-regex"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "531e46835a22af56d1e3b66f04844bed63158bc094a628bec1d321d9b4c44bf2"
+dependencies = [
+ "bit-set",
+ "regex-automata",
+ "regex-syntax",
+]
+
+[[package]]
 name = "fastrand"
 version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4129,6 +4140,7 @@ dependencies = [
  "slog-json",
  "slog-term",
  "sqlx",
+ "thiserror",
  "tiny_http",
  "tokio",
  "tower-http",
@@ -4151,6 +4163,7 @@ dependencies = [
  "hmac-sha256",
  "itertools 0.10.5",
  "lazy_static",
+ "mailparse",
  "neon",
  "num-bigint",
  "num-traits",

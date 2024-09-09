@@ -20,20 +20,7 @@ pub async fn run_server() -> Result<()> {
         )
         .route("/api/getAccountSalt", post(get_account_salt))
         .route("/api/inactiveGuardian", post(inactive_guardian))
-        .route(
-            "/api/receiveEmail",
-            axum::routing::post::<_, _, (), _>(move |payload: String| async move {
-                println!("/api/receiveEmail");
-                info!(LOG, "Receive email payload: {}", payload);
-                match receive_email_api_fn(payload).await {
-                    Ok(_) => "Request processed".to_string(),
-                    Err(err) => {
-                        error!(LOG, "Failed to complete the receive email request: {}", err);
-                        err.to_string()
-                    }
-                }
-            }),
-        );
+        .route("/api/receiveEmail", post(receive_email_api_fn));
 
     app = app.layer(
         CorsLayer::new()

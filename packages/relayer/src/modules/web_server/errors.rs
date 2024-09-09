@@ -3,6 +3,8 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
+use handlebars::RenderError;
+use relayer_utils::ExtractSubstrssError;
 use reqwest::StatusCode;
 use rustc_hex::FromHexError;
 use serde_json::json;
@@ -11,25 +13,85 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ApiError {
     #[error("Database error: {0}")]
-    Database(DatabaseError),
+    Database(#[from] DatabaseError),
     #[error("Sqlx error: {0}")]
     SqlxError(#[from] sqlx::Error),
-    #[error("Contract error: {0}")]
-    Contract(ContractErrorWrapper),
-    #[error("Signer middleware error: {0}")]
-    SignerMiddleware(SignerMiddlewareErrorWrapper),
     #[error("Validation error: {0}")]
     Validation(String),
+    #[error("Chain error: {0}")]
+    Chain(#[from] ChainError),
     // #[error("Not found: {0}")]
     // NotFound(String),
-    #[error("Provider error: {0}")]
-    Provider(ProviderErrorWrapper),
-    #[error("Hex error: {0}")]
-    HexError(#[from] FromHexError),
     #[error("Anyhow error: {0}")]
     Anyhow(#[from] anyhow::Error),
     #[error("Internal error: {0}")]
     Internal(String),
+    #[error("Error recieving email: {0}")]
+    Email(#[from] EmailError),
+}
+
+#[derive(Error, Debug)]
+pub enum EmailError {
+    #[error("Subject error: {0}")]
+    Subject(String),
+    #[error("Email address error: {0}")]
+    EmailAddress(String),
+    #[error("Parse error: {0}")]
+    Parse(String),
+    #[error("DKIM error: {0}")]
+    Dkim(String),
+    #[error("ZkRegex error: {0}")]
+    ZkRegex(#[from] ExtractSubstrssError),
+    #[error("Database error: {0}")]
+    Database(#[from] DatabaseError),
+    #[error("Not found: {0}")]
+    NotFound(String),
+    #[error("Circuit error: {0}")]
+    Circuit(String),
+    #[error("Chain error: {0}")]
+    Chain(#[from] ChainError),
+    #[error("File not found error: {0}")]
+    FileNotFound(String),
+    #[error("Render error: {0}")]
+    Render(#[from] RenderError),
+    #[error("Failed to send email: {0}")]
+    Send(String),
+    // Currently used with some relayer-utils errors
+    #[error("Anyhow error: {0}")]
+    Anyhow(#[from] anyhow::Error),
+}
+
+#[derive(Error, Debug)]
+pub enum ChainError {
+    #[error("Contract error: {0}")]
+    Contract(ContractErrorWrapper),
+    #[error("Signer middleware error: {0}")]
+    SignerMiddleware(SignerMiddlewareErrorWrapper),
+    #[error("Hex error: {0}")]
+    HexError(#[from] FromHexError),
+    #[error("Provider error: {0}")]
+    Provider(ProviderErrorWrapper),
+    #[error("Anyhow error: {0}")]
+    Anyhow(#[from] anyhow::Error),
+    #[error("Validation error: {0}")]
+    Validation(String),
+}
+
+impl ChainError {
+    pub fn contract_error<M: Middleware>(msg: &str, err: ContractError<M>) -> Self {
+        Self::Contract(ContractErrorWrapper::new(msg.to_string(), err))
+    }
+
+    pub fn signer_middleware_error<M: Middleware, S: Signer>(
+        msg: &str,
+        err: signer::SignerMiddlewareError<M, S>,
+    ) -> Self {
+        Self::SignerMiddleware(SignerMiddlewareErrorWrapper::new(msg.to_string(), err))
+    }
+
+    pub fn provider_error(msg: &str, err: ethers::providers::ProviderError) -> Self {
+        Self::Provider(ProviderErrorWrapper::new(msg.to_string(), err))
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -41,8 +103,11 @@ pub struct DatabaseError {
 }
 
 impl DatabaseError {
-    pub fn new(source: sqlx::Error, msg: String) -> Self {
-        Self { source, msg }
+    pub fn new(msg: &str, source: sqlx::Error) -> Self {
+        Self {
+            source,
+            msg: msg.to_string(),
+        }
     }
 }
 
@@ -111,22 +176,7 @@ impl ProviderErrorWrapper {
 
 impl ApiError {
     pub fn database_error(msg: &str, source: sqlx::Error) -> Self {
-        Self::Database(DatabaseError::new(source, msg.to_string()))
-    }
-
-    pub fn contract_error<M: Middleware>(msg: &str, err: ContractError<M>) -> Self {
-        Self::Contract(ContractErrorWrapper::new(msg.to_string(), err))
-    }
-
-    pub fn signer_middleware_error<M: Middleware, S: Signer>(
-        msg: &str,
-        err: signer::SignerMiddlewareError<M, S>,
-    ) -> Self {
-        Self::SignerMiddleware(SignerMiddlewareErrorWrapper::new(msg.to_string(), err))
-    }
-
-    pub fn provider_error(msg: &str, err: ethers::providers::ProviderError) -> Self {
-        Self::Provider(ProviderErrorWrapper::new(msg.to_string(), err))
+        Self::Database(DatabaseError::new(msg, source))
     }
 }
 
@@ -134,15 +184,26 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             ApiError::Database(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            ApiError::Contract(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            ApiError::SignerMiddleware(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            ApiError::Chain(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::SqlxError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Validation(e) => (StatusCode::BAD_REQUEST, e),
-            // ApiError::NotFound(e) => (StatusCode::NOT_FOUND, e),
-            ApiError::Provider(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Anyhow(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            ApiError::HexError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Internal(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            ApiError::Email(e) => match e {
+                EmailError::Subject(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+                EmailError::EmailAddress(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+                EmailError::Parse(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+                EmailError::NotFound(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+                EmailError::Dkim(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::ZkRegex(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Database(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Circuit(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Chain(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::FileNotFound(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Render(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Send(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::Anyhow(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+            },
         };
         (status, Json(json!({ "error": error_message }))).into_response()
     }
