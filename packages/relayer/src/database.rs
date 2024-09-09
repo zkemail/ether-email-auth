@@ -102,7 +102,7 @@ impl Database {
         &self,
         account_eth_addr: &str,
         email_addr: &str,
-    ) -> std::result::Result<bool, ApiError> {
+    ) -> std::result::Result<bool, DatabaseError> {
         let row = sqlx::query(
             "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
@@ -110,9 +110,7 @@ impl Database {
         .bind(email_addr)
         .fetch_optional(&self.db)
         .await
-        .map_err(|e| {
-            ApiError::database_error("Failed to check if wallet and email are registered", e)
-        })?;
+        .map_err(|e| DatabaseError::new("Failed to check if wallet and email are registered", e))?;
 
         match row {
             Some(_) => Ok(true),
@@ -120,21 +118,27 @@ impl Database {
         }
     }
 
-    pub(crate) async fn update_credentials_of_account_code(&self, row: &Credentials) -> Result<()> {
+    pub(crate) async fn update_credentials_of_account_code(
+        &self,
+        row: &Credentials,
+    ) -> std::result::Result<(), DatabaseError> {
         let res = sqlx::query("UPDATE credentials SET account_eth_addr = $1, guardian_email_addr = $2, is_set = $3 WHERE account_code = $4")
             .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .bind(row.is_set)
             .bind(&row.account_code)
             .execute(&self.db)
-            .await?;
+            .await
+            .map_err(|e| {
+                DatabaseError::new("Failed to update credentials of account code", e)
+            })?;
         Ok(())
     }
 
     pub(crate) async fn update_credentials_of_wallet_and_email(
         &self,
         row: &Credentials,
-    ) -> std::result::Result<(), ApiError> {
+    ) -> std::result::Result<(), DatabaseError> {
         let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3 AND guardian_email_addr = $4")
             .bind(&row.account_code)
             .bind(row.is_set)
@@ -143,7 +147,7 @@ impl Database {
             .execute(&self.db)
             .await
             .map_err(|e| {
-                ApiError::database_error("Failed to insert credentials of wallet and email", e)
+                DatabaseError::new("Failed to insert credentials of wallet and email", e)
             })?;
         Ok(())
     }
@@ -152,7 +156,7 @@ impl Database {
         &self,
         is_set: bool,
         account_eth_addr: &str,
-    ) -> std::result::Result<(), ApiError> {
+    ) -> std::result::Result<(), DatabaseError> {
         let res = sqlx::query(
             "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2 AND is_set = true",
         )
@@ -160,9 +164,7 @@ impl Database {
         .bind(account_eth_addr)
         .execute(&self.db)
         .await
-        .map_err(|e| {
-            ApiError::database_error("Failed to update credentials of inactive guardian", e)
-        })?;
+        .map_err(|e| DatabaseError::new("Failed to update credentials of inactive guardian", e))?;
         Ok(())
     }
 
@@ -170,7 +172,7 @@ impl Database {
     pub(crate) async fn insert_credentials(
         &self,
         row: &Credentials,
-    ) -> std::result::Result<(), ApiError> {
+    ) -> std::result::Result<(), DatabaseError> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO credentials (account_code, account_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
@@ -181,7 +183,7 @@ impl Database {
         .bind(row.is_set)
         .fetch_one(&self.db)
         .await
-        .map_err(|e| ApiError::database_error("Failed to insert credentials", e))?;
+        .map_err(|e| DatabaseError::new("Failed to insert credentials", e))?;
         info!(
             LOG,
             "{} row inserted",
@@ -194,13 +196,13 @@ impl Database {
         &self,
         account_eth_addr: &str,
         guardian_email_addr: &str,
-    ) -> std::result::Result<bool, ApiError> {
+    ) -> std::result::Result<bool, DatabaseError> {
         let row = sqlx::query("SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2 AND is_set = TRUE")
             .bind(account_eth_addr)
             .bind(guardian_email_addr)
             .fetch_optional(&self.db)
             .await
-            .map_err(|e| ApiError::database_error("Failed to check if guardian is set", e))?;
+            .map_err(|e| DatabaseError::new("Failed to check if guardian is set", e))?;
 
         match row {
             Some(_) => Ok(true),
@@ -212,12 +214,12 @@ impl Database {
     pub(crate) async fn get_request(
         &self,
         request_id: u32,
-    ) -> std::result::Result<Option<Request>, ApiError> {
+    ) -> std::result::Result<Option<Request>, DatabaseError> {
         let row = sqlx::query("SELECT * FROM requests WHERE request_id = $1")
             .bind(request_id as i64)
             .fetch_optional(&self.db)
             .await
-            .map_err(|e| ApiError::database_error("Failed to get request", e))?;
+            .map_err(|e| DatabaseError::new("Failed to get request", e))?;
 
         match row {
             Some(row) => {
@@ -250,7 +252,10 @@ impl Database {
         }
     }
 
-    pub(crate) async fn update_request(&self, row: &Request) -> Result<()> {
+    pub(crate) async fn update_request(
+        &self,
+        row: &Request,
+    ) -> std::result::Result<(), DatabaseError> {
         let res = sqlx::query("UPDATE requests SET account_eth_addr = $1, controller_eth_addr = $2, guardian_email_addr = $3, is_for_recovery = $4, template_idx = $5, is_processed = $6, is_success = $7, email_nullifier = $8, account_salt = $9 WHERE request_id = $10")
             .bind(&row.account_eth_addr)
             .bind(&row.controller_eth_addr)
@@ -263,7 +268,8 @@ impl Database {
             .bind(&row.account_salt)
             .bind(row.request_id as i64)
             .execute(&self.db)
-            .await?;
+            .await
+            .map_err(|e| DatabaseError::new("Failed to update request", e))?;
         Ok(())
     }
 
@@ -271,14 +277,15 @@ impl Database {
         &self,
         account_eth_addr: &str,
         email_addr: &str,
-    ) -> Result<Option<String>> {
+    ) -> std::result::Result<Option<String>, DatabaseError> {
         let row = sqlx::query(
             "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
         .bind(account_eth_addr)
         .bind(email_addr)
         .fetch_optional(&self.db)
-        .await?;
+        .await
+        .map_err(|e| DatabaseError::new("Failed to get account code from wallet and email", e))?;
 
         match row {
             Some(row) => {
@@ -293,7 +300,7 @@ impl Database {
         &self,
         account_eth_addr: &str,
         email_addr: &str,
-    ) -> std::result::Result<Option<Credentials>, ApiError> {
+    ) -> std::result::Result<Option<Credentials>, DatabaseError> {
         let row = sqlx::query(
             "SELECT * FROM credentials WHERE account_eth_addr = $1 AND guardian_email_addr = $2",
         )
@@ -301,9 +308,7 @@ impl Database {
         .bind(email_addr)
         .fetch_optional(&self.db)
         .await
-        .map_err(|e| {
-            ApiError::database_error("Failed to get credentials from wallet and email", e)
-        })?;
+        .map_err(|e| DatabaseError::new("Failed to get credentials from wallet and email", e))?;
 
         match row {
             Some(row) => {
@@ -325,7 +330,10 @@ impl Database {
     }
 
     #[named]
-    pub(crate) async fn insert_request(&self, row: &Request) -> std::result::Result<(), ApiError> {
+    pub(crate) async fn insert_request(
+        &self,
+        row: &Request,
+    ) -> std::result::Result<(), DatabaseError> {
         info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
@@ -342,7 +350,7 @@ impl Database {
         .bind(&row.account_salt)
         .fetch_one(&self.db)
         .await
-        .map_err(|e| ApiError::database_error("Failed to insert request", e))?;
+        .map_err(|e| DatabaseError::new("Failed to insert request", e))?;
         info!(
             LOG,
             "{} row inserted",
