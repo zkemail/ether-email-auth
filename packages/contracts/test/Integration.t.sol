@@ -42,7 +42,7 @@ contract IntegrationTest is Test {
 
     function setUp() public {
         if (block.chainid == 300) {
-            vm.createSelectFork("https://sepolia.era.zksync.dev");
+            vm.createSelectFork("http://127.0.0.1:8011");
             isZksync = true;
         } else {
             vm.createSelectFork("https://mainnet.base.org");
@@ -279,7 +279,7 @@ contract IntegrationTest is Test {
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         if (isZksync) {
             emailProof
-                .maskedSubject = "Set the new signer of 0x05A78D3dB903a58B5FA373E07e5044B95B12aec4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+                .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         } else {
             emailProof
                 .maskedSubject = "Set the new signer of 0xeb8E21A363Dce22ff6057dEEF7c074062037F571 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
