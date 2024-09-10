@@ -42,9 +42,9 @@ You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`,
 4. `forge script script/DeployCommons.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv`
 
 #### Deploy Each Wallet.
-After deploying common contracts, you can deploy a proxy contract of `SimpleWallet`, which is an example contract supporting our email-based account recovery.
+After deploying common contracts, you can deploy a proxy contract of `SimpleWallet`, which is an example contract supporting our email-based account recovery by `RecoveryController`.
 1. Check that the env values of `DKIM`, `VERIFIER`, `EMAIL_AUTH_IMPL`, and `SIMPLE_WALLET_IMPL` are the same as those output by the `DeployCommons.s.sol` script.
-2. `forge script script/DeploySimpleWallet.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --broadcast -vvvv` 
+2. `forge script script/DeployRecoveryController.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --broadcast -vvvv` 
 
 ## Specification
 There are four main contracts that developers should understand: `IDKIMRegistry`, `Verifier`, `EmailAuth` and `EmailAccountRecovery`.
@@ -375,6 +375,6 @@ Second just run the following commands with `--zksync`
 
 ```
 source .env
-forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
+forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
 ```
 
