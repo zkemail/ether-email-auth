@@ -110,7 +110,7 @@ abstract contract EmailAccountRecovery {
     /// @param recoveredAccount The address of the account to be recovered.
     /// @param accountSalt A bytes32 salt value defined as a hash of the guardian's email address and an account code. This is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
     /// @return address The computed address.
-    function computeProxyAddress(
+    function computeEmailAuthAddress(
         address recoveredAccount,
         bytes32 accountSalt
     ) public view virtual returns (address) {
@@ -141,7 +141,7 @@ abstract contract EmailAccountRecovery {
     /// @param recoveredAccount The address of the account to be recovered.
     /// @param accountSalt A bytes32 salt value used to ensure the uniqueness of the deployed proxy address.
     /// @return address The address of the newly deployed proxy contract.
-    function deployProxy(
+    function deployEmailAuthProxy(
         address recoveredAccount, 
         bytes32 accountSalt
     ) public virtual returns (address) {
@@ -207,7 +207,7 @@ abstract contract EmailAccountRecovery {
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
-        address guardian = computeProxyAddress(
+        address guardian = computeEmailAuthAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
@@ -217,7 +217,7 @@ abstract contract EmailAccountRecovery {
 
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
-            address proxyAddress = deployProxy(recoveredAccount, emailAuthMsg.proof.accountSalt);
+            address proxyAddress = deployEmailAuthProxy(recoveredAccount, emailAuthMsg.proof.accountSalt);
             guardianEmailAuth = EmailAuth(proxyAddress);
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
@@ -270,7 +270,7 @@ abstract contract EmailAccountRecovery {
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
-        address guardian = computeProxyAddress(
+        address guardian = computeEmailAuthAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );

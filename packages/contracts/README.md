@@ -251,15 +251,22 @@ Next, you should uncomment the following lines in `foundry.toml`.
 # via-ir = true 
 ```
 
-And then you should uncomment the commented imports and functions in `src/utils/ZKSyncCreate2Factory.sol`
+Uncomment the following commented-out files. 
+These are commented out in the files for ZkSync to avoid problems when testing in foundry.
 
-Also uncomment the following lines in `src/EmailAccountRecovery.sol` too.
+The following are entire files that are commented out
 
-- L7 import `ZKSyncCreate2Factory`
-- L133 - L143 in `computeEmailAuthAddress` function
-- L232 - L253 in `handleAcceptance` function
+- script/DeployRecoveryControllerZkSync.s.sol
+- src/EmailAccountRecoveryZkSync.sol
+- test/IntegrationZkSync.t.sol
+- test/EmailAccountRecoveryZkSync/EmailAccountRecoveryZkSync_*.t.sol
+- test/helpers/RecoveryControllerZkSync.sol
+- test/ComputeCreate2Address.t.sol
 
-Regarding test cases, you should uncomment `test/ComputeCreate2Address.t.sol`
+Partial comment-out files can be found the following. Search `FOR_ZKSYNC:START` and `FOR_ZKSYNC:END`.
+
+- src/utils/ZKSyncCreate2Factory.sol
+- test/helpers/DeploymentHelper.sol
 
 At the first forge build, you need to detect the missing libraries.
 

@@ -1,164 +1,164 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+// // SPDX-License-Identifier: UNLICENSED
+// pragma solidity ^0.8.13;
 
-import "forge-std/Script.sol";
+// import "forge-std/Script.sol";
 
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "../test/helpers/SimpleWallet.sol";
-import "../test/helpers/RecoveryControllerZkSync.sol";
-import "../src/utils/Verifier.sol";
-import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-// import "../src/utils/ForwardDKIMRegistry.sol";
-import "../src/EmailAuth.sol";
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
+// import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+// import "../test/helpers/SimpleWallet.sol";
+// import "../test/helpers/RecoveryControllerZkSync.sol";
+// import "../src/utils/Verifier.sol";
+// import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+// // import "../src/utils/ForwardDKIMRegistry.sol";
+// import "../src/EmailAuth.sol";
+// import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+// import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
 
-contract Deploy is Script {
-    using ECDSA for *;
+// contract Deploy is Script {
+//     using ECDSA for *;
 
-    ECDSAOwnedDKIMRegistry dkim;
-    Verifier verifier;
-    EmailAuth emailAuthImpl;
-    SimpleWallet simpleWallet;
-    RecoveryControllerZkSync recoveryControllerZkSync;
-    ZKSyncCreate2Factory factoryImpl;
+//     ECDSAOwnedDKIMRegistry dkim;
+//     Verifier verifier;
+//     EmailAuth emailAuthImpl;
+//     SimpleWallet simpleWallet;
+//     RecoveryControllerZkSync recoveryControllerZkSync;
+//     ZKSyncCreate2Factory factoryImpl;
 
-    function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        if (deployerPrivateKey == 0) {
-            console.log("PRIVATE_KEY env var not set");
-            return;
-        }
-        address signer = vm.envAddress("SIGNER");
-        if (signer == address(0)) {
-            console.log("SIGNER env var not set");
-            return;
-        }
+//     function run() external {
+//         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+//         if (deployerPrivateKey == 0) {
+//             console.log("PRIVATE_KEY env var not set");
+//             return;
+//         }
+//         address signer = vm.envAddress("SIGNER");
+//         if (signer == address(0)) {
+//             console.log("SIGNER env var not set");
+//             return;
+//         }
 
-        vm.startBroadcast(deployerPrivateKey);
-        address initialOwner = msg.sender;
+//         vm.startBroadcast(deployerPrivateKey);
+//         address initialOwner = msg.sender;
 
-        // Deploy ECDSAOwned DKIM registry
-        dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
-        if (address(dkim) == address(0)) {
-            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
-            console.log(
-                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
-                address(ecdsaDkimImpl)
-            );
-            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
-                address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
-            );
-            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
-            console.log(
-                "ECDSAOwnedDKIMRegistry deployed at: %s",
-                address(dkim)
-            );
-            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
-            // dkimImpl = new ForwardDKIMRegistry();
-            // console.log(
-            //     "ForwardDKIMRegistry implementation deployed at: %s",
-            //     address(dkimImpl)
-            // );
-            // ERC1967Proxy dkimProxy = new ERC1967Proxy(
-            //     address(dkimImpl),
-            //     abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
-            // );
-            // dkim = ForwardDKIMRegistry(address(dkimProxy));
-            // console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
-            // vm.setEnv("DKIM", vm.toString(address(dkim)));
-        }
-        // Deploy Verifier
-        verifier = Verifier(vm.envOr("VERIFIER", address(0)));
-        if (address(verifier) == address(0)) {
-            Verifier verifierImpl = new Verifier();
-            console.log(
-                "Verifier implementation deployed at: %s",
-                address(verifierImpl)
-            );
-            ERC1967Proxy verifierProxy = new ERC1967Proxy(
-                address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (initialOwner))
-            );
-            verifier = Verifier(address(verifierProxy));
-            console.log("Verifier deployed at: %s", address(verifier));
-            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
-        }
+//         // Deploy ECDSAOwned DKIM registry
+//         dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
+//         if (address(dkim) == address(0)) {
+//             ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+//             console.log(
+//                 "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
+//                 address(ecdsaDkimImpl)
+//             );
+//             ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+//                 address(ecdsaDkimImpl),
+//                 abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
+//             );
+//             dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+//             console.log(
+//                 "ECDSAOwnedDKIMRegistry deployed at: %s",
+//                 address(dkim)
+//             );
+//             vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
+//             // dkimImpl = new ForwardDKIMRegistry();
+//             // console.log(
+//             //     "ForwardDKIMRegistry implementation deployed at: %s",
+//             //     address(dkimImpl)
+//             // );
+//             // ERC1967Proxy dkimProxy = new ERC1967Proxy(
+//             //     address(dkimImpl),
+//             //     abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
+//             // );
+//             // dkim = ForwardDKIMRegistry(address(dkimProxy));
+//             // console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
+//             // vm.setEnv("DKIM", vm.toString(address(dkim)));
+//         }
+//         // Deploy Verifier
+//         verifier = Verifier(vm.envOr("VERIFIER", address(0)));
+//         if (address(verifier) == address(0)) {
+//             Verifier verifierImpl = new Verifier();
+//             console.log(
+//                 "Verifier implementation deployed at: %s",
+//                 address(verifierImpl)
+//             );
+//             ERC1967Proxy verifierProxy = new ERC1967Proxy(
+//                 address(verifierImpl),
+//                 abi.encodeCall(verifierImpl.initialize, (initialOwner))
+//             );
+//             verifier = Verifier(address(verifierProxy));
+//             console.log("Verifier deployed at: %s", address(verifier));
+//             vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+//         }
 
-        // Deploy EmailAuth Implementation
-        emailAuthImpl = EmailAuth(vm.envOr("EMAIL_AUTH_IMPL", address(0)));
-        if (address(emailAuthImpl) == address(0)) {
-            emailAuthImpl = new EmailAuth();
-            console.log(
-                "EmailAuth implementation deployed at: %s",
-                address(emailAuthImpl)
-            );
-            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
-        }
+//         // Deploy EmailAuth Implementation
+//         emailAuthImpl = EmailAuth(vm.envOr("EMAIL_AUTH_IMPL", address(0)));
+//         if (address(emailAuthImpl) == address(0)) {
+//             emailAuthImpl = new EmailAuth();
+//             console.log(
+//                 "EmailAuth implementation deployed at: %s",
+//                 address(emailAuthImpl)
+//             );
+//             vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
+//         }
 
-        // Deploy Factory
-        factoryImpl = ZKSyncCreate2Factory(vm.envOr("FACTORY", address(0)));
-        if (address(factoryImpl) == address(0)) {
-            factoryImpl = new ZKSyncCreate2Factory();
-            console.log(
-                "Factory implementation deployed at: %s",
-                address(factoryImpl)
-            );
-            vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
-        }
+//         // Deploy Factory
+//         factoryImpl = ZKSyncCreate2Factory(vm.envOr("FACTORY", address(0)));
+//         if (address(factoryImpl) == address(0)) {
+//             factoryImpl = new ZKSyncCreate2Factory();
+//             console.log(
+//                 "Factory implementation deployed at: %s",
+//                 address(factoryImpl)
+//             );
+//             vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
+//         }
 
-        // Create RecoveryControllerZkSync as EmailAccountRecovery implementation
-        {
-            RecoveryControllerZkSync recoveryControllerZkSyncImpl = new RecoveryControllerZkSync();
-            ERC1967Proxy recoveryControllerZkSyncProxy = new ERC1967Proxy(
-                address(recoveryControllerZkSyncImpl),
-                abi.encodeCall(
-                    recoveryControllerZkSyncImpl.initialize,
-                    (
-                        signer,
-                        address(verifier),
-                        address(dkim),
-                        address(emailAuthImpl),
-                        address(factoryImpl)
-                    )
-                )
-            );
-            recoveryControllerZkSync = RecoveryControllerZkSync(
-                payable(address(recoveryControllerZkSyncProxy))
-            );
-            console.log(
-                "RecoveryControllerZkSync deployed at: %s",
-                address(recoveryControllerZkSync)
-            );
-            vm.setEnv(
-                "RECOVERY_CONTROLLER_ZKSYNC",
-                vm.toString(address(recoveryControllerZkSync))
-            );
-        }
+//         // Create RecoveryControllerZkSync as EmailAccountRecovery implementation
+//         {
+//             RecoveryControllerZkSync recoveryControllerZkSyncImpl = new RecoveryControllerZkSync();
+//             ERC1967Proxy recoveryControllerZkSyncProxy = new ERC1967Proxy(
+//                 address(recoveryControllerZkSyncImpl),
+//                 abi.encodeCall(
+//                     recoveryControllerZkSyncImpl.initialize,
+//                     (
+//                         signer,
+//                         address(verifier),
+//                         address(dkim),
+//                         address(emailAuthImpl),
+//                         address(factoryImpl)
+//                     )
+//                 )
+//             );
+//             recoveryControllerZkSync = RecoveryControllerZkSync(
+//                 payable(address(recoveryControllerZkSyncProxy))
+//             );
+//             console.log(
+//                 "RecoveryControllerZkSync deployed at: %s",
+//                 address(recoveryControllerZkSync)
+//             );
+//             vm.setEnv(
+//                 "RECOVERY_CONTROLLER_ZKSYNC",
+//                 vm.toString(address(recoveryControllerZkSync))
+//             );
+//         }
 
-        // Deploy SimpleWallet Implementation
-        {
-            SimpleWallet simpleWalletImpl = new SimpleWallet();
-            console.log(
-                "SimpleWallet implementation deployed at: %s",
-                address(simpleWalletImpl)
-            );
-            vm.setEnv(
-                "SIMPLE_WALLET_IMPL",
-                vm.toString(address(simpleWalletImpl))
-            );
-            ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-                address(simpleWalletImpl),
-                abi.encodeCall(
-                    simpleWalletImpl.initialize,
-                    (signer, address(recoveryControllerZkSync))
-                )
-            );
-            simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-            console.log("SimpleWallet deployed at: %s", address(simpleWallet));
-            vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
-        }
-        vm.stopBroadcast();
-    }
-}
+//         // Deploy SimpleWallet Implementation
+//         {
+//             SimpleWallet simpleWalletImpl = new SimpleWallet();
+//             console.log(
+//                 "SimpleWallet implementation deployed at: %s",
+//                 address(simpleWalletImpl)
+//             );
+//             vm.setEnv(
+//                 "SIMPLE_WALLET_IMPL",
+//                 vm.toString(address(simpleWalletImpl))
+//             );
+//             ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+//                 address(simpleWalletImpl),
+//                 abi.encodeCall(
+//                     simpleWalletImpl.initialize,
+//                     (signer, address(recoveryControllerZkSync))
+//                 )
+//             );
+//             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
+//             console.log("SimpleWallet deployed at: %s", address(simpleWallet));
+//             vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
+//         }
+//         vm.stopBroadcast();
+//     }
+// }

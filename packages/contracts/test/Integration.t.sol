@@ -198,7 +198,7 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call Request guardian -> GuardianStatus.REQUESTED
-        guardian = recoveryController.computeProxyAddress(
+        guardian = recoveryController.computeEmailAuthAddress(
             address(simpleWallet),
             accountSalt
         );

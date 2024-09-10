@@ -57,7 +57,7 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
                 emailAuthMsg.subjectParams,
                 templateIdx
             );
-        address computedGuardian = recoveryController.computeProxyAddress(
+        address computedGuardian = recoveryController.computeEmailAuthAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
