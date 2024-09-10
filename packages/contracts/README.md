@@ -32,7 +32,7 @@ Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `pa
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
-Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 8453 --ffi
+Eg: contracts % forge test --skip '*ZKSync*' --match-contract "IntegrationTest" -vvv --chain 8453 --ffi
 ```
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
@@ -251,26 +251,14 @@ Next, you should uncomment the following lines in `foundry.toml`.
 # via-ir = true 
 ```
 
-Uncomment the following commented-out files. 
-These are commented out in the files for ZkSync to avoid problems when testing in foundry.
-
-The following are entire files that are commented out
-
-- script/DeployRecoveryControllerZkSync.s.sol
-- src/EmailAccountRecoveryZkSync.sol
-- test/IntegrationZkSync.t.sol
-- test/EmailAccountRecoveryZkSync/EmailAccountRecoveryZkSync_*.t.sol
-- test/helpers/RecoveryControllerZkSync.sol
-- test/ComputeCreate2Address.t.sol
-
-Partial comment-out files can be found the following. Search `FOR_ZKSYNC:START` and `FOR_ZKSYNC:END`.
+Partial comment-out files can be found the following. Please uncomment them.
+(Uncomment from `FOR_ZKSYNC:START` to `FOR_ZKSYNC:END`)
 
 - src/utils/ZKSyncCreate2Factory.sol
 - test/helpers/DeploymentHelper.sol
 
 At the first forge build, you need to detect the missing libraries.
 
-```
 ```
 forge build --zksync --zk-detect-missing-libraries
 ```
@@ -377,7 +365,7 @@ Set the libraries in foundry.toml using the above deployed address.
 And then, run the integration testing.
 
 ```
-forge test --match-test 'testIntegration_Account_Recovery_ZkSync' --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+forge test --match-contract "IntegrationZkSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
 ```
 
 # For zkSync deployment (For test net)

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "forge build",
+    "build": "forge build --skip '*ZKSync*'",
     "zkbuild": "forge build --zksync",
-    "test": "forge test --no-match-test \"testIntegration\"",
+    "test": "forge test --no-match-test \"testIntegration\" --skip '*ZKSync*'",
     "zktest": "forge test --no-match-test \"testIntegration\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },
