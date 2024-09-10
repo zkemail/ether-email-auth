@@ -59,7 +59,7 @@
 //     function deployEmailAuthProxy(
 //         address recoveredAccount, 
 //         bytes32 accountSalt
-//     ) public override returns (address) {
+//     ) internal override returns (address) {
 //         (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
 //             accountSalt, 
 //             proxyBytecodeHash, 

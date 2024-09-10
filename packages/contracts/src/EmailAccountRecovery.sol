@@ -144,7 +144,7 @@ abstract contract EmailAccountRecovery {
     function deployEmailAuthProxy(
         address recoveredAccount, 
         bytes32 accountSalt
-    ) public virtual returns (address) {
+    ) internal virtual returns (address) {
         ERC1967Proxy proxy = new ERC1967Proxy{salt: accountSalt}(
             emailAuthImplementation(),
             abi.encodeCall(
