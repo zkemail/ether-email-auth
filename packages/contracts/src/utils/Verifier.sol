@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Groth16Verifier.sol";
+import "../interfaces/IGroth16Verifier.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -17,7 +17,7 @@ struct EmailProof {
 }
 
 contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
-    Groth16Verifier groth16Verifier;
+    IGroth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
@@ -28,9 +28,12 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Initialize the contract with the initial owner and deploy Groth16Verifier
     /// @param _initialOwner The address of the initial owner
-    function initialize(address _initialOwner) public initializer {
+    function initialize(
+        address _initialOwner,
+        address _groth16Verifier
+    ) public initializer {
         __Ownable_init(_initialOwner);
-        groth16Verifier = new Groth16Verifier();
+        groth16Verifier = IGroth16Verifier(_groth16Verifier);
     }
 
     function verifyEmailProof(

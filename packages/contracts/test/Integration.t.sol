@@ -9,6 +9,7 @@ import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
+import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
@@ -83,9 +84,13 @@ contract IntegrationTest is Test {
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
         }
