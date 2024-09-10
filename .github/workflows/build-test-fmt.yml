@@ -30,7 +30,7 @@ jobs:
 
     - name: Run tests
       working-directory: packages/contracts
-      run: forge build
+      run: yarn build
     
     - name: Free Disk Space (Ubuntu)
       uses: jlumbroso/free-disk-space@main
