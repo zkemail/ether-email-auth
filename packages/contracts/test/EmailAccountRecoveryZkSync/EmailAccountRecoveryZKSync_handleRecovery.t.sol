@@ -350,7 +350,7 @@ contract EmailAccountRecoveryZKSyncTest_handleRecovery is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid subject params"));
+        vm.expectRevert(bytes("invalid command params"));
         recoveryControllerZKSync.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }

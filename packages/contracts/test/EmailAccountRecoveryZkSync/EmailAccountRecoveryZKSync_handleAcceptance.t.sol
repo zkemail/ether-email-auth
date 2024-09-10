@@ -176,7 +176,7 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid subject params"));
+        vm.expectRevert(bytes("invalid command params"));
         recoveryControllerZKSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
