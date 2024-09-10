@@ -15,6 +15,8 @@ struct EmailAuthMsg {
     uint templateId;
     /// @notice The parameters in the command of the email body, which should be taken according to the specified command template.
     bytes[] commandParams;
+    /// @notice The number of skipped bytes in the command.
+    uint skippedCommandPrefix;
     /// @notice The email proof containing the zk proof and other necessary information for the email verification by the verifier contract.
     EmailProof proof;
 }
@@ -224,8 +226,16 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
                 verifier.COMMAND_BYTES(),
             "invalid masked command length"
         );
+        require(
+            emailAuthMsg.skippedCommandPrefix < verifier.COMMAND_BYTES(),
+            "invalid size of the skipped command prefix"
+        );
 
         // Construct an expectedCommand from template and the values of emailAuthMsg.commandParams.
+        string memory trimmedMaskedCommand = removePrefix(
+            emailAuthMsg.proof.maskedCommand,
+            emailAuthMsg.skippedCommandPrefix
+        );
         string memory expectedCommand = "";
         for (uint stringCase = 0; stringCase < 3; stringCase++) {
             expectedCommand = CommandUtils.computeExpectedCommand(
@@ -233,9 +243,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
                 template,
                 stringCase
             );
-            if (
-                Strings.equal(expectedCommand, emailAuthMsg.proof.maskedCommand)
-            ) {
+            if (Strings.equal(expectedCommand, trimmedMaskedCommand)) {
                 break;
             }
             if (stringCase == 2) {
@@ -273,4 +281,20 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(
         address newImplementation
     ) internal override onlyOwner {}
+
+    function removePrefix(
+        string memory str,
+        uint numChars
+    ) private pure returns (string memory) {
+        require(numChars <= bytes(str).length, "Invalid number of characters");
+
+        bytes memory strBytes = bytes(str);
+        bytes memory result = new bytes(strBytes.length - numChars);
+
+        for (uint i = numChars; i < strBytes.length; i++) {
+            result[i - numChars] = strBytes[i];
+        }
+
+        return string(result);
+    }
 }
