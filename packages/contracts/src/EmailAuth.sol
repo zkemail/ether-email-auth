@@ -221,27 +221,45 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
+        require(
+            bytes(emailAuthMsg.proof.maskedSubject).length <=
+                verifier.SUBJECT_BYTES(),
+            "invalid masked subject length"
+        );
+        require(
+            emailAuthMsg.skipedSubjectPrefix < verifier.SUBJECT_BYTES(),
+            "invalid size of the skipped subject prefix"
+        );
 
         // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
-        string memory expectedSubject = SubjectUtils.computeExpectedSubject(
-            emailAuthMsg.subjectParams,
-            template
-        );
         string memory trimmedMaskedSubject = removePrefix(
             emailAuthMsg.proof.maskedSubject,
             emailAuthMsg.skipedSubjectPrefix
         );
-        require(
-            Strings.equal(expectedSubject, trimmedMaskedSubject),
-            "invalid subject"
-        );
+        string memory expectedSubject = "";
+        for (uint stringCase = 0; stringCase < 3; stringCase++) {
+            expectedSubject = SubjectUtils.computeExpectedSubject(
+                emailAuthMsg.subjectParams,
+                template,
+                stringCase
+            );
+            if (Strings.equal(expectedSubject, trimmedMaskedSubject)) {
+                break;
+            }
+            if (stringCase == 2) {
+                revert("invalid subject");
+            }
+        }
+
         require(
             verifier.verifyEmailProof(emailAuthMsg.proof) == true,
             "invalid email proof"
         );
 
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        lastTimestamp = emailAuthMsg.proof.timestamp;
+        if (timestampCheckEnabled && emailAuthMsg.proof.timestamp != 0) {
+            lastTimestamp = emailAuthMsg.proof.timestamp;
+        }
         emit EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
             emailAuthMsg.proof.accountSalt,

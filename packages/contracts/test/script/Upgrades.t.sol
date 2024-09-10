@@ -9,12 +9,13 @@ import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
 import {Upgrades} from "../../script/Upgrades.s.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {StructHelper} from "../helpers/StructHelper.sol";
 
-contract UpgradesTest is Test {
+contract UpgradesTest is StructHelper {
     uint256 internal constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
-    function setUp() public {
+    function setUp() public override {
         vm.setEnv(
             "PRIVATE_KEY",
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
@@ -23,6 +24,8 @@ contract UpgradesTest is Test {
     }
 
     function test_run() public {
+        skipIfZkSync();
+       
         Deploy deploy = new Deploy();
         deploy.run();
         vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));

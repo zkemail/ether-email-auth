@@ -25,14 +25,14 @@ $ yarn test
 Run integration tests
 
 Before running integration tests, you need to make a `packages/contracts/test/build_integration` directory, download the zip file from the following link, and place its unzipped directory under that directory.
-https://drive.google.com/file/d/1TChinAnHr9eV8H_OV9SVReF8Rvu6h1XH/view?usp=sharing
+https://drive.google.com/file/d/1Ybtxe1TCVUtHzCPUs9cuZAGbM-MVwigE/view?usp=drive_link
 
 Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `params` to `build_integration`. 
 
 
 Run each integration tests **one by one** as each test will consume lot of memory.
 ```bash
-Eg: forge test --match-test 'testIntegration_Account_Recovery' -vvv --chain 8453 --ffi
+Eg: contracts % forge test --skip '*ZKSync*' --match-contract "IntegrationTest" -vvv --chain 8453 --ffi
 ```
 #### Deploy Common Contracts.
 You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`, and implementations of `EmailAuth` and `SimpleWallet`, only once before deploying each wallet.
@@ -42,9 +42,9 @@ You need to deploy common contracts, i.e., `ECDSAOwnedDKIMRegistry`, `Verifier`,
 4. `forge script script/DeployCommons.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --etherscan-api-key $ETHERSCAN_API_KEY --broadcast --verify -vvvv`
 
 #### Deploy Each Wallet.
-After deploying common contracts, you can deploy a proxy contract of `SimpleWallet`, which is an example contract supporting our email-based account recovery.
+After deploying common contracts, you can deploy a proxy contract of `SimpleWallet`, which is an example contract supporting our email-based account recovery by `RecoveryController`.
 1. Check that the env values of `DKIM`, `VERIFIER`, `EMAIL_AUTH_IMPL`, and `SIMPLE_WALLET_IMPL` are the same as those output by the `DeployCommons.s.sol` script.
-2. `forge script script/DeploySimpleWallet.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --broadcast -vvvv` 
+2. `forge script script/DeployRecoveryController.s.sol:Deploy --rpc-url $RPC_URL --chain-id $CHAIN_ID --broadcast -vvvv` 
 
 ## Specification
 There are four main contracts that developers should understand: `IDKIMRegistry`, `Verifier`, `EmailAuth` and `EmailAccountRecovery`.
@@ -251,62 +251,40 @@ Next, you should uncomment the following lines in `foundry.toml`.
 # via-ir = true 
 ```
 
-And then you should uncomment the following lines in `src/EmailAccountRecovery.sol`.
+Partial comment-out files can be found the following. Please uncomment them.
+(Uncomment from `FOR_ZKSYNC:START` to `FOR_ZKSYNC:END`)
+
+- src/utils/ZKSyncCreate2Factory.sol
+- test/helpers/DeploymentHelper.sol
+
+At the first forge build, you need to detect the missing libraries.
 
 ```
-// import {SystemContractsCaller} from "@matterlabs/zksync-contracts/l2/system-contracts/libraries/SystemContractsCaller.sol";
-// import {DEPLOYER_SYSTEM_CONTRACT} from "@matterlabs/zksync-contracts/l2/system-contracts/Constants.sol";
+forge build --zksync --zk-detect-missing-libraries
 ```
 
-And lines 229 - 263 in the `handleAcceptance` function too.
-
-At the first forge build, you got the following warning like the following.
-
-```
-┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-│ Warning: Your code or one of its dependencies uses the 'extcodesize' instruction, which is       │
-│ usually needed in the following cases:                                                           │
-│   1. To detect whether an address belongs to a smart contract.                                   │
-│   2. To detect whether the deploy code execution has finished.                                   │
-│ zkSync Era comes with native account abstraction support (so accounts are smart contracts,       │
-│ including private-key controlled EOAs), and you should avoid differentiating between contracts   │
-│ and non-contract addresses.                                                                      │
-└──────────────────────────────────────────────────────────────────────────────────────────────────┘
---> ../../node_modules/forge-std/src/StdCheats.sol
-
-Failed to compile with zksolc: Missing libraries detected [ZkMissingLibrary { contract_name: "SubjectUtils", contract_path: "src/libraries/SubjectUtils.sol", missing_libraries: ["src/libraries/DecimalUtils.sol:DecimalUtils"] }, ZkMissingLibrary { contract_name: "DecimalUtils", contract_path: "src/libraries/DecimalUtils.sol", missing_libraries: [] }]
-```
-
-Please run the following command in order to deploy the missing libraries:
+As you saw before, you need to deploy missing libraries.
+You can deploy them by the following command for example.
 
 ```
-forge create --deploy-missing-libraries --private-key <PRIVATE_KEY> --rpc-url <RPC_URL> --chain <CHAIN_ID> --zksync
-forge create --deploy-missing-libraries --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
+$ forge build --zksync --zk-detect-missing-libraries
+Missing libraries detected: src/libraries/SubjectUtils.sol:SubjectUtils, src/libraries/DecimalUtils.sol:DecimalUtils
 ```
 
-The above command output the following(for example):
+Run the following command in order to deploy each missing library:
 
 ```
-[⠊] Compiling...
-No files changed, compilation skipped
-Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
-Deployed to: 0x91cc0f0A227b8dD56794f9391E8Af48B40420A0b
-Transaction hash: 0x4f94ab71443d01988105540c3abb09ed66f8af5d0bb6a88691e2dafa88b3583d
-[⠢] Compiling...
-[⠃] Compiling 68 files with 0.8.26
-[⠆] Solc 0.8.26 finished in 12.20s
-Compiler run successful!
-Deployer: 0xfB1CcCBDa2C41a77cDAC448641006Fc7fcf1f3b9
-Deployed to: 0x981E3Df952358A57753C7B85dE7949Da4aBCf54A
-Transaction hash: 0xfdca7b9eb3ae933ca123111489572427ee95eb6be74978b24c73fe74cb4988d7
+forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
+forge create src/libraries/SubjectUtils.sol:SubjectUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
 ```
 
 After that, you can see the following line in foundry.toml.
 Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
 
 ```
-libraries = ["{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
-
+libraries = [
+    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
+    "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
 ```
 
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
@@ -336,7 +314,7 @@ https://github.com/matter-labs/foundry-zksync/issues/382
 
 Failing test cases are here.
 
-EmailAuthWithUserOverrideableDkim.t.sol
+DKIMRegistryUpgrade.t.sol
 
 - testAuthEmail()
 
@@ -348,25 +326,47 @@ EmailAuth.t.sol
 - testExpectRevertAuthEmailInvalidSubject()
 - testExpectRevertAuthEmailInvalidTimestamp()
 
-DeployCommons.t.sol
+EmailAuthWithUserOverrideableDkim.t.sol
 
-- test_run()
-
-DeployRecoveryController.t.sol
-
-- test_run()
-
-DeploySimpleWallet.t.sol
-
-- test_run()
-- test_run_no_dkim()
-- test_run_no_email_auth()
-- test_run_no_simple_wallet()
-- test_run_no_verifier()
+- testAuthEmail()
 
 # For integration testing
 
-forge test --match-test 'testIntegration_Account_Recovery'  --zksync --chain 300 -vvv --ffi
+To pass the instegration testing, you should use era-test-node. 
+See the following URL and install it.
+https://github.com/matter-labs/era-test-node
+
+Run the era-test-node
+
+```
+era_test_node fork https://sepolia.era.zksync.dev
+```
+
+You remove .zksolc-libraries-cache directory, and run the following command.
+
+```
+forge build --zksync --zk-detect-missing-libraries
+```
+
+As you saw before, you need to deploy missing libraries.
+You can deploy them by the following command for example.
+
+```
+Missing libraries detected: src/libraries/SubjectUtils.sol:SubjectUtils, src/libraries/DecimalUtils.sol:DecimalUtils
+
+Run the following command in order to deploy each missing library:
+
+forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync
+forge create src/libraries/SubjectUtils.sol:SubjectUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
+```
+
+Set the libraries in foundry.toml using the above deployed address.
+
+And then, run the integration testing.
+
+```
+forge test --match-contract "IntegrationZkSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+```
 
 # For zkSync deployment (For test net)
 
@@ -375,6 +375,6 @@ Second just run the following commands with `--zksync`
 
 ```
 source .env
-forge script script/DeployCommons.s.sol:Deploy --zksync --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv
+forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
 ```
 

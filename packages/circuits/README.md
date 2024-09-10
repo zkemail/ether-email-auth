@@ -61,3 +61,5 @@ The `email_auth.circom` makes constraints and computes the public output as foll
 13. If `is_code_exist` is 1, assert that `embedded_code` is equal to `account_code`.
 14. Let `account_salt` be `PoseidonHash(from_addr|0..0, account_code, 0)`.
 15. Let `masked_subject` be a string that removes `code_str`, the prefix of the invitation code, and one email address from `subject`, if they appear in `subject`.
+
+Note that the email address in the subject is assumbed not to overlap with the invitation code.
