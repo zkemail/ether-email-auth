@@ -147,7 +147,7 @@ contract IntegrationZKSyncTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x7c5E4b26643682AF77A196781A851c9Fe769472d
+            0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -182,7 +182,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
+            .maskedCommand = "Accept guardian request for 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -263,7 +263,7 @@ contract IntegrationZKSyncTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedCommand = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
