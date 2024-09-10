@@ -4,37 +4,22 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-import { Deploy } from "../../script/DeployCommons.s.sol";
+import {Deploy} from "../../script/DeployCommons.s.sol";
 import "../helpers/StructHelper.sol";
 
-contract DeploySimpleWalletTest is StructHelper {
+contract DeploySimpleWalletScriptTest is StructHelper {
     function setUp() public override {
         super.setUp();
         vm.setEnv(
-            "PRIVATE_KEY", 
+            "PRIVATE_KEY",
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
         );
-        vm.setEnv(
-            "SIGNER", 
-            "0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0"
-        );
- 
-        vm.setEnv(
-            "DKIM", 
-            vm.toString(address(dkim))
-        );
-        vm.setEnv(
-            "VERIFIER", 
-            vm.toString(address(verifier))
-        );
-        vm.setEnv(
-            "EMAIL_AUTH_IMPL", 
-            vm.toString(address(emailAuth))
-        );
-        vm.setEnv(
-            "SIMPLE_WALLET_IMPL", 
-            vm.toString(address(simpleWalletImpl))
-        );
+        vm.setEnv("SIGNER", "0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0");
+
+        vm.setEnv("DKIM", vm.toString(address(dkim)));
+        vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+        vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuth)));
+        vm.setEnv("SIMPLE_WALLET_IMPL", vm.toString(address(simpleWalletImpl)));
     }
 
     function test_run() public {

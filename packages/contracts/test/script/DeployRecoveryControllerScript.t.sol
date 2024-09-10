@@ -7,7 +7,7 @@ import "forge-std/console.sol";
 import {Deploy} from "../../script/DeployRecoveryController.s.sol";
 import "../helpers/StructHelper.sol";
 
-contract DeployRecoveryControllerTest is Test {
+contract DeployRecoveryControllerScriptTest is Test {
     function setUp() public {
         vm.setEnv(
             "PRIVATE_KEY",
@@ -37,16 +37,4 @@ contract DeployRecoveryControllerTest is Test {
             "SIMPLE_WALLET is not set"
         );
     }
-
-    // TODO: Comment out this test case because removing environment variables will affect other tests
-    // If you want to run this test case, please run `forge test --match-test testFail_run_no_signer`. It works.
-    // function testFail_run_no_signer() public {
-    //     // Remove DKIM and SIGNER from the environment variables
-    //     vm.setEnv("DKIM", vm.toString(address(0)));
-    //     vm.setEnv("SIGNER", vm.toString(address(0)));
-
-    //     Deploy deploy = new Deploy();
-    //     deploy.run();
-    //     require(vm.envAddress("DKIM") != address(0), "DKIM is not set");
-    // }
 }

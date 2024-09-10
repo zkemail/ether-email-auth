@@ -453,26 +453,28 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    //  function testExpectRevertAuthEmailInvalidSizeOfTheSkippedSubjectPrefix() public {
-    //     vm.startPrank(deployer);
-    //     _testInsertSubjectTemplate();
-    //     EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-    //     vm.stopPrank();
+    function testExpectRevertAuthEmailInvalidSizeOfTheSkippedCommandPrefix()
+        public
+    {
+        vm.startPrank(deployer);
+        _testInsertCommandTemplate();
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        vm.stopPrank();
 
-    //     assertEq(
-    //         emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
-    //         false
-    //     );
-    //     assertEq(emailAuth.lastTimestamp(), 0);
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            false
+        );
+        assertEq(emailAuth.lastTimestamp(), 0);
 
-    //     // Set skipped subject prefix length to 605, it should be less than 605.
-    //     emailAuthMsg.skipedSubjectPrefix = 605;
+        // Set skipped command prefix length to 605, it should be less than 605.
+        emailAuthMsg.skippedCommandPrefix = 605;
 
-    //     vm.startPrank(deployer);
-    //     vm.expectRevert(bytes("invalid size of the skipped subject prefix"));
-    //     emailAuth.authEmail(emailAuthMsg);
-    //     vm.stopPrank();
-    // }
+        vm.startPrank(deployer);
+        vm.expectRevert(bytes("invalid size of the skipped command prefix"));
+        emailAuth.authEmail(emailAuthMsg);
+        vm.stopPrank();
+    }
 
     function testSetTimestampCheckEnabled() public {
         vm.startPrank(deployer);

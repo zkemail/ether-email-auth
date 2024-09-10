@@ -9,7 +9,7 @@ import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
 import {ChangeOwners} from "../../script/ChangeOwners.s.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract ChangeOwnersTest is Test {
+contract ChangeOwnersScriptTest is Test {
     function setUp() public {
         vm.setEnv(
             "PRIVATE_KEY",

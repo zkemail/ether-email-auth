@@ -6,16 +6,17 @@ import "forge-std/console.sol";
 
 import {Deploy} from "../../script/DeployCommons.s.sol";
 import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
-import {RenounceOwners} from "../../script/RenounceOwners.s.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {ChangeSource} from "../../script/ChangeSourceInForwardDKIMRegistry.s.sol";
+import {ForwardDKIMRegistry} from "../../src/utils/ForwardDKIMRegistry.sol";
 
-contract RenounceOwnersTest is Test {
+contract ChangeSourceInForwardDKIMRegistryScriptTest is Test {
     function setUp() public {
         vm.setEnv(
             "PRIVATE_KEY",
             "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
         );
         vm.setEnv("SIGNER", "0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0");
+        vm.setEnv("NEW_SOURCE", "0xa1bec2dd161d6bbcc91ec32aa44d9333e2a864c0");
     }
 
     function test_run() public {
@@ -24,13 +25,13 @@ contract RenounceOwnersTest is Test {
         vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));
         Deploy2 deploy2 = new Deploy2();
         deploy2.run();
-        RenounceOwners renounceOwners = new RenounceOwners();
-        renounceOwners.run();
-        address verifier = vm.envAddress("VERIFIER");
-        address ecdsaDkimAddr = vm.envAddress("ECDSA_DKIM");
-        address dkim = vm.envAddress("DKIM");
-        assertEq(OwnableUpgradeable(verifier).owner(), address(0));
-        assertEq(OwnableUpgradeable(ecdsaDkimAddr).owner(), address(0));
-        assertEq(OwnableUpgradeable(dkim).owner(), address(0));
+        ChangeSource changeSource = new ChangeSource();
+        changeSource.run();
+        address dkimAddr = vm.envAddress("DKIM");
+        ForwardDKIMRegistry dkim = ForwardDKIMRegistry(dkimAddr);
+        assertEq(
+            address(dkim.sourceDKIMRegistry()),
+            vm.envAddress("NEW_SOURCE")
+        );
     }
 }

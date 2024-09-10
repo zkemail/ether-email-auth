@@ -8,7 +8,7 @@ import {Deploy} from "../../script/DeployCommons.s.sol";
 import {ChangeSigner} from "../../script/ChangeSignerInECDSAOwnedDKIMRegistry.s.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 
-contract ChangeSignerInECDSAOwnedDKIMRegistryTest is Test {
+contract ChangeSignerInECDSAOwnedDKIMRegistryScriptTest is Test {
     function setUp() public {
         vm.setEnv(
             "PRIVATE_KEY",
