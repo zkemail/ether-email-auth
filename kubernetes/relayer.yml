@@ -130,13 +130,6 @@ spec:
           envFrom:
             - secretRef:
                 name: relayer-imap-secret
-        - name: safe-tracker-container
-          image: bisht13/safe-tracker-0:latest
-          envFrom:
-            - configMapRef:
-                name: safe-tracker-config
-            - secretRef:
-                name: safe-tracker-secret
       volumes:
         - name: pem-volume
           secret:
