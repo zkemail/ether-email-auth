@@ -10,6 +10,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 
 contract ChangeOwners is Script {
     function run() external {
+
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         if (deployerPrivateKey == 0) {
             console.log("PRIVATE_KEY env var not set");
