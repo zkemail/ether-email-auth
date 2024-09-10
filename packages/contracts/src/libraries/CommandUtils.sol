@@ -15,6 +15,21 @@ library CommandUtils {
     string public constant DECIMALS_MATCHER = "{decimals}";
     string public constant ETH_ADDR_MATCHER = "{ethAddr}";
 
+    function addressToHexString(
+        address addr,
+        uint stringCase
+    ) internal pure returns (string memory) {
+        if (stringCase == 0) {
+            return addressToChecksumHexString(addr);
+        } else if (stringCase == 1) {
+            return Strings.toHexString(addr);
+        } else if (stringCase == 2) {
+            return lowerToUpperCase(Strings.toHexString(addr));
+        } else {
+            revert("invalid stringCase");
+        }
+    }
+
     function addressToChecksumHexString(
         address addr
     ) internal pure returns (string memory) {
@@ -58,6 +73,18 @@ library CommandUtils {
         return string(result);
     }
 
+    function lowerToUpperCase(
+        string memory hexStr
+    ) internal pure returns (string memory) {
+        bytes memory bytesStr = bytes(hexStr);
+        for (uint i = 0; i < bytesStr.length; i++) {
+            if (bytesStr[i] >= 0x61 && bytesStr[i] <= 0x66) {
+                bytesStr[i] = bytes1(uint8(bytesStr[i]) - 32);
+            }
+        }
+        return string(bytesStr);
+    }
+
     /// @notice Convert bytes to hex string without 0x prefix
     /// @param data bytes to convert
     function bytesToHexString(
@@ -78,9 +105,11 @@ library CommandUtils {
     /// @notice Calculate the expected command.
     /// @param commandParams Params to be used in the command
     /// @param template Template to be used for the command
+    /// @param stringCase Case of the ethereum address string to be used for the command - 0: checksum, 1: lowercase, 2: uppercase
     function computeExpectedCommand(
         bytes[] memory commandParams,
-        string[] memory template
+        string[] memory template,
+        uint stringCase
     ) public pure returns (string memory expectedCommand) {
         // Construct an expectedCommand from template and the values of commandParams.
         uint8 nextParamIndex = 0;
@@ -117,7 +146,7 @@ library CommandUtils {
                     commandParams[nextParamIndex],
                     (address)
                 );
-                stringParam = addressToChecksumHexString(param);
+                stringParam = addressToHexString(param, stringCase);
             } else {
                 isParamExist = false;
                 stringParam = template[i];

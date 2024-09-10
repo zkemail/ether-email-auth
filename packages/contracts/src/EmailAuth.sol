@@ -219,23 +219,39 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
                 emailAuthMsg.proof.timestamp > lastTimestamp,
             "invalid timestamp"
         );
+        require(
+            bytes(emailAuthMsg.proof.maskedCommand).length <=
+                verifier.COMMAND_BYTES(),
+            "invalid masked command length"
+        );
 
         // Construct an expectedCommand from template and the values of emailAuthMsg.commandParams.
-        string memory expectedCommand = CommandUtils.computeExpectedCommand(
-            emailAuthMsg.commandParams,
-            template
-        );
-        require(
-            Strings.equal(expectedCommand, emailAuthMsg.proof.maskedCommand),
-            "invalid command"
-        );
+        string memory expectedCommand = "";
+        for (uint stringCase = 0; stringCase < 3; stringCase++) {
+            expectedCommand = CommandUtils.computeExpectedCommand(
+                emailAuthMsg.commandParams,
+                template,
+                stringCase
+            );
+            if (
+                Strings.equal(expectedCommand, emailAuthMsg.proof.maskedCommand)
+            ) {
+                break;
+            }
+            if (stringCase == 2) {
+                revert("invalid command");
+            }
+        }
+
         require(
             verifier.verifyEmailProof(emailAuthMsg.proof) == true,
             "invalid email proof"
         );
 
         usedNullifiers[emailAuthMsg.proof.emailNullifier] = true;
-        lastTimestamp = emailAuthMsg.proof.timestamp;
+        if (timestampCheckEnabled && emailAuthMsg.proof.timestamp != 0) {
+            lastTimestamp = emailAuthMsg.proof.timestamp;
+        }
         emit EmailAuthed(
             emailAuthMsg.proof.emailNullifier,
             emailAuthMsg.proof.accountSalt,
@@ -257,20 +273,4 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(
         address newImplementation
     ) internal override onlyOwner {}
-
-    function removePrefix(
-        string memory str,
-        uint numChars
-    ) private pure returns (string memory) {
-        require(numChars <= bytes(str).length, "Invalid number of characters");
-
-        bytes memory strBytes = bytes(str);
-        bytes memory result = new bytes(strBytes.length - numChars);
-
-        for (uint i = numChars; i < strBytes.length; i++) {
-            result[i - numChars] = strBytes[i];
-        }
-
-        return string(result);
-    }
 }

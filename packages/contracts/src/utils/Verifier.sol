@@ -21,8 +21,8 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
-    uint256 public constant SUBJECT_FIELDS = 20;
-    uint256 public constant SUBJECT_BYTES = 605;
+    uint256 public constant COMMAND_FIELDS = 20;
+    uint256 public constant COMMAND_BYTES = 605;
 
     constructor() {}
 
@@ -42,7 +42,7 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
             uint256[2] memory pC
         ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
 
-        uint256[DOMAIN_FIELDS + SUBJECT_FIELDS + 5] memory pubSignals;
+        uint256[DOMAIN_FIELDS + COMMAND_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
         stringFields = _packBytes2Fields(bytes(proof.domainName), DOMAIN_BYTES);
         for (uint256 i = 0; i < DOMAIN_FIELDS; i++) {
@@ -53,15 +53,15 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
         pubSignals[DOMAIN_FIELDS + 2] = uint256(proof.timestamp);
         stringFields = _packBytes2Fields(
             bytes(proof.maskedCommand),
-            SUBJECT_BYTES
+            COMMAND_BYTES
         );
-        for (uint256 i = 0; i < SUBJECT_FIELDS; i++) {
+        for (uint256 i = 0; i < COMMAND_FIELDS; i++) {
             pubSignals[DOMAIN_FIELDS + 3 + i] = stringFields[i];
         }
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(
+        pubSignals[DOMAIN_FIELDS + 3 + COMMAND_FIELDS] = uint256(
             proof.accountSalt
         );
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist
+        pubSignals[DOMAIN_FIELDS + 3 + COMMAND_FIELDS + 1] = proof.isCodeExist
             ? 1
             : 0;
 

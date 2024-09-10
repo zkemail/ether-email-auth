@@ -83,12 +83,12 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 2
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
         );
         const recipientEmailAddr = "alice@gmail.com";
@@ -98,7 +98,7 @@ describe("Email Auth", () => {
         );
         expect(BigInt(emailAddrCommit)).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 3
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 3
             ]
         );
     });
@@ -167,12 +167,12 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 2
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
         );
         const recipientEmailAddr = "bob@example.com";
@@ -182,7 +182,7 @@ describe("Email Auth", () => {
         );
         expect(BigInt(emailAddrCommit)).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 3
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 3
             ]
         );
     });
@@ -251,12 +251,12 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 2
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
         );
         const recipientEmailAddr = "bob@example.com";
@@ -266,16 +266,13 @@ describe("Email Auth", () => {
         );
         expect(BigInt(emailAddrCommit)).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 3
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 3
             ]
         );
     });
 
     it("Verify a sent email whose subject has an invitation code", async () => {
-        const emailFilePath = path.join(
-            __dirname,
-            "./emails/email_auth_test5.eml"
-        );
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test5.eml");
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
         console.log(parsedEmail.canonicalizedHeader);
@@ -322,8 +319,7 @@ describe("Email Auth", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 0.12 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
-        const maskedSubjectFields =
-            relayerUtils.bytes2Fields(paddedMaskedSubject);
+        const maskedSubjectFields = relayerUtils.bytes2Fields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
             expect(BigInt(maskedSubjectFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
@@ -335,14 +331,10 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
         expect(1n).toEqual(
-            witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
-            ]
+            witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 1]
         );
         expect(1n).toEqual(
-            witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 2
-            ]
+            witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 2]
         );
         const recipientEmailAddr = "alice@gmail.com";
         const emailAddrCommit = relayerUtils.emailAddrCommitWithSignature(
@@ -350,9 +342,36 @@ describe("Email Auth", () => {
             parsedEmail.signature
         );
         expect(BigInt(emailAddrCommit)).toEqual(
-            witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 3
-            ]
+            witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 3]
         );
+    });
+
+    it("Verify a sent email with a too large subject_email_addr_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...emailAuthInput
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        const recipientInput = await genRecipientInput(emailFilePath);
+        const circuitInputs = {
+            ...emailAuthInput,
+            subject_email_addr_idx: recipientInput.subject_email_addr_idx,
+        };
+        circuitInputs.subject_email_addr_idx = 605;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
     });
 });

@@ -591,7 +591,7 @@ contract EmailAccountRecoveryTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertHandleRecoveryInvalidSubjectParams() public {
+    function testExpectRevertHandleRecoveryInvalidCommandParams() public {
         testHandleAcceptance();
 
         assertEq(recoveryController.isRecovering(address(simpleWallet)), false);

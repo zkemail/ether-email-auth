@@ -1802,7 +1802,7 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@^6.1.5":
+"@zk-email/circuits@=6.1.5":
   version "6.1.5"
   resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.1.5.tgz#53462456638edf97bbc206ead01c302ba11e7850"
   integrity sha512-Hx+R7ARIZ1JLJ6Ba3qqkWdGweOS63P2VyldVgZ5z0KZ5PvgAsM1ka8AUWzq1RFZCmgbluY8yiHLzWREbQm9bOQ==
@@ -1810,7 +1810,7 @@
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.1.2":
+"@zk-email/contracts@^6.1.5":
   version "6.1.5"
   resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.5.tgz#979c2aaa30cdcdb7433ff37d74c396df0cb60107"
   integrity sha512-1RW3dpYGBQXjmIlcTGMtYsux7FQoR1MezA0D0pssrNEaCO2CuQd6oAxJLpbCxFQWPbujLKn8PiEVcjP+eiGvVw==
@@ -1818,16 +1818,16 @@
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
 
-"@zk-email/relayer-utils@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.3.6.tgz#55d0109b57b7f19e2441c90a55ed8096dfdaefe4"
-  integrity sha512-j3xjcKmG2rMdwvg462s6QQ+CRr29mOT6uYq57rotg64c4UbvPWvhcuuJ7C7qc2wUl4bhShuBz1NoE8e2jkwHOw==
+"@zk-email/relayer-utils@=0.3.7":
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.3.7.tgz#a3cdcc02e3607ac2fe9a9c1d90077df702011a02"
+  integrity sha512-+/SYjuwO22kKp9n0syoOeRoifx7RDzZ8ycr1mAAIpEKgnySibTfGJpcFEkBTpv5eIK/a7vEev8KE6uG1Sj49EQ==
   dependencies:
     "@mapbox/node-pre-gyp" "^1.0"
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@^2.1.0":
+"@zk-email/zk-regex-circom@=2.1.1", "@zk-email/zk-regex-circom@^2.1.0":
   version "2.1.1"
   resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.1.1.tgz#e4f41fd873905d27dd05a9f07613717be4b2e5d1"
   integrity sha512-tuU2Kb08fwYkAPDemL8RRvLTEKNGyUt2odYr5awkVKGCZGCV1hxIy/wke6+2fIOR8Lu82MnXVtdBk+G3gRZLbg==
@@ -2241,9 +2241,9 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001646:
-  version "1.0.30001658"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001658.tgz#b5f7be8ac748a049ab06aa1cf7a1408d83f074ec"
-  integrity sha512-N2YVqWbJELVdrnsW5p+apoQyYt51aBMSsBZki1XZEfeBCexcM/sf4xiAHcXQBkuOwJBXtWF7aW1sYX6tKebPHw==
+  version "1.0.30001659"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001659.tgz#f370c311ffbc19c4965d8ec0064a3625c8aaa7af"
+  integrity sha512-Qxxyfv3RdHAfJcXelgf0hU4DFUVXBGTjqrBUZLUh8AtlGnsDo+CnncYtTd95+ZKfnANUOzxyIQCuU/UeBZBYoA==
 
 cargo-cp-artifact@^0.1:
   version "0.1.9"
@@ -2371,9 +2371,9 @@ circomlibjs@^0.1.2:
     ffjavascript "^0.2.45"
 
 cjs-module-lexer@^1.0.0:
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.4.0.tgz#677de7ed7efff67cc40c9bf1897fea79d41b5215"
-  integrity sha512-N1NGmowPlGBLsOZLPvm48StN04V4YvQRL0i6b7ctrVY3epjP/ct7hFLOItz6pDIvRjwpfPxi52a2UWV2ziir8g==
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/cjs-module-lexer/-/cjs-module-lexer-1.4.1.tgz#707413784dbb3a72aa11c2f2b042a0bef4004170"
+  integrity sha512-cuSVIHi9/9E/+821Qjdvngor+xpnlwnuwIyZOaLmHBVdXL+gP+I6QQB9VkO7RI77YIcTV+S1W9AreJ5eN63JBA==
 
 cliui@^7.0.2:
   version "7.0.4"
@@ -2611,9 +2611,9 @@ ejs@^3.1.10, ejs@^3.1.6:
     jake "^10.8.5"
 
 electron-to-chromium@^1.5.4:
-  version "1.5.16"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.16.tgz#125b6777774dbd4287aa86ab181cc880f4a5fb47"
-  integrity sha512-2gQpi2WYobXmz2q23FrOBYTLcI1O/P4heW3eqX+ldmPVDQELRqhiebV380EhlGG12NtnX1qbK/FHpN0ba+7bLA==
+  version "1.5.18"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.18.tgz#5fe62b9d21efbcfa26571066502d94f3ed97e495"
+  integrity sha512-1OfuVACu+zKlmjsNdcJuVQuVE61sZOLbNM4JAQ1Rvh6EOj0/EUKhMJjRH73InPlXSh8HIJk1cVZ8pyOV/FMdUQ==
 
 elliptic@6.5.4:
   version "6.5.4"
@@ -4566,7 +4566,7 @@ snarkjs@0.5.0:
     logplease "^1.2.15"
     r1csfile "0.0.41"
 
-snarkjs@^0.7.0:
+snarkjs@^0.7.0, snarkjs@^0.7.4:
   version "0.7.4"
   resolved "https://registry.yarnpkg.com/snarkjs/-/snarkjs-0.7.4.tgz#b9ad5813f055ab84d33f1831a6f1f34a71b6cd46"
   integrity sha512-x4cOCR4YXSyBlLtfnUUwfbZrw8wFd/Y0lk83eexJzKwZB8ELdpH+10ts8YtDsm2/a3WK7c7p514bbE8NpqxW8w==

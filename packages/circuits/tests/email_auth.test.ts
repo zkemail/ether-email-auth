@@ -80,7 +80,7 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
@@ -144,7 +144,7 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
@@ -208,7 +208,7 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
@@ -272,7 +272,7 @@ describe("Email Auth", () => {
         );
         expect(0n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
@@ -337,7 +337,7 @@ describe("Email Auth", () => {
         );
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
@@ -402,35 +402,119 @@ describe("Email Auth", () => {
         );
         expect(1n).toEqual(
             witness[
-                1 + domainFields.length + 3 + maskedSubjectFields.length + 1
+            1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
     });
 
     it("Verify a sent email whose subject tries to forge the From field", async () => {
-        const emailFilePath = path.join(
-            __dirname,
-            "./emails/email_auth_test7.eml"
-        );
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test7.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const {
-            body_hash_idx,
-            precomputed_sha,
-            padded_body,
-            padded_body_len,
-            command_idx,
-            padded_cleaned_body,
-            ...circuitInputsRelevant
-        } = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputsRelevant.from_addr_idx = circuitInputsRelevant.subject_idx;
+        circuitInputs.from_addr_idx = circuitInputs.subject_idx;
         async function failFn() {
-            const witness = await circuit.calculateWitness(
-                circuitInputsRelevant
-            );
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+
+    it("Verify a sent email with a too large from_addr_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.from_addr_idx = 1024;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email with a too large domain_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.domain_idx = 256;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email with a too large subject_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.subject_idx = 1024;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email with a too large timestamp_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.timestamp_idx = 1024;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email with a too large code_idx", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.code_idx = 1024;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email with a too large code_idx 2", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.code_idx = 1024 * 4;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
