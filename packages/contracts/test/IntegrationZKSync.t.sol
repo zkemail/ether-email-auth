@@ -190,7 +190,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
