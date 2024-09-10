@@ -15,7 +15,7 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
     // If you failed some test cases, check the bytecodeHash by yourself
     // see, test/ComputeCreate2Address.t.sol
-    bytes32 public constant proxyBytecodeHash = 0x010000835b32e9a15f4b6353ad649fa33f4fbe4f5139126c07205e738b9f758e;
+    bytes32 public constant proxyBytecodeHash = 0x010000834ad8a271023fa874e71183d1576cc95a540c8dc0f3c980064b3008b1;
     /// @notice Returns the address of the zkSyncfactory contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
     /// @return address The address of the zkSync factory contract.
