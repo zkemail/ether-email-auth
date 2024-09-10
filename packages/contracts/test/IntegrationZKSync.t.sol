@@ -251,7 +251,7 @@ contract IntegrationZKSyncTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
