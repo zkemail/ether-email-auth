@@ -269,6 +269,8 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     signal from_regex_out, from_regex_reveal[max_header_bytes];
     (from_regex_out, from_regex_reveal) <== FromAddrRegex(max_header_bytes)(padded_header);
     from_regex_out === 1;
+    signal is_valid_from_addr_idx <== LessThan(log2Ceil(max_header_bytes))([from_addr_idx, max_header_bytes]);
+    is_valid_from_addr_idx === 1;
     signal from_email_addr[email_max_bytes];
     from_email_addr <== SelectRegexReveal(max_header_bytes, email_max_bytes)(from_regex_reveal, from_addr_idx);
 
@@ -276,6 +278,8 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     signal domain_regex_out, domain_regex_reveal[email_max_bytes];
     (domain_regex_out, domain_regex_reveal) <== EmailDomainRegex(email_max_bytes)(from_email_addr);
     domain_regex_out === 1;
+    signal is_valid_domain_idx <== LessThan(log2Ceil(email_max_bytes))([domain_idx, email_max_bytes]);
+    is_valid_domain_idx === 1;
     signal domain_name_bytes[domain_len];
     domain_name_bytes <== SelectRegexReveal(email_max_bytes, domain_len)(domain_regex_reveal, domain_idx);
     domain_name <== Bytes2Ints(domain_len)(domain_name_bytes);
@@ -289,6 +293,8 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     signal timestamp_regex_out, timestamp_regex_reveal[max_header_bytes];
     (timestamp_regex_out, timestamp_regex_reveal) <== TimestampRegex(max_header_bytes)(padded_header);
     signal timestamp_str[timestamp_len];
+    signal is_valid_timestamp_idx <== LessThan(log2Ceil(max_header_bytes))([timestamp_idx, max_header_bytes]);
+    is_valid_timestamp_idx === 1;
     timestamp_str <== SelectRegexReveal(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
     signal raw_timestamp <== Digit2Int(timestamp_len)(timestamp_str);
     timestamp <== timestamp_regex_out * raw_timestamp;
@@ -301,19 +307,21 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
         (command_regex_out, command_regex_reveal) <== CommandRegex(max_body_bytes)(padded_cleaned_body);
     }
     command_regex_out === 1;
+    signal is_valid_command_idx <== LessThan(log2Ceil(max_command_bytes))([command_idx, max_command_bytes]);
+    is_valid_command_idx === 1;
     signal command_all[max_command_bytes];
     command_all <== SelectRegexReveal(max_body_bytes, max_command_bytes)(command_regex_reveal, command_idx);
     
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_command_bytes];
     (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_command_bytes)(command_all);
-    is_code_exist <== IsZero()(prefixed_code_regex_out-1);
+    is_code_exist <== prefixed_code_regex_out;
     signal removed_code[max_command_bytes];
     for(var i = 0; i < max_command_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
     }
     signal command_email_addr_regex_out, command_email_addr_regex_reveal[max_command_bytes];
     (command_email_addr_regex_out, command_email_addr_regex_reveal) <== EmailAddrRegex(max_command_bytes)(command_all);
-    signal is_command_email_addr_exist <== IsZero()(command_email_addr_regex_out-1);
+    signal is_command_email_addr_exist <== command_email_addr_regex_out;
     signal removed_command_email_addr[max_command_bytes];
     for(var i = 0; i < max_command_bytes; i++) {
         removed_command_email_addr[i] <== is_command_email_addr_exist * command_email_addr_regex_reveal[i];
@@ -331,8 +339,7 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
     } else {
         (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_body_bytes)(padded_cleaned_body);
     }
-    signal code_consistency <== IsZero()(is_code_exist * (1 - code_regex_out));
-    code_consistency === 1;
+    is_code_exist * (1 - code_regex_out) === 0;
     signal replaced_code_regex_reveal[max_body_bytes];
     for(var i=0; i<max_body_bytes; i++) {
         if(i==0) {
@@ -341,6 +348,8 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
             replaced_code_regex_reveal[i] <== code_regex_reveal[i] * is_code_exist;
         }
     }
+    signal is_valid_code_idx <== LessThan(log2Ceil(max_body_bytes))([code_idx, max_body_bytes]);
+    is_valid_code_idx === 1;
     signal shifted_code_hex[code_len] <== SelectRegexReveal(max_body_bytes, code_len)(replaced_code_regex_reveal, code_idx);
     signal invitation_code_hex[code_len];
     for(var i=0; i<code_len; i++) {
@@ -375,6 +384,8 @@ template EmailAuthWithBodyParsing(n, k, max_header_bytes, max_body_bytes, max_co
                 replaced_email_addr_regex_reveal[i] <== command_email_addr_regex_reveal[i] * has_email_recipient;
             }
         }
+        signal is_valid_command_email_addr_idx <== LessThan(log2Ceil(max_command_bytes))([command_email_addr_idx, max_command_bytes]);
+        is_valid_command_email_addr_idx === 1;
         signal shifted_email_addr[email_max_bytes];
         shifted_email_addr <== SelectRegexReveal(max_command_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, command_email_addr_idx);
         signal recipient_email_addr[email_max_bytes];
