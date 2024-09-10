@@ -268,14 +268,14 @@ You can deploy them by the following command for example.
 
 ```
 $ forge build --zksync --zk-detect-missing-libraries
-Missing libraries detected: src/libraries/SubjectUtils.sol:SubjectUtils, src/libraries/DecimalUtils.sol:DecimalUtils
+Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
 ```
 
 Run the following command in order to deploy each missing library:
 
 ```
 forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
-forge create src/libraries/SubjectUtils.sol:SubjectUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
+forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
 ```
 
 After that, you can see the following line in foundry.toml.
@@ -284,7 +284,7 @@ Also, this line is needed only for foundry-zksync, if you use foundry, please re
 ```
 libraries = [
     "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
-    "{PROJECT_DIR}/packages/contracts/src/libraries/SubjectUtils.sol:SubjectUtils:{DEPLOYED_ADDRESS}"]
+    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"]
 ```
 
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
@@ -352,12 +352,12 @@ As you saw before, you need to deploy missing libraries.
 You can deploy them by the following command for example.
 
 ```
-Missing libraries detected: src/libraries/SubjectUtils.sol:SubjectUtils, src/libraries/DecimalUtils.sol:DecimalUtils
+Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
 
 Run the following command in order to deploy each missing library:
 
 forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync
-forge create src/libraries/SubjectUtils.sol:SubjectUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
+forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
 ```
 
 Set the libraries in foundry.toml using the above deployed address.
@@ -365,7 +365,7 @@ Set the libraries in foundry.toml using the above deployed address.
 And then, run the integration testing.
 
 ```
-forge test --match-contract "IntegrationZkSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+forge test --match-contract "IntegrationZKSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
 ```
 
 # For zkSync deployment (For test net)
