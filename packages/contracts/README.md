@@ -25,7 +25,7 @@ $ yarn test
 Run integration tests
 
 Before running integration tests, you need to make a `packages/contracts/test/build_integration` directory, download the zip file from the following link, and place its unzipped directory under that directory.
-https://drive.google.com/file/d/1Ybtxe1TCVUtHzCPUs9cuZAGbM-MVwigE/view?usp=drive_link
+https://drive.google.com/file/d/1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH/view?usp=sharing
 
 Then, move `email_auth.zkey` and `email_auth.wasm` in the unzipped directory `params` to `build_integration`. 
 
