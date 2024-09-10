@@ -335,34 +335,6 @@ EmailAuthWithUserOverrideableDkim.t.sol
 
 - testAuthEmail()
 
-ChangeOwners.t.sol
-
-- test_run()
-
-ChangeSignerInECDSAOwnedDKIMRegistry.t.sol
-
-- test_run()
-
-DeployCommons.t.sol
-
-- test_run()
-
-DeployRecoveryController.t.sol
-
-- test_run()
-
-DeploySimpleWallet.t.sol
-
-- test_run()
-- test_run_no_dkim()
-- test_run_no_email_auth()
-- test_run_no_simple_wallet()
-- test_run_no_verifier()
-
-RenounceOwners.t.sol
-
-- test_run()
-
 # For integration testing
 
 To pass the instegration testing, you should use era-test-node. 
@@ -398,7 +370,7 @@ Set the libraries in foundry.toml using the above deployed address.
 And then, run the integration testing.
 
 ```
-forge test --match-test 'testIntegration_Account_Recovery' --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+forge test --match-test 'testIntegration_Account_Recovery_ZkSync' --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
 ```
 
 # For zkSync deployment (For test net)

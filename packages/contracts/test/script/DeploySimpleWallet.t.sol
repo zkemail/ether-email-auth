@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import { Deploy } from "../../script/DeployCommons.s.sol";
-import "../helpers/StructHelper.sol";
+import { StructHelper } from "../helpers/StructHelper.sol";
 
 contract DeploySimpleWalletTest is StructHelper {
     function setUp() public override {
@@ -38,29 +38,39 @@ contract DeploySimpleWalletTest is StructHelper {
     }
 
     function test_run() public {
+        skipIfZkSync();
+
         Deploy deploy = new Deploy();
         deploy.run();
     }
 
     function test_run_no_dkim() public {
+        skipIfZkSync();
+
         vm.setEnv("DKIM", vm.toString(address(0)));
         Deploy deploy = new Deploy();
         deploy.run();
     }
 
     function test_run_no_verifier() public {
+        skipIfZkSync();
+
         vm.setEnv("VERIFIER", vm.toString(address(0)));
         Deploy deploy = new Deploy();
         deploy.run();
     }
 
     function test_run_no_email_auth() public {
+        skipIfZkSync();
+
         vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(0)));
         Deploy deploy = new Deploy();
         deploy.run();
     }
 
     function test_run_no_simple_wallet() public {
+        skipIfZkSync();
+
         vm.setEnv("SIMPLE_WALLET_IMPL", vm.toString(address(0)));
         Deploy deploy = new Deploy();
         deploy.run();

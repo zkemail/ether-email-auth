@@ -11,7 +11,7 @@ import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
-import "./helpers/RecoveryController.sol";
+import "./helpers/RecoveryControllerZkSync.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
 
@@ -23,7 +23,7 @@ contract IntegrationTest is Test {
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
 
-    RecoveryController recoveryController;
+    RecoveryControllerZkSync recoveryControllerZkSync;
     SimpleWallet simpleWallet;
 
     address deployer = vm.addr(1);
@@ -39,8 +39,8 @@ contract IntegrationTest is Test {
     uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
 
     function setUp() public {
-        vm.createSelectFork("https://mainnet.base.org");
-
+        vm.createSelectFork("http://127.0.0.1:8011");
+    
         vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
@@ -94,21 +94,22 @@ contract IntegrationTest is Test {
         console.logAddress(address(factoryImpl));
 
         // Create RecoveryController as EmailAccountRecovery implementation
-        RecoveryController recoveryControllerImpl = new RecoveryController();
-        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
-            address(recoveryControllerImpl),
+        RecoveryControllerZkSync recoveryControllerZkSyncImpl = new RecoveryControllerZkSync();
+        ERC1967Proxy recoveryControllerZkSyncProxy = new ERC1967Proxy(
+            address(recoveryControllerZkSyncImpl),
             abi.encodeCall(
-                recoveryControllerImpl.initialize,
+                recoveryControllerZkSyncImpl.initialize,
                 (
                     signer,
                     address(verifier),
                     address(dkim),
-                    address(emailAuthImpl)
+                    address(emailAuthImpl),
+                    address(factoryImpl)
                 )
             )
         );
-        recoveryController = RecoveryController(
-            payable(address(recoveryControllerProxy))
+        recoveryControllerZkSync = RecoveryControllerZkSync(
+            payable(address(recoveryControllerZkSyncProxy))
         );
 
         // Create SimpleWallet as EmailAccountRecovery implementation
@@ -117,7 +118,7 @@ contract IntegrationTest is Test {
             address(simpleWalletImpl),
             abi.encodeCall(
                 simpleWalletImpl.initialize,
-                (signer, address(recoveryController))
+                (signer, address(recoveryControllerZkSync))
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
@@ -129,7 +130,7 @@ contract IntegrationTest is Test {
         vm.stopPrank();
     }
 
-    function testIntegration_Account_Recovery() public {
+    function testIntegration_Account_Recovery_ZkSync() public {
         console.log("testIntegration_Account_Recovery");
 
         bytes32 accountCode = 0x1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54;
@@ -141,7 +142,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xeb8E21A363Dce22ff6057dEEF7c074062037F571
+            0x7c5E4b26643682AF77A196781A851c9Fe769472d
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -176,7 +177,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0xeb8E21A363Dce22ff6057dEEF7c074062037F571";
+            .maskedSubject = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -198,14 +199,14 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call Request guardian -> GuardianStatus.REQUESTED
-        guardian = recoveryController.computeProxyAddress(
+        guardian = recoveryControllerZkSync.computeProxyAddress(
             address(simpleWallet),
             accountSalt
         );
-        recoveryController.requestGuardian(guardian);
+        recoveryControllerZkSync.requestGuardian(guardian);
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED,
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED,
             "GuardianStatus should be REQUESTED"
         );
 
@@ -213,17 +214,17 @@ contract IntegrationTest is Test {
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
         subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
-            templateId: recoveryController.computeAcceptanceTemplateId(
+            templateId: recoveryControllerZkSync.computeAcceptanceTemplateId(
                 templateIdx
             ),
             subjectParams: subjectParamsForAcceptance,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.ACCEPTED,
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.ACCEPTED,
             "GuardianStatus should be ACCEPTED"
         );
 
@@ -257,7 +258,7 @@ contract IntegrationTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedSubject = "Set the new signer of 0xeb8E21A363Dce22ff6057dEEF7c074062037F571 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -289,26 +290,26 @@ contract IntegrationTest is Test {
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
-            templateId: recoveryController.computeRecoveryTemplateId(
+            templateId: recoveryControllerZkSync.computeRecoveryTemplateId(
                 templateIdx
             ),
             subjectParams: subjectParamsForRecovery,
             skipedSubjectPrefix: 0,
             proof: emailProof
         });
-        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleRecovery(emailAuthMsg, templateIdx);
         require(
-            recoveryController.isRecovering(address(simpleWallet)),
+            recoveryControllerZkSync.isRecovering(address(simpleWallet)),
             "isRecovering should be set"
         );
         require(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ) == 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720,
             "newSignerCandidate should be set"
         );
         require(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)) >
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)) >
                 0,
             "timelock should be set"
         );
@@ -320,23 +321,23 @@ contract IntegrationTest is Test {
         // Call completeRecovery
         // Warp at 3 days + 10 seconds later
         vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
-        recoveryController.completeRecovery(
+        recoveryControllerZkSync.completeRecovery(
             address(simpleWallet),
             new bytes(0)
         );
         console.log("simpleWallet owner: ", simpleWallet.owner());
         require(
-            !recoveryController.isRecovering(address(simpleWallet)),
+            !recoveryControllerZkSync.isRecovering(address(simpleWallet)),
             "isRecovering should be reset"
         );
         require(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ) == address(0),
             "newSignerCandidate should be reset"
         );
         require(
-            recoveryController.currentTimelockOfAccount(
+            recoveryControllerZkSync.currentTimelockOfAccount(
                 address(simpleWallet)
             ) == 0,
             "timelock should be reset"

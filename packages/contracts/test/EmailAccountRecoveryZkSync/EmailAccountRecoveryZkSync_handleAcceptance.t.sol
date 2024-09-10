@@ -4,12 +4,12 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {RecoveryController} from "../helpers/RecoveryController.sol";
+import {RecoveryControllerZkSync} from "../helpers/RecoveryControllerZkSync.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
+contract EmailAccountRecoveryZkSyncTest_handleAcceptance is StructHelper {
     constructor() {}
 
     function setUp() public override {
@@ -17,40 +17,40 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
     }
 
     function requestGuardian() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         setUp();
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.NONE
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.NONE
         );
 
         vm.startPrank(deployer);
-        recoveryController.requestGuardian(guardian);
+        recoveryControllerZkSync.requestGuardian(guardian);
         vm.stopPrank();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
     }
 
     function testHandleAcceptance() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
         
         requestGuardian();
 
         console.log("guardian", guardian);
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -59,19 +59,19 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         // acceptGuardian is internal, we call handleAcceptance, which calls acceptGuardian internally.
         vm.startPrank(someRelayer);
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.ACCEPTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.ACCEPTED
         );
     }
 
@@ -81,19 +81,19 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
     function testExpectRevertHandleAcceptanceGuardianStatusMustBeRequested()
         public
     {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         requestGuardian();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -103,31 +103,31 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("guardian status must be REQUESTED"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleAcceptanceInvalidTemplateIndex() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         requestGuardian();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 1;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -136,31 +136,31 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid template index"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleAcceptanceInvalidSubjectParams() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         requestGuardian();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -170,33 +170,33 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid subject params"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 
     function testExpectRevertHandleAcceptanceInvalidWalletAddressInEmail()
         public
     {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         requestGuardian();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -205,14 +205,14 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
         vm.expectRevert(bytes("invalid account in email"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
 }

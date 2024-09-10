@@ -5,12 +5,13 @@ import "forge-std/Script.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../test/helpers/SimpleWallet.sol";
-import "../test/helpers/RecoveryController.sol";
+import "../test/helpers/RecoveryControllerZkSync.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 // import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
 
 contract Deploy is Script {
     using ECDSA for *;
@@ -19,7 +20,8 @@ contract Deploy is Script {
     Verifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWallet;
-    RecoveryController recoveryController;
+    RecoveryControllerZkSync recoveryControllerZkSync;
+    ZKSyncCreate2Factory factoryImpl;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
@@ -95,31 +97,43 @@ contract Deploy is Script {
             vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
-        // Create RecoveryController as EmailAccountRecovery implementation
+        // Deploy Factory
+        factoryImpl = ZKSyncCreate2Factory(vm.envOr("FACTORY", address(0)));
+        if (address(factoryImpl) == address(0)) {
+            factoryImpl = new ZKSyncCreate2Factory();
+            console.log(
+                "Factory implementation deployed at: %s",
+                address(factoryImpl)
+            );
+            vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
+        }
+
+        // Create RecoveryControllerZkSync as EmailAccountRecovery implementation
         {
-            RecoveryController recoveryControllerImpl = new RecoveryController();
-            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
-                address(recoveryControllerImpl),
+            RecoveryControllerZkSync recoveryControllerZkSyncImpl = new RecoveryControllerZkSync();
+            ERC1967Proxy recoveryControllerZkSyncProxy = new ERC1967Proxy(
+                address(recoveryControllerZkSyncImpl),
                 abi.encodeCall(
-                    recoveryControllerImpl.initialize,
+                    recoveryControllerZkSyncImpl.initialize,
                     (
                         signer,
                         address(verifier),
                         address(dkim),
-                        address(emailAuthImpl)
+                        address(emailAuthImpl),
+                        address(factoryImpl)
                     )
                 )
             );
-            recoveryController = RecoveryController(
-                payable(address(recoveryControllerProxy))
+            recoveryControllerZkSync = RecoveryControllerZkSync(
+                payable(address(recoveryControllerZkSyncProxy))
             );
             console.log(
-                "RecoveryController deployed at: %s",
-                address(recoveryController)
+                "RecoveryControllerZkSync deployed at: %s",
+                address(recoveryControllerZkSync)
             );
             vm.setEnv(
-                "RECOVERY_CONTROLLER",
-                vm.toString(address(recoveryController))
+                "RECOVERY_CONTROLLER_ZKSYNC",
+                vm.toString(address(recoveryControllerZkSync))
             );
         }
 
@@ -138,7 +152,7 @@ contract Deploy is Script {
                 address(simpleWalletImpl),
                 abi.encodeCall(
                     simpleWalletImpl.initialize,
-                    (signer, address(recoveryController))
+                    (signer, address(recoveryControllerZkSync))
                 )
             );
             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));

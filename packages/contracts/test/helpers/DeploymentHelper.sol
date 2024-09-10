@@ -5,14 +5,15 @@ import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import "../../src/EmailAuth.sol";
-import "../../src/utils/Verifier.sol";
-import "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
+import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
+import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
 // import "../../src/utils/ForwardDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
-import "./SimpleWallet.sol";
-import "./RecoveryController.sol";
+import {SimpleWallet} from "./SimpleWallet.sol";
+import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
+import {RecoveryControllerZkSync, EmailAccountRecoveryZkSync} from "./RecoveryControllerZkSync.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
@@ -24,6 +25,7 @@ contract DeploymentHelper is Test {
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
+    RecoveryControllerZkSync recoveryControllerZkSync;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
 
@@ -123,8 +125,7 @@ contract DeploymentHelper is Test {
                     signer,
                     address(verifier),
                     address(dkim),
-                    address(emailAuthImpl),
-                    address(factoryImpl)
+                    address(emailAuthImpl)
                 )
             )
         );
@@ -132,21 +133,72 @@ contract DeploymentHelper is Test {
             payable(address(recoveryControllerProxy))
         );
 
+        // Create RecoveryControllerZkSync as EmailAccountRecovery implementation
+        if (isZkSync()) {
+            RecoveryControllerZkSync recoveryControllerZkSyncImpl = new RecoveryControllerZkSync();
+            ERC1967Proxy recoveryControllerZkSyncProxy = new ERC1967Proxy(
+                address(recoveryControllerZkSyncImpl),
+                abi.encodeCall(
+                    recoveryControllerZkSyncImpl.initialize,
+                    (
+                        signer,
+                        address(verifier),
+                        address(dkim),
+                        address(emailAuthImpl),
+                        address(factoryImpl)
+                    )
+                )
+            );
+            recoveryControllerZkSync = RecoveryControllerZkSync(
+                payable(address(recoveryControllerZkSyncProxy))
+            );
+        }
         // Create SimpleWallet
         simpleWalletImpl = new SimpleWallet();
+        address recoveryControllerAddress = address(recoveryController);
+        if (isZkSync()) {
+            recoveryControllerAddress = address(recoveryControllerZkSync);
+        }
+
+
         ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
             address(simpleWalletImpl),
             abi.encodeCall(
                 simpleWalletImpl.initialize,
-                (signer, address(recoveryController))
+                (signer, recoveryControllerAddress)
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
         vm.deal(address(simpleWallet), 1 ether);
 
         // Set guardian address
-        guardian = EmailAccountRecovery(address(recoveryController))
-            .computeEmailAuthAddress(address(simpleWallet), accountSalt);
+        if (isZkSync()) {
+            guardian = EmailAccountRecoveryZkSync(address(recoveryControllerZkSync))
+                .computeProxyAddress(address(simpleWallet), accountSalt);
+        } else {
+            guardian = EmailAccountRecovery(address(recoveryController))
+                .computeProxyAddress(address(simpleWallet), accountSalt);
+        }
         vm.stopPrank();
+    }
+
+    function isZkSync() public view returns (bool) {
+        return block.chainid == 324 || block.chainid == 300;
+    }
+
+    function skipIfZkSync() public {
+        if (isZkSync()) {
+            vm.skip(true);
+        } else {
+            vm.skip(false);
+        }
+    }
+
+    function skipIfNotZkSync() public {
+        if (!isZkSync()) {
+            vm.skip(true);
+        } else {
+            vm.skip(false);
+        }
     }
 }

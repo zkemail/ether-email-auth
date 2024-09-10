@@ -9,7 +9,7 @@ import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryTest is StructHelper {
+contract EmailAccountRecoveryTest_withdraw is StructHelper {
     constructor() {}
 
     function setUp() public override {
@@ -17,6 +17,8 @@ contract EmailAccountRecoveryTest is StructHelper {
     }
 
     function testWithdraw() public {
+        skipIfZkSync();
+
         setUp();
 
         assertEq(address(simpleWallet).balance, 1 ether);
@@ -31,6 +33,8 @@ contract EmailAccountRecoveryTest is StructHelper {
     }
 
     function testExpectRevertWithdrawOnlyOwner() public {
+        skipIfZkSync();
+
         setUp();
 
         assertEq(address(simpleWallet).balance, 1 ether);
@@ -48,6 +52,8 @@ contract EmailAccountRecoveryTest is StructHelper {
     }
 
     function testExpectRevertWithdrawInsufficientBalance() public {
+        skipIfZkSync();
+
         setUp();
 
         assertEq(address(simpleWallet).balance, 1 ether);

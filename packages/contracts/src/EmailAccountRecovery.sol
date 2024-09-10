@@ -4,7 +4,6 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-// import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -14,12 +13,6 @@ abstract contract EmailAccountRecovery {
     address public verifierAddr;
     address public dkimAddr;
     address public emailAuthImplementationAddr;
-    address public factoryAddr;
-
-    // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
-    // If you failed some test cases, check the bytecodeHash by yourself
-    // see, test/ComputeCreate2Address.t.sol
-    bytes32 public constant proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -40,13 +33,6 @@ abstract contract EmailAccountRecovery {
     /// @return address The address of the email authentication contract implementation.
     function emailAuthImplementation() public view virtual returns (address) {
         return emailAuthImplementationAddr;
-    }
-
-    /// @notice Returns the address of the zkSyncfactory contract.
-    /// @dev This function is virtual and can be overridden by inheriting contracts.
-    /// @return address The address of the zkSync factory contract.
-    function factory() public view virtual returns (address) {
-        return factoryAddr;
     }
 
     /// @notice Returns if the account to be recovered has already activated the controller (this contract).
@@ -124,45 +110,49 @@ abstract contract EmailAccountRecovery {
     /// @param recoveredAccount The address of the account to be recovered.
     /// @param accountSalt A bytes32 salt value defined as a hash of the guardian's email address and an account code. This is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
     /// @return address The computed address.
-    function computeEmailAuthAddress(
+    function computeProxyAddress(
         address recoveredAccount,
         bytes32 accountSalt
-    ) public view returns (address) {
-        // If on zksync, we use another logic to calculate create2 address.
-        if (block.chainid == 324 || block.chainid == 300) {
-            // return ZKSyncCreate2Factory(factory()).computeAddress(
-            //     accountSalt,
-            //     proxyBytecodeHash,
-            //     abi.encode(
-            //         emailAuthImplementation(),
-            //         abi.encodeCall(
-            //             EmailAuth.initialize,
-            //             (recoveredAccount, accountSalt, address(this))
-            //         )
-            //     )
-            // );
-        } else {
-            return
-                Create2.computeAddress(
-                    accountSalt,
-                    keccak256(
-                        abi.encodePacked(
-                            type(ERC1967Proxy).creationCode,
-                            abi.encode(
-                                emailAuthImplementation(),
-                                abi.encodeCall(
-                                    EmailAuth.initialize,
-                                    (
-                                        recoveredAccount,
-                                        accountSalt,
-                                        address(this)
-                                    )
+    ) public view virtual returns (address) {
+        return
+            Create2.computeAddress(
+                accountSalt,
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
+                        abi.encode(
+                            emailAuthImplementation(),
+                            abi.encodeCall(
+                                EmailAuth.initialize,
+                                (
+                                    recoveredAccount,
+                                    accountSalt,
+                                    address(this)
                                 )
                             )
                         )
                     )
-                );
-        }
+                )
+            );
+    }
+
+    /// @notice Deploys a new proxy contract for email authentication.
+    /// @dev This function uses the CREATE2 opcode to deploy a new ERC1967Proxy contract with a deterministic address.
+    /// @param recoveredAccount The address of the account to be recovered.
+    /// @param accountSalt A bytes32 salt value used to ensure the uniqueness of the deployed proxy address.
+    /// @return address The address of the newly deployed proxy contract.
+    function deployProxy(
+        address recoveredAccount, 
+        bytes32 accountSalt
+    ) public virtual returns (address) {
+        ERC1967Proxy proxy = new ERC1967Proxy{salt: accountSalt}(
+            emailAuthImplementation(),
+            abi.encodeCall(
+                EmailAuth.initialize,
+                (recoveredAccount, accountSalt, address(this))
+            )
+        );
+        return address(proxy);
     }
 
     /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
@@ -217,7 +207,7 @@ abstract contract EmailAccountRecovery {
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
-        address guardian = computeEmailAuthAddress(
+        address guardian = computeProxyAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
@@ -227,41 +217,8 @@ abstract contract EmailAccountRecovery {
 
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
-            // Deploy proxy of the guardian's EmailAuth contract
-            if (block.chainid == 324 || block.chainid == 300) {
-                // (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
-                //     emailAuthMsg.proof.accountSalt, 
-                //     proxyBytecodeHash, 
-                //     abi.encode(
-                //         emailAuthImplementation(),
-                //         abi.encodeCall(
-                //             EmailAuth.initialize,
-                //             (
-                //                 recoveredAccount,
-                //                 emailAuthMsg.proof.accountSalt,
-                //                 address(this)
-                //             )
-                //         )
-                //     )
-                // );
-                // address payable proxyAddress = abi.decode(returnData, (address));
-                // console.log("proxyAddress: ");
-                // console.logAddress(proxyAddress);
-                // ERC1967Proxy proxy = ERC1967Proxy(proxyAddress);
-                // guardianEmailAuth = EmailAuth(address(proxy));
-                // console.log("guardianEmailAuth: ");
-                // console.logAddress(address(guardianEmailAuth));
-            } else {
-                // Deploy proxy of the guardian's EmailAuth contract
-                ERC1967Proxy proxy = new ERC1967Proxy{salt: emailAuthMsg.proof.accountSalt}(
-                    emailAuthImplementation(),
-                    abi.encodeCall(
-                        EmailAuth.initialize,
-                        (recoveredAccount, emailAuthMsg.proof.accountSalt, address(this))
-                    )
-                );
-                guardianEmailAuth = EmailAuth(address(proxy));
-            }            
+            address proxyAddress = deployProxy(recoveredAccount, emailAuthMsg.proof.accountSalt);
+            guardianEmailAuth = EmailAuth(proxyAddress);
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
             for (
@@ -313,7 +270,7 @@ abstract contract EmailAccountRecovery {
             templateIdx
         );
         require(recoveredAccount != address(0), "invalid account in email");
-        address guardian = computeEmailAuthAddress(
+        address guardian = computeProxyAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );

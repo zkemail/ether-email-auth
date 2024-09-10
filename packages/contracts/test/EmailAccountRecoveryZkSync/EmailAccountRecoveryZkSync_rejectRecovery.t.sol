@@ -4,12 +4,12 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {RecoveryController} from "../helpers/RecoveryController.sol";
+import {RecoveryControllerZkSync} from "../helpers/RecoveryControllerZkSync.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelper {
+contract EmailAccountRecoveryZkSyncTest_rejectRecovery is StructHelper {
     constructor() {}
 
     function setUp() public override {
@@ -23,17 +23,17 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         setUp();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.NONE
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.NONE
         );
 
         vm.startPrank(deployer);
-        recoveryController.requestGuardian(guardian);
+        recoveryControllerZkSync.requestGuardian(guardian);
         vm.stopPrank();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
     }
 
@@ -41,8 +41,8 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         requestGuardian();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.REQUESTED
         );
 
         console.log("guardian", guardian);
@@ -52,35 +52,35 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         bytes[] memory subjectParamsForAcceptance = new bytes[](1);
         subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         emailAuthMsg.subjectParams = subjectParamsForAcceptance;
-        address recoveredAccount = recoveryController
+        address recoveredAccount = recoveryControllerZkSync
             .extractRecoveredAccountFromAcceptanceSubject(
                 emailAuthMsg.subjectParams,
                 templateIdx
             );
-        address computedGuardian = recoveryController.computeProxyAddress(
+        address computedGuardian = recoveryControllerZkSync.computeProxyAddress(
             recoveredAccount,
             emailAuthMsg.proof.accountSalt
         );
         console.log("computed guardian", computedGuardian);
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
+        uint templateId = recoveryControllerZkSync.computeAcceptanceTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         // acceptGuardian is internal, we call handleAcceptance, which calls acceptGuardian internally.
         vm.startPrank(someRelayer);
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
 
         require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.ACCEPTED
+            recoveryControllerZkSync.guardians(guardian) ==
+                RecoveryControllerZkSync.GuardianStatus.ACCEPTED
         );
     }
 
@@ -88,13 +88,13 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         handleAcceptance();
 
         assertEq(simpleWallet.owner(), deployer);
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             address(0x0)
@@ -103,7 +103,7 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeRecoveryTemplateId(
+        uint templateId = recoveryControllerZkSync.computeRecoveryTemplateId(
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
@@ -113,50 +113,50 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         emailAuthMsg.subjectParams = subjectParamsForRecovery;
 
         vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
+            address(recoveryControllerZkSync.emailAuthImplementationAddr()),
             abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
             abi.encode(0x0)
         );
 
         vm.startPrank(someRelayer);
-        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        recoveryControllerZkSync.handleRecovery(emailAuthMsg, templateIdx);
         vm.stopPrank();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), true);
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             newSigner
         );
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryController.timelockPeriodOfAccount(
+                recoveryControllerZkSync.timelockPeriodOfAccount(
                     address(simpleWallet)
                 )
         );
     }
 
     function testRejectRecovery() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         vm.warp(block.timestamp + 3 days);
 
         handleRecovery();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryController.timelockPeriodOfAccount(
+                recoveryControllerZkSync.timelockPeriodOfAccount(
                     address(simpleWallet)
                 )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             newSigner
@@ -165,17 +165,17 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         vm.warp(0);
 
         vm.startPrank(address(simpleWallet));
-        recoveryController.rejectRecovery();
+        recoveryControllerZkSync.rejectRecovery();
         vm.stopPrank();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             address(0x0)
@@ -183,18 +183,18 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
     }
 
     function testExpectRevertRejectRecoveryRecoveryNotInProgress() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         handleAcceptance();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), false);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), false);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             0
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             address(0x0)
@@ -202,28 +202,28 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("recovery not in progress"));
-        recoveryController.rejectRecovery();
+        recoveryControllerZkSync.rejectRecovery();
         vm.stopPrank();
     }
 
     function testExpectRevertRejectRecovery() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         vm.warp(block.timestamp + 1 days);
 
         handleRecovery();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryController.timelockPeriodOfAccount(
+                recoveryControllerZkSync.timelockPeriodOfAccount(
                     address(simpleWallet)
                 )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             newSigner
@@ -232,26 +232,26 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         vm.startPrank(address(simpleWallet));
         vm.warp(block.timestamp + 4 days);
         vm.expectRevert(bytes("timelock expired"));
-        recoveryController.rejectRecovery();
+        recoveryControllerZkSync.rejectRecovery();
         vm.stopPrank();
     }
 
     function testExpectRevertRejectRecoveryOwnableUnauthorizedAccount() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
 
         handleRecovery();
 
-        assertEq(recoveryController.isRecovering(address(simpleWallet)), true);
+        assertEq(recoveryControllerZkSync.isRecovering(address(simpleWallet)), true);
         assertEq(
-            recoveryController.currentTimelockOfAccount(address(simpleWallet)),
+            recoveryControllerZkSync.currentTimelockOfAccount(address(simpleWallet)),
             block.timestamp +
-                recoveryController.timelockPeriodOfAccount(
+                recoveryControllerZkSync.timelockPeriodOfAccount(
                     address(simpleWallet)
                 )
         );
         assertEq(simpleWallet.owner(), deployer);
         assertEq(
-            recoveryController.newSignerCandidateOfAccount(
+            recoveryControllerZkSync.newSignerCandidateOfAccount(
                 address(simpleWallet)
             ),
             newSigner
@@ -259,7 +259,7 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
 
         vm.startPrank(deployer);
         vm.expectRevert("recovery not in progress");
-        recoveryController.rejectRecovery();
+        recoveryControllerZkSync.rejectRecovery();
         vm.stopPrank();
     }
 }

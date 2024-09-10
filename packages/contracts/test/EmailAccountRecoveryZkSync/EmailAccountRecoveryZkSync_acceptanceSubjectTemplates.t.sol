@@ -4,12 +4,12 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {RecoveryController} from "../helpers/RecoveryController.sol";
+import {RecoveryControllerZkSync} from "../helpers/RecoveryControllerZkSync.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryTest_acceptanceSubjectTemplates is StructHelper {
+contract EmailAccountRecoveryZkSyncTest_acceptanceSubjectTemplates is StructHelper {
     constructor() {}
 
     function setUp() public override {
@@ -17,7 +17,7 @@ contract EmailAccountRecoveryTest_acceptanceSubjectTemplates is StructHelper {
     }
 
     function testAcceptanceSubjectTemplates() public {
-        skipIfZkSync();
+        skipIfNotZkSync();
         
         setUp();
         string[][] memory res = recoveryController.acceptanceSubjectTemplates();

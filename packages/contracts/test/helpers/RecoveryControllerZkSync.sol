@@ -2,12 +2,12 @@
 pragma solidity ^0.8.12;
 
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {EmailAccountRecovery} from "../../src/EmailAccountRecovery.sol";
+import {EmailAccountRecoveryZkSync} from "../../src/EmailAccountRecoveryZkSync.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import "forge-std/console.sol";
 
-contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
+contract RecoveryControllerZkSync is OwnableUpgradeable, EmailAccountRecoveryZkSync {
     enum GuardianStatus {
         NONE,
         REQUESTED,
@@ -34,12 +34,14 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         address _initialOwner,
         address _verifier,
         address _dkim,
-        address _emailAuthImplementation
+        address _emailAuthImplementation,
+        address _factory
     ) public initializer {
         __Ownable_init(_initialOwner);
         verifierAddr = _verifier;
         dkimAddr = _dkim;
         emailAuthImplementationAddr = _emailAuthImplementation;
+        factoryAddr = _factory;
     }
 
     function isActivated(
