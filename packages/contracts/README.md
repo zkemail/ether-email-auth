@@ -362,6 +362,8 @@ forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRI
 
 Set the libraries in foundry.toml using the above deployed address.
 
+Due to this change in the address of the missing libraries, the value of the proxyBytecodeHash must also be changed: change the value of the proxyBytecodeHash in E-mailAccountRecoveryZKSync.sol.
+
 And then, run the integration testing.
 
 ```
