@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
+    "build": "forge build",
+    "zkbuild": "forge build -- --zksync",
+    "test": "forge test --no-match-test \"testIntegration\"",
+    "zktest": "forge test --no-match-test \"testIntegration\" --zksync --chain 300",
     "build": "forge build --skip '*ZKSync*'",
     "zkbuild": "forge build --zksync",
     "test": "forge test --no-match-test \"testIntegration\" --skip '*ZKSync*'",
