@@ -32,8 +32,8 @@ pub enum ApiError {
 
 #[derive(Error, Debug)]
 pub enum EmailError {
-    #[error("Subject error: {0}")]
-    Subject(String),
+    #[error("Email body error: {0}")]
+    Body(String),
     #[error("Email address error: {0}")]
     EmailAddress(String),
     #[error("Parse error: {0}")]
@@ -56,6 +56,10 @@ pub enum EmailError {
     Render(#[from] RenderError),
     #[error("Failed to send email: {0}")]
     Send(String),
+    #[error("Hex error: {0}")]
+    HexError(#[from] hex::FromHexError),
+    #[error("ABI encode error: {0}")]
+    AbiError(String),
     // Currently used with some relayer-utils errors
     #[error("Anyhow error: {0}")]
     Anyhow(#[from] anyhow::Error),
@@ -190,13 +194,15 @@ impl IntoResponse for ApiError {
             ApiError::Anyhow(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Internal(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Email(e) => match e {
-                EmailError::Subject(e) => (StatusCode::BAD_REQUEST, e.to_string()),
+                EmailError::Body(e) => (StatusCode::BAD_REQUEST, e.to_string()),
                 EmailError::EmailAddress(e) => (StatusCode::BAD_REQUEST, e.to_string()),
                 EmailError::Parse(e) => (StatusCode::BAD_REQUEST, e.to_string()),
                 EmailError::NotFound(e) => (StatusCode::BAD_REQUEST, e.to_string()),
                 EmailError::Dkim(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
                 EmailError::ZkRegex(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
                 EmailError::Database(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::HexError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+                EmailError::AbiError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
                 EmailError::Circuit(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
                 EmailError::Chain(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
                 EmailError::FileNotFound(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
