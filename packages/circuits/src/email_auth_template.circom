@@ -5,6 +5,7 @@ include "circomlib/circuits/comparators.circom";
 include "circomlib/circuits/poseidon.circom";
 include "@zk-email/circuits/email-verifier.circom";
 include "@zk-email/circuits/utils/regex.circom";
+include "@zk-email/circuits/utils/functions.circom";
 include "./utils/constants.circom";
 include "./utils/account_salt.circom";
 include "./utils/hash_sign.circom";
@@ -63,7 +64,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal output is_code_exist;
     
     // Verify Email Signature
-    component email_verifier = EmailVerifier(max_header_bytes, 0, n, k, 1);
+    component email_verifier = EmailVerifier(max_header_bytes, 0, n, k, 1, 0, 0);
     email_verifier.emailHeader <== padded_header;
     email_verifier.pubkey <== public_key;
     email_verifier.signature <== signature;
@@ -75,6 +76,8 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal from_regex_out, from_regex_reveal[max_header_bytes];
     (from_regex_out, from_regex_reveal) <== FromAddrRegex(max_header_bytes)(padded_header);
     from_regex_out === 1;
+    signal is_valid_from_addr_idx <== LessThan(log2Ceil(max_header_bytes))([from_addr_idx, max_header_bytes]);
+    is_valid_from_addr_idx === 1;
     signal from_email_addr[email_max_bytes];
     from_email_addr <== SelectRegexReveal(max_header_bytes, email_max_bytes)(from_regex_reveal, from_addr_idx);
 
@@ -82,10 +85,13 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal domain_regex_out, domain_regex_reveal[email_max_bytes];
     (domain_regex_out, domain_regex_reveal) <== EmailDomainRegex(email_max_bytes)(from_email_addr);
     domain_regex_out === 1;
+    signal is_valid_domain_idx <== LessThan(log2Ceil(email_max_bytes))([domain_idx, email_max_bytes]);
+    is_valid_domain_idx === 1;
     signal domain_name_bytes[domain_len];
     domain_name_bytes <== SelectRegexReveal(email_max_bytes, domain_len)(domain_regex_reveal, domain_idx);
     domain_name <== Bytes2Ints(domain_len)(domain_name_bytes);
     
+    /// EMAIL NULLIFIER
     signal sign_hash;
     signal sign_ints[k2_chunked_size];
     (sign_hash, sign_ints) <== HashSign(n,k)(signature);
@@ -96,28 +102,35 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal subject_regex_out, subject_regex_reveal[max_header_bytes];
     (subject_regex_out, subject_regex_reveal) <== SubjectAllRegex(max_header_bytes)(padded_header);
     subject_regex_out === 1;
+    signal is_valid_subject_idx <== LessThan(log2Ceil(max_header_bytes))([subject_idx, max_header_bytes]);
+    is_valid_subject_idx === 1;
     signal subject_all[max_subject_bytes];
     subject_all <== SelectRegexReveal(max_header_bytes, max_subject_bytes)(subject_regex_reveal, subject_idx);
 
     // Timestamp regex + convert to decimal format
     signal timestamp_regex_out, timestamp_regex_reveal[max_header_bytes];
     (timestamp_regex_out, timestamp_regex_reveal) <== TimestampRegex(max_header_bytes)(padded_header);
-    // timestamp_regex_out === 1;
+    signal is_valid_timestamp_idx <== LessThan(log2Ceil(max_header_bytes))([timestamp_idx, max_header_bytes]);
+    is_valid_timestamp_idx === 1;
     signal timestamp_str[timestamp_len];
     timestamp_str <== SelectRegexReveal(max_header_bytes, timestamp_len)(timestamp_regex_reveal, timestamp_idx);
     signal raw_timestamp <== Digit2Int(timestamp_len)(timestamp_str);
     timestamp <== timestamp_regex_out * raw_timestamp;
     
+    /// MASKED SUBJECT
+    /// INVITATION CODE WITH PREFIX REGEX
     signal prefixed_code_regex_out, prefixed_code_regex_reveal[max_subject_bytes];
     (prefixed_code_regex_out, prefixed_code_regex_reveal) <== InvitationCodeWithPrefixRegex(max_subject_bytes)(subject_all);
-    is_code_exist <== IsZero()(prefixed_code_regex_out-1);
+    is_code_exist <== prefixed_code_regex_out;
     signal removed_code[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_code[i] <== is_code_exist * prefixed_code_regex_reveal[i];
     }
+    /// EMAIL ADDRESS REGEX
+    /// Note: the email address in the subject should not overlap with the invitation code
     signal subject_email_addr_regex_out, subject_email_addr_regex_reveal[max_subject_bytes];
     (subject_email_addr_regex_out, subject_email_addr_regex_reveal) <== EmailAddrRegex(max_subject_bytes)(subject_all);
-    signal is_subject_email_addr_exist <== IsZero()(subject_email_addr_regex_out-1);
+    signal is_subject_email_addr_exist <== subject_email_addr_regex_out;
     signal removed_subject_email_addr[max_subject_bytes];
     for(var i = 0; i < max_subject_bytes; i++) {
         removed_subject_email_addr[i] <== is_subject_email_addr_exist * subject_email_addr_regex_reveal[i];
@@ -131,8 +144,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     // INVITATION CODE REGEX
     signal code_regex_out, code_regex_reveal[max_header_bytes];
     (code_regex_out, code_regex_reveal) <== InvitationCodeRegex(max_header_bytes)(padded_header);
-    signal code_consistency <== IsZero()(is_code_exist * (1 - code_regex_out));
-    code_consistency === 1;
+    is_code_exist * (1 - code_regex_out) === 0;
     signal replaced_code_regex_reveal[max_header_bytes];
     for(var i=0; i<max_header_bytes; i++) {
         if(i==0) {
@@ -141,6 +153,8 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
             replaced_code_regex_reveal[i] <== code_regex_reveal[i] * is_code_exist;
         }
     }
+    signal is_valid_code_idx <== LessThan(log2Ceil(max_header_bytes))([code_idx, max_header_bytes]);
+    is_valid_code_idx === 1;
     signal shifted_code_hex[code_len] <== SelectRegexReveal(max_header_bytes, code_len)(replaced_code_regex_reveal, code_idx);
     signal invitation_code_hex[code_len];
     for(var i=0; i<code_len; i++) {
@@ -149,7 +163,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
     signal embedded_account_code <== Hex2Field()(invitation_code_hex);
     is_code_exist * (embedded_account_code - account_code) === 0;
 
-    // Account salt
+    // ACCOUNT SALT
     var num_email_addr_ints = compute_ints_size(email_max_bytes);
     signal from_addr_ints[num_email_addr_ints] <== Bytes2Ints(email_max_bytes)(from_email_addr);
     account_salt <== AccountSalt(num_email_addr_ints)(from_addr_ints, account_code);
@@ -160,7 +174,7 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
         signal output recipient_email_addr_commit;
         has_email_recipient <== is_subject_email_addr_exist;
         
-        // Email address commitment
+        // EMAIL ADDRESS COMMITMENT
         signal cm_rand_input[k2_chunked_size+1];
         for(var i=0; i<k2_chunked_size;i++){
             cm_rand_input[i] <== sign_ints[i];
@@ -175,6 +189,8 @@ template EmailAuth(n, k, max_header_bytes, max_subject_bytes, recipient_enabled)
                 replaced_email_addr_regex_reveal[i] <== subject_email_addr_regex_reveal[i] * has_email_recipient;
             }
         }
+        signal is_valid_subject_email_addr_idx <== LessThan(log2Ceil(max_subject_bytes))([subject_email_addr_idx, max_subject_bytes]);
+        is_valid_subject_email_addr_idx === 1;
         signal shifted_email_addr[email_max_bytes];
         shifted_email_addr <== SelectRegexReveal(max_subject_bytes, email_max_bytes)(replaced_email_addr_regex_reveal, subject_email_addr_idx);
         signal recipient_email_addr[email_max_bytes];

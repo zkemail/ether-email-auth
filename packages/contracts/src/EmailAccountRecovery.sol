@@ -4,7 +4,6 @@ pragma solidity ^0.8.12;
 import "./EmailAuth.sol";
 import "@openzeppelin/contracts/utils/Create2.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {L2ContractHelper} from "@matterlabs/zksync-contracts/l2/contracts/L2ContractHelper.sol";
 
 /// @title Email Account Recovery Contract
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
@@ -35,6 +34,15 @@ abstract contract EmailAccountRecovery {
     function emailAuthImplementation() public view virtual returns (address) {
         return emailAuthImplementationAddr;
     }
+
+    /// @notice Returns if the account to be recovered has already activated the controller (this contract).
+    /// @dev This function is virtual and should be implemented by inheriting contracts.
+    /// @dev This function helps a relayer inactivate the guardians' data after the account inactivates the controller (this contract).
+    /// @param recoveredAccount The address of the account to be recovered.
+    /// @return bool True if the account is already activated, false otherwise.
+    function isActivated(
+        address recoveredAccount
+    ) public view virtual returns (bool);
 
     /// @notice Returns a two-dimensional array of strings representing the subject templates for an acceptance by a new guardian's.
     /// @dev This function is virtual and should be implemented by inheriting contracts to define specific acceptance subject templates.
@@ -105,51 +113,46 @@ abstract contract EmailAccountRecovery {
     function computeEmailAuthAddress(
         address recoveredAccount,
         bytes32 accountSalt
-    ) public view returns (address) {
-        // If on zksync, we use L2ContractHelper.computeCreate2Address
-        if (block.chainid == 324 || block.chainid == 300) {
-            // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
-            // If you failed some test cases, check the bytecodeHash by yourself
-            // see, test/ComputeCreate2Address.t.sol
-            return
-                L2ContractHelper.computeCreate2Address(
-                    address(this),
-                    accountSalt,
-                    bytes32(
-                        0x0100007934a4ec31a894c66e0d97810c45cade119a9dcba3f02c341c06aa8684
-                    ),
-                    keccak256(
+    ) public view virtual returns (address) {
+        return
+            Create2.computeAddress(
+                accountSalt,
+                keccak256(
+                    abi.encodePacked(
+                        type(ERC1967Proxy).creationCode,
                         abi.encode(
                             emailAuthImplementation(),
                             abi.encodeCall(
                                 EmailAuth.initialize,
-                                (recoveredAccount, accountSalt, address(this))
-                            )
-                        )
-                    )
-                );
-        } else {
-            return
-                Create2.computeAddress(
-                    accountSalt,
-                    keccak256(
-                        abi.encodePacked(
-                            type(ERC1967Proxy).creationCode,
-                            abi.encode(
-                                emailAuthImplementation(),
-                                abi.encodeCall(
-                                    EmailAuth.initialize,
-                                    (
-                                        recoveredAccount,
-                                        accountSalt,
-                                        address(this)
-                                    )
+                                (
+                                    recoveredAccount,
+                                    accountSalt,
+                                    address(this)
                                 )
                             )
                         )
                     )
-                );
-        }
+                )
+            );
+    }
+
+    /// @notice Deploys a new proxy contract for email authentication.
+    /// @dev This function uses the CREATE2 opcode to deploy a new ERC1967Proxy contract with a deterministic address.
+    /// @param recoveredAccount The address of the account to be recovered.
+    /// @param accountSalt A bytes32 salt value used to ensure the uniqueness of the deployed proxy address.
+    /// @return address The address of the newly deployed proxy contract.
+    function deployEmailAuthProxy(
+        address recoveredAccount, 
+        bytes32 accountSalt
+    ) internal virtual returns (address) {
+        ERC1967Proxy proxy = new ERC1967Proxy{salt: accountSalt}(
+            emailAuthImplementation(),
+            abi.encodeCall(
+                EmailAuth.initialize,
+                (recoveredAccount, accountSalt, address(this))
+            )
+        );
+        return address(proxy);
     }
 
     /// @notice Calculates a unique subject template ID for an acceptance subject template using its index.
@@ -214,21 +217,8 @@ abstract contract EmailAccountRecovery {
 
         EmailAuth guardianEmailAuth;
         if (guardian.code.length == 0) {
-            // Deploy proxy of the guardian's EmailAuth contract
-            ERC1967Proxy proxy = new ERC1967Proxy{
-                salt: emailAuthMsg.proof.accountSalt
-            }(
-                emailAuthImplementation(),
-                abi.encodeCall(
-                    EmailAuth.initialize,
-                    (
-                        recoveredAccount,
-                        emailAuthMsg.proof.accountSalt,
-                        address(this)
-                    )
-                )
-            );
-            guardianEmailAuth = EmailAuth(address(proxy));
+            address proxyAddress = deployEmailAuthProxy(recoveredAccount, emailAuthMsg.proof.accountSalt);
+            guardianEmailAuth = EmailAuth(proxyAddress);
             guardianEmailAuth.initDKIMRegistry(dkim());
             guardianEmailAuth.initVerifier(verifier());
             for (

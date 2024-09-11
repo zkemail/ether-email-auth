@@ -1,5 +1,5 @@
 {
-  "name": "@ether-email-auth/contracts",
+  "name": "@zk-email/ether-email-auth-contracts",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
@@ -7,12 +7,16 @@
     "zkbuild": "forge build -- --zksync",
     "test": "forge test --no-match-test \"testIntegration\"",
     "zktest": "forge test --no-match-test \"testIntegration\" --zksync --chain 300",
+    "build": "forge build --skip '*ZKSync*'",
+    "zkbuild": "forge build --zksync",
+    "test": "forge test --no-match-test \"testIntegration\" --skip '*ZKSync*'",
+    "zktest": "forge test --no-match-test \"testIntegration\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@zk-email/contracts": "^6.1.2",
+    "@zk-email/contracts": "^6.1.5",
     "@matterlabs/zksync-contracts": "^0.6.1",
     "solady": "^0.0.123"
   },

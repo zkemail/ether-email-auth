@@ -13,6 +13,7 @@ import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
+import "../src/utils/ZKSyncCreate2Factory.sol";
 
 contract IntegrationTest is Test {
     using Strings for *;
@@ -21,6 +22,7 @@ contract IntegrationTest is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
+
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
 
@@ -34,14 +36,10 @@ contract IntegrationTest is Test {
     string domainName = "gmail.com";
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
-    uint256 startTimestamp = 1711197564; // Tue Mar 26 2024 12:40:24 GMT+0000
+    uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
 
     function setUp() public {
-        if (block.chainid == 300) {
-            vm.createSelectFork("https://sepolia.era.zksync.dev");
-        } else {
-            vm.createSelectFork("https://mainnet.base.org");
-        }
+        vm.createSelectFork("https://mainnet.base.org");
 
         vm.warp(startTimestamp);
 
@@ -49,7 +47,14 @@ contract IntegrationTest is Test {
         address signer = deployer;
 
         // Create DKIM registry
-        dkim = new ECDSAOwnedDKIMRegistry(signer);
+        {
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            );
+            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+        }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
             selector,
@@ -69,12 +74,24 @@ contract IntegrationTest is Test {
         );
 
         // Create Verifier
-        verifier = new Verifier();
+        {
+            Verifier verifierImpl = new Verifier();
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+            );
+            verifier = Verifier(address(verifierProxy));
+        }
 
         // Create EmailAuth
         EmailAuth emailAuthImpl = new EmailAuth();
         console.log("emailAuthImpl");
         console.logAddress(address(emailAuthImpl));
+
+        // Create zkSync Factory
+        ZKSyncCreate2Factory factoryImpl = new ZKSyncCreate2Factory();
+        console.log("factoryImpl");
+        console.logAddress(address(factoryImpl));
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
@@ -124,7 +141,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x336cb44fF973dC623de2A461715b0fC70caBE2C7
+            0xeb8E21A363Dce22ff6057dEEF7c074062037F571
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -159,7 +176,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0x336cb44fF973dC623de2A461715b0fC70caBE2C7";
+            .maskedSubject = "Accept guardian request for 0xeb8E21A363Dce22ff6057dEEF7c074062037F571";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -237,8 +254,11 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
+
+        // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedSubject = "Set the new signer of 0x336cb44fF973dC623de2A461715b0fC70caBE2C7 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720"; // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
+            .maskedSubject = "Set the new signer of 0xeb8E21A363Dce22ff6057dEEF7c074062037F571 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(

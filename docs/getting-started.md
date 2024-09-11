@@ -10,13 +10,6 @@ First, install foundry by running the following command:
 curl -L https://foundry.paradigm.xyz | bash
 ```
 
-Then, install the specific version of foundry by running the following command:
-Note: The latest version of foundry fails some tests.
-
-```sh
-foundryup -v nightly-cafc2606a2187a42b236df4aa65f4e8cdfcea970
-```
-
 ## Clone the repository
 
 ```sh

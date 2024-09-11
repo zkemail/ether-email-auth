@@ -15,6 +15,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     }
     uint public constant DEFAULT_TIMELOCK_PERIOD = 3 days;
 
+    mapping(address => bool) public isActivatedOfAccount;
     mapping(address => bool) public isRecovering;
     mapping(address => address) public newSignerCandidateOfAccount;
     mapping(address => GuardianStatus) public guardians;
@@ -39,6 +40,12 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         verifierAddr = _verifier;
         dkimAddr = _dkim;
         emailAuthImplementationAddr = _emailAuthImplementation;
+    }
+
+    function isActivated(
+        address recoveredAccount
+    ) public view override returns (bool) {
+        return isActivatedOfAccount[recoveredAccount];
     }
 
     function acceptanceSubjectTemplates()
@@ -102,6 +109,9 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
             guardians[guardian] == GuardianStatus.NONE,
             "guardian status must be NONE"
         );
+        if (!isActivatedOfAccount[account]) {
+            isActivatedOfAccount[account] = true;
+        }
         guardians[guardian] = GuardianStatus.REQUESTED;
     }
 
@@ -164,10 +174,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         currentTimelockOfAccount[account] = 0;
     }
 
-    function completeRecovery(
-        address account,
-        bytes memory recoveryCalldata
-    ) public override {
+    function completeRecovery(address account, bytes memory) public override {
         require(account != address(0), "invalid account");
         require(isRecovering[account], "recovery not in progress");
         require(

@@ -1,5 +1,5 @@
 {
-  "name": "@ether-email-auth/circom",
+  "name": "@zk-email/ether-email-auth-circom",
   "license": "MIT",
   "version": "1.0.0",
   "scripts": {
@@ -10,11 +10,11 @@
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "^6.1.1",
-    "@zk-email/zk-regex-circom": "^2.1.0",
-    "@zk-email/relayer-utils": "^0.2.4",
+    "@zk-email/circuits": "=6.1.5",
+    "@zk-email/relayer-utils": "=0.2.4",
+    "@zk-email/zk-regex-circom": "=2.1.1",
     "commander": "^11.0.0",
-    "snarkjs": "^0.7.0"
+    "snarkjs": "^0.7.4"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.20",

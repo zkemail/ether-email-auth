@@ -26,14 +26,30 @@ jobs:
     - name: Install Foundry
       uses: foundry-rs/foundry-toolchain@v1
       with:
-        version: nightly-cafc2606a2187a42b236df4aa65f4e8cdfcea970
+        version: nightly-0079a1146b79a4aeda58b0258215bedb1f92700b
 
     - name: Run tests
       working-directory: packages/contracts
-      run: forge build
+      run: yarn build
+    
+    - name: Free Disk Space (Ubuntu)
+      uses: jlumbroso/free-disk-space@main
+      with:
+        # this might remove tools that are actually needed,
+        # if set to "true" but frees about 6 GB
+        tool-cache: false
+        
+        # all of these default to true, but feel free to set to
+        # "false" if necessary for your workflow
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
     
     - name: Build
-      run: cargo build
+      run: cargo build --release
       
     - name: Test
-      run: cargo test
+      run: cargo test --release

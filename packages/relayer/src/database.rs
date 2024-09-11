@@ -134,13 +134,28 @@ impl Database {
         &self,
         row: &Credentials,
     ) -> Result<()> {
-        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3, guardian_email_addr = $4")
+        let res = sqlx::query("UPDATE credentials SET account_code = $1, is_set = $2 WHERE account_eth_addr = $3 AND guardian_email_addr = $4")
             .bind(&row.account_code)
             .bind(row.is_set)
             .bind(&row.account_eth_addr)
             .bind(&row.guardian_email_addr)
             .execute(&self.db)
             .await?;
+        Ok(())
+    }
+
+    pub(crate) async fn update_credentials_of_inactive_guardian(
+        &self,
+        is_set: bool,
+        account_eth_addr: &str,
+    ) -> Result<()> {
+        let res = sqlx::query(
+            "UPDATE credentials SET is_set = $1 WHERE account_eth_addr = $2 AND is_set = true",
+        )
+        .bind(is_set)
+        .bind(account_eth_addr)
+        .execute(&self.db)
+        .await?;
         Ok(())
     }
 
