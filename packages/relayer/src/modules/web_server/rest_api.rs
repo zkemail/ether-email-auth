@@ -7,84 +7,6 @@ use relayer_utils::LOG;
 use serde::{Deserialize, Serialize};
 use std::str;
 
-#[derive(Serialize, Deserialize)]
-pub struct RequestStatusRequest {
-    pub request_id: u32,
-}
-
-#[derive(Serialize, Deserialize)]
-pub enum RequestStatus {
-    NotExist = 0,
-    Pending = 1,
-    Processed = 2,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct RequestStatusResponse {
-    pub request_id: u32,
-    pub status: RequestStatus,
-    pub is_success: bool,
-    pub email_nullifier: Option<String>,
-    pub account_salt: Option<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct AcceptanceRequest {
-    pub controller_eth_addr: String,
-    pub guardian_email_addr: String,
-    pub account_code: String,
-    pub template_idx: u64,
-    pub command: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct AcceptanceResponse {
-    pub request_id: u32,
-    pub command_params: Vec<TemplateValue>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct RecoveryRequest {
-    pub controller_eth_addr: String,
-    pub guardian_email_addr: String,
-    pub template_idx: u64,
-    pub command: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct RecoveryResponse {
-    pub request_id: u32,
-    pub command_params: Vec<TemplateValue>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CompleteRecoveryRequest {
-    pub account_eth_addr: String,
-    pub controller_eth_addr: String,
-    pub complete_calldata: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct GetAccountSaltRequest {
-    pub account_code: String,
-    pub email_addr: String,
-}
-
-#[derive(Deserialize)]
-struct PermittedWallet {
-    wallet_name: String,
-    controller_eth_addr: String,
-    hash_of_bytecode_of_proxy: String,
-    impl_contract_address: String,
-    slot_location: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct InactiveGuardianRequest {
-    pub account_eth_addr: String,
-    pub controller_eth_addr: String,
-}
-
 // Create request status API
 pub async fn request_status_api(
     Json(payload): Json<RequestStatusRequest>,
@@ -110,22 +32,15 @@ pub async fn request_status_api(
     }))
 }
 
-pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
+pub async fn handle_acceptance_request(
+    Json(payload): Json<AcceptanceRequest>,
+) -> Result<Json<AcceptanceResponse>, ApiError> {
     let command_template = CLIENT
         .get_acceptance_command_templates(&payload.controller_eth_addr, payload.template_idx)
-        .await
-        .unwrap();
+        .await?;
 
-    let command_params = extract_template_vals(&payload.command, command_template);
-
-    if command_params.is_err() {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Invalid command"))
-            .unwrap();
-    }
-
-    let command_params = command_params.unwrap();
+    let command_params = extract_template_vals(&payload.command, command_template)
+        .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
 
     let account_eth_addr = CLIENT
         .get_recovered_account_from_acceptance_command(
@@ -202,27 +117,26 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
         request_id = rand::thread_rng().gen::<u32>();
     }
 
-    let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code)
-        .map_err(|_| ApiError::Validation("Failed to calculate account salt".to_string()))?;
+    let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
+
+    DB.insert_request(&Request {
+        request_id: request_id.clone(),
+        account_eth_addr: account_eth_addr.clone(),
+        controller_eth_addr: payload.controller_eth_addr.clone(),
+        guardian_email_addr: payload.guardian_email_addr.clone(),
+        is_for_recovery: false,
+        template_idx: payload.template_idx,
+        is_processed: false,
+        is_success: None,
+        email_nullifier: None,
+        account_salt: Some(account_salt.clone()),
+    })
+    .await?;
 
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.clone(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: Some(account_salt.clone()),
-        })
-        .await?;
-
         handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -244,20 +158,6 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
         })
         .await?;
 
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.clone(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: Some(account_salt.clone()),
-        })
-        .await?;
-
         handle_email_event(EmailAuthEvent::AcceptanceRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -265,9 +165,7 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             command: payload.command.clone(),
             account_code: payload.account_code.clone(),
         })
-        .await
-        // TODO: Add custom errors for handle_email_events and map_err
-        .expect("Failed to send Acceptance event");
+        .await?;
     } else {
         DB.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
@@ -277,20 +175,6 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
         })
         .await?;
 
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.clone(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: false,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: Some(account_salt.clone()),
-        })
-        .await?;
-
         handle_email_event(EmailAuthEvent::AcceptanceRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -298,39 +182,24 @@ pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<B
             command: payload.command.clone(),
             account_code: payload.account_code.clone(),
         })
-        .await
-        // TODO: Add custom errors for handle_email_events and map_err
-        .expect("Failed to send Acceptance event");
+        .await?;
     }
 
-    Response::builder()
-        .status(StatusCode::OK)
-        .body(Body::from(
-            serde_json::to_string(&AcceptanceResponse {
-                request_id,
-                command_params,
-            })
-            .unwrap(),
-        ))
-        .unwrap()
+    Ok(Json(AcceptanceResponse {
+        request_id,
+        command_params,
+    }))
 }
 
-pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
+pub async fn handle_recovery_request(
+    Json(payload): Json<RecoveryRequest>,
+) -> Result<Json<RecoveryResponse>, ApiError> {
     let command_template = CLIENT
         .get_recovery_command_templates(&payload.controller_eth_addr, payload.template_idx)
-        .await
-        .unwrap();
+        .await?;
 
-    let command_params = extract_template_vals(&payload.command, command_template);
-
-    if command_params.is_err() {
-        return Response::builder()
-            .status(StatusCode::BAD_REQUEST)
-            .body(Body::from("Invalid command"))
-            .unwrap();
-    }
-
-    let command_params = command_params.unwrap();
+    let command_params = extract_template_vals(&payload.command, command_template)
+        .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
 
     let account_eth_addr = CLIENT
         .get_recovered_account_from_recovery_command(
@@ -407,14 +276,12 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
 
     let account_salt = if let Some(account_details) = account {
         calculate_account_salt(&payload.guardian_email_addr, &account_details.account_code)
-            .map_err(|_| ApiError::Validation("Failed to calculate account salt".to_string()))?
     } else {
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     };
 
     if !DB
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
-        // TODO: replace
         .await?
     {
         DB.insert_request(&Request {
@@ -437,40 +304,32 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
             command: payload.command.clone(),
             request_id,
         })
-        .await
-        // TODO: Add custom events for email handling
-        .expect("Failed to send GuardianNotRegistered event");
+        .await?;
 
-        return Response::builder()
-            .status(StatusCode::OK)
-            .body(Body::from(
-                serde_json::to_string(&RecoveryResponse {
-                    request_id,
-                    command_params,
-                })
-                .unwrap(),
-            ))
-            .unwrap();
+        return Ok(Json(RecoveryResponse {
+            request_id,
+            command_params,
+        }));
     }
+
+    DB.insert_request(&Request {
+        request_id: request_id.clone(),
+        account_eth_addr: account_eth_addr.clone(),
+        controller_eth_addr: payload.controller_eth_addr.clone(),
+        guardian_email_addr: payload.guardian_email_addr.clone(),
+        is_for_recovery: true,
+        template_idx: payload.template_idx,
+        is_processed: false,
+        is_success: None,
+        email_nullifier: None,
+        account_salt: Some(account_salt.clone()),
+    })
+    .await?;
 
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.clone(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: true,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: Some(account_salt.clone()),
-        })
-        .await?;
-
         handle_email_event(EmailAuthEvent::RecoveryRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -481,20 +340,6 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         // TODO: Add custom error for handle_email_event
         .expect("Failed to send Recovery event");
     } else {
-        DB.insert_request(&Request {
-            request_id: request_id.clone(),
-            account_eth_addr: account_eth_addr.clone(),
-            controller_eth_addr: payload.controller_eth_addr.clone(),
-            guardian_email_addr: payload.guardian_email_addr.clone(),
-            is_for_recovery: true,
-            template_idx: payload.template_idx,
-            is_processed: false,
-            is_success: None,
-            email_nullifier: None,
-            account_salt: Some(account_salt.clone()),
-        })
-        .await?;
-
         handle_email_event(EmailAuthEvent::GuardianNotSet {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -504,16 +349,10 @@ pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body>
         .expect("Failed to send Recovery event");
     }
 
-    Response::builder()
-        .status(StatusCode::OK)
-        .body(Body::from(
-            serde_json::to_string(&RecoveryResponse {
-                request_id,
-                command_params,
-            })
-            .unwrap(),
-        ))
-        .unwrap()
+    Ok(Json(RecoveryResponse {
+        request_id,
+        command_params,
+    }))
 }
 
 pub async fn handle_complete_recovery_request(
@@ -556,8 +395,7 @@ pub async fn handle_complete_recovery_request(
 pub async fn get_account_salt(
     Json(payload): Json<GetAccountSaltRequest>,
 ) -> Result<String, ApiError> {
-    let account_salt = calculate_account_salt(&payload.email_addr, &payload.account_code)
-        .map_err(|_| ApiError::Validation("Failed to calculate account salt".to_string()))?;
+    let account_salt = calculate_account_salt(&payload.email_addr, &payload.account_code);
     Ok(account_salt)
 }
 
@@ -643,19 +481,19 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
     Ok(())
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct RequestStatusRequest {
     pub request_id: u32,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub enum RequestStatus {
     NotExist = 0,
     Pending = 1,
     Processed = 2,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct RequestStatusResponse {
     pub request_id: u32,
     pub status: RequestStatus,
@@ -664,49 +502,49 @@ pub struct RequestStatusResponse {
     pub account_salt: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct AcceptanceRequest {
     pub controller_eth_addr: String,
     pub guardian_email_addr: String,
     pub account_code: String,
     pub template_idx: u64,
-    pub subject: String,
+    pub command: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct AcceptanceResponse {
     pub request_id: u32,
-    pub subject_params: Vec<TemplateValue>,
+    pub command_params: Vec<TemplateValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct RecoveryRequest {
     pub controller_eth_addr: String,
     pub guardian_email_addr: String,
     pub template_idx: u64,
-    pub subject: String,
+    pub command: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct RecoveryResponse {
     pub request_id: u32,
-    pub subject_params: Vec<TemplateValue>,
+    pub command_params: Vec<TemplateValue>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct CompleteRecoveryRequest {
     pub account_eth_addr: String,
     pub controller_eth_addr: String,
     pub complete_calldata: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct GetAccountSaltRequest {
     pub account_code: String,
     pub email_addr: String,
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct PermittedWallet {
     wallet_name: String,
     controller_eth_addr: String,
@@ -715,7 +553,7 @@ struct PermittedWallet {
     slot_location: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct InactiveGuardianRequest {
     pub account_eth_addr: String,
     pub controller_eth_addr: String,

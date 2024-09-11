@@ -21,7 +21,7 @@ pub use utils::*;
 
 use tokio::sync::Mutex;
 
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, Result};
 use dotenv::dotenv;
 use ethers::prelude::*;
 use lazy_static::lazy_static;

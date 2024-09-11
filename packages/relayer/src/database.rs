@@ -168,12 +168,10 @@ impl Database {
         Ok(())
     }
 
-    #[named]
     pub(crate) async fn insert_credentials(
         &self,
         row: &Credentials,
     ) -> std::result::Result<(), DatabaseError> {
-        info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO credentials (account_code, account_eth_addr, guardian_email_addr, is_set) VALUES ($1, $2, $3, $4) RETURNING *",
         )
@@ -184,11 +182,7 @@ impl Database {
         .fetch_one(&self.db)
         .await
         .map_err(|e| DatabaseError::new("Failed to insert credentials", e))?;
-        info!(
-            LOG,
-            "{} row inserted",
-            row.len(); "func" => function_name!()
-        );
+        info!(LOG, "Credentials inserted",);
         Ok(())
     }
 
@@ -210,7 +204,6 @@ impl Database {
         }
     }
 
-    #[named]
     pub(crate) async fn get_request(
         &self,
         request_id: u32,
@@ -329,12 +322,10 @@ impl Database {
         }
     }
 
-    #[named]
     pub(crate) async fn insert_request(
         &self,
         row: &Request,
     ) -> std::result::Result<(), DatabaseError> {
-        info!(LOG, "insert row {:?}", row; "func" => function_name!());
         let row = sqlx::query(
             "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
         )
@@ -351,11 +342,7 @@ impl Database {
         .fetch_one(&self.db)
         .await
         .map_err(|e| DatabaseError::new("Failed to insert request", e))?;
-        info!(
-            LOG,
-            "{} row inserted",
-            row.len(); "func" => function_name!()
-        );
+        info!(LOG, "Request inserted");
         Ok(())
     }
 }
