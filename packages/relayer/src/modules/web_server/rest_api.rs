@@ -440,11 +440,13 @@ fn parse_error_message(error_data: String) -> String {
 pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     let from_addr = parsed_email.get_from_addr()?;
+    let original_subject = parsed_email.get_subject_all()?;
     tokio::spawn(async move {
         match handle_email_event(EmailAuthEvent::Ack {
             email_addr: from_addr.clone(),
             command: parsed_email.get_command(false).unwrap_or_default(),
             original_message_id: parsed_email.get_message_id().ok(),
+            original_subject,
         })
         .await
         {
