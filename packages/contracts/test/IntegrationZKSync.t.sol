@@ -169,7 +169,7 @@ contract IntegrationZKSyncTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -190,7 +190,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -251,7 +251,7 @@ contract IntegrationZKSyncTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -275,7 +275,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
