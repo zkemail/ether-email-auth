@@ -51,6 +51,7 @@ pub enum EmailAuthEvent {
         email_addr: String,
         command: String,
         original_message_id: Option<String>,
+        original_subject: String,
     },
     NoOp,
 }
@@ -335,6 +336,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             email_addr,
             command,
             original_message_id,
+            original_subject,
         } => {
             let body_plain = format!(
                 "Hi {}!\nYour email with the command {} is received.",
@@ -342,7 +344,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             );
             let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": command});
             let body_html = render_html("acknowledgement.html", render_data).await?;
-            let subject = format!("Re: {}", subject);
+            let subject = format!("Re: {}", original_subject);
             let email = EmailMessage {
                 to: email_addr,
                 subject,
