@@ -102,12 +102,13 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                     .unwrap()
                     .find(input_decomposed[input_idx])
                     .ok_or(anyhow!("No string found"))?;
-                if string_match.start() != 0
-                    || string_match.end() != input_decomposed[input_idx].len()
-                {
+                if string_match.start() != 0 {
                     return Err(anyhow!("String must be the whole word"));
                 }
-                let string = string_match.as_str().to_string();
+                let mut string = string_match.as_str().to_string();
+                if string.contains("</div>") {
+                    string = string.split("</div>").collect::<Vec<&str>>()[0].to_string();
+                }
                 template_vals.push(TemplateValue::String(string));
             }
             "{uint}" => {
@@ -119,7 +120,11 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 {
                     return Err(anyhow!("Uint must be the whole word"));
                 }
-                let uint = U256::from_dec_str(uint_match.as_str()).unwrap();
+                let mut uint_match = uint_match.as_str();
+                if uint_match.contains("</div>") {
+                    uint_match = uint_match.split("</div>").collect::<Vec<&str>>()[0];
+                }
+                let uint = U256::from_dec_str(uint_match).unwrap();
                 template_vals.push(TemplateValue::Uint(uint));
             }
             "{int}" => {
@@ -130,7 +135,11 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 if int_match.start() != 0 || int_match.end() != input_decomposed[input_idx].len() {
                     return Err(anyhow!("Int must be the whole word"));
                 }
-                let int = I256::from_dec_str(int_match.as_str()).unwrap();
+                let mut int_match = int_match.as_str();
+                if int_match.contains("</div>") {
+                    int_match = int_match.split("</div>").collect::<Vec<&str>>()[0];
+                }
+                let int = I256::from_dec_str(int_match).unwrap();
                 template_vals.push(TemplateValue::Int(int));
             }
             "{decimals}" => {
@@ -143,7 +152,10 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
                 {
                     return Err(anyhow!("Decimals must be the whole word"));
                 }
-                let decimals = decimals_match.as_str().to_string();
+                let mut decimals = decimals_match.as_str().to_string();
+                if decimals.contains("</div>") {
+                    decimals = decimals.split("</div>").collect::<Vec<&str>>()[0].to_string();
+                }
                 template_vals.push(TemplateValue::Decimals(decimals));
             }
             "{ethAddr}" => {
