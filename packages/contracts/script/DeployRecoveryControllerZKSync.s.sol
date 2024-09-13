@@ -37,7 +37,7 @@ contract Deploy is Script {
         }
 
         vm.startBroadcast(deployerPrivateKey);
-        address initialOwner = msg.sender;
+        address initialOwner = vm.addr(deployerPrivateKey);
 
         // Deploy ECDSAOwned DKIM registry
         dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
