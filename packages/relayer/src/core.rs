@@ -289,6 +289,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent> {
                 proof: email_proof.clone(),
             };
 
+            println!("Email Auth Msg: {:?}", email_auth_msg);
+
             match CLIENT
                 .handle_recovery(
                     &request.controller_eth_addr,
