@@ -20,6 +20,8 @@ pub enum EmailAuthEvent {
     Error {
         email_addr: String,
         error: String,
+        original_subject: String,
+        original_message_id: Option<String>,
     },
     RecoveryRequest {
         account_eth_addr: String,
@@ -31,11 +33,15 @@ pub enum EmailAuthEvent {
         account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
+        original_subject: String,
+        original_message_id: Option<String>,
     },
     RecoverySuccess {
         account_eth_addr: String,
         guardian_email_addr: String,
         request_id: u32,
+        original_subject: String,
+        original_message_id: Option<String>,
     },
     GuardianNotSet {
         account_eth_addr: String,
@@ -116,8 +122,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
 
             send_email(email).await?;
         }
-        EmailAuthEvent::Error { email_addr, error } => {
-            let subject = "Error";
+        EmailAuthEvent::Error {
+            email_addr,
+            error,
+            original_subject,
+            original_message_id,
+        } => {
+            let subject = format!("Re: {}", original_subject);
+
             let body_plain = format!(
                 "An error occurred while processing your request. \
                 Error: {}",
@@ -132,9 +144,9 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
 
             let email = EmailMessage {
                 to: email_addr,
-                subject: subject.to_string(),
-                reference: None,
-                reply_to: None,
+                subject,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
                 body_plain,
                 body_html,
                 body_attachments: None,
@@ -211,8 +223,10 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             account_eth_addr,
             guardian_email_addr,
             request_id,
+            original_subject,
+            original_message_id,
         } => {
-            let subject = "Acceptance Success";
+            let subject = format!("Re: {}", original_subject);
             let body_plain = format!(
                 "Your guardian request for the wallet address {} has been set. \
                 Your request ID is #{} is now complete.",
@@ -229,8 +243,8 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
-                reference: None,
-                reply_to: None,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
                 body_plain,
                 body_html,
                 body_attachments: None,
@@ -242,8 +256,10 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             account_eth_addr,
             guardian_email_addr,
             request_id,
+            original_subject,
+            original_message_id,
         } => {
-            let subject = "Recovery Success";
+            let subject = format!("Re: {}", original_subject);
             let body_plain = format!(
                 "Your recovery request for the wallet address {} is successful. \
                 Your request ID is #{}.",
@@ -260,8 +276,8 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
-                reference: None,
-                reply_to: None,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
                 body_plain,
                 body_html,
                 body_attachments: None,

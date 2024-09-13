@@ -25,26 +25,25 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     let request_decomposed_def =
         serde_json::from_str(include_str!("./regex_json/request_def.json"))
             .map_err(|e| EmailError::Parse(format!("Failed to parse request_def.json: {}", e)))?;
-    println!("request_decomposed_def: {:?}", request_decomposed_def);
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
-    println!("request_idxes: {:?}", request_idxes);
     if request_idxes.is_empty() {
         return Err(EmailError::Body(WRONG_COMMAND_FORMAT.to_string()));
     }
     info!(LOG, "Request idxes: {:?}", request_idxes);
     let request_id = &email[request_idxes[0].0..request_idxes[0].1];
-    println!("request_id: {:?}", request_id);
     let request_id_u32 = request_id
         .parse::<u32>()
         .map_err(|e| EmailError::Parse(format!("Failed to parse request_id to u64: {}", e)))?;
-    println!("request_id_u32: {:?}", request_id_u32);
     let request = match DB.get_request(request_id_u32).await? {
         Some(req) => req,
         None => {
+            let original_subject = parsed_email.get_subject_all()?;
             return Ok(EmailAuthEvent::Error {
                 email_addr: guardian_email_addr,
                 error: format!("Request {} not found", request_id),
-            })
+                original_subject,
+                original_message_id: parsed_email.get_message_id().ok(),
+            });
         }
     };
     if request.guardian_email_addr != guardian_email_addr {
@@ -104,14 +103,24 @@ async fn handle_email_request(
             accept(params, invitation_code).await
         }
         (None, is_for_recovery) if is_for_recovery => recover(params).await,
-        (Some(_), _) => Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
-            error: "Account code found and for recovery".to_string(),
-        }),
-        (None, _) => Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
-            error: "No account code found and not for recovery".to_string(),
-        }),
+        (Some(_), _) => {
+            let original_subject = params.parsed_email.get_subject_all()?;
+            Ok(EmailAuthEvent::Error {
+                email_addr: params.request.guardian_email_addr,
+                error: "Account code found and for recovery".to_string(),
+                original_subject,
+                original_message_id: params.parsed_email.get_message_id().ok(),
+            })
+        }
+        (None, _) => {
+            let original_subject = params.parsed_email.get_subject_all()?;
+            Ok(EmailAuthEvent::Error {
+                email_addr: params.request.guardian_email_addr,
+                error: "No account code found and not for recovery".to_string(),
+                original_subject,
+                original_message_id: params.parsed_email.get_message_id().ok(),
+            })
+        }
     }
 }
 
@@ -140,6 +149,7 @@ async fn accept(
     )
     .await?;
 
+    let original_subject = params.parsed_email.get_subject_all()?;
     if is_accepted {
         let creds = Credentials {
             account_code: invitation_code,
@@ -153,11 +163,16 @@ async fn accept(
             account_eth_addr: params.request.account_eth_addr,
             guardian_email_addr: params.request.guardian_email_addr,
             request_id: params.request.request_id,
+            original_subject,
+            original_message_id: params.parsed_email.get_message_id().ok(),
         })
     } else {
+        let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
             email_addr: params.request.guardian_email_addr,
             error: "Failed to handle acceptance".to_string(),
+            original_subject,
+            original_message_id: params.parsed_email.get_message_id().ok(),
         })
     }
 }
@@ -184,16 +199,22 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
     )
     .await?;
 
+    let original_subject = params.parsed_email.get_subject_all()?;
     if is_success {
         Ok(EmailAuthEvent::RecoverySuccess {
             account_eth_addr: params.request.account_eth_addr,
             guardian_email_addr: params.request.guardian_email_addr,
             request_id: params.request.request_id,
+            original_subject,
+            original_message_id: params.parsed_email.get_message_id().ok(),
         })
     } else {
+        let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
             email_addr: params.request.guardian_email_addr,
             error: "Failed to handle recovery".to_string(),
+            original_subject,
+            original_message_id: params.parsed_email.get_message_id().ok(),
         })
     }
 }
@@ -235,10 +256,8 @@ async fn update_request(
         email_nullifier: Some(field_to_hex(&bytes32_to_fr(&email_nullifier)?)),
         account_salt: Some(bytes32_to_hex(&account_salt)),
     };
-    println!("updated_request: {:?}", updated_request);
 
     let update_request_result = DB.update_request(&updated_request).await?;
-    println!("update_request_result: {:?}", update_request_result);
     Ok(())
 }
 
@@ -307,24 +326,18 @@ async fn get_encoded_command_params(
                 &params.request.controller_eth_addr,
                 params.request.template_idx,
             )
-            .await?
+            .await
     } else {
         CLIENT
             .get_acceptance_command_templates(
                 &params.request.controller_eth_addr,
                 params.request.template_idx,
             )
-            .await?
-    };
+            .await
+    }?;
 
-    let command_params =
-        extract_template_vals_from_command_template(&params.email_body, command_template)
-            .map_err(|e| EmailError::Body(format!("Invalid commad: {}", e)))?;
-
-    // let command_params_encoded: Vec<Bytes> = command_params
-    //     .iter()
-    //     .map(|param| param.abi_encode(None).unwrap())
-    //     .collect();
+    let command_params = extract_template_vals_from_command(&params.email_body, command_template)
+        .map_err(|e| EmailError::Body(format!("Invalid commad: {}", e)))?;
 
     let command_params_encoded = command_params
         .iter()
