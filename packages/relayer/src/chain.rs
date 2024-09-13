@@ -152,7 +152,7 @@ impl ChainClient {
             .call()
             .await
             .map_err(|e| {
-                ChainError::contract_error("Failed to get recovery subject templates", e)
+                ChainError::contract_error("Failed to get recovery command templates", e)
             })?;
         Ok(templates[template_idx as usize].clone())
     }
@@ -163,19 +163,29 @@ impl ChainClient {
         account_eth_addr: &String,
         complete_calldata: &String,
     ) -> Result<bool, ChainError> {
+        println!("doing complete recovery");
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
+        println!("controller_eth_addr: {:?}", controller_eth_addr);
+
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let decoded_calldata =
             hex::decode(&complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
+        println!("decoded_calldata : {:?}", decoded_calldata);
+
         let account_eth_addr = account_eth_addr
             .parse::<H160>()
             .map_err(ChainError::HexError)?;
+        println!("account_eth_addr : {:?}", account_eth_addr);
+
         let call = contract.complete_recovery(account_eth_addr, Bytes::from(decoded_calldata));
+        println!("call: {:?}", call);
+
         let tx = call
             .send()
             .await
             .map_err(|e| ChainError::contract_error("Failed to call complete_recovery", e))?;
+        println!("tx: {:?}", tx);
         // If the transaction is successful, the function will return true and false otherwise.
         let receipt = tx
             .log()
@@ -188,6 +198,8 @@ impl ChainClient {
                 )
             })?
             .ok_or(anyhow!("No receipt"))?;
+        println!("receipt : {:?}", receipt);
+
         Ok(receipt
             .status
             .map(|status| status == U64::from(1))

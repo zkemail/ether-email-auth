@@ -190,7 +190,7 @@ impl IntoResponse for ApiError {
             ApiError::Database(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Chain(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::SqlxError(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-            ApiError::Validation(e) => (StatusCode::BAD_REQUEST, e),
+            ApiError::Validation(e) => (StatusCode::BAD_REQUEST, e.to_string()),
             ApiError::Anyhow(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Internal(e) => (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
             ApiError::Email(e) => match e {
