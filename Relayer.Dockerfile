@@ -1,5 +1,5 @@
 # Use the base image
-FROM bisht13/ar-relayer-base:latest
+FROM us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer-base:v1
 
 # Copy the project files
 COPY packages/relayer /relayer/packages/relayer
