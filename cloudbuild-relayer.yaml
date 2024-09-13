@@ -1,0 +1,19 @@
+steps:
+  # Build the base container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t',
+        'us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer:v1',
+        '-f',
+        'Relayer.Dockerfile',
+        '.',
+      ]
+  # Push the base container image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer:v1',
+      ]
