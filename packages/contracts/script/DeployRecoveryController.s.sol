@@ -108,7 +108,7 @@ contract Deploy is Script {
                 abi.encodeCall(
                     recoveryControllerImpl.initialize,
                     (
-                        signer,
+                        initialOwner,
                         address(verifier),
                         address(dkim),
                         address(emailAuthImpl)
@@ -143,7 +143,7 @@ contract Deploy is Script {
                 address(simpleWalletImpl),
                 abi.encodeCall(
                     simpleWalletImpl.initialize,
-                    (signer, address(recoveryController))
+                    (initialOwner, address(recoveryController))
                 )
             );
             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
