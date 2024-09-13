@@ -1,76 +1,76 @@
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: relayer-config-email-auth
-#   namespace: ar-base-sepolia-staging
-#   labels:
-#     app: relayer
-# data:
-#   EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ''
-#   CHAIN_RPC_PROVIDER: ''
-#   CHAIN_RPC_EXPLORER: ''
-#   CHAIN_ID: ''
-#   WEB_SERVER_ADDRESS: ''
-#   CIRCUITS_DIR_PATH: ''
-#   EMAIL_TEMPLATES_PATH: ''
-#   CANISTER_ID: ''
-#   IC_REPLICA_URL: ''
-#   JSON_LOGGER: ''
-#   PEM_PATH: ''
-#   SMTP_SERVER: ''
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: relayer-config-email-auth
+  namespace: ar-base-sepolia-staging
+  labels:
+    app: relayer
+data:
+  EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ''
+  CHAIN_RPC_PROVIDER: ''
+  CHAIN_RPC_EXPLORER: ''
+  CHAIN_ID: ''
+  WEB_SERVER_ADDRESS: ''
+  CIRCUITS_DIR_PATH: ''
+  EMAIL_TEMPLATES_PATH: ''
+  CANISTER_ID: ''
+  IC_REPLICA_URL: ''
+  JSON_LOGGER: ''
+  PEM_PATH: ''
+  SMTP_SERVER: ''
 
-# ---
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: relayer-secret-email-auth
-#   namespace: ar-base-sepolia-staging
-#   labels:
-#     app: relayer
-# type: Opaque
-# data:
-#   PRIVATE_KEY:
-#   DATABASE_URL:
-#   PROVER_ADDRESS:
-#   ICPEM:
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-secret-email-auth
+  namespace: ar-base-sepolia-staging
+  labels:
+    app: relayer
+type: Opaque
+data:
+  PRIVATE_KEY:
+  DATABASE_URL:
+  PROVER_ADDRESS:
+  ICPEM:
 
-# ---
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: relayer-smtp-secret
-#   namespace: ar-base-sepolia-staging
-#   labels:
-#     app: relayer
-# type: Opaque
-# data:
-#   SMTP_LOGIN_ID:
-#   SMTP_LOGIN_PASSWORD:
-#   SMTP_DOMAIN_NAME:
-#   SERVER_HOST:
-#   SERVER_PORT:
-#   JSON_LOGGER:
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-smtp-secret
+  namespace: ar-base-sepolia-staging
+  labels:
+    app: relayer
+type: Opaque
+data:
+  SMTP_LOGIN_ID:
+  SMTP_LOGIN_PASSWORD:
+  SMTP_DOMAIN_NAME:
+  SERVER_HOST:
+  SERVER_PORT:
+  JSON_LOGGER:
 
-# ---
-# apiVersion: v1
-# kind: Secret
-# metadata:
-#   name: relayer-imap-secret
-#   namespace: ar-base-sepolia-staging
-#   labels:
-#     app: relayer
-# type: Opaque
-# data:
-#   RELAYER_ENDPOINT:
-#   IMAP_LOGIN_ID:
-#   IMAP_LOGIN_PASSWORD:
-#   IMAP_PORT:
-#   IMAP_DOMAIN_NAME:
-#   SERVER_HOST:
-#   AUTH_TYPE:
-#   JSON_LOGGER:
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: relayer-imap-secret
+  namespace: ar-base-sepolia-staging
+  labels:
+    app: relayer
+type: Opaque
+data:
+  RELAYER_ENDPOINT:
+  IMAP_LOGIN_ID:
+  IMAP_LOGIN_PASSWORD:
+  IMAP_PORT:
+  IMAP_DOMAIN_NAME:
+  SERVER_HOST:
+  AUTH_TYPE:
+  JSON_LOGGER:
 
-# ---
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -89,7 +89,7 @@ spec:
     spec:
       containers:
         - name: relayer-container
-          image: us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer:v1
+          image: us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer:v2
           ports:
             - containerPort: 4500
           envFrom:
@@ -132,32 +132,32 @@ spec:
             items:
               - key: ICPEM
                 path: '.ic.pem'
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: relayer-svc-email-auth
-#   namespace: ar-base-sepolia-staging
-# spec:
-#   selector:
-#     app: relayer
-#   ports:
-#     - protocol: TCP
-#       port: 443
-#       targetPort: 4500
-#   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relayer-svc-email-auth
+  namespace: ar-base-sepolia-staging
+spec:
+  selector:
+    app: relayer
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 4500
+  type: ClusterIP
 
-# ---
-# apiVersion: v1
-# kind: Service
-# metadata:
-#   name: relayer-smtp-svc
-#   namespace: ar-base-sepolia-staging
-# spec:
-#   selector:
-#     app: relayer
-#   ports:
-#     - protocol: TCP
-#       port: 443
-#       targetPort: 8080
-#   type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: relayer-smtp-svc
+  namespace: ar-base-sepolia-staging
+spec:
+  selector:
+    app: relayer
+  ports:
+    - protocol: TCP
+      port: 443
+      targetPort: 8080
+  type: ClusterIP
