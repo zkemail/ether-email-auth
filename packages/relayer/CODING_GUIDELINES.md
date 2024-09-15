@@ -1,6 +1,6 @@
-# Coding Guidelines for Relayer Utils
+# Coding Guidelines for Relayer
 
-This document outlines the coding guidelines for contributing to Relayer Utils. Following these guidelines will help maintain a consistent and high-quality codebase.
+This document outlines the coding guidelines for contributing to the Relayer. Following these guidelines will help maintain a consistent and high-quality codebase.
 
 ## 1. Code Formatting
 

@@ -1,9 +1,9 @@
-# Contributing to Relayer Utils
+# Contributing to Relayer
 
 Thank you for considering contributing to our project! We welcome contributions of all kinds, including code, documentation, bug reports, feature requests, and more. This document outlines the process for contributing to this project.
 
 ## Table of Contents
-- [Contributing to Relayer Utils](#contributing-to-relayer-utils)
+- [Contributing to Relayer](#contributing-to-relayer)
   - [Table of Contents](#table-of-contents)
   - [1. Code of Conduct](#1-code-of-conduct)
   - [2. Getting Started](#2-getting-started)
