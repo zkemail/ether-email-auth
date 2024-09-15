@@ -53,7 +53,9 @@ jobs:
           swap-storage: true
 
       - name: Build and check for warnings
-        run: cargo build --release -D warnings
+        env:
+          RUSTFLAGS: "-D warnings"
+        run: cargo build --release
 
       - name: Check formatting
         run: cargo fmt -- --check
