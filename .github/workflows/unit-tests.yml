@@ -1,4 +1,4 @@
-name: unit-tests
+name: Unit Tests
 
 on: [push]
 
@@ -85,9 +85,9 @@ jobs:
         with:
           version: nightly-0079a1146b79a4aeda58b0258215bedb1f92700b
 
-      - name: Forge Build
+      - name: Build contracts
         working-directory: packages/contracts
-        run: forge build
+        run: yarn build
 
       - name: Run tests
         working-directory: packages/relayer
