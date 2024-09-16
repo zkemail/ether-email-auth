@@ -1,0 +1,8 @@
+max_width = 100
+indent_style = "Block"
+use_small_heuristics = "Default"
+imports_layout = "Mixed"
+imports_granularity = "Crate"
+group_imports = "StdExternalCrate"
+reorder_imports = true
+reorder_modules = true

@@ -122,7 +122,7 @@ pub async fn handle_acceptance_request(
     let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
 
     DB.insert_request(&Request {
-        request_id: request_id.clone(),
+        request_id,
         account_eth_addr: account_eth_addr.clone(),
         controller_eth_addr: payload.controller_eth_addr.clone(),
         guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -310,7 +310,7 @@ pub async fn handle_recovery_request(
     {
         println!("email and wallet are not registered");
         DB.insert_request(&Request {
-            request_id: request_id.clone(),
+            request_id,
             account_eth_addr: account_eth_addr.clone(),
             controller_eth_addr: payload.controller_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -338,7 +338,7 @@ pub async fn handle_recovery_request(
     }
 
     DB.insert_request(&Request {
-        request_id: request_id.clone(),
+        request_id,
         account_eth_addr: account_eth_addr.clone(),
         controller_eth_addr: payload.controller_eth_addr.clone(),
         guardian_email_addr: payload.guardian_email_addr.clone(),

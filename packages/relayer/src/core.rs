@@ -1,6 +1,8 @@
 #![allow(clippy::upper_case_acronyms)]
 #![allow(clippy::identity_op)]
 
+use std::fs;
+
 use crate::abis::email_account_recovery::{EmailAuthMsg, EmailProof};
 use crate::*;
 
@@ -22,9 +24,12 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     trace!(LOG, "From address: {}", guardian_email_addr);
     let email_body = parsed_email.get_cleaned_body()?;
 
-    let request_decomposed_def =
-        serde_json::from_str(include_str!("./regex_json/request_def.json"))
-            .map_err(|e| EmailError::Parse(format!("Failed to parse request_def.json: {}", e)))?;
+    let request_def_path = env::var(REQUEST_DEF_PATH_KEY)
+        .map_err(|_| anyhow!("ENV var {} not set", REQUEST_DEF_PATH_KEY))?;
+    let request_def_contents = fs::read_to_string(&request_def_path)
+        .map_err(|e| anyhow!("Failed to read file {}: {}", request_def_path, e))?;
+    let request_decomposed_def = serde_json::from_str(&request_def_contents)
+        .map_err(|e| EmailError::Parse(format!("Failed to parse request_def.json: {}", e)))?;
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
     if request_idxes.is_empty() {
         return Err(EmailError::Body(WRONG_COMMAND_FORMAT.to_string()));
@@ -221,15 +226,13 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
 
 fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
     // Gather signals from start_idx to start_idx + COMMAND_FIELDS
-    let mut command_bytes = Vec::new();
-    for i in start_idx..start_idx + COMMAND_FIELDS {
-        let signal = public_signals[i as usize];
-        if signal == U256::zero() {
-            break;
-        }
-        let bytes = u256_to_bytes32_little(&signal);
-        command_bytes.extend_from_slice(&bytes);
-    }
+    let command_bytes: Vec<u8> = public_signals
+        .iter()
+        .skip(start_idx)
+        .take(COMMAND_FIELDS)
+        .take_while(|&signal| *signal != U256::zero())
+        .flat_map(u256_to_bytes32_little)
+        .collect();
 
     // Bytes to string, removing null bytes
     let command = String::from_utf8(command_bytes.into_iter().filter(|&b| b != 0u8).collect())
@@ -257,7 +260,7 @@ async fn update_request(
         account_salt: Some(bytes32_to_hex(&account_salt)),
     };
 
-    let update_request_result = DB.update_request(&updated_request).await?;
+    DB.update_request(&updated_request).await?;
     Ok(())
 }
 
@@ -313,8 +316,7 @@ fn get_template_id(params: &EmailRequestContext) -> [u8; 32] {
         Token::Uint(params.request.template_idx.into()),
     ];
 
-    let template_id = keccak256(encode(&tokens));
-    template_id
+    keccak256(encode(&tokens))
 }
 
 async fn get_encoded_command_params(

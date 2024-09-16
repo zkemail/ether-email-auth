@@ -100,7 +100,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, command, account_code, request_id
             );
 
-            let subject = format!("Email Recovery: Acceptance Request");
+            let subject = "Email Recovery: Acceptance Request".to_string();
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
@@ -197,7 +197,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, request_id
             );
 
-            let subject = format!("Email Recovery: Recovery Request");
+            let subject = "Email Recovery: Recovery Request".to_string();
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
@@ -408,7 +408,7 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
         let revert_bytes = hex::decode(revert_data)
             .unwrap()
             .into_iter()
-            .filter(|&b| b >= 0x20 && b <= 0x7E)
+            .filter(|&b| (0x20..=0x7E).contains(&b))
             .collect();
         error = String::from_utf8(revert_bytes).unwrap().trim().to_string();
     }

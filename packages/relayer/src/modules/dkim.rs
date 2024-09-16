@@ -1,3 +1,5 @@
+use std::fs;
+
 use anyhow::anyhow;
 use relayer_utils::extract_substr_idxes;
 use relayer_utils::LOG;
@@ -41,7 +43,7 @@ impl<'a> DkimOracleClient<'a> {
     pub fn new(canister_id: &str, agent: &'a Agent) -> anyhow::Result<Self> {
         let canister = CanisterBuilder::new()
             .with_canister_id(canister_id)
-            .with_agent(&agent)
+            .with_agent(agent)
             .build()?;
         Ok(Self { canister })
     }
@@ -78,22 +80,16 @@ pub async fn check_and_update_dkim(
     info!(LOG, "public_key_hash {:?}", public_key_hash);
     let domain = parsed_email.get_email_domain()?;
     info!(LOG, "domain {:?}", domain);
-    if CLIENT.get_bytecode(&wallet_addr.to_string()).await? == Bytes::from(vec![0u8; 20]) {
+    if CLIENT.get_bytecode(wallet_addr).await? == Bytes::from_static(&[0u8; 20]) {
         info!(LOG, "wallet not deployed");
         return Ok(());
     }
     let email_auth_addr = CLIENT
-        .get_email_auth_addr_from_wallet(
-            &controller_eth_addr.to_string(),
-            &wallet_addr.to_string(),
-            &account_salt.to_string(),
-        )
+        .get_email_auth_addr_from_wallet(controller_eth_addr, wallet_addr, account_salt)
         .await?;
     let email_auth_addr = format!("0x{:x}", email_auth_addr);
-    let mut dkim = CLIENT
-        .get_dkim_from_wallet(&controller_eth_addr.to_string())
-        .await?;
-    if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::from(vec![]) {
+    let mut dkim = CLIENT.get_dkim_from_wallet(controller_eth_addr).await?;
+    if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::new() {
         dkim = CLIENT.get_dkim_from_email_auth(&email_auth_addr).await?;
     }
     info!(LOG, "dkim {:?}", dkim);
@@ -108,13 +104,15 @@ pub async fn check_and_update_dkim(
         info!(LOG, "public key registered");
         return Ok(());
     }
-    let selector_decomposed_def =
-        serde_json::from_str(include_str!("../regex_json/selector_def.json")).unwrap();
+    let selector_def_path = env::var(SELECTOR_DEF_PATH_KEY)
+        .map_err(|_| anyhow!("ENV var {} not set", SELECTOR_DEF_PATH_KEY))?;
+    let selector_def_contents = fs::read_to_string(&selector_def_path)
+        .map_err(|e| anyhow!("Failed to read file {}: {}", selector_def_path, e))?;
+    let selector_decomposed_def = serde_json::from_str(&selector_def_path).unwrap();
     let selector = {
         let idxes =
             extract_substr_idxes(&parsed_email.canonicalized_header, &selector_decomposed_def)?[0];
-        let str = parsed_email.canonicalized_header[idxes.0..idxes.1].to_string();
-        str
+        parsed_email.canonicalized_header[idxes.0..idxes.1].to_string()
     };
     info!(LOG, "selector {}", selector);
     let ic_agent = DkimOracleClient::gen_agent(

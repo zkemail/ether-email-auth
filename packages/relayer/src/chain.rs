@@ -66,7 +66,7 @@ impl ChainClient {
 
     pub async fn get_dkim_from_wallet(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
@@ -76,7 +76,7 @@ impl ChainClient {
 
     pub async fn get_dkim_from_email_auth(
         &self,
-        email_auth_addr: &String,
+        email_auth_addr: &str,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
         let email_auth_address: H160 = email_auth_addr.parse()?;
         let contract = EmailAuth::new(email_auth_address, self.client.clone());
@@ -87,9 +87,9 @@ impl ChainClient {
 
     pub async fn get_email_auth_addr_from_wallet(
         &self,
-        controller_eth_addr: &String,
-        wallet_addr: &String,
-        account_salt: &String,
+        controller_eth_addr: &str,
+        wallet_addr: &str,
+        account_salt: &str,
     ) -> Result<H160, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let wallet_address: H160 = wallet_addr.parse()?;
@@ -107,7 +107,7 @@ impl ChainClient {
         Ok(email_auth_addr)
     }
 
-    pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> Result<bool, ChainError> {
+    pub async fn is_wallet_deployed(&self, wallet_addr_str: &str) -> Result<bool, ChainError> {
         let wallet_addr: H160 = wallet_addr_str.parse().map_err(ChainError::HexError)?;
         match self.client.get_code(wallet_addr, None).await {
             Ok(code) => Ok(!code.is_empty()),
@@ -123,7 +123,7 @@ impl ChainClient {
 
     pub async fn get_acceptance_command_templates(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         template_idx: u64,
     ) -> Result<Vec<String>, ChainError> {
         let controller_eth_addr: H160 =
@@ -141,7 +141,7 @@ impl ChainClient {
 
     pub async fn get_recovery_command_templates(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         template_idx: u64,
     ) -> Result<Vec<String>, ChainError> {
         let controller_eth_addr: H160 =
@@ -159,9 +159,9 @@ impl ChainClient {
 
     pub async fn complete_recovery(
         &self,
-        controller_eth_addr: &String,
-        account_eth_addr: &String,
-        complete_calldata: &String,
+        controller_eth_addr: &str,
+        account_eth_addr: &str,
+        complete_calldata: &str,
     ) -> Result<bool, ChainError> {
         println!("doing complete recovery");
         let controller_eth_addr: H160 =
@@ -170,7 +170,7 @@ impl ChainClient {
 
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let decoded_calldata =
-            hex::decode(&complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
+            hex::decode(complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
         println!("decoded_calldata : {:?}", decoded_calldata);
 
         let account_eth_addr = account_eth_addr
@@ -208,7 +208,7 @@ impl ChainClient {
 
     pub async fn handle_acceptance(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> std::result::Result<bool, ChainError> {
@@ -239,7 +239,7 @@ impl ChainClient {
 
     pub async fn handle_recovery(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> std::result::Result<bool, ChainError> {
@@ -265,10 +265,7 @@ impl ChainClient {
             .unwrap_or(false))
     }
 
-    pub async fn get_bytecode(
-        &self,
-        wallet_addr: &String,
-    ) -> std::result::Result<Bytes, ChainError> {
+    pub async fn get_bytecode(&self, wallet_addr: &str) -> std::result::Result<Bytes, ChainError> {
         let wallet_address: H160 = wallet_addr.parse().map_err(ChainError::HexError)?;
         let client_code = self
             .client
@@ -280,7 +277,7 @@ impl ChainClient {
 
     pub async fn get_storage_at(
         &self,
-        wallet_addr: &String,
+        wallet_addr: &str,
         slot: u64,
     ) -> Result<H256, anyhow::Error> {
         let wallet_address: H160 = wallet_addr.parse()?;
@@ -292,7 +289,7 @@ impl ChainClient {
 
     pub async fn get_recovered_account_from_acceptance_command(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, ChainError> {
@@ -324,7 +321,7 @@ impl ChainClient {
 
     pub async fn get_recovered_account_from_recovery_command(
         &self,
-        controller_eth_addr: &String,
+        controller_eth_addr: &str,
         command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, ChainError> {
@@ -357,8 +354,8 @@ impl ChainClient {
 
     pub async fn get_is_activated(
         &self,
-        controller_eth_addr: &String,
-        account_eth_addr: &String,
+        controller_eth_addr: &str,
+        account_eth_addr: &str,
     ) -> Result<bool, ChainError> {
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
