@@ -10,7 +10,10 @@ use ethers::{
     abi::{encode, Token},
     utils::keccak256,
 };
-use relayer_utils::{extract_substr_idxes, generate_email_circuit_input, EmailCircuitParams, LOG};
+use relayer_utils::{
+    extract_substr_idxes, extract_template_vals_from_command, generate_email_circuit_input,
+    generate_proof, EmailCircuitParams, LOG,
+};
 
 const DOMAIN_FIELDS: usize = 9;
 const COMMAND_FIELDS: usize = 20;

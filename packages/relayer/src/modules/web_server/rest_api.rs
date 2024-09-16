@@ -3,7 +3,7 @@ use anyhow::Result;
 use axum::Json;
 use hex::decode;
 use rand::Rng;
-use relayer_utils::LOG;
+use relayer_utils::{calculate_account_salt, extract_template_vals, TemplateValue, LOG};
 use serde::{Deserialize, Serialize};
 use std::str;
 

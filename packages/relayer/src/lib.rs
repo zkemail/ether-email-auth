@@ -8,7 +8,7 @@ pub mod config;
 pub mod core;
 pub mod database;
 pub mod modules;
-pub mod utils;
+pub mod strings;
 
 pub use abis::*;
 pub use chain::*;
@@ -17,7 +17,7 @@ pub use core::*;
 pub use database::*;
 pub use modules::*;
 use relayer_utils::LOG;
-pub use utils::*;
+pub use strings::*;
 
 use tokio::sync::Mutex;
 

@@ -4141,7 +4141,6 @@ dependencies = [
 [[package]]
 name = "relayer-utils"
 version = "0.3.7"
-source = "git+https://github.com/zkemail/relayer-utils.git#c9371a327fecb422f5e0f015ebca9199a06b658f"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
@@ -4160,6 +4159,7 @@ dependencies = [
  "poseidon-rs",
  "rand_core",
  "regex",
+ "reqwest 0.11.27",
  "rsa",
  "serde",
  "serde_json",
@@ -6555,7 +6555,7 @@ dependencies = [
 [[package]]
 name = "zk-regex-apis"
 version = "2.1.1"
-source = "git+https://github.com/zkemail/zk-regex.git#3b626316b07081378ffdca0d36ed2bec6df5b55a"
+source = "git+https://github.com/zkemail/zk-regex.git#531575345558ba938675d725bd54df45c866ef74"
 dependencies = [
  "fancy-regex",
  "itertools 0.13.0",
