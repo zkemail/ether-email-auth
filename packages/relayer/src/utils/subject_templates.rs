@@ -24,7 +24,7 @@ impl TemplateValue {
             Self::Uint(uint) => Ok(Bytes::from(abi::encode(&[Token::Uint(*uint)]))),
             Self::Int(int) => Ok(Bytes::from(abi::encode(&[Token::Int(int.into_raw())]))),
             Self::Decimals(string) => Ok(Bytes::from(abi::encode(&[Token::Uint(
-                Self::decimals_str_to_uint(&string, decimal_size.unwrap_or(18)),
+                Self::decimals_str_to_uint(string, decimal_size.unwrap_or(18)),
             )]))),
             Self::EthAddr(address) => Ok(Bytes::from(abi::encode(&[Token::Address(*address)]))),
             Self::Fixed(string) => Err(anyhow!("Fixed value must not be passed to abi_encode")),
@@ -76,10 +76,7 @@ pub fn extract_template_vals_from_command(
 
         // Extract the values based on the matched pattern
         let current_input = &input[skipped_bytes..];
-        match extract_template_vals(current_input, templates) {
-            Ok(vals) => Ok(vals),
-            Err(e) => Err(e),
-        }
+        extract_template_vals(current_input, templates)
     } else {
         // If there's no match, return an error indicating no match was found
         Err(anyhow!("Unable to match templates with input"))
@@ -89,13 +86,8 @@ pub fn extract_template_vals_from_command(
 pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<TemplateValue>> {
     let input_decomposed: Vec<&str> = input.split_whitespace().collect();
     let mut template_vals = Vec::new();
-    let mut input_idx = 0;
 
-    for template in templates.iter() {
-        if input_idx >= input_decomposed.len() {
-            break; // Prevents index out of bounds if input is shorter than template
-        }
-
+    for (input_idx, template) in templates.iter().enumerate() {
         match template.as_str() {
             "{string}" => {
                 let string_match = Regex::new(STRING_REGEX)
@@ -171,8 +163,6 @@ pub fn extract_template_vals(input: &str, templates: Vec<String>) -> Result<Vec<
             }
             _ => {} // Skip unknown placeholders
         }
-
-        input_idx += 1; // Move to the next piece of input
     }
 
     Ok(template_vals)

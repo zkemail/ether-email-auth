@@ -81,9 +81,9 @@ pub fn calculate_default_hash(input: &str) -> String {
 }
 
 pub fn calculate_account_salt(email_addr: &str, account_code: &str) -> String {
-    let padded_email_addr = PaddedEmailAddr::from_email_addr(&email_addr);
+    let padded_email_addr = PaddedEmailAddr::from_email_addr(email_addr);
     let account_code = if account_code.starts_with("0x") {
-        hex_to_field(&account_code).unwrap()
+        hex_to_field(account_code).unwrap()
     } else {
         hex_to_field(&format!("0x{}", account_code)).unwrap()
     };
