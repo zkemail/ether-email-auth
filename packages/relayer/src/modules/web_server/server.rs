@@ -6,6 +6,23 @@ use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 pub async fn run_server() -> Result<()> {
     let addr = WEB_SERVER_ADDRESS.get().unwrap();
 
+    DB_CELL
+        .get_or_init(|| async {
+            dotenv::dotenv().ok();
+            let db = Database::open(&std::env::var("DATABASE_URL").unwrap())
+                .await
+                .unwrap();
+            Arc::new(db)
+        })
+        .await;
+
+    info!(LOG, "Testing connection to database");
+    if let Err(e) = DB.test_db_connection().await {
+        error!(LOG, "Failed to initialize db with e: {}", e);
+        panic!("Forcing panic, since connection to DB could not be established");
+    };
+    info!(LOG, "Testing connection to database successfull");
+
     let mut app = Router::new()
         .route(
             "/api/echo",

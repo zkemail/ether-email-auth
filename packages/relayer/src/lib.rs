@@ -19,7 +19,7 @@ pub use modules::*;
 use relayer_utils::LOG;
 pub use strings::*;
 
-use tokio::sync::Mutex;
+use tokio::sync::{Mutex, OnceCell};
 
 use anyhow::{anyhow, Result};
 use dotenv::dotenv;
@@ -44,17 +44,27 @@ pub static EMAIL_TEMPLATES: OnceLock<String> = OnceLock::new();
 pub static RELAYER_EMAIL_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static SMTP_SERVER: OnceLock<String> = OnceLock::new();
 
+static DB_CELL: OnceCell<Arc<Database>> = OnceCell::const_new();
+
+struct DBWrapper;
+
+impl DBWrapper {
+    fn get() -> &'static Arc<Database> {
+        DB_CELL.get().expect("Database not initialized")
+    }
+}
+
+impl std::ops::Deref for DBWrapper {
+    type Target = Database;
+
+    fn deref(&self) -> &Self::Target {
+        &**Self::get()
+    }
+}
+
+static DB: DBWrapper = DBWrapper;
+
 lazy_static! {
-    pub static ref DB: Arc<Database> = {
-        dotenv().ok();
-        let db = tokio::task::block_in_place(|| {
-            tokio::runtime::Runtime::new()
-                .unwrap()
-                .block_on(Database::open(&env::var(DATABASE_PATH_KEY).unwrap()))
-        })
-        .unwrap();
-        Arc::new(db)
-    };
     pub static ref CLIENT: Arc<ChainClient> = {
         dotenv().ok();
         let client = tokio::task::block_in_place(|| {
