@@ -19,6 +19,15 @@ const DOMAIN_FIELDS: usize = 9;
 const COMMAND_FIELDS: usize = 20;
 const EMAIL_ADDR_FIELDS: usize = 9;
 
+/// Handles an incoming email for authentication or recovery.
+///
+/// # Arguments
+///
+/// * `email` - The raw email string to be processed.
+///
+/// # Returns
+///
+/// A `Result` containing an `EmailAuthEvent` on success, or an `EmailError` on failure.
 pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     trace!(LOG, "email: {}", email);

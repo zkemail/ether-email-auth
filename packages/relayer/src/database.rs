@@ -30,6 +30,15 @@ pub struct Database {
 }
 
 impl Database {
+    /// Opens a new database connection.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - The connection string for the database.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the `Database` struct if successful, or an error if the connection fails.
     pub async fn open(path: &str) -> Result<Self> {
         let res = Self {
             db: PgPool::connect(path)
@@ -42,6 +51,11 @@ impl Database {
         Ok(res)
     }
 
+    /// Sets up the database by creating necessary tables if they don't exist.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` indicating success or failure of the setup process.
     pub async fn setup_database(&self) -> Result<()> {
         sqlx::query(
             "CREATE TABLE IF NOT EXISTS credentials (
@@ -208,6 +222,16 @@ impl Database {
         Ok(())
     }
 
+    /// Checks if a guardian is set for a given account and email address.
+    ///
+    /// # Arguments
+    ///
+    /// * `account_eth_addr` - The Ethereum address of the account.
+    /// * `guardian_email_addr` - The email address of the guardian.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating whether the guardian is set.
     pub async fn is_guardian_set(
         &self,
         account_eth_addr: &str,

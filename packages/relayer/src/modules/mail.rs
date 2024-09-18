@@ -80,6 +80,15 @@ pub struct EmailAttachment {
     pub contents: Vec<u8>,
 }
 
+/// Handles all possible email events and requests.
+///
+/// # Arguments
+///
+/// * `event` - The `EmailAuthEvent` to be handled.
+///
+/// # Returns
+///
+/// A `Result` indicating success or an `EmailError`.
 pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError> {
     match event {
         EmailAuthEvent::AcceptanceRequest {
@@ -378,6 +387,16 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
     Ok(())
 }
 
+/// Renders an HTML template with the given data.
+///
+/// # Arguments
+///
+/// * `template_name` - The name of the template file.
+/// * `render_data` - The data to be used in rendering the template.
+///
+/// # Returns
+///
+/// A `Result` containing the rendered HTML string or an `EmailError`.
 pub async fn render_html(template_name: &str, render_data: Value) -> Result<String, EmailError> {
     let email_template_filename = PathBuf::new()
         .join(EMAIL_TEMPLATES.get().unwrap())
@@ -397,6 +416,15 @@ pub async fn render_html(template_name: &str, render_data: Value) -> Result<Stri
     Ok(template)
 }
 
+/// Parses an error string and returns a more user-friendly error message.
+///
+/// # Arguments
+///
+/// * `error` - The error string to be parsed.
+///
+/// # Returns
+///
+/// A `Result` containing an `Option<String>` with the parsed error message.
 pub fn parse_error(error: String) -> Result<Option<String>> {
     let mut error = error;
     if error.contains("Contract call reverted with data: ") {
@@ -420,6 +448,15 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
     }
 }
 
+/// Sends an email using the configured SMTP server.
+///
+/// # Arguments
+///
+/// * `email` - The `EmailMessage` to be sent.
+///
+/// # Returns
+///
+/// A `Result` indicating success or an `EmailError`.
 pub async fn send_email(email: EmailMessage) -> Result<(), EmailError> {
     let smtp_server = SMTP_SERVER.get().unwrap();
 

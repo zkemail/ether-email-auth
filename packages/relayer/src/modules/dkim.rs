@@ -30,6 +30,16 @@ pub struct SignedDkimPublicKey {
 }
 
 impl<'a> DkimOracleClient<'a> {
+    /// Generates an agent for the DKIM Oracle Client.
+    ///
+    /// # Arguments
+    ///
+    /// * `pem_path` - The path to the PEM file.
+    /// * `replica_url` - The URL of the replica.
+    ///
+    /// # Returns
+    ///
+    /// An `anyhow::Result<Agent>`.
     pub fn gen_agent(pem_path: &str, replica_url: &str) -> anyhow::Result<Agent> {
         let identity = Secp256k1Identity::from_pem_file(pem_path)?;
         let transport = ReqwestTransport::create(replica_url)?;
@@ -40,6 +50,16 @@ impl<'a> DkimOracleClient<'a> {
         Ok(agent)
     }
 
+    /// Creates a new DkimOracleClient.
+    ///
+    /// # Arguments
+    ///
+    /// * `canister_id` - The ID of the canister.
+    /// * `agent` - The agent to use for communication.
+    ///
+    /// # Returns
+    ///
+    /// An `anyhow::Result<Self>`.
     pub fn new(canister_id: &str, agent: &'a Agent) -> anyhow::Result<Self> {
         let canister = CanisterBuilder::new()
             .with_canister_id(canister_id)
@@ -48,6 +68,16 @@ impl<'a> DkimOracleClient<'a> {
         Ok(Self { canister })
     }
 
+    /// Requests a signature for a DKIM public key.
+    ///
+    /// # Arguments
+    ///
+    /// * `selector` - The selector for the DKIM key.
+    /// * `domain` - The domain for the DKIM key.
+    ///
+    /// # Returns
+    ///
+    /// An `anyhow::Result<SignedDkimPublicKey>`.
     pub async fn request_signature(
         &self,
         selector: &str,
@@ -67,6 +97,19 @@ impl<'a> DkimOracleClient<'a> {
     }
 }
 
+/// Checks and updates the DKIM for a given email.
+///
+/// # Arguments
+///
+/// * `email` - The email address.
+/// * `parsed_email` - The parsed email data.
+/// * `controller_eth_addr` - The Ethereum address of the controller.
+/// * `wallet_addr` - The address of the wallet.
+/// * `account_salt` - The salt for the account.
+///
+/// # Returns
+///
+/// A `Result<()>`.
 pub async fn check_and_update_dkim(
     email: &str,
     parsed_email: &ParsedEmail,

@@ -7,7 +7,15 @@ use relayer_utils::{calculate_account_salt, extract_template_vals, TemplateValue
 use serde::{Deserialize, Serialize};
 use std::str;
 
-// Create request status API
+/// Retrieves the status of a request.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the request ID.
+///
+/// # Returns
+///
+/// A `Result` containing a JSON `RequestStatusResponse` or an `ApiError`.
 pub async fn request_status_api(
     Json(payload): Json<RequestStatusRequest>,
 ) -> Result<Json<RequestStatusResponse>, ApiError> {
@@ -33,6 +41,15 @@ pub async fn request_status_api(
     }))
 }
 
+/// Handles an acceptance request for a wallet.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the acceptance request details.
+///
+/// # Returns
+///
+/// A `Result` containing a JSON `AcceptanceResponse` or an `ApiError`.
 pub async fn handle_acceptance_request(
     Json(payload): Json<AcceptanceRequest>,
 ) -> Result<Json<AcceptanceResponse>, ApiError> {
@@ -193,6 +210,15 @@ pub async fn handle_acceptance_request(
     }))
 }
 
+/// Handles a recovery request for a wallet.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the recovery request details.
+///
+/// # Returns
+///
+/// A `Result` containing a JSON `RecoveryResponse` or an `ApiError`.
 pub async fn handle_recovery_request(
     Json(payload): Json<RecoveryRequest>,
 ) -> Result<Json<RecoveryResponse>, ApiError> {
@@ -386,6 +412,15 @@ pub async fn handle_recovery_request(
     }))
 }
 
+/// Handles the completion of a recovery request.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the complete recovery request details.
+///
+/// # Returns
+///
+/// A `Result` containing a `String` message or an `ApiError`.
 pub async fn handle_complete_recovery_request(
     Json(payload): Json<CompleteRecoveryRequest>,
 ) -> Result<String, ApiError> {
@@ -425,6 +460,15 @@ pub async fn handle_complete_recovery_request(
     }
 }
 
+/// Retrieves the account salt for a given email address and account code.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the email address and account code.
+///
+/// # Returns
+///
+/// A `Result` containing the account salt as a `String` or an `ApiError`.
 pub async fn get_account_salt(
     Json(payload): Json<GetAccountSaltRequest>,
 ) -> Result<String, ApiError> {
@@ -433,6 +477,15 @@ pub async fn get_account_salt(
     Ok(account_salt)
 }
 
+/// Marks a guardian as inactive for a given wallet.
+///
+/// # Arguments
+///
+/// * `payload` - A JSON payload containing the account and controller Ethereum addresses.
+///
+/// # Returns
+///
+/// A `Result` containing a `String` message or an `ApiError`.
 pub async fn inactive_guardian(
     Json(payload): Json<InactiveGuardianRequest>,
 ) -> Result<String, ApiError> {
@@ -472,6 +525,15 @@ fn parse_error_message(error_data: String) -> String {
     format!("Failed to parse contract error: {}", error_data)
 }
 
+/// Receives and processes an email.
+///
+/// # Arguments
+///
+/// * `email` - The raw email as a `String`.
+///
+/// # Returns
+///
+/// A `Result` containing `()` or an `ApiError`.
 pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
     println!("receive_email_api_fn");
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
