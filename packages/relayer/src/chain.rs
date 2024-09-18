@@ -16,6 +16,11 @@ pub struct ChainClient {
 }
 
 impl ChainClient {
+    /// Sets up a new ChainClient.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the new `ChainClient` if successful, or an error if not.
     pub async fn setup() -> Result<Self> {
         let wallet: LocalWallet = PRIVATE_KEY.get().unwrap().parse()?;
         let provider = Provider::<Http>::try_from(CHAIN_RPC_PROVIDER.get().unwrap())?;
@@ -28,6 +33,19 @@ impl ChainClient {
         Ok(Self { client })
     }
 
+    /// Sets the DKIM public key hash.
+    ///
+    /// # Arguments
+    ///
+    /// * `selector` - The selector string.
+    /// * `domain_name` - The domain name.
+    /// * `public_key_hash` - The public key hash as a 32-byte array.
+    /// * `signature` - The signature as Bytes.
+    /// * `dkim` - The ECDSA Owned DKIM Registry.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the transaction hash as a String if successful, or an error if not.
     pub async fn set_dkim_public_key_hash(
         &self,
         selector: String,
@@ -52,6 +70,17 @@ impl ChainClient {
         Ok(tx_hash)
     }
 
+    /// Checks if a DKIM public key hash is valid.
+    ///
+    /// # Arguments
+    ///
+    /// * `domain_name` - The domain name.
+    /// * `public_key_hash` - The public key hash as a 32-byte array.
+    /// * `dkim` - The ECDSA Owned DKIM Registry.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the hash is valid.
     pub async fn check_if_dkim_public_key_hash_valid(
         &self,
         domain_name: ::std::string::String,
@@ -65,6 +94,15 @@ impl ChainClient {
         Ok(is_valid)
     }
 
+    /// Gets the DKIM from a wallet.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the ECDSA Owned DKIM Registry if successful, or an error if not.
     pub async fn get_dkim_from_wallet(
         &self,
         controller_eth_addr: &str,
@@ -75,6 +113,15 @@ impl ChainClient {
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
+    /// Gets the DKIM from an email auth address.
+    ///
+    /// # Arguments
+    ///
+    /// * `email_auth_addr` - The email auth address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the ECDSA Owned DKIM Registry if successful, or an error if not.
     pub async fn get_dkim_from_email_auth(
         &self,
         email_auth_addr: &str,
@@ -86,6 +133,17 @@ impl ChainClient {
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
+    /// Gets the email auth address from a wallet.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `wallet_addr` - The wallet address as a string.
+    /// * `account_salt` - The account salt as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the email auth address as H160 if successful, or an error if not.
     pub async fn get_email_auth_addr_from_wallet(
         &self,
         controller_eth_addr: &str,
@@ -108,6 +166,15 @@ impl ChainClient {
         Ok(email_auth_addr)
     }
 
+    /// Checks if a wallet is deployed.
+    ///
+    /// # Arguments
+    ///
+    /// * `wallet_addr_str` - The wallet address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the wallet is deployed.
     pub async fn is_wallet_deployed(&self, wallet_addr_str: &str) -> Result<bool, ChainError> {
         let wallet_addr: H160 = wallet_addr_str.parse().map_err(ChainError::HexError)?;
         match self.client.get_code(wallet_addr, None).await {
@@ -122,6 +189,16 @@ impl ChainClient {
         }
     }
 
+    /// Gets the acceptance command templates.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of acceptance command templates.
     pub async fn get_acceptance_command_templates(
         &self,
         controller_eth_addr: &str,
@@ -140,6 +217,16 @@ impl ChainClient {
         Ok(templates[template_idx as usize].clone())
     }
 
+    /// Gets the recovery command templates.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a vector of recovery command templates.
     pub async fn get_recovery_command_templates(
         &self,
         controller_eth_addr: &str,
@@ -158,6 +245,17 @@ impl ChainClient {
         Ok(templates[template_idx as usize].clone())
     }
 
+    /// Completes the recovery process.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `account_eth_addr` - The account Ethereum address as a string.
+    /// * `complete_calldata` - The complete calldata as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the recovery was successful.
     pub async fn complete_recovery(
         &self,
         controller_eth_addr: &str,
@@ -207,6 +305,17 @@ impl ChainClient {
             .unwrap_or(false))
     }
 
+    /// Handles the acceptance process.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `email_auth_msg` - The email authentication message.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the acceptance was successful.
     pub async fn handle_acceptance(
         &self,
         controller_eth_addr: &str,
@@ -238,6 +347,17 @@ impl ChainClient {
             .unwrap_or(false))
     }
 
+    /// Handles the recovery process.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `email_auth_msg` - The email authentication message.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the recovery was successful.
     pub async fn handle_recovery(
         &self,
         controller_eth_addr: &str,
@@ -266,6 +386,15 @@ impl ChainClient {
             .unwrap_or(false))
     }
 
+    /// Gets the bytecode of a wallet.
+    ///
+    /// # Arguments
+    ///
+    /// * `wallet_addr` - The wallet address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the bytecode as Bytes.
     pub async fn get_bytecode(&self, wallet_addr: &str) -> std::result::Result<Bytes, ChainError> {
         let wallet_address: H160 = wallet_addr.parse().map_err(ChainError::HexError)?;
         let client_code = self
@@ -276,6 +405,16 @@ impl ChainClient {
         Ok(client_code)
     }
 
+    /// Gets the storage at a specific slot for a wallet.
+    ///
+    /// # Arguments
+    ///
+    /// * `wallet_addr` - The wallet address as a string.
+    /// * `slot` - The storage slot.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the storage value as H256.
     pub async fn get_storage_at(
         &self,
         wallet_addr: &str,
@@ -288,6 +427,17 @@ impl ChainClient {
             .await?)
     }
 
+    /// Gets the recovered account from an acceptance command.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `command_params` - The command parameters.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the recovered account address as H160.
     pub async fn get_recovered_account_from_acceptance_command(
         &self,
         controller_eth_addr: &str,
@@ -320,6 +470,17 @@ impl ChainClient {
         Ok(recovered_account)
     }
 
+    /// Gets the recovered account from a recovery command.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `command_params` - The command parameters.
+    /// * `template_idx` - The template index.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the recovered account address as H160.
     pub async fn get_recovered_account_from_recovery_command(
         &self,
         controller_eth_addr: &str,
@@ -353,6 +514,16 @@ impl ChainClient {
         Ok(recovered_account)
     }
 
+    /// Checks if an account is activated.
+    ///
+    /// # Arguments
+    ///
+    /// * `controller_eth_addr` - The controller Ethereum address as a string.
+    /// * `account_eth_addr` - The account Ethereum address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the account is activated.
     pub async fn get_is_activated(
         &self,
         controller_eth_addr: &str,

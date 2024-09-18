@@ -3,6 +3,11 @@ use axum::{routing::post, Router};
 use relayer_utils::LOG;
 use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 
+/// Runs the server and sets up the API routes.
+///
+/// # Returns
+///
+/// A `Result` indicating success or failure.
 pub async fn run_server() -> Result<()> {
     let addr = WEB_SERVER_ADDRESS.get().unwrap();
 

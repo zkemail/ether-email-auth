@@ -1,3 +1,5 @@
+//! This module contains the axum web server and its routes and custom errors.
+
 pub mod relayer_errors;
 pub mod rest_api;
 pub mod server;
