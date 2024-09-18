@@ -73,6 +73,28 @@ impl Database {
         Ok(())
     }
 
+    pub(crate) async fn test_db_connection(&self) -> Result<()> {
+        // Try up to 3 times
+        for i in 1..4 {
+            match sqlx::query("SELECT 1").execute(&self.db).await {
+                Ok(_) => {
+                    info!(LOG, "Connected successfully to database");
+                    return Ok(());
+                }
+                Err(e) => {
+                    error!(
+                        LOG,
+                        "Failed to initialize connection to the database: {:?}. Retrying...", e
+                    );
+                    tokio::time::sleep(Duration::from_secs(i * i)).await;
+                }
+            }
+        }
+        Err(anyhow::anyhow!(
+            "Failed to initialize database connection after 3 attempts"
+        ))
+    }
+
     pub(crate) async fn get_credentials(&self, account_code: &str) -> Result<Option<Credentials>> {
         let row = sqlx::query("SELECT * FROM credentials WHERE account_code = $1")
             .bind(account_code)
@@ -326,6 +348,7 @@ impl Database {
         &self,
         row: &Request,
     ) -> std::result::Result<(), DatabaseError> {
+        let request_id = row.request_id;
         let row = sqlx::query(
             "INSERT INTO requests (request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, is_for_recovery, template_idx, is_processed, is_success, email_nullifier, account_salt) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
         )
@@ -342,7 +365,7 @@ impl Database {
         .fetch_one(&self.db)
         .await
         .map_err(|e| DatabaseError::new("Failed to insert request", e))?;
-        info!(LOG, "Request inserted");
+        info!(LOG, "Request inserted with request_id: {}", request_id);
         Ok(())
     }
 }
