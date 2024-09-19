@@ -129,7 +129,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, Some(ExpectsReply::new(request_id))).await?;
         }
         EmailAuthEvent::Error {
             email_addr,
@@ -161,7 +161,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::GuardianAlreadyExists {
             account_eth_addr,
@@ -190,7 +190,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::RecoveryRequest {
             account_eth_addr,
@@ -226,7 +226,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, Some(ExpectsReply::new(request_id))).await?;
         }
         EmailAuthEvent::AcceptanceSuccess {
             account_eth_addr,
@@ -259,7 +259,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::RecoverySuccess {
             account_eth_addr,
@@ -292,7 +292,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::GuardianNotSet {
             account_eth_addr,
@@ -317,7 +317,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::GuardianNotRegistered {
             account_eth_addr,
@@ -355,7 +355,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 body_attachments: None,
             };
 
-            send_email(email).await?;
+            send_email(email, Some(ExpectsReply::new(request_id))).await?;
         }
         EmailAuthEvent::Ack {
             email_addr,
@@ -379,7 +379,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 reply_to: original_message_id,
                 body_attachments: None,
             };
-            send_email(email).await?;
+            send_email(email, None).await?;
         }
         EmailAuthEvent::NoOp => {}
     }
@@ -457,7 +457,10 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
 /// # Returns
 ///
 /// A `Result` indicating success or an `EmailError`.
-pub async fn send_email(email: EmailMessage) -> Result<(), EmailError> {
+pub async fn send_email(
+    email: EmailMessage,
+    expects_reply: Option<ExpectsReply>,
+) -> Result<(), EmailError> {
     let smtp_server = SMTP_SERVER.get().unwrap();
 
     // Send POST request to email server
@@ -476,5 +479,56 @@ pub async fn send_email(email: EmailMessage) -> Result<(), EmailError> {
         )));
     }
 
+    if let Some(expects_reply) = expects_reply {
+        let response_body: EmailResponse = response
+            .json()
+            .await
+            .map_err(|e| EmailError::Parse(format!("Failed to parse response JSON: {}", e)))?;
+
+        let message_id = response_body.message_id;
+        DB.add_expected_reply(&message_id, expects_reply.request_id)
+            .await?;
+    }
+
     Ok(())
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct EmailResponse {
+    status: String,
+    message_id: String,
+}
+
+pub struct ExpectsReply {
+    request_id: Option<String>,
+}
+
+impl ExpectsReply {
+    fn new(request_id: u32) -> Self {
+        Self {
+            request_id: Some(request_id.to_string()),
+        }
+    }
+
+    fn new_no_request_id() -> Self {
+        Self { request_id: None }
+    }
+}
+
+/// Checks if the email is a reply to a command that expects a reply.
+/// Will return false for duplicate replies.
+/// Will return true if the email is not a reply.
+pub async fn check_is_valid_request(email: &ParsedEmail) -> Result<bool, EmailError> {
+    let reply_message_id = match email
+        .headers
+        .get_header("In-Reply-To")
+        .and_then(|v| v.first().cloned())
+    {
+        Some(id) => id,
+        // Email is not a reply
+        None => return Ok(true),
+    };
+
+    let is_valid = DB.is_valid_reply(&reply_message_id).await?;
+    Ok(is_valid)
 }
