@@ -11,6 +11,7 @@ use tower_http::cors::{AllowHeaders, AllowMethods, Any, CorsLayer};
 pub async fn run_server() -> Result<()> {
     let addr = WEB_SERVER_ADDRESS.get().unwrap();
 
+    // Initialize the global DB ref before starting the server
     DB_CELL
         .get_or_init(|| async {
             dotenv::dotenv().ok();
@@ -28,6 +29,7 @@ pub async fn run_server() -> Result<()> {
     };
     info!(LOG, "Testing connection to database successfull");
 
+    // Initialize the API routes
     let mut app = Router::new()
         .route(
             "/api/echo",
@@ -51,6 +53,7 @@ pub async fn run_server() -> Result<()> {
             .allow_origin(Any),
     );
 
+    // Start the server
     trace!(LOG, "Listening API at {}", addr);
     axum::Server::bind(&addr.parse()?)
         .serve(app.into_make_service())

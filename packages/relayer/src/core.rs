@@ -104,6 +104,16 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     handle_email_request(params, invitation_code).await
 }
 
+/// Handles the email request based on the presence of an invitation code and whether it's for recovery.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+/// * `invitation_code` - An optional invitation code.
+///
+/// # Returns
+///
+/// A `Result` containing an `EmailAuthEvent` or an `EmailError`.
 async fn handle_email_request(
     params: EmailRequestContext,
     invitation_code: Option<String>,
@@ -141,6 +151,16 @@ async fn handle_email_request(
     }
 }
 
+/// Handles the acceptance of an email authentication request.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+/// * `invitation_code` - The invitation code from the email.
+///
+/// # Returns
+///
+/// A `Result` containing an `EmailAuthEvent` or an `EmailError`.
 async fn accept(
     params: EmailRequestContext,
     invitation_code: String,
@@ -150,6 +170,7 @@ async fn accept(
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
 
+    // Handle the acceptance with the client
     let is_accepted = CLIENT
         .handle_acceptance(
             &params.request.controller_eth_addr,
@@ -194,12 +215,22 @@ async fn accept(
     }
 }
 
+/// Handles the recovery process for an email authentication request.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A `Result` containing an `EmailAuthEvent` or an `EmailError`.
 async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailError> {
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
 
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
 
+    // Handle the recovery with the client
     let is_success = CLIENT
         .handle_recovery(
             &params.request.controller_eth_addr,
@@ -236,6 +267,16 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
     }
 }
 
+/// Extracts the masked command from public signals.
+///
+/// # Arguments
+///
+/// * `public_signals` - The vector of public signals.
+/// * `start_idx` - The starting index for command extraction.
+///
+/// # Returns
+///
+/// A `Result` containing the masked command as a `String` or an error.
 fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result<String> {
     // Gather signals from start_idx to start_idx + COMMAND_FIELDS
     let command_bytes: Vec<u8> = public_signals
@@ -253,6 +294,18 @@ fn get_masked_command(public_signals: Vec<U256>, start_idx: usize) -> Result<Str
     Ok(command)
 }
 
+/// Updates the request status in the database.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+/// * `is_success` - A boolean indicating whether the request was successful.
+/// * `email_nullifier` - The email nullifier as a byte array.
+/// * `account_salt` - The account salt as a byte array.
+///
+/// # Returns
+///
+/// A `Result` indicating success or an `EmailError`.
 async fn update_request(
     params: &EmailRequestContext,
     is_success: bool,
@@ -276,6 +329,15 @@ async fn update_request(
     Ok(())
 }
 
+/// Generates the email proof for authentication.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A `Result` containing the `EmailProof` and account salt, or an `EmailError`.
 async fn generate_email_proof(
     params: &EmailRequestContext,
 ) -> Result<(EmailProof, [u8; 32]), EmailError> {
@@ -314,6 +376,15 @@ async fn generate_email_proof(
     Ok((email_proof, account_salt))
 }
 
+/// Generates the template ID for the email authentication request.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A 32-byte array representing the template ID.
 fn get_template_id(params: &EmailRequestContext) -> [u8; 32] {
     let action = if params.request.is_for_recovery {
         "RECOVERY".to_string()
@@ -331,6 +402,15 @@ fn get_template_id(params: &EmailRequestContext) -> [u8; 32] {
     keccak256(encode(&tokens))
 }
 
+/// Retrieves and encodes the command parameters for the email authentication request.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A `Result` containing a vector of encoded command parameters or an `EmailError`.
 async fn get_encoded_command_params(
     params: &EmailRequestContext,
 ) -> Result<Vec<Bytes>, EmailError> {
@@ -365,6 +445,15 @@ async fn get_encoded_command_params(
     Ok(command_params_encoded)
 }
 
+/// Generates the email authentication message.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A `Result` containing the `EmailAuthMsg`, `EmailProof`, and account salt, or an `EmailError`.
 async fn get_email_auth_msg(
     params: &EmailRequestContext,
 ) -> Result<(EmailAuthMsg, EmailProof, [u8; 32]), EmailError> {
@@ -380,11 +469,17 @@ async fn get_email_auth_msg(
     Ok((email_auth_msg, email_proof, account_salt))
 }
 
+/// Represents the context for an email authentication request.
 #[derive(Debug, Clone)]
 struct EmailRequestContext {
+    /// The request details.
     request: Request,
+    /// The body of the email.
     email_body: String,
+    /// The account code as a string.
     account_code_str: String,
+    /// The full raw email.
     email: String,
+    /// The parsed email.
     parsed_email: ParsedEmail,
 }

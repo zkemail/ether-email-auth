@@ -4141,7 +4141,7 @@ dependencies = [
 [[package]]
 name = "relayer-utils"
 version = "0.3.7"
-source = "git+https://github.com/zkemail/relayer-utils.git?rev=94d78d6#94d78d67862b6d6c15bebac66d184c7557f6aff5"
+source = "git+https://github.com/zkemail/relayer-utils.git?rev=0c19631#0c196312b6ce7ce2c282d11e6c736e958b8df77a"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
@@ -4153,6 +4153,7 @@ dependencies = [
  "hmac-sha256",
  "itertools 0.10.5",
  "lazy_static",
+ "mailparse",
  "neon",
  "num-bigint",
  "num-traits",

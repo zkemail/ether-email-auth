@@ -15,17 +15,25 @@ use ic_utils::canister::*;
 
 use serde::Deserialize;
 
+/// Represents a client for interacting with the DKIM Oracle.
 #[derive(Debug, Clone)]
 pub struct DkimOracleClient<'a> {
+    /// The canister used for communication
     pub canister: Canister<'a>,
 }
 
+/// Represents a signed DKIM public key.
 #[derive(Default, CandidType, Deserialize, Debug, Clone)]
 pub struct SignedDkimPublicKey {
+    /// The selector for the DKIM key
     pub selector: String,
+    /// The domain for the DKIM key
     pub domain: String,
+    /// The signature of the DKIM key
     pub signature: String,
+    /// The public key
     pub public_key: String,
+    /// The hash of the public key
     pub public_key_hash: String,
 }
 
@@ -41,8 +49,13 @@ impl<'a> DkimOracleClient<'a> {
     ///
     /// An `anyhow::Result<Agent>`.
     pub fn gen_agent(pem_path: &str, replica_url: &str) -> anyhow::Result<Agent> {
+        // Create identity from PEM file
         let identity = Secp256k1Identity::from_pem_file(pem_path)?;
+
+        // Create transport using the replica URL
         let transport = ReqwestTransport::create(replica_url)?;
+
+        // Build and return the agent
         let agent = AgentBuilder::default()
             .with_identity(identity)
             .with_transport(transport)
@@ -61,6 +74,7 @@ impl<'a> DkimOracleClient<'a> {
     ///
     /// An `anyhow::Result<Self>`.
     pub fn new(canister_id: &str, agent: &'a Agent) -> anyhow::Result<Self> {
+        // Build the canister using the provided ID and agent
         let canister = CanisterBuilder::new()
             .with_canister_id(canister_id)
             .with_agent(agent)
@@ -83,11 +97,14 @@ impl<'a> DkimOracleClient<'a> {
         selector: &str,
         domain: &str,
     ) -> anyhow::Result<SignedDkimPublicKey> {
+        // Build the request to sign the DKIM public key
         let request = self
             .canister
             .update("sign_dkim_public_key")
             .with_args((selector, domain))
             .build::<(Result<SignedDkimPublicKey, String>,)>();
+
+        // Call the canister and wait for the response
         let response = request
             .call_and_wait_one::<Result<SignedDkimPublicKey, String>>()
             .await?
@@ -117,25 +134,36 @@ pub async fn check_and_update_dkim(
     wallet_addr: &str,
     account_salt: &str,
 ) -> Result<()> {
+    // Generate public key hash
     let mut public_key_n = parsed_email.public_key.clone();
     public_key_n.reverse();
     let public_key_hash = public_key_hash(&public_key_n)?;
     info!(LOG, "public_key_hash {:?}", public_key_hash);
+
+    // Get email domain
     let domain = parsed_email.get_email_domain()?;
     info!(LOG, "domain {:?}", domain);
+
+    // Check if wallet is deployed
     if CLIENT.get_bytecode(wallet_addr).await? == Bytes::from_static(&[0u8; 20]) {
         info!(LOG, "wallet not deployed");
         return Ok(());
     }
+
+    // Get email auth address
     let email_auth_addr = CLIENT
         .get_email_auth_addr_from_wallet(controller_eth_addr, wallet_addr, account_salt)
         .await?;
     let email_auth_addr = format!("0x{:x}", email_auth_addr);
+
+    // Get DKIM from wallet or email auth
     let mut dkim = CLIENT.get_dkim_from_wallet(controller_eth_addr).await?;
     if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::new() {
         dkim = CLIENT.get_dkim_from_email_auth(&email_auth_addr).await?;
     }
     info!(LOG, "dkim {:?}", dkim);
+
+    // Check if DKIM public key hash is valid
     if CLIENT
         .check_if_dkim_public_key_hash_valid(
             domain.clone(),
@@ -147,6 +175,8 @@ pub async fn check_and_update_dkim(
         info!(LOG, "public key registered");
         return Ok(());
     }
+
+    // Get selector
     let selector_def_path = env::var(SELECTOR_DEF_PATH_KEY)
         .map_err(|_| anyhow!("ENV var {} not set", SELECTOR_DEF_PATH_KEY))?;
     let selector_def_contents = fs::read_to_string(&selector_def_path)
@@ -158,17 +188,25 @@ pub async fn check_and_update_dkim(
         parsed_email.canonicalized_header[idxes.0..idxes.1].to_string()
     };
     info!(LOG, "selector {}", selector);
+
+    // Generate IC agent and create oracle client
     let ic_agent = DkimOracleClient::gen_agent(
         &env::var(PEM_PATH_KEY).unwrap(),
         &env::var(IC_REPLICA_URL_KEY).unwrap(),
     )?;
     let oracle_client = DkimOracleClient::new(&env::var(CANISTER_ID_KEY).unwrap(), &ic_agent)?;
+
+    // Request signature from oracle
     let oracle_result = oracle_client.request_signature(&selector, &domain).await?;
     info!(LOG, "DKIM oracle result {:?}", oracle_result);
+
+    // Process oracle response
     let public_key_hash = hex::decode(&oracle_result.public_key_hash[2..])?;
     info!(LOG, "public_key_hash from oracle {:?}", public_key_hash);
     let signature = Bytes::from_hex(&oracle_result.signature[2..])?;
     info!(LOG, "signature {:?}", signature);
+
+    // Set DKIM public key hash
     let tx_hash = CLIENT
         .set_dkim_public_key_hash(
             selector,
