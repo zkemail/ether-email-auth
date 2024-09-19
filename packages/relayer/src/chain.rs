@@ -10,6 +10,7 @@ const CONFIRMATIONS: usize = 1;
 
 type SignerM = SignerMiddleware<Provider<Http>, LocalWallet>;
 
+/// Represents a client for interacting with the blockchain.
 #[derive(Debug, Clone)]
 pub struct ChainClient {
     pub client: Arc<SignerM>,
@@ -25,6 +26,7 @@ impl ChainClient {
         let wallet: LocalWallet = PRIVATE_KEY.get().unwrap().parse()?;
         let provider = Provider::<Http>::try_from(CHAIN_RPC_PROVIDER.get().unwrap())?;
 
+        // Create a new SignerMiddleware with the provider and wallet
         let client = Arc::new(SignerMiddleware::new(
             provider,
             wallet.with_chain_id(*CHAIN_ID.get().unwrap()),
@@ -58,13 +60,18 @@ impl ChainClient {
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
+        // Call the contract method
         let call = dkim.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
         let tx = call.send().await?;
+
+        // Wait for the transaction to be confirmed
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
             .await?
             .ok_or(anyhow!("No receipt"))?;
+
+        // Format the transaction hash
         let tx_hash = receipt.transaction_hash;
         let tx_hash = format!("0x{}", hex::encode(tx_hash.as_bytes()));
         Ok(tx_hash)
@@ -87,6 +94,7 @@ impl ChainClient {
         public_key_hash: [u8; 32],
         dkim: ECDSAOwnedDKIMRegistry<SignerM>,
     ) -> Result<bool> {
+        // Call the contract method to check if the hash is valid
         let is_valid = dkim
             .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
             .call()
@@ -107,9 +115,16 @@ impl ChainClient {
         &self,
         controller_eth_addr: &str,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Call the dkim method to get the DKIM registry address
         let dkim = contract.dkim().call().await?;
+
+        // Create and return a new ECDSAOwnedDKIMRegistry instance
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
@@ -126,10 +141,16 @@ impl ChainClient {
         &self,
         email_auth_addr: &str,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
+        // Parse the email auth address
         let email_auth_address: H160 = email_auth_addr.parse()?;
+
+        // Create a new EmailAuth contract instance
         let contract = EmailAuth::new(email_auth_address, self.client.clone());
+
+        // Call the dkim_registry_addr method to get the DKIM registry address
         let dkim = contract.dkim_registry_addr().call().await?;
 
+        // Create and return a new ECDSAOwnedDKIMRegistry instance
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
@@ -150,11 +171,18 @@ impl ChainClient {
         wallet_addr: &str,
         account_salt: &str,
     ) -> Result<H160, anyhow::Error> {
+        // Parse the controller and wallet Ethereum addresses
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let wallet_address: H160 = wallet_addr.parse()?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Decode the account salt
         let account_salt_bytes = hex::decode(account_salt.trim_start_matches("0x"))
             .map_err(|e| anyhow!("Failed to decode account_salt: {}", e))?;
+
+        // Compute the email auth address
         let email_auth_addr = contract
             .compute_email_auth_address(
                 wallet_address,
@@ -176,7 +204,10 @@ impl ChainClient {
     ///
     /// A `Result` containing a boolean indicating if the wallet is deployed.
     pub async fn is_wallet_deployed(&self, wallet_addr_str: &str) -> Result<bool, ChainError> {
+        // Parse the wallet address
         let wallet_addr: H160 = wallet_addr_str.parse().map_err(ChainError::HexError)?;
+
+        // Get the bytecode at the wallet address
         match self.client.get_code(wallet_addr, None).await {
             Ok(code) => Ok(!code.is_empty()),
             Err(e) => {
@@ -204,9 +235,14 @@ impl ChainClient {
         controller_eth_addr: &str,
         template_idx: u64,
     ) -> Result<Vec<String>, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Get the acceptance command templates
         let templates = contract
             .acceptance_command_templates()
             .call()
@@ -232,9 +268,14 @@ impl ChainClient {
         controller_eth_addr: &str,
         template_idx: u64,
     ) -> Result<Vec<String>, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Get the recovery command templates
         let templates = contract
             .recovery_command_templates()
             .call()
@@ -262,30 +303,30 @@ impl ChainClient {
         account_eth_addr: &str,
         complete_calldata: &str,
     ) -> Result<bool, ChainError> {
-        println!("doing complete recovery");
+        // Parse the controller and account Ethereum addresses
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
-        println!("controller_eth_addr: {:?}", controller_eth_addr);
 
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Decode the complete calldata
         let decoded_calldata =
             hex::decode(complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
-        println!("decoded_calldata : {:?}", decoded_calldata);
 
         let account_eth_addr = account_eth_addr
             .parse::<H160>()
             .map_err(ChainError::HexError)?;
-        println!("account_eth_addr : {:?}", account_eth_addr);
 
+        // Call the complete_recovery method
         let call = contract.complete_recovery(account_eth_addr, Bytes::from(decoded_calldata));
-        println!("call: {:?}", call);
 
         let tx = call
             .send()
             .await
             .map_err(|e| ChainError::contract_error("Failed to call complete_recovery", e))?;
-        println!("tx: {:?}", tx);
-        // If the transaction is successful, the function will return true and false otherwise.
+
+        // Wait for the transaction to be confirmed
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
@@ -297,8 +338,8 @@ impl ChainClient {
                 )
             })?
             .ok_or(anyhow!("No receipt"))?;
-        println!("receipt : {:?}", receipt);
 
+        // Check if the transaction was successful
         Ok(receipt
             .status
             .map(|status| status == U64::from(1))
@@ -322,14 +363,20 @@ impl ChainClient {
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> std::result::Result<bool, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Call the handle_acceptance method
         let call = contract.handle_acceptance(email_auth_msg, template_idx.into());
         let tx = call
             .send()
             .await
             .map_err(|e| ChainError::contract_error("Failed to call handle_acceptance", e))?;
-        // If the transaction is successful, the function will return true and false otherwise.
+
+        // Wait for the transaction to be confirmed
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
@@ -341,6 +388,8 @@ impl ChainClient {
                 )
             })?
             .ok_or(anyhow!("No receipt"))?;
+
+        // Check if the transaction was successful
         Ok(receipt
             .status
             .map(|status| status == U64::from(1))
@@ -364,14 +413,20 @@ impl ChainClient {
         email_auth_msg: EmailAuthMsg,
         template_idx: u64,
     ) -> std::result::Result<bool, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Call the handle_recovery method
         let call = contract.handle_recovery(email_auth_msg, template_idx.into());
         let tx = call
             .send()
             .await
             .map_err(|e| ChainError::contract_error("Failed to call handle_recovery", e))?;
-        // If the transaction is successful, the function will return true and false otherwise.
+
+        // Wait for the transaction to be confirmed
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
@@ -380,6 +435,8 @@ impl ChainClient {
                 ChainError::provider_error("Failed to get receipt after calling handle_recovery", e)
             })?
             .ok_or(anyhow!("No receipt"))?;
+
+        // Check if the transaction was successful
         Ok(receipt
             .status
             .map(|status| status == U64::from(1))
@@ -396,7 +453,10 @@ impl ChainClient {
     ///
     /// A `Result` containing the bytecode as Bytes.
     pub async fn get_bytecode(&self, wallet_addr: &str) -> std::result::Result<Bytes, ChainError> {
+        // Parse the wallet address
         let wallet_address: H160 = wallet_addr.parse().map_err(ChainError::HexError)?;
+
+        // Get the bytecode at the wallet address
         let client_code = self
             .client
             .get_code(wallet_address, None)
@@ -420,7 +480,10 @@ impl ChainClient {
         wallet_addr: &str,
         slot: u64,
     ) -> Result<H256, anyhow::Error> {
+        // Parse the wallet address
         let wallet_address: H160 = wallet_addr.parse()?;
+
+        // Get the storage at the specified slot
         Ok(self
             .client
             .get_storage_at(wallet_address, u64_to_u8_array_32(slot).into(), None)
@@ -444,16 +507,23 @@ impl ChainClient {
         command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Encode the command parameters
         let command_params_bytes = command_params
-            .iter() // Change here: use iter() instead of map() directly on Vec
+            .iter()
             .map(|s| {
-                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
+                s.abi_encode(None)
                     .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
-            }) // Error handling
+            })
             .collect::<Vec<_>>();
+
+        // Call the extract_recovered_account_from_acceptance_command method
         let recovered_account = contract
             .extract_recovered_account_from_acceptance_command(
                 command_params_bytes,
@@ -487,17 +557,24 @@ impl ChainClient {
         command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, ChainError> {
+        // Parse the controller Ethereum address
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Encode the command parameters
         let command_params_bytes = command_params
-            .iter() // Change here: use iter() instead of map() directly on Vec
+            .iter()
             .map(|s| {
                 s.abi_encode(None).map_err(|_| {
                     ChainError::Validation("Error encoding subject parameters".to_string())
                 })
             })
             .collect::<Result<Vec<_>, ChainError>>()?;
+
+        // Call the extract_recovered_account_from_recovery_command method
         let recovered_account = contract
             .extract_recovered_account_from_recovery_command(
                 command_params_bytes,
@@ -529,10 +606,15 @@ impl ChainClient {
         controller_eth_addr: &str,
         account_eth_addr: &str,
     ) -> Result<bool, ChainError> {
+        // Parse the controller and account Ethereum addresses
         let controller_eth_addr: H160 =
             controller_eth_addr.parse().map_err(ChainError::HexError)?;
         let account_eth_addr: H160 = account_eth_addr.parse().map_err(ChainError::HexError)?;
+
+        // Create a new EmailAccountRecovery contract instance
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
+
+        // Call the is_activated method
         let is_activated = contract
             .is_activated(account_eth_addr)
             .call()
