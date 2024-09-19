@@ -4,6 +4,10 @@ use std::{env, path::PathBuf};
 
 use dotenv::dotenv;
 
+/// Configuration struct for the Relayer service.
+///
+/// This struct holds various configuration parameters needed for the Relayer service,
+/// including SMTP settings, database path, web server address, and blockchain-related information.
 #[derive(Clone)]
 pub struct RelayerConfig {
     pub smtp_server: String,
@@ -21,9 +25,19 @@ pub struct RelayerConfig {
 }
 
 impl RelayerConfig {
+    /// Creates a new instance of RelayerConfig.
+    ///
+    /// This function loads environment variables using dotenv and populates
+    /// the RelayerConfig struct with the values.
+    ///
+    /// # Returns
+    ///
+    /// A new instance of RelayerConfig.
     pub fn new() -> Self {
+        // Load environment variables from .env file
         dotenv().ok();
 
+        // Construct and return the RelayerConfig instance
         Self {
             smtp_server: env::var(SMTP_SERVER_KEY).unwrap(),
             relayer_email_addr: env::var(RELAYER_EMAIL_ADDR_KEY).unwrap(),
@@ -45,6 +59,13 @@ impl RelayerConfig {
 }
 
 impl Default for RelayerConfig {
+    /// Provides a default instance of RelayerConfig.
+    ///
+    /// This implementation simply calls the `new()` method to create a default instance.
+    ///
+    /// # Returns
+    ///
+    /// A default instance of RelayerConfig.
     fn default() -> Self {
         Self::new()
     }

@@ -10,6 +10,7 @@ use rustc_hex::FromHexError;
 use serde_json::json;
 use thiserror::Error;
 
+/// Custom error type for API-related errors
 #[derive(Error, Debug)]
 pub enum ApiError {
     #[error("Database error: {0}")]
@@ -30,6 +31,7 @@ pub enum ApiError {
     Email(#[from] EmailError),
 }
 
+/// Custom error type for email-related errors
 #[derive(Error, Debug)]
 pub enum EmailError {
     #[error("Email body error: {0}")]
@@ -65,6 +67,7 @@ pub enum EmailError {
     Anyhow(#[from] anyhow::Error),
 }
 
+/// Custom error type for blockchain-related errors
 #[derive(Error, Debug)]
 pub enum ChainError {
     #[error("Contract error: {0}")]
@@ -98,6 +101,7 @@ impl ChainError {
     }
 }
 
+/// Custom error type for database-related errors
 #[derive(Debug, thiserror::Error)]
 #[error("{msg}: {source}")]
 pub struct DatabaseError {
@@ -115,6 +119,7 @@ impl DatabaseError {
     }
 }
 
+/// Wrapper for contract-related errors
 #[derive(Debug)]
 pub struct ContractErrorWrapper {
     msg: String,
@@ -136,6 +141,7 @@ impl ContractErrorWrapper {
     }
 }
 
+/// Wrapper for signer middleware-related errors
 #[derive(Debug)]
 pub struct SignerMiddlewareErrorWrapper {
     msg: String,
@@ -160,6 +166,7 @@ impl SignerMiddlewareErrorWrapper {
     }
 }
 
+/// Wrapper for provider-related errors
 #[derive(Debug)]
 pub struct ProviderErrorWrapper {
     msg: String,

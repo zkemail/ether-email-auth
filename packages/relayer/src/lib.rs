@@ -46,9 +46,19 @@ pub static SMTP_SERVER: OnceLock<String> = OnceLock::new();
 
 static DB_CELL: OnceCell<Arc<Database>> = OnceCell::const_new();
 
+/// Wrapper struct for database access
 struct DBWrapper;
 
 impl DBWrapper {
+    /// Retrieves the database instance.
+    ///
+    /// # Returns
+    ///
+    /// A reference to the `Arc<Database>`.
+    ///
+    /// # Panics
+    ///
+    /// Panics if the database is not initialized.
     fn get() -> &'static Arc<Database> {
         DB_CELL.get().expect("Database not initialized")
     }
@@ -58,13 +68,14 @@ impl std::ops::Deref for DBWrapper {
     type Target = Database;
 
     fn deref(&self) -> &Self::Target {
-        &**Self::get()
+        Self::get()
     }
 }
 
 static DB: DBWrapper = DBWrapper;
 
 lazy_static! {
+    /// Shared instance of the `ChainClient`.
     pub static ref CLIENT: Arc<ChainClient> = {
         dotenv().ok();
         let client = tokio::task::block_in_place(|| {
@@ -75,12 +86,23 @@ lazy_static! {
         .unwrap();
         Arc::new(client)
     };
+    /// Shared mutex for synchronization.
     pub static ref SHARED_MUTEX: Arc<Mutex<i32>> = Arc::new(Mutex::new(0));
 }
 
+/// Runs the relayer with the given configuration.
+///
+/// # Arguments
+///
+/// * `config` - The configuration for the relayer.
+///
+/// # Returns
+///
+/// A `Result` indicating success or failure.
 pub async fn run(config: RelayerConfig) -> Result<()> {
     info!(LOG, "Starting relayer");
 
+    // Initialize global configuration
     CIRCUITS_DIR_PATH.set(config.circuits_dir_path).unwrap();
     WEB_SERVER_ADDRESS.set(config.web_server_address).unwrap();
     PROVER_ADDRESS.set(config.prover_address).unwrap();
@@ -97,6 +119,7 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
         .unwrap();
     SMTP_SERVER.set(config.smtp_server).unwrap();
 
+    // Spawn the API server task
     let api_server_task = tokio::task::spawn(async move {
         loop {
             match run_server().await {
@@ -106,13 +129,14 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
                 }
                 Err(err) => {
                     error!(LOG, "Error api server: {}", err);
-                    // Optionally, add a delay before restarting
+                    // Add a delay before restarting to prevent rapid restart loops
                     tokio::time::sleep(Duration::from_secs(5)).await;
                 }
             }
         }
     });
 
+    // Wait for the API server task to complete
     let _ = tokio::join!(api_server_task);
 
     Ok(())
