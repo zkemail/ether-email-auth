@@ -4141,7 +4141,7 @@ dependencies = [
 [[package]]
 name = "relayer-utils"
 version = "0.3.7"
-source = "git+https://github.com/zkemail/relayer-utils.git?rev=0c19631#0c196312b6ce7ce2c282d11e6c736e958b8df77a"
+source = "git+https://github.com/zkemail/relayer-utils.git?rev=6fb85e6#6fb85e6b867165a5deb2fe877bc81827b6bf001e"
 dependencies = [
  "anyhow",
  "base64 0.21.7",
