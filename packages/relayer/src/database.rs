@@ -84,6 +84,17 @@ impl Database {
         )
         .execute(&self.db)
         .await?;
+
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS expected_replies (
+                message_id VARCHAR(255) PRIMARY KEY,
+                request_id VARCHAR(255),
+                has_reply BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'UTC')
+            );",
+        )
+        .execute(&self.db)
+        .await?;
         Ok(())
     }
 
@@ -391,5 +402,42 @@ impl Database {
         .map_err(|e| DatabaseError::new("Failed to insert request", e))?;
         info!(LOG, "Request inserted with request_id: {}", request_id);
         Ok(())
+    }
+
+    pub(crate) async fn add_expected_reply(
+        &self,
+        message_id: &str,
+        request_id: Option<String>,
+    ) -> Result<(), DatabaseError> {
+        let query = "
+                INSERT INTO expected_replies (message_id, request_id)
+                VALUES ($1, $2);
+            ";
+        sqlx::query(query)
+            .bind(message_id)
+            .bind(request_id)
+            .execute(&self.db)
+            .await
+            .map_err(|e| DatabaseError::new("Failed to insert expected_reply", e))?;
+        Ok(())
+    }
+
+    // Checks if the given message_id corresponds to a valid reply.
+    // This function updates the `has_reply` field to true if the message_id exists and hasn't been replied to yet.
+    // Returns true if the update was successful (i.e., a valid reply was recorded), false otherwise,
+    //  also if no record exists to be updated.
+    pub(crate) async fn is_valid_reply(&self, message_id: &str) -> Result<bool, DatabaseError> {
+        let query = "
+                UPDATE expected_replies
+                SET has_reply = true
+                WHERE message_id = $1 AND has_reply = false
+                RETURNING *;
+            ";
+        let result = sqlx::query(query)
+            .bind(message_id)
+            .execute(&self.db)
+            .await
+            .map_err(|e| DatabaseError::new("Failed to validate reply", e))?;
+        Ok(result.rows_affected() > 0)
     }
 }
