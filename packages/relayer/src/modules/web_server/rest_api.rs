@@ -3,7 +3,9 @@ use anyhow::Result;
 use axum::Json;
 use hex::decode;
 use rand::Rng;
-use relayer_utils::{calculate_account_salt, extract_template_vals, TemplateValue, LOG};
+use relayer_utils::{
+    calculate_account_salt, extract_template_vals_from_command, TemplateValue, LOG,
+};
 use serde::{Deserialize, Serialize};
 use std::str;
 
@@ -60,7 +62,7 @@ pub async fn handle_acceptance_request(
         .await?;
 
     // Extract and validate command parameters
-    let command_params = extract_template_vals(&payload.command, command_template)
+    let command_params = extract_template_vals_from_command(&payload.command, command_template)
         .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
 
     // Recover the account address
@@ -185,7 +187,7 @@ pub async fn handle_recovery_request(
         .await?;
 
     // Extract and validate command parameters
-    let command_params = extract_template_vals(&payload.command, command_template)
+    let command_params = extract_template_vals_from_command(&payload.command, command_template)
         .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
 
     // Recover the account address
