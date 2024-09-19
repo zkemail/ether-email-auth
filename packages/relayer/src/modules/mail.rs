@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tokio::fs::read_to_string;
 
+/// Represents different types of email authentication events.
 #[derive(Debug, Clone)]
 pub enum EmailAuthEvent {
     AcceptanceRequest {
@@ -62,6 +63,7 @@ pub enum EmailAuthEvent {
     NoOp,
 }
 
+/// Represents an email message to be sent.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmailMessage {
     pub to: String,
@@ -73,6 +75,7 @@ pub struct EmailMessage {
     pub body_attachments: Option<Vec<EmailAttachment>>,
 }
 
+/// Represents an attachment in an email message.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmailAttachment {
     pub inline_id: String,
@@ -98,8 +101,10 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             command,
             account_code,
         } => {
+            // Prepare the command with the account code
             let command = format!("{} Code {}", command, account_code);
 
+            // Create the plain text body
             let body_plain = format!(
                 "You have received an guardian request from the wallet address {}. \
                 {} Code {}. \
@@ -111,6 +116,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
 
             let subject = "Email Recovery: Acceptance Request".to_string();
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
@@ -119,6 +125,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             });
             let body_html = render_html("acceptance_request.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject,
@@ -145,12 +152,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 error
             );
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "error": error,
                 "userEmailAddr": email_addr,
             });
             let body_html = render_html("error.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: email_addr,
                 subject,
@@ -174,12 +183,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 guardian_email_addr, account_eth_addr
             );
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
             });
             let body_html = render_html("guardian_already_exists.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
@@ -208,6 +219,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
 
             let subject = "Email Recovery: Recovery Request".to_string();
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
@@ -216,6 +228,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             });
             let body_html = render_html("recovery_request.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject,
@@ -242,6 +255,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, request_id
             );
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
@@ -249,6 +263,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             });
             let body_html = render_html("acceptance_success.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
@@ -275,6 +290,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, request_id
             );
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
@@ -282,6 +298,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             });
             let body_html = render_html("recovery_success.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
@@ -301,12 +318,14 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             let subject = "Guardian Not Set";
             let body_plain = format!("Guardian not set for wallet address {}", account_eth_addr);
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "walletAddress": account_eth_addr,
                 "userEmailAddr": guardian_email_addr,
             });
             let body_html = render_html("guardian_not_set.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject: subject.to_string(),
@@ -335,6 +354,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, request_id
             );
 
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
                 "walletAddress": account_eth_addr,
@@ -345,6 +365,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             let subject = "Guardian Not Registered".to_string();
             let body_html = render_html("credential_not_present.html", render_data).await?;
 
+            // Create and send the email
             let email = EmailMessage {
                 to: guardian_email_addr,
                 subject,
@@ -367,9 +388,11 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 "Hi {}!\nYour email with the command {} is received.",
                 email_addr, command
             );
+            // Prepare data for HTML rendering
             let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": command});
             let body_html = render_html("acknowledgement.html", render_data).await?;
             let subject = format!("Re: {}", original_subject);
+            // Create and send the email
             let email = EmailMessage {
                 to: email_addr,
                 subject,
@@ -397,10 +420,13 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
 /// # Returns
 ///
 /// A `Result` containing the rendered HTML string or an `EmailError`.
-pub async fn render_html(template_name: &str, render_data: Value) -> Result<String, EmailError> {
+async fn render_html(template_name: &str, render_data: Value) -> Result<String, EmailError> {
+    // Construct the full path to the email template
     let email_template_filename = PathBuf::new()
         .join(EMAIL_TEMPLATES.get().unwrap())
         .join(template_name);
+
+    // Read the email template file
     let email_template = read_to_string(&email_template_filename)
         .await
         .map_err(|e| {
@@ -410,8 +436,10 @@ pub async fn render_html(template_name: &str, render_data: Value) -> Result<Stri
             ))
         })?;
 
+    // Create a new Handlebars instance
     let reg = Handlebars::new();
 
+    // Render the template with the provided data
     let template = reg.render_template(&email_template, &render_data)?;
     Ok(template)
 }
@@ -425,9 +453,10 @@ pub async fn render_html(template_name: &str, render_data: Value) -> Result<Stri
 /// # Returns
 ///
 /// A `Result` containing an `Option<String>` with the parsed error message.
-pub fn parse_error(error: String) -> Result<Option<String>> {
+fn parse_error(error: String) -> Result<Option<String>> {
     let mut error = error;
     if error.contains("Contract call reverted with data: ") {
+        // Extract and decode the revert data
         let revert_data = error
             .replace("Contract call reverted with data: ", "")
             .split_at(10)
@@ -441,6 +470,7 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
         error = String::from_utf8(revert_bytes).unwrap().trim().to_string();
     }
 
+    // Match known error messages and provide user-friendly responses
     match error.as_str() {
         "Account is already created" => Ok(Some(error)),
         "insufficient balance" => Ok(Some("You don't have sufficient balance".to_string())),
@@ -453,11 +483,12 @@ pub fn parse_error(error: String) -> Result<Option<String>> {
 /// # Arguments
 ///
 /// * `email` - The `EmailMessage` to be sent.
+/// * `expects_reply` - An optional `ExpectsReply` struct indicating if a reply is expected.
 ///
 /// # Returns
 ///
 /// A `Result` indicating success or an `EmailError`.
-pub async fn send_email(
+async fn send_email(
     email: EmailMessage,
     expects_reply: Option<ExpectsReply>,
 ) -> Result<(), EmailError> {
@@ -472,6 +503,7 @@ pub async fn send_email(
         .await
         .map_err(|e| EmailError::Send(format!("Failed to send email: {}", e)))?;
 
+    // Check if the email was sent successfully
     if !response.status().is_success() {
         return Err(EmailError::Send(format!(
             "Failed to send email: {}",
@@ -479,6 +511,7 @@ pub async fn send_email(
         )));
     }
 
+    // Handle expected reply if necessary
     if let Some(expects_reply) = expects_reply {
         let response_body: EmailResponse = response
             .json()
@@ -493,23 +526,31 @@ pub async fn send_email(
     Ok(())
 }
 
+/// Represents the response from the email server after sending an email.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct EmailResponse {
     status: String,
     message_id: String,
 }
 
+/// Represents an expectation of a reply to an email.
 pub struct ExpectsReply {
     request_id: Option<String>,
 }
 
 impl ExpectsReply {
+    /// Creates a new `ExpectsReply` instance with a request ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `request_id` - The ID of the request expecting a reply.
     fn new(request_id: u32) -> Self {
         Self {
             request_id: Some(request_id.to_string()),
         }
     }
 
+    /// Creates a new `ExpectsReply` instance without a request ID.
     fn new_no_request_id() -> Self {
         Self { request_id: None }
     }
@@ -518,17 +559,27 @@ impl ExpectsReply {
 /// Checks if the email is a reply to a command that expects a reply.
 /// Will return false for duplicate replies.
 /// Will return true if the email is not a reply.
+///
+/// # Arguments
+///
+/// * `email` - The `ParsedEmail` to be checked.
+///
+/// # Returns
+///
+/// A `Result` containing a boolean indicating if the request is valid.
 pub async fn check_is_valid_request(email: &ParsedEmail) -> Result<bool, EmailError> {
+    // Check if the email is a reply by looking for the "In-Reply-To" header
     let reply_message_id = match email
         .headers
         .get_header("In-Reply-To")
         .and_then(|v| v.first().cloned())
     {
         Some(id) => id,
-        // Email is not a reply
+        // Email is not a reply, so it's valid
         None => return Ok(true),
     };
 
+    // Check if the reply is valid (not a duplicate) using the database
     let is_valid = DB.is_valid_reply(&reply_message_id).await?;
     Ok(is_valid)
 }
