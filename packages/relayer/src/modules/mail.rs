@@ -339,7 +339,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
             );
             let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": subject});
             let body_html = render_html("acknowledgement.html", render_data).await?;
-            let subject = format!("Email Wallet Notification. Acknowledgement.");
+            let subject = format!("Re: {}", subject);
             let email = EmailMessage {
                 to: email_addr,
                 subject,
