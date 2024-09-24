@@ -21,10 +21,9 @@ public_path="${buildDir}/rapidsnark_public_${circuitName}_${nonce}.json"
 cd "${SCRIPT_DIR}"
 echo "entered zk email path: ${SCRIPT_DIR}"
 
-echo "NODE_OPTIONS='--max-old-space-size=644000' snarkjs wc "${paramsDir}/${circuitName}.wasm" "${input_path}" "${witness_path}""
-NODE_OPTIONS='--max-old-space-size=644000' snarkjs wc "${paramsDir}/${circuitName}.wasm" "${input_path}" "${witness_path}"  | tee /dev/stderr
+./email_auth_with_body_parsing_with_qp_encoding "${input_path}" "${witness_path}"  | tee /dev/stderr
 status_jswitgen=$?
-echo "✓ Finished witness generation with js! ${status_jswitgen}"
+echo "✓ Finished witness generation with cpp! ${status_jswitgen}"
 
 # TODO: Get C-based witness gen to work
 # echo "/${build_dir}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME} ${input_wallet_path} ${witness_path}"
@@ -43,14 +42,14 @@ if [ $isLocal = 1 ]; then
     status_prover=$?
     echo "✓ Finished slow proofgen! Status: ${status_prover}"
 else
-    # RAPIDSNARK PROVER (10x FASTER)
-    echo "ldd ${SCRIPT_DIR}/rapidsnark/build/prover"
-    ldd "${SCRIPT_DIR}/rapidsnark/build/prover"
+    # RAPIDSNARK PROVER GPU
+    echo "ldd ${SCRIPT_DIR}/rapidsnark/package/bin/prover_cuda"
+    ldd "${SCRIPT_DIR}/rapidsnark/package/bin/prover_cuda"
     status_lld=$?
     echo "✓ lld prover dependencies present! ${status_lld}"
 
-    echo "${SCRIPT_DIR}/rapidsnark/build/prover ${paramsDir}/${circuitName}.zkey ${witness_path} ${proof_path} ${public_path}"
-    "${SCRIPT_DIR}/rapidsnark/build/prover" "${paramsDir}/${circuitName}.zkey" "${witness_path}" "${proof_path}" "${public_path}"  | tee /dev/stderr
+    echo "${SCRIPT_DIR}/rapidsnark/package/bin/prover_cuda ${paramsDir}/${circuitName}.zkey ${witness_path} ${proof_path} ${public_path}"
+    "${SCRIPT_DIR}/rapidsnark/package/bin/prover_cuda" "${paramsDir}/${circuitName}.zkey" "${witness_path}" "${proof_path}" "${public_path}"  | tee /dev/stderr
     status_prover=$?
     echo "✓ Finished rapid proofgen! Status: ${status_prover}"
 fi
