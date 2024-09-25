@@ -23,8 +23,6 @@ def store_input(circuit_name: str, nonce: str, json_data: dict):
     cur_dir = get_cur_dir()
     print(f"Current dir: {cur_dir}")
     build_dir = os.path.join(cur_dir, "build")
-    if not os.path.exists(build_dir):
-        os.makedirs(build_dir)
     # check if build_dir exists
     if not os.path.exists(build_dir):
         os.makedirs(build_dir)
@@ -35,7 +33,7 @@ def store_input(circuit_name: str, nonce: str, json_data: dict):
     )
     print(f"Json file path: {json_file_path}")
     print(f"Json data: {json_data}")
-    logger.info(f"Store user input to {json_file_path}")
+    # logger.info(f"Store user input to {json_file_path}")
     with open(json_file_path, "w") as json_file:
         json_file.write(json.dumps(json_data))
     print("Stored input")
@@ -47,7 +45,7 @@ def load_proof(circuit_name: str, nonce: str) -> dict:
     json_file_path = os.path.join(
         build_dir, "rapidsnark_proof_" + circuit_name + "_" + nonce + ".json"
     )
-    logger.info(f"Loading proof from {json_file_path}")
+    # logger.info(f"Loading proof from {json_file_path}")
     with open(json_file_path, "r") as json_file:
         return json.loads(json_file.read())
 
@@ -58,7 +56,7 @@ def load_pub_signals(circuit_name: str, nonce: str) -> dict:
     json_file_path = os.path.join(
         build_dir, "rapidsnark_public_" + circuit_name + "_" + nonce + ".json"
     )
-    logger.info(f"Loading public signals from {json_file_path}")
+    # logger.info(f"Loading public signals from {json_file_path}")
     with open(json_file_path, "r") as json_file:
         return json.loads(json_file.read())
 
@@ -67,9 +65,9 @@ def gen_proof(circuit_name: str, nonce: str, is_local: bool):
     is_local_int: int = 1 if is_local else 0
     cur_dir = get_cur_dir()
     params_dir = os.path.join(cur_dir, "params")
-    logger.info(f"Params dir: {params_dir}")
+    # logger.info(f"Params dir: {params_dir}")
     build_dir = os.path.join(cur_dir, "build")
-    logger.info(f"Build dir: {build_dir}")
+    # logger.info(f"Build dir: {build_dir}")
     result = subprocess.run(
         [
             os.path.join(cur_dir, "circom_proofgen.sh"),
@@ -80,9 +78,9 @@ def gen_proof(circuit_name: str, nonce: str, is_local: bool):
             str(is_local_int),
         ]
     )
-    logger.info(f"Proof generation result: {result.returncode}")
-    if result.stderr is not None:
-        logger.error(result.stderr)
+    # logger.info(f"Proof generation result: {result.returncode}")
+    # if result.stderr is not None:
+    #     logger.error(result.stderr)
     print(result.stdout)
     print(result.stderr)
 
