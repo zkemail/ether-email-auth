@@ -21,20 +21,9 @@ public_path="${buildDir}/rapidsnark_public_${circuitName}_${nonce}.json"
 cd "${SCRIPT_DIR}"
 echo "entered zk email path: ${SCRIPT_DIR}"
 
-./${paramsDir}/${circuitName}_cpp/${circuitName} "${input_path}" "${witness_path}" | tee /dev/stderr
+${paramsDir}/${circuitName}_cpp/${circuitName} "${input_path}" "${witness_path}" | tee /dev/stderr
 status_jswitgen=$?
 echo "✓ Finished witness generation with cpp! ${status_jswitgen}"
-
-# TODO: Get C-based witness gen to work
-# echo "/${build_dir}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME} ${input_wallet_path} ${witness_path}"
-# "/${build_dir}/${CIRCUIT_NAME}_cpp/${CIRCUIT_NAME}" "${input_wallet_path}" "${witness_path}"
-# status_c_wit=$?
-
-# echo "Finished C witness gen! Status: ${status_c_wit}"
-# if [ $status_c_wit -ne 0 ]; then
-#     echo "C based witness gen failed with status (might be on machine specs diff than compilation): ${status_c_wit}"
-#     exit 1
-# fi
 
 if [ $isLocal = 1 ]; then
     # DEFAULT SNARKJS PROVER (SLOW)
