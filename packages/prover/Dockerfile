@@ -39,12 +39,11 @@ RUN git clone -b feat/gpu https://github.com/zkemail/ether-email-auth.git
 WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
-RUN cp ./email_auth_with_body_parsing_with_qp_encoding /root
 WORKDIR /root
 RUN ls /root
 RUN mkdir params
 WORKDIR /root/params
-RUN gdown "https://drive.google.com/uc?id=1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH"
+RUN gdown "https://drive.google.com/uc?id=1l3mNqFYv-YZc2efFlphFUkoaCnGCxFtE"
 RUN unzip params.zip
 RUN mv params/* /root/params
 WORKDIR /root

@@ -33,9 +33,13 @@ def store_input(circuit_name: str, nonce: str, json_data: dict):
     )
     print(f"Json file path: {json_file_path}")
     print(f"Json data: {json_data}")
+    print(f"Json data type: {type(json_data)}")
     # logger.info(f"Store user input to {json_file_path}")
     with open(json_file_path, "w") as json_file:
         json_file.write(json.dumps(json_data))
+    # Read the file back
+    with open(json_file_path, "r") as json_file:
+        print(json_file.read())
     print("Stored input")
 
 
