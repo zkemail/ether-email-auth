@@ -5,7 +5,7 @@ from google.cloud.logging.handlers import CloudLoggingHandler
 from google.cloud.logging_v2.handlers import setup_logging
 from google.oauth2 import service_account
 
-app = modal.App("email-auth-prover-v1.3.0")
+app = modal.App("email-auth-prover-v1.4.0")
 
 image = modal.Image.from_dockerfile("Dockerfile")
 
@@ -15,7 +15,8 @@ image = modal.Image.from_dockerfile("Dockerfile")
     mounts=[
         modal.Mount.from_local_python_packages("core"),
     ],
-    cpu=14,
+    cpu=16,
+    gpu="any",
     secrets=[modal.Secret.from_name("gc-ether-email-auth-prover")],
 )
 @modal.wsgi_app()
@@ -45,17 +46,17 @@ def flask_app():
         print("prove_email_auth")
         req = request.get_json()
         input = req["input"]
-        logger = logging.getLogger(__name__)
-        logger.info(req)
+        # logger = logging.getLogger(__name__)
+        # logger.info(req)
         print(req)
         nonce = random.randint(
             0,
             sys.maxsize,
         )
-        logger.info(nonce)
+        # logger.info(nonce)
         print(nonce)
         proof = gen_email_auth_proof(str(nonce), False, input)
-        logger.info(proof)
+        # logger.info(proof)
         print(proof)
         return jsonify(proof)
 
