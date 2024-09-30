@@ -120,7 +120,7 @@ impl ChainClient {
         }
     }
 
-    pub async fn get_acceptance_subject_templates(
+    pub async fn get_acceptance_command_templates(
         &self,
         controller_eth_addr: &String,
         template_idx: u64,
@@ -128,14 +128,14 @@ impl ChainClient {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
-            .acceptance_subject_templates()
+            .acceptance_command_templates()
             .call()
             .await
             .map_err(|e| anyhow::Error::from(e))?;
         Ok(templates[template_idx as usize].clone())
     }
 
-    pub async fn get_recovery_subject_templates(
+    pub async fn get_recovery_command_templates(
         &self,
         controller_eth_addr: &String,
         template_idx: u64,
@@ -143,7 +143,7 @@ impl ChainClient {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let templates = contract
-            .recovery_subject_templates()
+            .recovery_command_templates()
             .call()
             .await
             .map_err(|e| anyhow::Error::from(e))?;
@@ -240,15 +240,15 @@ impl ChainClient {
             .await?)
     }
 
-    pub async fn get_recovered_account_from_acceptance_subject(
+    pub async fn get_recovered_account_from_acceptance_command(
         &self,
         controller_eth_addr: &String,
-        subject_params: Vec<TemplateValue>,
+        command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let subject_params_bytes = subject_params
+        let command_params_bytes = command_params
             .iter() // Change here: use iter() instead of map() directly on Vec
             .map(|s| {
                 s.abi_encode(None) // Assuming decimal_size is not needed or can be None
@@ -256,8 +256,8 @@ impl ChainClient {
             }) // Error handling
             .collect::<Vec<_>>();
         let recovered_account = contract
-            .extract_recovered_account_from_acceptance_subject(
-                subject_params_bytes,
+            .extract_recovered_account_from_acceptance_command(
+                command_params_bytes,
                 template_idx.into(),
             )
             .call()
@@ -265,15 +265,15 @@ impl ChainClient {
         Ok(recovered_account)
     }
 
-    pub async fn get_recovered_account_from_recovery_subject(
+    pub async fn get_recovered_account_from_recovery_command(
         &self,
         controller_eth_addr: &String,
-        subject_params: Vec<TemplateValue>,
+        command_params: Vec<TemplateValue>,
         template_idx: u64,
     ) -> Result<H160, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let subject_params_bytes = subject_params
+        let command_params_bytes = command_params
             .iter() // Change here: use iter() instead of map() directly on Vec
             .map(|s| {
                 s.abi_encode(None) // Assuming decimal_size is not needed or can be None
@@ -281,8 +281,8 @@ impl ChainClient {
             }) // Error handling
             .collect::<Vec<_>>();
         let recovered_account = contract
-            .extract_recovered_account_from_recovery_subject(
-                subject_params_bytes,
+            .extract_recovered_account_from_recovery_command(
+                command_params_bytes,
                 template_idx.into(),
             )
             .call()

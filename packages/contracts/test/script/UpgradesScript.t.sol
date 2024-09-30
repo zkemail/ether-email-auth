@@ -11,7 +11,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 
-contract UpgradesTest is StructHelper {
+contract UpgradesScriptTest is StructHelper {
     uint256 internal constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
@@ -25,7 +25,7 @@ contract UpgradesTest is StructHelper {
 
     function test_run() public {
         skipIfZkSync();
-       
+
         Deploy deploy = new Deploy();
         deploy.run();
         vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));

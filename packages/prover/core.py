@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def gen_email_auth_proof(nonce: str, is_local: bool, input: dict) -> dict:
-    circuit_name = "email_auth"
+    circuit_name = "email_auth_with_body_parsing_with_qp_encoding"
     print("Store input")
     store_input(circuit_name, nonce, input)
     print("Generate proof")

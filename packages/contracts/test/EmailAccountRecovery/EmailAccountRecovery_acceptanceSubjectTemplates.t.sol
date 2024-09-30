@@ -9,18 +9,18 @@ import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryTest_acceptanceSubjectTemplates is StructHelper {
+contract EmailAccountRecoveryTest_acceptanceCommandTemplates is StructHelper {
     constructor() {}
 
     function setUp() public override {
         super.setUp();
     }
 
-    function testAcceptanceSubjectTemplates() public {
+    function testAcceptanceCommandTemplates() public {
         skipIfZkSync();
-        
+
         setUp();
-        string[][] memory res = recoveryController.acceptanceSubjectTemplates();
+        string[][] memory res = recoveryController.acceptanceCommandTemplates();
         assertEq(res[0][0], "Accept");
         assertEq(res[0][1], "guardian");
         assertEq(res[0][2], "request");

@@ -17,6 +17,7 @@ data:
   IC_REPLICA_URL: ""
   JSON_LOGGER: ""
   PEM_PATH: ""
+  SMTP_SERVER: ""
 
 ---
 apiVersion: v1
@@ -30,12 +31,6 @@ type: Opaque
 data:
   PRIVATE_KEY:
   DATABASE_URL:
-  IMAP_DOMAIN_NAME:
-  IMAP_PORT:
-  AUTH_TYPE:
-  SMTP_DOMAIN_NAME:
-  LOGIN_ID:
-  LOGIN_PASSWORD:
   PROVER_ADDRESS:
   ICPEM:
 
@@ -94,14 +89,14 @@ spec:
     spec:
       containers:
         - name: relayer-container
-          image: bisht13/relayer-new-0:latest
+          image: bisht13/ar-relayer-base-1:latest
           ports:
             - containerPort: 4500
           envFrom:
             - configMapRef:
-                name: relayer-config
+                name: relayer-config-email-auth
             - secretRef:
-                name: relayer-secret
+                name: relayer-secret-email-auth
           livenessProbe:
             httpGet:
               path: /api/echo
@@ -131,12 +126,6 @@ spec:
             - secretRef:
                 name: relayer-imap-secret
       volumes:
-        - name: pem-volume
-          secret:
-            secretName: relayer-secret
-            items:
-              - key: ICPEM
-                path: ".ic.pem"
         - name: pem-volume
           secret:
             secretName: relayer-secret-email-auth

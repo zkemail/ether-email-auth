@@ -9,7 +9,7 @@ import {ChangeSigner} from "../../script/ChangeSignerInECDSAOwnedDKIMRegistry.s.
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 
-contract ChangeSignerInECDSAOwnedDKIMRegistryTest is StructHelper {
+contract ChangeSignerInECDSAOwnedDKIMRegistryScriptTest is StructHelper {
     function setUp() public override {
         vm.setEnv(
             "PRIVATE_KEY",
@@ -21,7 +21,7 @@ contract ChangeSignerInECDSAOwnedDKIMRegistryTest is StructHelper {
 
     function test_run() public {
         skipIfZkSync();
-        
+
         Deploy deploy = new Deploy();
         deploy.run();
         ChangeSigner changeSigner = new ChangeSigner();

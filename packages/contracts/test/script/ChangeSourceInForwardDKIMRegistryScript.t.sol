@@ -10,7 +10,7 @@ import {ChangeSource} from "../../script/ChangeSourceInForwardDKIMRegistry.s.sol
 import {ForwardDKIMRegistry} from "../../src/utils/ForwardDKIMRegistry.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 
-contract ChangeSourceInForwardDKIMRegistryTest is StructHelper {
+contract ChangeSourceInForwardDKIMRegistryScriptTest is StructHelper {
     function setUp() public override {
         vm.setEnv(
             "PRIVATE_KEY",

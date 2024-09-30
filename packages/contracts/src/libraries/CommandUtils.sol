@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import "./DecimalUtils.sol";
 
-library SubjectUtils {
+library CommandUtils {
     bytes16 private constant LOWER_HEX_DIGITS = "0123456789abcdef";
     bytes16 private constant UPPER_HEX_DIGITS = "0123456789ABCDEF";
     string public constant STRING_MATCHER = "{string}";
@@ -102,16 +102,16 @@ library SubjectUtils {
         return string(hexString);
     }
 
-    /// @notice Calculate the expected subject.
-    /// @param subjectParams Params to be used in the subject
-    /// @param template Template to be used for the subject
-    /// @param stringCase Case of the string - 0:checksumed, 1: lowercase, 2: uppercase
-    function computeExpectedSubject(
-        bytes[] memory subjectParams,
+    /// @notice Calculate the expected command.
+    /// @param commandParams Params to be used in the command
+    /// @param template Template to be used for the command
+    /// @param stringCase Case of the ethereum address string to be used for the command - 0: checksum, 1: lowercase, 2: uppercase
+    function computeExpectedCommand(
+        bytes[] memory commandParams,
         string[] memory template,
         uint stringCase
-    ) public pure returns (string memory expectedSubject) {
-        // Construct an expectedSubject from template and the values of emailAuthMsg.subjectParams.
+    ) public pure returns (string memory expectedCommand) {
+        // Construct an expectedCommand from template and the values of commandParams.
         uint8 nextParamIndex = 0;
         string memory stringParam;
         bool isParamExist;
@@ -119,31 +119,31 @@ library SubjectUtils {
             isParamExist = true;
             if (Strings.equal(template[i], STRING_MATCHER)) {
                 string memory param = abi.decode(
-                    subjectParams[nextParamIndex],
+                    commandParams[nextParamIndex],
                     (string)
                 );
                 stringParam = param;
             } else if (Strings.equal(template[i], UINT_MATCHER)) {
                 uint256 param = abi.decode(
-                    subjectParams[nextParamIndex],
+                    commandParams[nextParamIndex],
                     (uint256)
                 );
                 stringParam = Strings.toString(param);
             } else if (Strings.equal(template[i], INT_MATCHER)) {
                 int256 param = abi.decode(
-                    subjectParams[nextParamIndex],
+                    commandParams[nextParamIndex],
                     (int256)
                 );
                 stringParam = Strings.toStringSigned(param);
             } else if (Strings.equal(template[i], DECIMALS_MATCHER)) {
                 uint256 param = abi.decode(
-                    subjectParams[nextParamIndex],
+                    commandParams[nextParamIndex],
                     (uint256)
                 );
                 stringParam = DecimalUtils.uintToDecimalString(param);
             } else if (Strings.equal(template[i], ETH_ADDR_MATCHER)) {
                 address param = abi.decode(
-                    subjectParams[nextParamIndex],
+                    commandParams[nextParamIndex],
                     (address)
                 );
                 stringParam = addressToHexString(param, stringCase);
@@ -153,17 +153,17 @@ library SubjectUtils {
             }
 
             if (i > 0) {
-                expectedSubject = string(
-                    abi.encodePacked(expectedSubject, " ")
+                expectedCommand = string(
+                    abi.encodePacked(expectedCommand, " ")
                 );
             }
-            expectedSubject = string(
-                abi.encodePacked(expectedSubject, stringParam)
+            expectedCommand = string(
+                abi.encodePacked(expectedCommand, stringParam)
             );
             if (isParamExist) {
                 nextParamIndex++;
             }
         }
-        return expectedSubject;
+        return expectedCommand;
     }
 }
