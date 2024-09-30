@@ -8,6 +8,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
+import {IVerifier} from "../src/interfaces/IVerifier.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
@@ -21,7 +22,7 @@ contract IntegrationZKSyncTest is Test {
     using console for *;
 
     EmailAuth emailAuth;
-    Verifier verifier;
+    IVerifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
 
     RecoveryControllerZKSync recoveryControllerZKSync;
@@ -85,7 +86,7 @@ contract IntegrationZKSyncTest is Test {
                     (msg.sender, address(groth16Verifier))
                 )
             );
-            verifier = Verifier(address(verifierProxy));
+            verifier = IVerifier(address(verifierProxy));
         }
 
         // Create EmailAuth

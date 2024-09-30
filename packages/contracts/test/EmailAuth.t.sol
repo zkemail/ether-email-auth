@@ -6,7 +6,7 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
-import "../src/utils/Verifier.sol";
+import {Verifier} from "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";

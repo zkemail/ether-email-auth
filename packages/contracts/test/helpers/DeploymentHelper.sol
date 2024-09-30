@@ -6,10 +6,13 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
+import {IVerifier} from "../../src/interfaces/IVerifier.sol";
+import {Verifier} from "../../src/utils/Verifier.sol";
+import {EmailProof} from "../../src/interfaces/IVerifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {JwtDKIMRegistry} from "../../src/utils/JwtDKIMRegistry.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -25,9 +28,10 @@ contract DeploymentHelper is Test {
     using ECDSA for *;
 
     EmailAuth emailAuth;
-    Verifier verifier;
+    IVerifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
+    JwtDKIMRegistry jwtDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
@@ -95,6 +99,14 @@ contract DeploymentHelper is Test {
             new bytes(0)
         );
 
+        // Create jwt dkim registry
+        jwtDkim = new JwtDKIMRegistry(deployer);
+        jwtDkim.setDKIMPublicKeyHash(
+            "12345|https://example.com|client-id-12345",
+            publicKeyHash
+        );
+
+
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
@@ -110,7 +122,7 @@ contract DeploymentHelper is Test {
                     (msg.sender, address(groth16Verifier))
                 )
             );
-            verifier = Verifier(address(verifierProxy));
+            verifier = IVerifier(address(verifierProxy));
         }
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
