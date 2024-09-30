@@ -6,18 +6,18 @@ metadata:
   labels:
     app: relayer
 data:
-  EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ''
-  CHAIN_RPC_PROVIDER: ''
-  CHAIN_RPC_EXPLORER: ''
-  CHAIN_ID: ''
-  WEB_SERVER_ADDRESS: ''
-  CIRCUITS_DIR_PATH: ''
-  EMAIL_TEMPLATES_PATH: ''
-  CANISTER_ID: ''
-  IC_REPLICA_URL: ''
-  JSON_LOGGER: ''
-  PEM_PATH: ''
-  SMTP_SERVER: ''
+  EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ""
+  CHAIN_RPC_PROVIDER: ""
+  CHAIN_RPC_EXPLORER: ""
+  CHAIN_ID: ""
+  WEB_SERVER_ADDRESS: ""
+  REGEX_JSON_DIR_PATH: ""
+  EMAIL_TEMPLATES_PATH: ""
+  CANISTER_ID: ""
+  IC_REPLICA_URL: ""
+  JSON_LOGGER: ""
+  PEM_PATH: ""
+  SMTP_SERVER: ""
 
 ---
 apiVersion: v1
@@ -111,8 +111,8 @@ spec:
             periodSeconds: 30
           volumeMounts:
             - name: pem-volume
-              mountPath: '/relayer/packages/relayer/.ic.pem'
-              subPath: '.ic.pem'
+              mountPath: "/relayer/packages/relayer/.ic.pem"
+              subPath: ".ic.pem"
         - name: smtp-container
           image: bisht13/relayer-smtp-new:latest
           ports:
@@ -131,7 +131,7 @@ spec:
             secretName: relayer-secret-email-auth
             items:
               - key: ICPEM
-                path: '.ic.pem'
+                path: ".ic.pem"
 
 ---
 apiVersion: v1
