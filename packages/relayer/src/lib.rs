@@ -32,7 +32,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, OnceLock};
 use tokio::time::Duration;
 
-pub static CIRCUITS_DIR_PATH: OnceLock<PathBuf> = OnceLock::new();
+pub static REGEX_JSON_DIR_PATH: OnceLock<PathBuf> = OnceLock::new();
 pub static WEB_SERVER_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static PROVER_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static PRIVATE_KEY: OnceLock<String> = OnceLock::new();
@@ -103,7 +103,7 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
     info!(LOG, "Starting relayer");
 
     // Initialize global configuration
-    CIRCUITS_DIR_PATH.set(config.circuits_dir_path).unwrap();
+    REGEX_JSON_DIR_PATH.set(config.regex_json_dir_path).unwrap();
     WEB_SERVER_ADDRESS.set(config.web_server_address).unwrap();
     PROVER_ADDRESS.set(config.prover_address).unwrap();
     PRIVATE_KEY.set(config.private_key).unwrap();

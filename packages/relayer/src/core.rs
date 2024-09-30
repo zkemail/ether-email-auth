@@ -36,10 +36,15 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     trace!(LOG, "From address: {}", guardian_email_addr);
     let email_body = parsed_email.get_cleaned_body()?;
 
-    let request_def_path = env::var(REQUEST_DEF_PATH_KEY)
-        .map_err(|_| anyhow!("ENV var {} not set", REQUEST_DEF_PATH_KEY))?;
-    let request_def_contents = fs::read_to_string(&request_def_path)
-        .map_err(|e| anyhow!("Failed to read file {}: {}", request_def_path, e))?;
+    let request_def_path =
+        PathBuf::from(REGEX_JSON_DIR_PATH.get().unwrap()).join("request_def.json");
+    let request_def_contents = fs::read_to_string(&request_def_path).map_err(|e| {
+        anyhow!(
+            "Failed to read file {:?}: {}",
+            request_def_path.display(),
+            e
+        )
+    })?;
     let request_decomposed_def = serde_json::from_str(&request_def_contents)
         .map_err(|e| EmailError::Parse(format!("Failed to parse request_def.json: {}", e)))?;
     let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;

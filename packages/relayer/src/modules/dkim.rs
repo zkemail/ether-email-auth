@@ -2,6 +2,7 @@ use std::fs;
 
 use anyhow::anyhow;
 use relayer_utils::extract_substr_idxes;
+use relayer_utils::DecomposedRegexConfig;
 use relayer_utils::LOG;
 
 use crate::*;
@@ -177,16 +178,24 @@ pub async fn check_and_update_dkim(
     }
 
     // Get selector
-    let selector_def_path = env::var(SELECTOR_DEF_PATH_KEY)
-        .map_err(|_| anyhow!("ENV var {} not set", SELECTOR_DEF_PATH_KEY))?;
+    let selector_def_path =
+        PathBuf::from(env::var(REGEX_JSON_DIR_PATH_KEY).unwrap()).join("selector_def.json");
     let selector_def_contents = fs::read_to_string(&selector_def_path)
-        .map_err(|e| anyhow!("Failed to read file {}: {}", selector_def_path, e))?;
-    let selector_decomposed_def = serde_json::from_str(&selector_def_path).unwrap();
+        .map_err(|e| anyhow!("Failed to read file {}: {}", selector_def_path.display(), e))?;
+    let selector_decomposed_def: DecomposedRegexConfig =
+        serde_json::from_str(&selector_def_contents).map_err(|e| {
+            anyhow!(
+                "Failed to parse JSON from file {}: {}",
+                selector_def_path.display(),
+                e
+            )
+        })?;
     let selector = {
         let idxes =
             extract_substr_idxes(&parsed_email.canonicalized_header, &selector_decomposed_def)?[0];
         parsed_email.canonicalized_header[idxes.0..idxes.1].to_string()
     };
+
     info!(LOG, "selector {}", selector);
 
     // Generate IC agent and create oracle client
