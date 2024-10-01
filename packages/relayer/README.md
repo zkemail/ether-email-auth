@@ -51,7 +51,6 @@ You can run the relayer either on your local environments or cloud instances (we
 
         DATABASE_URL= "postgres://new_user:my_secure_password@localhost/my_new_database"
         WEB_SERVER_ADDRESS="127.0.0.1:4500"
-        CIRCUITS_DIR_PATH=  # Absolute path to packages/circuits
         EMAIL_TEMPLATES_PATH=  # Absolute path to packages/relayer/eml_templates
 
         CANISTER_ID="q7eci-dyaaa-aaaak-qdbia-cai"

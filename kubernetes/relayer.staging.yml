@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: relayer-config-email-auth
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
   labels:
     app: relayer
 data:
@@ -24,7 +24,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: relayer-secret-email-auth
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
   labels:
     app: relayer
 type: Opaque
@@ -39,7 +39,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: relayer-smtp-secret
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
   labels:
     app: relayer
 type: Opaque
@@ -56,7 +56,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: relayer-imap-secret
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
   labels:
     app: relayer
 type: Opaque
@@ -75,7 +75,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: relayer-email-auth
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
   labels:
     app: relayer
 spec:
@@ -89,7 +89,7 @@ spec:
     spec:
       containers:
         - name: relayer-container
-          image: bisht13/ar-relayer-base-1:latest
+          image: us-central1-docker.pkg.dev/zkairdrop/ether-email-auth/relayer:v2
           ports:
             - containerPort: 4500
           envFrom:
@@ -132,13 +132,12 @@ spec:
             items:
               - key: ICPEM
                 path: ".ic.pem"
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: relayer-svc-email-auth
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
 spec:
   selector:
     app: relayer
@@ -153,7 +152,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: relayer-smtp-svc
-  namespace: ar-base-sepolia
+  namespace: ar-base-sepolia-staging
 spec:
   selector:
     app: relayer
