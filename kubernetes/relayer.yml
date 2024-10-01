@@ -89,7 +89,7 @@ spec:
     spec:
       containers:
         - name: relayer-container
-          image: bisht13/ar-relayer-base-1:latest
+          image: bisht13/ar-relayer-base-3:latest
           ports:
             - containerPort: 4500
           envFrom:
@@ -114,7 +114,7 @@ spec:
               mountPath: "/relayer/packages/relayer/.ic.pem"
               subPath: ".ic.pem"
         - name: smtp-container
-          image: bisht13/relayer-smtp-new:latest
+          image: bisht13/relayer-smtp:latest
           ports:
             - containerPort: 8080
           envFrom:
@@ -132,6 +132,30 @@ spec:
             items:
               - key: ICPEM
                 path: ".ic.pem"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relayer-imap
+  namespace: ar-base-sepolia
+  labels:
+    app: relayer
+spec:
+  selector:
+    matchLabels:
+      app: relayer-imap
+  template:
+    metadata:
+      labels:
+        app: relayer-imap
+    spec:
+      containers:
+        - name: imap-container
+          image: bisht13/relayer-imap-new:latest
+          envFrom:
+            - secretRef:
+                name: relayer-imap-secret
 
 ---
 apiVersion: v1
