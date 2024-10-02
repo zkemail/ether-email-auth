@@ -8,8 +8,10 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
 import {IVerifier} from "../../src/interfaces/IVerifier.sol";
 import {Verifier} from "../../src/utils/Verifier.sol";
+import {JwtVerifier} from "../../src/utils/JwtVerifier.sol";
 import {EmailProof} from "../../src/interfaces/IVerifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
+import {JwtGroth16Verifier} from "../../src/utils/JwtGroth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import {JwtRegistry} from "../../src/utils/JwtRegistry.sol";
@@ -29,10 +31,12 @@ contract DeploymentHelper is Test {
 
     EmailAuth emailAuth;
     IVerifier verifier;
+    IVerifier jwtVerifier;
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     JwtRegistry jwtRegistry;
     RecoveryController recoveryController;
+    RecoveryController jwtRecoveryController;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
 
@@ -124,6 +128,24 @@ contract DeploymentHelper is Test {
             );
             verifier = IVerifier(address(verifierProxy));
         }
+        // Create JwtVerifier
+        {
+            JwtVerifier verifierImpl = new JwtVerifier();
+            console.log(
+                "JwtVerifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            JwtGroth16Verifier groth16Verifier = new JwtGroth16Verifier();
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
+            );
+            jwtVerifier = IVerifier(address(verifierProxy));
+        }
+
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
         // Create EmailAuth implementation
@@ -137,21 +159,41 @@ contract DeploymentHelper is Test {
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
-        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
-            address(recoveryControllerImpl),
-            abi.encodeCall(
-                recoveryControllerImpl.initialize,
-                (
-                    signer,
-                    address(verifier),
-                    address(dkim),
-                    address(emailAuthImpl)
+        {
+            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+                address(recoveryControllerImpl),
+                abi.encodeCall(
+                    recoveryControllerImpl.initialize,
+                    (
+                        signer,
+                        address(verifier),
+                        address(dkim),
+                        address(emailAuthImpl)
+                    )
                 )
-            )
-        );
-        recoveryController = RecoveryController(
-            payable(address(recoveryControllerProxy))
-        );
+            );
+            recoveryController = RecoveryController(
+                payable(address(recoveryControllerProxy))
+            );
+        }
+        // Create RecoveryController for JWT as EmailAccountRecovery implementation
+        {
+            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+                address(recoveryControllerImpl),
+                abi.encodeCall(
+                    recoveryControllerImpl.initialize,
+                    (
+                        signer,
+                        address(jwtVerifier),
+                        address(jwtRegistry),
+                        address(emailAuthImpl)
+                    )
+                )
+            );
+            jwtRecoveryController = RecoveryController(
+                payable(address(recoveryControllerProxy))
+            );
+        }
 
         // Create SimpleWallet
         simpleWalletImpl = new SimpleWallet();
