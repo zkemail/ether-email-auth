@@ -99,7 +99,7 @@ contract EmailAccountRecoveryTest_jwt_handleAcceptance is StructHelper {
         );
         emailAuthMsg.templateId = templateId;
         bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        commandParamsForAcceptance[0] = abi.encode(address(jwtSimpleWallet));
         emailAuthMsg.commandParams = commandParamsForAcceptance;
         emailAuthMsg.proof.accountSalt = 0x0;
 
@@ -133,7 +133,7 @@ contract EmailAccountRecoveryTest_jwt_handleAcceptance is StructHelper {
         );
         emailAuthMsg.templateId = templateId;
         bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        commandParamsForAcceptance[0] = abi.encode(address(jwtSimpleWallet));
         emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
@@ -166,8 +166,8 @@ contract EmailAccountRecoveryTest_jwt_handleAcceptance is StructHelper {
         );
         emailAuthMsg.templateId = templateId;
         bytes[] memory commandParamsForAcceptance = new bytes[](2);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        commandParamsForAcceptance[1] = abi.encode(address(simpleWallet));
+        commandParamsForAcceptance[0] = abi.encode(address(jwtSimpleWallet));
+        commandParamsForAcceptance[1] = abi.encode(address(jwtSimpleWallet));
         emailAuthMsg.commandParams = commandParamsForAcceptance;
 
         vm.mockCall(
