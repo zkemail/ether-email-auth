@@ -9,7 +9,7 @@ import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract JwtDKIMRegistryTest_stringToArray is StructHelper {
+contract JwtRegistryTest_stringToArray is StructHelper {
     constructor() {}
 
     function setUp() public override {
@@ -17,7 +17,7 @@ contract JwtDKIMRegistryTest_stringToArray is StructHelper {
     }
 
     function test_stringToArray() public {
-        string[] memory points = jwtDkim.stringToArray("12345|https://example.com|client-id-12345");
+        string[] memory points = jwtRegistry.stringToArray("12345|https://example.com|client-id-12345");
         assertEq(points[0], "12345");
         assertEq(points[1], "https://example.com");
         assertEq(points[2], "client-id-12345");

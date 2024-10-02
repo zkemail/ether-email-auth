@@ -12,7 +12,7 @@ import {EmailProof} from "../../src/interfaces/IVerifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
-import {JwtDKIMRegistry} from "../../src/utils/JwtDKIMRegistry.sol";
+import {JwtRegistry} from "../../src/utils/JwtRegistry.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
@@ -31,7 +31,7 @@ contract DeploymentHelper is Test {
     IVerifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
-    JwtDKIMRegistry jwtDkim;
+    JwtRegistry jwtRegistry;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
@@ -100,8 +100,8 @@ contract DeploymentHelper is Test {
         );
 
         // Create jwt dkim registry
-        jwtDkim = new JwtDKIMRegistry(deployer);
-        jwtDkim.setDKIMPublicKeyHash(
+        jwtRegistry = new JwtRegistry(deployer);
+        jwtRegistry.setDKIMPublicKeyHash(
             "12345|https://example.com|client-id-12345",
             publicKeyHash
         );
