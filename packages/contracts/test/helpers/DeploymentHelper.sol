@@ -249,7 +249,7 @@ contract DeploymentHelper is Test {
                 )
             );
             jwtSimpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-            vm.deal(address(simpleWallet), 1 ether);
+            vm.deal(address(jwtSimpleWallet), 1 ether);
         }
 
         // Set guardian address
