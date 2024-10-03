@@ -30,7 +30,9 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
         string memory domainName,
         bytes32 publicKeyHash
     ) public view returns (bool) {
-        return dkimRegistry.isDKIMPublicKeyHashValid(domainName, publicKeyHash);
+        string[] memory parts = this.stringToArray(domainName);
+        string memory kidAndIss = string(abi.encode(parts[0], "|", parts[1]));
+        return dkimRegistry.isDKIMPublicKeyHashValid(kidAndIss, publicKeyHash);
     }
 
     /// @notice Sets a DKIM public key hash for a domain name after validating the provided signature.
@@ -46,7 +48,7 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
         string[] memory parts = this.stringToArray(domainName);
         string memory kidAndIss = string(abi.encode(parts[0], "|", parts[1]));
         require(
-            isDKIMPublicKeyHashValid(kidAndIss, publicKeyHash) == false,
+            isDKIMPublicKeyHashValid(domainName, publicKeyHash) == false,
             "publicKeyHash is already set"
         );
         require(
@@ -67,10 +69,8 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
     ) public {
         require(bytes(domainName).length != 0, "Invalid domain name");
         require(publicKeyHash != bytes32(0), "Invalid public key hash");
-        string[] memory parts = this.stringToArray(domainName);
-        string memory kidAndIss = string(abi.encode(parts[0], "|", parts[1]));
         require(
-            isDKIMPublicKeyHashValid(kidAndIss, publicKeyHash) == true,
+            isDKIMPublicKeyHashValid(domainName, publicKeyHash) == true,
             "publicKeyHash is not set"
         );
         require(
