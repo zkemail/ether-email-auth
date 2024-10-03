@@ -1835,6 +1835,10 @@
     commander "^11.0.0"
     snarkjs "^0.7.0"
 
+"@zk-jwt/zk-jwt-contracts@git+https://github.com/zkemail/zk-jwt.git#feat/refactor":
+  version "0.0.1"
+  resolved "git+https://github.com/zkemail/zk-jwt.git#698b420cd18f3e74b41af64c22180601d55415e6"
+
 abbrev@1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.1.tgz#f8f2c887ad10bf67f634f005b6987fed3179aac8"
