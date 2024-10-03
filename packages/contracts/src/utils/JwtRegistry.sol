@@ -18,13 +18,16 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
 
     DKIMRegistry public dkimRegistry;
 
+    // Check if azp is registered
+    mapping(string => bool) public whitelistedClients;
+
     constructor(address _owner) Ownable(_owner) {
         dkimRegistry = new DKIMRegistry(address(this));
     }
 
-    /// @notice Checks if a DKIM public key hash is valid and not revoked for a given domain name.
-    /// @param domainName The domain name to check the DKIM public key hash for.
-    /// @param publicKeyHash The DKIM public key hash to validate.
+    /// @notice Checks if a public key hash is valid and not revoked for a given kis and iss.
+    /// @param domainName The domain name contains kis, iss and azp fields.
+    /// @param publicKeyHash The public key hash to validate.
     /// @return bool Returns true if the public key hash is valid and not revoked, false otherwise.
     function isDKIMPublicKeyHashValid(
         string memory domainName,
@@ -32,12 +35,13 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
     ) public view returns (bool) {
         string[] memory parts = this.stringToArray(domainName);
         string memory kidAndIss = string(abi.encode(parts[0], "|", parts[1]));
-        return dkimRegistry.isDKIMPublicKeyHashValid(kidAndIss, publicKeyHash);
+        return dkimRegistry.isDKIMPublicKeyHashValid(kidAndIss, publicKeyHash) 
+          && whitelistedClients[parts[2]];
     }
 
-    /// @notice Sets a DKIM public key hash for a domain name after validating the provided signature.
-    /// @param domainName The domain name to set the DKIM public key hash for.
-    /// @param publicKeyHash The DKIM public key hash to set.
+    /// @notice Sets a public key hash for a `kis|iss` string  after validating the provided signature.
+    /// @param domainName The domain name contains kis, iss and azp fields.
+    /// @param publicKeyHash The public key hash to set.
     /// @dev This function requires that the public key hash is not already set or revoked.
     function setDKIMPublicKeyHash(
         string memory domainName,
@@ -57,11 +61,13 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
         );
 
         dkimRegistry.setDKIMPublicKeyHash(kidAndIss, publicKeyHash);
+        // Register azp
+        whitelistedClients[parts[2]] = true;
     }
 
-    /// @notice Revokes a DKIM public key hash for a domain name after validating the provided signature.
-    /// @param domainName The domain name to revoke the DKIM public key hash for.
-    /// @param publicKeyHash The DKIM public key hash to revoke.
+    /// @notice Revokes a public key hash for `kis|iss` string after validating the provided signature.
+    /// @param domainName The domain name contains kis, iss and azp fields.
+    /// @param publicKeyHash The public key hash to revoke.
     /// @dev This function requires that the public key hash is currently set and not already revoked.
     function revokeDKIMPublicKeyHash(
         string memory domainName,
@@ -79,6 +85,9 @@ contract JwtRegistry is IDKIMRegistry, Ownable {
         );
 
         dkimRegistry.revokeDKIMPublicKeyHash(publicKeyHash);
+        // Disable azp
+        string[] memory parts = this.stringToArray(domainName);
+        whitelistedClients[parts[2]] = false;
     }
 
     function stringToArray(string memory _strings) external pure returns (string[] memory) {
