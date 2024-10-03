@@ -8,17 +8,18 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
 import {IVerifier} from "../../src/interfaces/IVerifier.sol";
 import {Verifier} from "../../src/utils/Verifier.sol";
-import {JwtVerifier} from "../../src/utils/JwtVerifier.sol";
 import {EmailProof} from "../../src/interfaces/IVerifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
-import {JwtGroth16Verifier} from "../../src/utils/JwtGroth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
-import {JwtRegistry} from "../../src/utils/JwtRegistry.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {JwtVerifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtVerifier.sol";
+import {JwtGroth16Verifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtGroth16Verifier.sol";
+import {JwtRegistry} from "@zk-jwt/zk-jwt-contracts/utils/JwtRegistry.sol";
 
 // // FOR_ZKSYNC:START
 // import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";

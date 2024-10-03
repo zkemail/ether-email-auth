@@ -6,12 +6,12 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
-import {JwtVerifier} from "../src/utils/JwtVerifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "./helpers/StructHelper.sol";
+import {StructHelper} from "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {JwtVerifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtVerifier.sol";
 
 contract EmailAuthTest_jwt is StructHelper {
     function setUp() public override {
