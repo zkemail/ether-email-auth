@@ -1,0 +1,19 @@
+{
+  "port": 8000,
+  "databaseUrl": "postgres://test@localhost:5432/relayer",
+  "proverUrl": "https://zkemail--email-auth-prover-v1-4-0-flask-app.modal.run",
+  "icp": {
+    "canisterId": "q7eci-dyaaa-aaaak-qdbia-cai",
+    "pemPath": "./.ic.pem",
+    "icReplicaUrl": "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
+  },
+  "chains": {
+    "baseSepolia": {
+      "privateKey": "0x...",
+      "rpcUrl": "https://mainnet.infura.io/v3/...",
+      "explorerUrl": "https://etherscan.io/tx/",
+      "chainId": 1
+    }
+  },
+  "jsonLogger": true
+}
