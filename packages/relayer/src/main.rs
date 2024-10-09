@@ -1,7 +1,10 @@
 mod config;
-mod db;
 mod handler;
+mod mail;
+mod model;
 mod route;
+mod schema;
+mod utils;
 
 use std::sync::Arc;
 
@@ -11,6 +14,7 @@ use axum::http::{
     Method,
 };
 use relayer_utils::LOG;
+use reqwest::Client;
 use route::create_router;
 use slog::info;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
@@ -18,7 +22,9 @@ use tower_http::cors::CorsLayer;
 
 use config::Config;
 
+#[derive(Debug, Clone)]
 pub struct RelayerState {
+    http_client: Client,
     config: Config,
     db: Pool<Postgres>,
 }
@@ -40,6 +46,7 @@ async fn main() -> Result<()> {
         .allow_headers([AUTHORIZATION, ACCEPT, CONTENT_TYPE]);
 
     let relayer = create_router(Arc::new(RelayerState {
+        http_client: Client::new(),
         config: config.clone(),
         db: pool.clone(),
     }))

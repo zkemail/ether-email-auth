@@ -33,11 +33,7 @@ packages/contracts/deployments
 
 # Relayer
 target
-packages/relayer/db/*
-packages/relayer/*.db
-packages/relayer/received_eml/*.eml
-packages/relayer/received_eml/*.json
-packages/relayer/proofs
+packages/relayer/.sqlx/*
 packages/relayer/logs
 packages/relayer/config.json
 .ic.pem

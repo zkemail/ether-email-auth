@@ -10,7 +10,9 @@ use std::io::Read;
 pub struct Config {
     pub port: usize,
     pub database_url: String,
+    pub smtp_url: String,
     pub prover_url: String,
+    pub path: PathConfig,
     pub icp: IcpConfig,
     pub chains: HashMap<String, ChainConfig>,
     pub json_logger: bool,
@@ -18,9 +20,15 @@ pub struct Config {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
+pub struct PathConfig {
+    pub pem: String,
+    pub email_templates: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct IcpConfig {
     pub canister_id: String,
-    pub pem_path: String,
     pub ic_replica_url: String,
 }
 
