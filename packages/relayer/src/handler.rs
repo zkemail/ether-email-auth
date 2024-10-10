@@ -83,29 +83,15 @@ pub async fn receive_email_handler(
 ) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
     // Define the regex pattern for UUID
     let uuid_regex = Regex::new(
-        r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}\b",
+        r"(Your request ID is )([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})",
     )
     .unwrap();
 
     // Attempt to find a UUID in the body
-    let request_id = uuid_regex.find(&body).map(|m| m.as_str());
+    let captures = uuid_regex.captures(&body);
 
-    match request_id {
-        Some(request_id) => {
-            info!(LOG, "Extracted UUID: {:?}", request_id);
-        }
-        None => {
-            info!(LOG, "No UUID found in the body");
-            // Handle the case where no UUID is found
-            let response = json!({
-                "status": "error",
-                "message": "No UUID found in the email body",
-            });
-            return Ok((StatusCode::BAD_REQUEST, Json(response)));
-        }
-    }
-
-    let request_id = request_id
+    let request_id = captures
+        .and_then(|caps| caps.get(2).map(|m| m.as_str()))
         .ok_or_else(|| {
             (
                 reqwest::StatusCode::BAD_REQUEST,
@@ -120,6 +106,8 @@ pub async fn receive_email_handler(
                 )
             })
         })?;
+
+    info!(LOG, "Request ID received: {}", request_id);
 
     update_request(
         &relayer_state.db,
