@@ -519,4 +519,19 @@ describe("Email Auth", () => {
         }
         await expect(failFn).rejects.toThrow();
     });
+
+    it("Verify a sent email with non-utf8 character", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_invalid_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
 });
