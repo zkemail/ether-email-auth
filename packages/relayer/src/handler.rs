@@ -228,3 +228,37 @@ pub async fn receive_email_handler(
 
     Ok((StatusCode::OK, Json(response)))
 }
+
+pub async fn get_status_handler(
+    State(relayer_state): State<Arc<RelayerState>>,
+    request: request::Parts,
+) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
+    let request_id = request
+        .uri
+        .path()
+        .trim_start_matches("/api/status/")
+        .parse::<Uuid>()
+        .map_err(|_| {
+            (
+                reqwest::StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": "Failed to parse request ID"})),
+            )
+        })?;
+
+    let request = get_request(&relayer_state.db, request_id)
+        .await
+        .map_err(|e| {
+            (
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            )
+        })?;
+
+    let response = json!({
+        "status": "success",
+        "message": "request status",
+        "request": request,
+    });
+
+    Ok((StatusCode::OK, Json(response)))
+}
