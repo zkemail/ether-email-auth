@@ -21,9 +21,9 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Download circom (Linux)
-        run: git clone https://github.com/iden3/circom.git && cd circom && cargo build --release && cargo install --path circom
-
+      - name: Download circom v2.1.8 (Linux)
+        run: wget https://github.com/iden3/circom/releases/download/v2.1.8/circom-linux-amd64 -O /usr/local/bin/circom && chmod +x /usr/local/bin/circom
+        
       - name: Print circom version
         run: circom --version
 
