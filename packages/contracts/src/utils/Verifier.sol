@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import {EmailProof} from "../interfaces/IVerifier.sol";
+import {EmailProof, IVerifier} from "../interfaces/IVerifier.sol";
 import "../interfaces/IGroth16Verifier.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
+contract Verifier is IVerifier, OwnableUpgradeable, UUPSUpgradeable {
     IGroth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
