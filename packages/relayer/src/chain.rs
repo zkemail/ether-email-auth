@@ -65,9 +65,7 @@ impl ChainClient {
         dkim: ECDSAOwnedDKIMRegistry<SignerM>,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
-        let mut mutex = SHARED_MUTEX
-            .lock()
-            .map_err(|e| anyhow::anyhow!("Mutex poisoned: {}", e))?;
+        let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
         // Call the contract method

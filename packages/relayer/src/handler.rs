@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use axum::{
-    body::Body,
     extract::State,
     http::{request, StatusCode},
     response::IntoResponse,
@@ -87,25 +86,8 @@ pub async fn submit_handler(
 
 pub async fn receive_email_handler(
     State(relayer_state): State<Arc<RelayerState>>,
-    body: axum::body::Body,
+    body: String,
 ) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
-    // Convert the body into a string
-    let bytes = axum::body::to_bytes(body, usize::MAX)
-        .await
-        .map_err(|err| {
-            (
-                StatusCode::BAD_REQUEST,
-                axum::Json(json!({"error": format!("Failed to read request body: {}", err)})),
-            )
-        })?;
-
-    let email = String::from_utf8(bytes.to_vec()).map_err(|err| {
-        (
-            StatusCode::BAD_REQUEST,
-            axum::Json(json!({"error": format!("Invalid UTF-8 sequence: {}", err)})),
-        )
-    })?;
-
     // Define the regex pattern for UUID
     let uuid_regex = Regex::new(
         r"(Your request ID is )([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})",
@@ -113,7 +95,7 @@ pub async fn receive_email_handler(
     .unwrap();
 
     // Attempt to find a UUID in the body
-    let captures = uuid_regex.captures(&email);
+    let captures = uuid_regex.captures(&body);
 
     let request_id = captures
         .and_then(|caps| caps.get(2).map(|m| m.as_str()))
@@ -149,9 +131,9 @@ pub async fn receive_email_handler(
     })?;
 
     // Log the received body
-    info!(LOG, "Received email: {:?}", email);
+    info!(LOG, "Received email body: {:?}", body);
 
-    let parsed_email = ParsedEmail::new_from_raw_email(&email).await.map_err(|e| {
+    let parsed_email = ParsedEmail::new_from_raw_email(&body).await.map_err(|e| {
         // Convert the error to the expected type
         (
             reqwest::StatusCode::INTERNAL_SERVER_ERROR,
@@ -208,7 +190,7 @@ pub async fn receive_email_handler(
         })?;
 
     // Process the email
-    match handle_email(email, request, (*relayer_state).clone()).await {
+    match handle_email(body, request, (*relayer_state).clone()).await {
         Ok(event) => match handle_email_event(event, (*relayer_state).clone()).await {
             Ok(_) => {}
             Err(e) => {
