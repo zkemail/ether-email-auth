@@ -2,12 +2,18 @@
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
-CREATE TYPE status_enum AS ENUM ('Request received', 'Email sent', 'Email response received', 'Proving', 'Performing on chain transaction', 'Finished');
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_enum') THEN
+        CREATE TYPE status_enum AS ENUM ('Request received', 'Processing', 'Completed', 'Failed');
+    END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS requests (
     id UUID PRIMARY KEY NOT NULL DEFAULT (uuid_generate_v4()),
     status status_enum NOT NULL DEFAULT 'Request received',
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    email_tx_auth JSONB NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS expected_replies (

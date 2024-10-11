@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
+use ethers::types::U256;
 use handlebars::Handlebars;
 use relayer_utils::ParsedEmail;
 use serde::{Deserialize, Serialize};
@@ -10,8 +11,12 @@ use tokio::fs::read_to_string;
 use uuid::Uuid;
 
 use crate::{
-    config::PathConfig,
-    model::{insert_expected_reply, is_valid_reply, update_request, RequestStatus},
+    abis::{EmailAuthMsg, EmailProof},
+    chain::ChainClient,
+    command::get_encoded_command_params,
+    dkim::check_and_update_dkim,
+    model::{insert_expected_reply, is_valid_reply, update_request, RequestModel, RequestStatus},
+    prove::generate_email_proof,
     RelayerState,
 };
 
@@ -52,7 +57,12 @@ pub enum EmailEvent {
         original_message_id: Option<String>,
         original_subject: String,
     },
-    Completion {},
+    Completion {
+        email_addr: String,
+        request_id: Uuid,
+        original_subject: String,
+        original_message_id: Option<String>,
+    },
     Error {
         email_addr: String,
         error: String,
@@ -96,7 +106,6 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
 
             // Prepare data for HTML rendering
             let render_data = serde_json::json!({
-                "userEmailAddr": email_address,
                 "body": body,
                 "requestId": request_id,
                 "command": command,
@@ -124,79 +133,104 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
 
             update_request(&relayer_state.db, request_id, RequestStatus::EmailSent).await?;
         }
+        EmailEvent::Completion {
+            email_addr,
+            request_id,
+            original_subject,
+            original_message_id,
+        } => {
+            let subject = format!("Re: {}", original_subject);
+            let body_plain = format!("Your request ID is #{} is now complete.", request_id);
+
+            // Prepare data for HTML rendering
+            let render_data = serde_json::json!({
+                "requestId": request_id,
+            });
+            let body_html = render_html(
+                "acceptance_success.html",
+                render_data,
+                relayer_state.clone(),
+            )
+            .await?;
+
+            // Create and send the email
+            let email = EmailMessage {
+                to: email_addr,
+                subject: subject.to_string(),
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
+
+            send_email(email, None, relayer_state).await?;
+        }
         EmailEvent::Ack {
             email_addr,
             command,
             original_message_id,
             original_subject,
-        } => todo!(),
-        EmailEvent::Completion {} => todo!(),
+        } => {
+            let body_plain = format!(
+                "Hi {}!\nYour email with the command {} is received.",
+                email_addr, command
+            );
+            // Prepare data for HTML rendering
+            let render_data = serde_json::json!({"request": command});
+            let body_html = render_html(
+                "acknowledgement_template.html",
+                render_data,
+                relayer_state.clone(),
+            )
+            .await?;
+            let subject = format!("Re: {}", original_subject);
+            // Create and send the email
+            let email = EmailMessage {
+                to: email_addr,
+                subject,
+                body_plain,
+                body_html,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
+                body_attachments: None,
+            };
+            send_email(email, None, relayer_state).await?;
+        }
         EmailEvent::Error {
             email_addr,
             error,
             original_subject,
             original_message_id,
-        } => todo!(), // EmailEvent::Ack {
-                      //     email_addr,
-                      //     command,
-                      //     original_message_id,
-                      //     original_subject,
-                      // } => {
-                      //     let body_plain = format!(
-                      //         "Hi {}!\nYour email with the command {} is received.",
-                      //         email_addr, command
-                      //     );
-                      //     // Prepare data for HTML rendering
-                      //     let render_data = serde_json::json!({"userEmailAddr": email_addr, "request": command});
-                      //     let body_html = render_html("acknowledgement.html", render_data).await?;
-                      //     let subject = format!("Re: {}", original_subject);
-                      //     // Create and send the email
-                      //     let email = EmailMessage {
-                      //         to: email_addr,
-                      //         subject,
-                      //         body_plain,
-                      //         body_html,
-                      //         reference: original_message_id.clone(),
-                      //         reply_to: original_message_id,
-                      //         body_attachments: None,
-                      //     };
-                      //     send_email(email, None).await?;
-                      // }
-                      // EmailEvent::Completion {} => {}
-                      // EmailEvent::Error {
-                      //     email_addr,
-                      //     error,
-                      //     original_subject,
-                      //     original_message_id,
-                      // } => {
-                      //     let subject = format!("Re: {}", original_subject);
+        } => {
+            let subject = format!("Re: {}", original_subject);
 
-                      //     let body_plain = format!(
-                      //         "An error occurred while processing your request. \
-                      //         Error: {}",
-                      //         error
-                      //     );
+            let body_plain = format!(
+                "An error occurred while processing your request. \
+                  Error: {}",
+                error
+            );
 
-                      //     // Prepare data for HTML rendering
-                      //     let render_data = serde_json::json!({
-                      //         "error": error,
-                      //         "userEmailAddr": email_addr,
-                      //     });
-                      //     let body_html = render_html("error.html", render_data).await?;
+            // Prepare data for HTML rendering
+            let render_data = serde_json::json!({
+                "error": error,
+                "userEmailAddr": email_addr,
+            });
+            let body_html = render_html("error.html", render_data, relayer_state.clone()).await?;
 
-                      //     // Create and send the email
-                      //     let email = EmailMessage {
-                      //         to: email_addr,
-                      //         subject,
-                      //         reference: original_message_id.clone(),
-                      //         reply_to: original_message_id,
-                      //         body_plain,
-                      //         body_html,
-                      //         body_attachments: None,
-                      //     };
+            // Create and send the email
+            let email = EmailMessage {
+                to: email_addr,
+                subject,
+                reference: original_message_id.clone(),
+                reply_to: original_message_id,
+                body_plain,
+                body_html,
+                body_attachments: None,
+            };
 
-                      //     send_email(email, None).await?;
-                      // }
+            send_email(email, None, relayer_state).await?;
+        }
     }
 
     Ok(())
@@ -331,4 +365,62 @@ pub async fn check_is_valid_request(email: &ParsedEmail, pool: &PgPool) -> Resul
     // Check if the reply is valid (not a duplicate) using the database
     let is_valid = is_valid_reply(pool, &reply_message_id).await?;
     Ok(is_valid)
+}
+
+pub async fn handle_email(
+    email: String,
+    request: RequestModel,
+    relayer_state: RelayerState,
+) -> Result<EmailEvent> {
+    let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
+
+    let chain_client = ChainClient::setup(
+        request.clone().email_tx_auth.chain,
+        relayer_state.clone().config.chains,
+    )
+    .await?;
+
+    check_and_update_dkim(
+        &parsed_email,
+        request.email_tx_auth.email_auth_contract_address,
+        chain_client.clone(),
+        relayer_state.clone(),
+    )
+    .await?;
+
+    let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state).await?;
+
+    chain_client.call(request.clone(), email_auth_msg).await?;
+
+    Ok(EmailEvent::Completion {
+        email_addr: parsed_email.get_from_addr()?,
+        request_id: request.id,
+        original_subject: parsed_email.get_subject_all()?,
+        original_message_id: parsed_email.get_message_id().ok(),
+    })
+}
+
+/// Generates the email authentication message.
+///
+/// # Arguments
+///
+/// * `params` - The `EmailRequestContext` containing request details.
+///
+/// # Returns
+///
+/// A `Result` containing the `EmailAuthMsg`, `EmailProof`, and account salt, or an `EmailError`.
+async fn get_email_auth_msg(
+    email: &str,
+    request: RequestModel,
+    relayer_state: RelayerState,
+) -> Result<EmailAuthMsg> {
+    let command_params_encoded = get_encoded_command_params(email, request.clone()).await?;
+    let email_proof = generate_email_proof(email, request.clone(), relayer_state).await?;
+    let email_auth_msg = EmailAuthMsg {
+        template_id: request.email_tx_auth.template_id.into(),
+        command_params: command_params_encoded,
+        skipped_command_prefix: U256::zero(),
+        proof: email_proof,
+    };
+    Ok(email_auth_msg)
 }

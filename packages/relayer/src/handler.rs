@@ -1,17 +1,23 @@
 use std::sync::Arc;
 
-use axum::{extract::State, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    body::Body,
+    extract::State,
+    http::{request, StatusCode},
+    response::IntoResponse,
+    Json,
+};
 use regex::Regex;
 use relayer_utils::{field_to_hex, ParsedEmail, LOG};
 use serde_json::{json, Value};
-use slog::info;
+use slog::{error, info, trace};
 use uuid::Uuid;
 
 use crate::{
-    mail::handle_email_event,
-    model::{create_request, update_request, RequestStatus},
+    command::parse_command_template,
+    mail::{handle_email, handle_email_event, EmailEvent},
+    model::{create_request, get_request, update_request, RequestStatus},
     schema::EmailTxAuthSchema,
-    utils::parse_command_template,
     RelayerState,
 };
 
@@ -32,14 +38,16 @@ pub async fn submit_handler(
 ) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
     info!(LOG, "Payload: {:?}", body);
 
-    let uuid = create_request(&relayer_state.db).await.map_err(|e| {
-        (
-            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-            axum::Json(json!({"error": e.to_string()})),
-        )
-    })?;
+    let uuid = create_request(&relayer_state.db, &body)
+        .await
+        .map_err(|e| {
+            (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            )
+        })?;
 
-    let command = parse_command_template(&body.command_template, &body.command_params);
+    let command = parse_command_template(&body.command_template, body.command_params);
 
     let account_code = if body.code_exists_in_email {
         let hex_code = field_to_hex(&body.account_code.clone().0);
@@ -49,7 +57,7 @@ pub async fn submit_handler(
     };
 
     handle_email_event(
-        crate::mail::EmailEvent::Command {
+        EmailEvent::Command {
             request_id: uuid,
             email_address: body.email_address.clone(),
             command,
@@ -79,8 +87,25 @@ pub async fn submit_handler(
 
 pub async fn receive_email_handler(
     State(relayer_state): State<Arc<RelayerState>>,
-    body: String,
+    body: axum::body::Body,
 ) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
+    // Convert the body into a string
+    let bytes = axum::body::to_bytes(body, usize::MAX)
+        .await
+        .map_err(|err| {
+            (
+                StatusCode::BAD_REQUEST,
+                axum::Json(json!({"error": format!("Failed to read request body: {}", err)})),
+            )
+        })?;
+
+    let email = String::from_utf8(bytes.to_vec()).map_err(|err| {
+        (
+            StatusCode::BAD_REQUEST,
+            axum::Json(json!({"error": format!("Invalid UTF-8 sequence: {}", err)})),
+        )
+    })?;
+
     // Define the regex pattern for UUID
     let uuid_regex = Regex::new(
         r"(Your request ID is )([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})",
@@ -88,7 +113,7 @@ pub async fn receive_email_handler(
     .unwrap();
 
     // Attempt to find a UUID in the body
-    let captures = uuid_regex.captures(&body);
+    let captures = uuid_regex.captures(&email);
 
     let request_id = captures
         .and_then(|caps| caps.get(2).map(|m| m.as_str()))
@@ -124,18 +149,95 @@ pub async fn receive_email_handler(
     })?;
 
     // Log the received body
-    info!(LOG, "Received email body: {:?}", body);
+    info!(LOG, "Received email: {:?}", email);
 
-    let parsed_email = ParsedEmail::new_from_raw_email(&body).await.map_err(|e| {
+    let parsed_email = ParsedEmail::new_from_raw_email(&email).await.map_err(|e| {
         // Convert the error to the expected type
         (
             reqwest::StatusCode::INTERNAL_SERVER_ERROR,
             axum::Json(json!({"error": e.to_string()})),
         )
     })?;
+    let from_addr = match parsed_email.get_from_addr() {
+        Ok(addr) => addr,
+        Err(e) => {
+            return Err((
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            ))
+        }
+    };
+    let original_subject = match parsed_email.get_subject_all() {
+        Ok(subject) => subject,
+        Err(e) => {
+            return Err((
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            ))
+        }
+    };
 
-    // Process the body as needed
-    // For example, you might want to parse it or pass it to another function
+    // Send acknowledgment email
+    match handle_email_event(
+        EmailEvent::Ack {
+            email_addr: from_addr.clone(),
+            command: parsed_email.get_command(false).unwrap_or_default(),
+            original_message_id: parsed_email.get_message_id().ok(),
+            original_subject,
+        },
+        (*relayer_state).clone(),
+    )
+    .await
+    {
+        Ok(_) => {
+            trace!(LOG, "Ack email event sent");
+        }
+        Err(e) => {
+            error!(LOG, "Error handling email event: {:?}", e);
+        }
+    }
+
+    let request = get_request(&relayer_state.db, request_id)
+        .await
+        .map_err(|e| {
+            // Convert the error to the expected type
+            (
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            )
+        })?;
+
+    // Process the email
+    match handle_email(email, request, (*relayer_state).clone()).await {
+        Ok(event) => match handle_email_event(event, (*relayer_state).clone()).await {
+            Ok(_) => {}
+            Err(e) => {
+                error!(LOG, "Error handling email event: {:?}", e);
+            }
+        },
+        Err(e) => {
+            error!(LOG, "Error handling email: {:?}", e);
+            let original_subject = parsed_email
+                .get_subject_all()
+                .unwrap_or("Unknown Error".to_string());
+            match handle_email_event(
+                EmailEvent::Error {
+                    email_addr: from_addr,
+                    error: e.to_string(),
+                    original_subject,
+                    original_message_id: parsed_email.get_message_id().ok(),
+                },
+                (*relayer_state).clone(),
+            )
+            .await
+            {
+                Ok(_) => {}
+                Err(e) => {
+                    error!(LOG, "Error handling email event: {:?}", e);
+                }
+            }
+        }
+    }
 
     let response = json!({
         "status": "success",

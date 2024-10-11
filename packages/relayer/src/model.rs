@@ -1,15 +1,23 @@
+use std::fmt::Display;
+
 use anyhow::{Error, Ok, Result};
+use chrono::{DateTime, NaiveDateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, PgPool, Row};
+use sqlx::types::Json;
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
-#[derive(Debug, FromRow, Deserialize, Serialize)]
+use crate::schema::EmailTxAuthSchema;
+
+#[derive(Debug, FromRow, Deserialize, Serialize, Clone)]
 #[allow(non_snake_case)]
 pub struct RequestModel {
     pub id: Uuid,
     pub status: String,
     #[serde(rename = "updatedAt")]
-    pub updated_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub updated_at: Option<NaiveDateTime>,
+    #[serde(rename = "emailTxAuth")]
+    pub email_tx_auth: EmailTxAuthSchema,
 }
 
 #[derive(Debug, FromRow, Deserialize, Serialize)]
@@ -39,10 +47,32 @@ pub enum RequestStatus {
     Finished,
 }
 
-pub async fn create_request(pool: &PgPool) -> Result<Uuid> {
-    let query_result = sqlx::query!("INSERT INTO requests DEFAULT VALUES RETURNING id")
-        .fetch_one(pool)
-        .await?;
+impl std::fmt::Display for RequestStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+impl From<RequestStatus> for String {
+    fn from(status: RequestStatus) -> Self {
+        status.to_string()
+    }
+}
+
+impl From<sqlx::types::Json<EmailTxAuthSchema>> for EmailTxAuthSchema {
+    fn from(json: sqlx::types::Json<EmailTxAuthSchema>) -> Self {
+        json.0
+    }
+}
+
+pub async fn create_request(pool: &PgPool, email_tx_auth: &EmailTxAuthSchema) -> Result<Uuid> {
+    // Assuming the database column is of type JSONB and can directly accept the struct
+    let query_result = sqlx::query!(
+        "INSERT INTO requests (email_tx_auth) VALUES ($1) RETURNING id",
+        serde_json::to_value(email_tx_auth)? // Convert struct to JSON for insertion
+    )
+    .fetch_one(pool)
+    .await?;
 
     Ok(query_result.id)
 }
@@ -58,6 +88,27 @@ pub async fn update_request(pool: &PgPool, request_id: Uuid, status: RequestStat
     .map_err(|e| Error::msg(format!("Failed to update request: {}", e)))?;
 
     Ok(())
+}
+
+pub async fn get_request(pool: &PgPool, request_id: Uuid) -> Result<RequestModel, sqlx::Error> {
+    let query_result = sqlx::query_as!(
+        RequestModel,
+        r#"
+        SELECT 
+            id, 
+            status as "status: RequestStatus", 
+            updated_at::timestamp as "updated_at: NaiveDateTime",
+            email_tx_auth as "email_tx_auth: Json<EmailTxAuthSchema>"
+        FROM requests 
+        WHERE id = $1
+        "#,
+        request_id
+    )
+    .fetch_optional(pool)
+    .await?;
+
+    // If query_result is None, it means no row was found for the given request_id
+    query_result.ok_or_else(|| sqlx::Error::RowNotFound)
 }
 
 pub async fn insert_expected_reply(
