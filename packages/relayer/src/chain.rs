@@ -162,13 +162,16 @@ impl ChainClient {
             // Convert each arg to a Token. This conversion depends on the type of arg.
             // For example, if arg is a string, you might use Token::String(arg).
             // Adjust the conversion based on the actual type of arg.
-            let token = Token::from(arg); // Replace with appropriate conversion
+            let token = Token::from(arg);
             tokens.push(token);
         }
 
         // Now you can use the tokens vector to call the contract function
         let call = contract.method::<_, ()>(&function.name, tokens)?;
-        let _result = call.send().await?;
+
+        let tx = call.send().await?;
+        let receipt = tx.await?;
+
         Ok(())
     }
 }

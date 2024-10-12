@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ethers::{
     abi::{Abi, Function, Token},
-    types::Address,
+    types::{Address, U256},
 };
 use relayer_utils::AccountCode;
 use serde::{Deserialize, Serialize};
@@ -17,7 +17,7 @@ pub struct EmailTxAuthSchema {
     pub function_abi: Function,
     pub command_template: String,
     pub command_params: Vec<String>,
-    pub template_id: usize,
+    pub template_id: U256,
     pub remaining_args: Vec<Token>,
     pub email_address: String,
     pub subject: String,
