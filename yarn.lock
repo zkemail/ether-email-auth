@@ -1835,9 +1835,9 @@
     commander "^11.0.0"
     snarkjs "^0.7.0"
 
-"@zk-jwt/zk-jwt-contracts@git+https://github.com/zkemail/zk-jwt.git#feat/refactor":
+"@zk-jwt/zk-jwt-contracts@git+https://github.com/zkemail/zk-jwt.git#e71a93f9bd27bc9d5b65330c5e4ccb5231d5710f":
   version "0.0.1"
-  resolved "git+https://github.com/zkemail/zk-jwt.git#698b420cd18f3e74b41af64c22180601d55415e6"
+  resolved "git+https://github.com/zkemail/zk-jwt.git#e71a93f9bd27bc9d5b65330c5e4ccb5231d5710f"
 
 abbrev@1:
   version "1.1.1"
