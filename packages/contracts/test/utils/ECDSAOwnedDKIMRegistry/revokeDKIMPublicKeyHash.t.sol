@@ -8,7 +8,7 @@ import "../../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
-contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
+contract ECDSAOwnedDKIMRegistryTest_revokeDKIMPublicKeyHash is Test {
     ECDSAOwnedDKIMRegistry dkim;
     using console for *;
     using ECDSA for *;
@@ -39,12 +39,239 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.expectRevert("publicKeyHash is not set");
-        dkim.revokeDKIMPublicKeyHash(selector, domainName, publicKeyHash, signature);
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+    }
+
+    function test_Revert_IfSignerIsIncorrect() public {
+        // Set a valid public key hash first
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Attempt to revoke with a signature from a different signer
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(2, digest); // Different signer
+        bytes memory invalidSignature = abi.encodePacked(r1, s1, v1);
+
+        vm.expectRevert("Invalid signature");
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            invalidSignature
+        );
+    }
+
+    // invalid selectorをチェックするテストケース
+    function test_Revert_IfSelectorIsInvalid() public {
+        // Set a valid public key hash first
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Attempt to revoke with an invalid selector
+        string memory invalidSelector = "";
+        string memory revokeMsg = dkim.computeSignedMsg(
+            dkim.REVOKE_PREFIX(),
+            invalidSelector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
+        bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
+
+        vm.expectRevert("Invalid selector");
+        dkim.revokeDKIMPublicKeyHash(
+            invalidSelector,
+            domainName,
+            publicKeyHash,
+            revokeSig
+        );
+    }
+    // Invalid domain nameエラーをチェックするテストケース
+    function test_Revert_IfDomainNameIsInvalid() public {
+        // Set a valid public key hash first
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Attempt to revoke with an invalid domain name
+        string memory invalidDomainName = "";
+        string memory revokeMsg = dkim.computeSignedMsg(
+            dkim.REVOKE_PREFIX(),
+            selector,
+            invalidDomainName,
+            publicKeyHash
+        );
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
+        bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
+
+        vm.expectRevert("Invalid domain name");
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            invalidDomainName,
+            publicKeyHash,
+            revokeSig
+        );
+    }
+    // Invalid public key hashエラーをチェックするテストケース
+    function test_Revert_IfPublicKeyHashIsInvalid() public {
+        // Set a valid public key hash first
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Attempt to revoke with an invalid public key hash
+        bytes32 invalidPublicKeyHash = bytes32(0);
+        string memory revokeMsg = dkim.computeSignedMsg(
+            dkim.REVOKE_PREFIX(),
+            selector,
+            domainName,
+            invalidPublicKeyHash
+        );
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
+        bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
+
+        vm.expectRevert("Invalid public key hash");
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            invalidPublicKeyHash,
+            revokeSig
+        );
+    }
+    // publicKeyHash is already revokedエラーをチェックするテストケース
+    function test_Revert_IfPublicKeyHashIsAlreadyRevoked() public {
+        // Set a valid public key hash first
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Revoke the public key hash
+        string memory revokeMsg = dkim.computeSignedMsg(
+            dkim.REVOKE_PREFIX(),
+            selector,
+            domainName,
+            publicKeyHash
+        );
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
+        bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            revokeSig
+        );
+
+        // Mock the call to dkimRegistry.isDKIMPublicKeyHashValid to return true
+        vm.mockCall(
+            address(dkim.dkimRegistry()),
+            abi.encodeWithSelector(
+                IDKIMRegistry.isDKIMPublicKeyHashValid.selector
+            ),
+            abi.encode(true)
+        );
+        // Attempt to revoke the already revoked public key hash
+        vm.expectRevert("publicKeyHash is already revoked");
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            revokeSig
+        );
     }
 
     function test_Revert_IfSignatureIsInvalid() public {
@@ -55,17 +282,29 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(selector, domainName, publicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
 
         // Attempt to revoke with an invalid signature
         bytes memory invalidSignature = abi.encodePacked(r, s, v + 1); // Alter the signature
         vm.expectRevert(ECDSA.ECDSAInvalidSignature.selector);
-        dkim.revokeDKIMPublicKeyHash(selector, domainName, publicKeyHash, invalidSignature);
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            invalidSignature
+        );
     }
-    function testRevert_IfDomainNameIsDifferent() public {
+    function test_Revert_IfDomainNameIsDifferent() public {
         // Set a valid public key hash first
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
@@ -73,10 +312,17 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(selector, domainName, publicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
 
         // Attempt to revoke with a different domain name
         string memory differentDomainName = "different.com";
@@ -86,15 +332,22 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             differentDomainName,
             publicKeyHash
         );
-        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg));
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
         bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
 
         vm.expectRevert("publicKeyHash is not set");
-        dkim.revokeDKIMPublicKeyHash(selector, differentDomainName, publicKeyHash, revokeSig);
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            differentDomainName,
+            publicKeyHash,
+            revokeSig
+        );
     }
 
-    function testRevert_IfSelectorIsDifferent() public {
+    function test_Revert_IfSelectorIsDifferent() public {
         // Set a valid public key hash first
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
@@ -102,10 +355,17 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(selector, domainName, publicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
 
         // Attempt to revoke with a different selector
         string memory differentSelector = "54321";
@@ -115,12 +375,19 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash
         );
-        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg));
+        bytes32 revokeDigest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(revokeMsg)
+        );
         (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(1, revokeDigest);
         bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
 
         vm.expectRevert("Invalid signature");
-        dkim.revokeDKIMPublicKeyHash(differentSelector, domainName, publicKeyHash, revokeSig);
+        dkim.revokeDKIMPublicKeyHash(
+            differentSelector,
+            domainName,
+            publicKeyHash,
+            revokeSig
+        );
     }
 
     function test_RevokeDKIMPublicKeyHash() public {
@@ -164,5 +431,4 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
 
         require(!dkim.isDKIMPublicKeyHashValid(domainName, publicKeyHash));
     }
-
 }
