@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
+import {IVerifier} from "../src/interfaces/IVerifier.sol";
 import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 // import "../src/utils/ForwardDKIMRegistry.sol";
@@ -17,7 +18,7 @@ contract Deploy is Script {
     using ECDSA for *;
 
     ECDSAOwnedDKIMRegistry dkim;
-    Verifier verifier;
+    IVerifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWallet;
     RecoveryController recoveryController;
@@ -69,7 +70,7 @@ contract Deploy is Script {
             // vm.setEnv("DKIM", vm.toString(address(dkim)));
         }
         // Deploy Verifier
-        verifier = Verifier(vm.envOr("VERIFIER", address(0)));
+        verifier = IVerifier(vm.envOr("VERIFIER", address(0)));
         if (address(verifier) == address(0)) {
             Verifier verifierImpl = new Verifier();
             console.log(
@@ -84,7 +85,7 @@ contract Deploy is Script {
                     (initialOwner, address(groth16Verifier))
                 )
             );
-            verifier = Verifier(address(verifierProxy));
+            verifier = IVerifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
             vm.setEnv("VERIFIER", vm.toString(address(verifier)));
         }

@@ -5,7 +5,8 @@ import "forge-std/Script.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../test/helpers/SimpleWallet.sol";
-import "../src/utils/Verifier.sol";
+import {IVerifier} from "../src/interfaces/IVerifier.sol";
+import {Verifier} from "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 // import "../src/utils/ForwardDKIMRegistry.sol";
@@ -20,7 +21,7 @@ contract Deploy is Script {
     // ForwardDKIMRegistry dkimImpl;
     // ForwardDKIMRegistry dkim;
     Verifier verifierImpl;
-    Verifier verifier;
+    IVerifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWalletImpl;
 
@@ -89,7 +90,7 @@ contract Deploy is Script {
                     (initialOwner, address(groth16Verifier))
                 )
             );
-            verifier = Verifier(address(verifierProxy));
+            verifier = IVerifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
             vm.setEnv("VERIFIER", vm.toString(address(verifier)));
         }

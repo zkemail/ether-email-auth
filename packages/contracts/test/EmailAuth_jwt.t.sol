@@ -6,40 +6,40 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
-import {Verifier} from "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "./helpers/StructHelper.sol";
+import {StructHelper} from "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {JwtVerifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtVerifier.sol";
 
-contract EmailAuthTest is StructHelper {
+contract EmailAuthTest_jwt is StructHelper {
     function setUp() public override {
         super.setUp();
 
         vm.startPrank(deployer);
         emailAuth.initialize(deployer, accountSalt, deployer);
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.VerifierUpdated(address(verifier));
-        emailAuth.updateVerifier(address(verifier));
+        emit EmailAuth.VerifierUpdated(address(jwtVerifier));
+        emailAuth.updateVerifier(address(jwtVerifier));
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.DKIMRegistryUpdated(address(dkim));
-        emailAuth.updateDKIMRegistry(address(dkim));
+        emit EmailAuth.DKIMRegistryUpdated(address(jwtRegistry));
+        emailAuth.updateDKIMRegistry(address(jwtRegistry));
         vm.stopPrank();
     }
 
-    function testDkimRegistryAddr() public view {
+    function testJwtRegistryAddr() public view {
         address dkimAddr = emailAuth.dkimRegistryAddr();
-        assertEq(dkimAddr, address(dkim));
+        assertEq(dkimAddr, address(jwtRegistry));
     }
 
-    function testVerifierAddr() public view {
+    function testJwtVerifierAddr() public view {
         address verifierAddr = emailAuth.verifierAddr();
-        assertEq(verifierAddr, address(verifier));
+        assertEq(verifierAddr, address(jwtVerifier));
     }
 
-    function testUpdateDKIMRegistryToECDSA() public {
-        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
+    function testUpdateJwtRegistryToECDSA() public {
+        assertEq(emailAuth.dkimRegistryAddr(), address(jwtRegistry));
 
         vm.startPrank(deployer);
         ECDSAOwnedDKIMRegistry newDKIM;
@@ -59,8 +59,8 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
     }
 
-    function testUpdateDKIMRegistryToForward() public {
-        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
+    function testUpdateJwtRegistryToForward() public {
+        assertEq(emailAuth.dkimRegistryAddr(), address(jwtRegistry));
 
         vm.startPrank(deployer);
         ECDSAOwnedDKIMRegistry dummyDKIM = new ECDSAOwnedDKIMRegistry();
@@ -84,10 +84,10 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
     }
 
-    function testExpectRevertUpdateDKIMRegistryInvalidDkimRegistryAddress()
+    function testExpectRevertUpdateJwtRegistryInvalidDkimRegistryAddress()
         public
     {
-        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
+        assertEq(emailAuth.dkimRegistryAddr(), address(jwtRegistry));
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("invalid dkim registry address"));
@@ -95,11 +95,11 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testUpdateVerifier() public {
-        assertEq(emailAuth.verifierAddr(), address(verifier));
+    function testUpdateJwtVerifier() public {
+        assertEq(emailAuth.verifierAddr(), address(jwtVerifier));
 
         vm.startPrank(deployer);
-        Verifier newVerifier = new Verifier();
+        JwtVerifier newVerifier = new JwtVerifier();
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.VerifierUpdated(address(newVerifier));
         emailAuth.updateVerifier(address(newVerifier));
@@ -108,8 +108,8 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.verifierAddr(), address(newVerifier));
     }
 
-    function testExpectRevertUpdateVerifierInvalidVerifierAddress() public {
-        assertEq(emailAuth.verifierAddr(), address(verifier));
+    function testExpectRevertUpdateJwtVerifierInvalidVerifierAddress() public {
+        assertEq(emailAuth.verifierAddr(), address(jwtVerifier));
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("invalid verifier address"));
@@ -251,7 +251,7 @@ contract EmailAuthTest is StructHelper {
     function testAuthEmail() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -279,7 +279,7 @@ contract EmailAuthTest is StructHelper {
     }
 
     function testExpectRevertAuthEmailCallerIsNotTheModule() public {
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
 
         assertEq(
             emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
@@ -293,7 +293,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailTemplateIdNotExists() public {
         vm.startPrank(deployer);
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -311,7 +311,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidDkimPublicKeyHash() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -322,7 +322,7 @@ contract EmailAuthTest is StructHelper {
 
         vm.startPrank(deployer);
         emailAuthMsg.proof.domainName = "invalid.com";
-        vm.expectRevert(bytes("invalid dkim public key hash"));
+        vm.expectRevert(bytes("Invalid kid|iss|azp strings"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
     }
@@ -330,7 +330,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailEmailNullifierAlreadyUsed() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -349,7 +349,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidAccountSalt() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -368,7 +368,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidTimestamp() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
 
@@ -390,7 +390,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidCommand() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -409,7 +409,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidEmailProof() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -420,9 +420,9 @@ contract EmailAuthTest is StructHelper {
 
         vm.startPrank(deployer);
         vm.mockCall(
-            address(verifier),
+            address(jwtVerifier),
             abi.encodeWithSelector(
-                Verifier.verifyEmailProof.selector,
+                IVerifier.verifyEmailProof.selector,
                 emailAuthMsg.proof
             ),
             abi.encode(false)
@@ -435,7 +435,7 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertAuthEmailInvalidMaskedCommandLength() public {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(
@@ -458,7 +458,7 @@ contract EmailAuthTest is StructHelper {
     {
         vm.startPrank(deployer);
         _testInsertCommandTemplate();
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        EmailAuthMsg memory emailAuthMsg = buildJwtMsg();
         vm.stopPrank();
 
         assertEq(

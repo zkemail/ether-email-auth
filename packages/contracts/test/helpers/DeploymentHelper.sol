@@ -6,7 +6,9 @@ import "forge-std/console.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
+import {IVerifier} from "../../src/interfaces/IVerifier.sol";
+import {Verifier} from "../../src/utils/Verifier.sol";
+import {EmailProof} from "../../src/interfaces/IVerifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
@@ -14,6 +16,10 @@ import {SimpleWallet} from "./SimpleWallet.sol";
 import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+
+import {JwtVerifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtVerifier.sol";
+import {JwtGroth16Verifier} from "@zk-jwt/zk-jwt-contracts/utils/JwtGroth16Verifier.sol";
+import {JwtRegistry} from "@zk-jwt/zk-jwt-contracts/utils/JwtRegistry.sol";
 
 // // FOR_ZKSYNC:START
 // import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
@@ -25,12 +31,17 @@ contract DeploymentHelper is Test {
     using ECDSA for *;
 
     EmailAuth emailAuth;
-    Verifier verifier;
+    IVerifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
+
+    IVerifier jwtVerifier;
+    JwtRegistry jwtRegistry;
+    RecoveryController jwtRecoveryController;
+    SimpleWallet jwtSimpleWallet;
 
     // // FOR_ZKSYNC:START
     // RecoveryControllerZKSync recoveryControllerZKSync;
@@ -39,6 +50,7 @@ contract DeploymentHelper is Test {
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
     address guardian;
+    address jwtGuardian;
     address newSigner = vm.addr(4);
     address someRelayer = vm.addr(5);
 
@@ -95,6 +107,14 @@ contract DeploymentHelper is Test {
             new bytes(0)
         );
 
+        // Create jwt dkim registry
+        jwtRegistry = new JwtRegistry(deployer);
+        jwtRegistry.setDKIMPublicKeyHash(
+            "12345|https://example.com|client-id-12345",
+            publicKeyHash
+        );
+
+
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
@@ -110,8 +130,26 @@ contract DeploymentHelper is Test {
                     (msg.sender, address(groth16Verifier))
                 )
             );
-            verifier = Verifier(address(verifierProxy));
+            verifier = IVerifier(address(verifierProxy));
         }
+        // Create JwtVerifier
+        {
+            JwtVerifier verifierImpl = new JwtVerifier();
+            console.log(
+                "JwtVerifier implementation deployed at: %s",
+                address(verifierImpl)
+            );
+            JwtGroth16Verifier groth16Verifier = new JwtGroth16Verifier();
+            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+                address(verifierImpl),
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
+            );
+            jwtVerifier = IVerifier(address(verifierProxy));
+        }
+
         accountSalt = 0x2c3abbf3d1171bfefee99c13bf9c47f1e8447576afd89096652a34f27b297971;
 
         // Create EmailAuth implementation
@@ -125,25 +163,44 @@ contract DeploymentHelper is Test {
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
-        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
-            address(recoveryControllerImpl),
-            abi.encodeCall(
-                recoveryControllerImpl.initialize,
-                (
-                    signer,
-                    address(verifier),
-                    address(dkim),
-                    address(emailAuthImpl)
+        {
+            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+                address(recoveryControllerImpl),
+                abi.encodeCall(
+                    recoveryControllerImpl.initialize,
+                    (
+                        signer,
+                        address(verifier),
+                        address(dkim),
+                        address(emailAuthImpl)
+                    )
                 )
-            )
-        );
-        recoveryController = RecoveryController(
-            payable(address(recoveryControllerProxy))
-        );
+            );
+            recoveryController = RecoveryController(
+                payable(address(recoveryControllerProxy))
+            );
+        }
+        // Create RecoveryController for JWT as EmailAccountRecovery implementation
+        {
+            ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+                address(recoveryControllerImpl),
+                abi.encodeCall(
+                    recoveryControllerImpl.initialize,
+                    (
+                        signer,
+                        address(jwtVerifier),
+                        address(jwtRegistry),
+                        address(emailAuthImpl)
+                    )
+                )
+            );
+            jwtRecoveryController = RecoveryController(
+                payable(address(recoveryControllerProxy))
+            );
+        }
 
         // Create SimpleWallet
         simpleWalletImpl = new SimpleWallet();
-        address recoveryControllerAddress = address(recoveryController);
 
         // // FOR_ZKSYNC:START
         // // Create zkSync Factory implementation
@@ -171,19 +228,37 @@ contract DeploymentHelper is Test {
         // }
         // // FOR_ZKSYNC:END
 
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-            address(simpleWalletImpl),
-            abi.encodeCall(
-                simpleWalletImpl.initialize,
-                (signer, recoveryControllerAddress)
-            )
-        );
-        simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-        vm.deal(address(simpleWallet), 1 ether);
+        {
+            address recoveryControllerAddress = address(recoveryController);
+            ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+                address(simpleWalletImpl),
+                abi.encodeCall(
+                    simpleWalletImpl.initialize,
+                    (signer, recoveryControllerAddress)
+                )
+            );
+            simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
+            vm.deal(address(simpleWallet), 1 ether);
+        }
+        {
+            address recoveryControllerAddress = address(jwtRecoveryController);
+            ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+                address(simpleWalletImpl),
+                abi.encodeCall(
+                    simpleWalletImpl.initialize,
+                    (signer, recoveryControllerAddress)
+                )
+            );
+            jwtSimpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
+            vm.deal(address(jwtSimpleWallet), 1 ether);
+        }
 
         // Set guardian address
         guardian = EmailAccountRecovery(address(recoveryController))
             .computeEmailAuthAddress(address(simpleWallet), accountSalt);
+        jwtGuardian = EmailAccountRecovery(address(jwtRecoveryController))
+            .computeEmailAuthAddress(address(jwtSimpleWallet), accountSalt);
+
         // // FOR_ZKSYNC:START
         // if (isZkSync()) {
         //     guardian = EmailAccountRecoveryZKSync(address(recoveryControllerZKSync))
