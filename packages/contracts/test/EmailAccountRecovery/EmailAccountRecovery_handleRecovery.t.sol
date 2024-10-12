@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
-import {RecoveryController} from "../helpers/RecoveryController.sol";
+import {RecoveryController, EmailAccountRecovery} from "../helpers/RecoveryController.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -71,6 +71,126 @@ contract EmailAccountRecoveryTest_handleRecovery is StructHelper {
             recoveryController.guardians(guardian) ==
                 RecoveryController.GuardianStatus.ACCEPTED
         );
+    }
+
+function testExpectRevertHandleRecoveryInvalidRecoveredAccount() public {
+    skipIfZkSync();
+
+    EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+    emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(0);
+    emailAuthMsg.commandParams[0] = abi.encode(address(0x0)); // Invalid account
+
+    vm.startPrank(someRelayer);
+    vm.expectRevert(bytes("invalid account in email"));
+    recoveryController.handleRecovery(emailAuthMsg, 0);
+    vm.stopPrank();
+}
+    function testExpectRevertHandleRecoveryInvalidAccountInEmail() public {
+        skipIfZkSync();
+
+        handleAcceptance();
+
+        uint templateIdx = 0;
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(address(0x0)); // Invalid account
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
+
+        vm.mockCall(
+            address(recoveryController.emailAuthImplementationAddr()),
+            abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
+            abi.encode(0x0)
+        );
+
+        vm.startPrank(someRelayer);
+        vm.expectRevert(bytes("invalid account in email"));
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        vm.stopPrank();
+    }
+
+    function testExpectRevertHandleRecoveryGuardianCodeLengthZero() public {
+        skipIfZkSync();
+
+        handleAcceptance();
+
+        uint templateIdx = 0;
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
+
+        // Mock guardian with no code
+        vm.etch(guardian, "");
+
+        vm.startPrank(someRelayer);
+        vm.expectRevert(bytes("guardian is not deployed"));
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        vm.stopPrank();
+    }
+
+    function testExpectRevertHandleRecoveryTemplateIdMismatch() public {
+        skipIfZkSync();
+
+        handleAcceptance();
+
+        uint templateIdx = 0;
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.templateId = 999; // Invalid template ID
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
+
+        vm.mockCall(
+            address(recoveryController.emailAuthImplementationAddr()),
+            abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
+            abi.encode(0x0)
+        );
+
+        vm.startPrank(someRelayer);
+        vm.expectRevert(bytes("invalid template id"));
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        vm.stopPrank();
+    }
+
+    function testExpectRevertHandleRecoveryAuthEmailFailure() public {
+        skipIfZkSync();
+
+        handleAcceptance();
+
+        uint templateIdx = 0;
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(
+            templateIdx
+        );
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
+
+        // Mock authEmail to fail
+        vm.mockCallRevert(
+            address(recoveryController.emailAuthImplementationAddr()),
+            abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
+            "REVERT_MESSAGE"
+        );
+
+        vm.startPrank(someRelayer);
+        vm.expectRevert(); // Expect any revert due to authEmail failure
+        recoveryController.handleRecovery(emailAuthMsg, templateIdx);
+        vm.stopPrank();
     }
 
     function testHandleRecovery() public {
