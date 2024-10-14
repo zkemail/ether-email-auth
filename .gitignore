@@ -71,3 +71,8 @@ book
 # For zksync
 zkout
 .cache
+
+# Example
+example/contracts/artifacts
+example/contracts/cache
+example/contracts/node_modules

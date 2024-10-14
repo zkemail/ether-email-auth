@@ -1,0 +1,53 @@
+[profile.default]
+src = "src"
+out = "artifacts"
+libs = ["../../node_modules", "lib"]
+optimizer = true
+# The following line `via-ir = true` is needed to compile this project using zksync features
+# See README.md for more details -> TODO
+# via-ir = true 
+optimizer-runs = 20_000
+fs_permissions = [
+    { access = "read", path = "./artifacts/WETH9.sol/WETH9.json" },
+    { access = "read", path = "./test/build_integration" },
+    { access = "read", path = "./zkout/ERC1967Proxy.sol/ERC1967Proxy.json" },
+]
+
+solc = "0.8.26"
+
+# See more config options https://github.com/foundry-rs/foundry/tree/master/config
+
+# OpenZeppelin
+build_info = true
+extra_output = ["storageLayout"]
+
+# For missing libraries, please comment out this if you use foundry-zksync for unit test
+#libraries = [
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x91cc0f0a227b8dd56794f9391e8af48b40420a0b", 
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:0x981e3df952358a57753c7b85de7949da4abcf54a"
+#]
+
+# For missing libraries, please comment out this if you use foundry-zksync for integration test
+#libraries = [
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:0x34eb91D6a0c6Cea4B3b2e4eE8176d6Fc120CB133", 
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:0x3CE48a2c96889FeB67f2e3fb0285AEc9e3FCb68b"
+#]
+
+
+[rpc_endpoints]
+localhost = "${LOCALHOST_RPC_URL}"
+sepolia = "${SEPOLIA_RPC_URL}"
+mainnet = "${MAINNET_RPC_URL}"
+
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}" }
+mainnet = { key = "${ETHERSCAN_API_KEY}" }
+
+[profile.default.zksync]
+src = 'src'
+libs = ["node_modules", "lib"]
+fallback_oz = true
+is_system = true
+mode = "3"
+
+zksolc = "1.5.0"
