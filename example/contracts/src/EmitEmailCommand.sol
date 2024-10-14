@@ -7,7 +7,6 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 /// @title Example contract that emits an event for the command in the given email.
 contract EmitEmailCommand {
-    uint8 constant EMAIL_ACCOUNT_RECOVERY_VERSION_ID = 1;
     address public verifierAddr;
     address public dkimAddr;
     address public emailAuthImplementationAddr;
@@ -20,6 +19,16 @@ contract EmitEmailCommand {
         address indexed emailAuthAddr,
         address indexed command
     );
+
+    constructor(
+        address _verifierAddr,
+        address _dkimAddr,
+        address _emailAuthImplementationAddr
+    ) {
+        verifierAddr = _verifierAddr;
+        dkimAddr = _dkimAddr;
+        emailAuthImplementationAddr = _emailAuthImplementationAddr;
+    }
 
     /// @notice Returns the address of the verifier contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -96,16 +105,7 @@ contract EmitEmailCommand {
     /// @param templateIdx The index of the command template.
     /// @return uint The computed uint ID.
     function computeTemplateId(uint templateIdx) public pure returns (uint) {
-        return
-            uint256(
-                keccak256(
-                    abi.encode(
-                        EMAIL_ACCOUNT_RECOVERY_VERSION_ID,
-                        "EXAMPLE",
-                        templateIdx
-                    )
-                )
-            );
+        return uint256(keccak256(abi.encode("EXAMPLE", templateIdx)));
     }
 
     /// @notice Returns a two-dimensional array of strings representing the command templates.
