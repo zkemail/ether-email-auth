@@ -25,6 +25,8 @@ contract ECDSAOwnedDKIMRegistry is
     string public constant SET_PREFIX = "SET:";
     string public constant REVOKE_PREFIX = "REVOKE:";
 
+    event SignerChanged(address indexed oldSigner, address indexed newOwner);
+
     constructor() {}
 
     /// @notice Initializes the contract with a predefined signer and deploys a new DKIMRegistry.
@@ -159,7 +161,9 @@ contract ECDSAOwnedDKIMRegistry is
     function changeSigner(address _newSigner) public onlyOwner {
         require(_newSigner != address(0), "Invalid signer");
         require(_newSigner != signer, "Same signer");
+        address oldSigner = signer;
         signer = _newSigner;
+        emit SignerChanged(oldSigner, _newSigner);
     }
 
     /// @notice Upgrade the implementation of the proxy.

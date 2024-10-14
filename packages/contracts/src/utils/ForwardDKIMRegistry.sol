@@ -15,6 +15,12 @@ contract ForwardDKIMRegistry is
 {
     IDKIMRegistry public sourceDKIMRegistry;
 
+    event sourceDKIMRegistryChanged(
+        address indexed oldRegistry,
+        address indexed newRegistry
+    );
+    event StorageReset(address indexed sourceDKIMRegistry);
+
     constructor() {}
 
     /// @notice Initializes the contract with a predefined signer and deploys a new DKIMRegistry.
@@ -57,7 +63,9 @@ contract ForwardDKIMRegistry is
             _newSourceDKIMRegistry != address(this),
             "Cannot set self as source DKIMRegistry"
         );
+        address oldRegistryAddr = address(sourceDKIMRegistry);
         sourceDKIMRegistry = IDKIMRegistry(_newSourceDKIMRegistry);
+        emit sourceDKIMRegistryChanged(oldRegistryAddr, _newSourceDKIMRegistry);
     }
 
     /// @notice Upgrade the implementation of the proxy from the ECDSAOwnedDKIMRegistry.
@@ -70,6 +78,7 @@ contract ForwardDKIMRegistry is
             sstore(sourceDKIMRegistry.slot, _sourceDKIMRegistry)
             sstore(add(sourceDKIMRegistry.slot, 1), 0)
         }
+        emit StorageReset(_sourceDKIMRegistry);
     }
 
     /// @notice Upgrade the implementation of the proxy.
