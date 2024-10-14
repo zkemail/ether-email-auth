@@ -49,4 +49,9 @@ contract SimpleWallet is OwnableUpgradeable {
         );
         _transferOwnership(newOwner);
     }
+
+    function requestGuardian(address guardian) public {
+        require(msg.sender == owner(), "only owner");
+        RecoveryController(recoveryController).requestGuardian(guardian);
+    }
 }

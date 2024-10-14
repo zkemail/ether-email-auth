@@ -1,51 +1,65 @@
-use crate::*;
+use anyhow::Error;
+use serde::Deserialize;
+use std::collections::HashMap;
+use std::env;
+use std::fs::File;
+use std::io::Read;
 
-use std::{env, path::PathBuf};
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Config {
+    pub port: usize,
+    pub database_url: String,
+    pub smtp_url: String,
+    pub prover_url: String,
+    pub path: PathConfig,
+    pub icp: IcpConfig,
+    pub chains: HashMap<String, ChainConfig>,
+    pub json_logger: bool,
+}
 
-use dotenv::dotenv;
-
-#[derive(Clone)]
-pub struct RelayerConfig {
-    pub smtp_server: String,
-    pub relayer_email_addr: String,
-    pub db_path: String,
-    pub web_server_address: String,
-    pub circuits_dir_path: PathBuf,
-    pub prover_address: String,
-    pub chain_rpc_provider: String,
-    pub chain_rpc_explorer: String,
-    pub chain_id: u32,
-    pub private_key: String,
-    pub email_account_recovery_version_id: u8,
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct PathConfig {
+    pub pem: String,
     pub email_templates: String,
 }
 
-impl RelayerConfig {
-    pub fn new() -> Self {
-        dotenv().ok();
-
-        Self {
-            smtp_server: env::var(SMTP_SERVER_KEY).unwrap(),
-            relayer_email_addr: env::var(RELAYER_EMAIL_ADDR_KEY).unwrap(),
-            db_path: env::var(DATABASE_PATH_KEY).unwrap(),
-            web_server_address: env::var(WEB_SERVER_ADDRESS_KEY).unwrap(),
-            circuits_dir_path: env::var(CIRCUITS_DIR_PATH_KEY).unwrap().into(),
-            prover_address: env::var(PROVER_ADDRESS_KEY).unwrap(),
-            chain_rpc_provider: env::var(CHAIN_RPC_PROVIDER_KEY).unwrap(),
-            chain_rpc_explorer: env::var(CHAIN_RPC_EXPLORER_KEY).unwrap(),
-            chain_id: env::var(CHAIN_ID_KEY).unwrap().parse().unwrap(),
-            private_key: env::var(PRIVATE_KEY_KEY).unwrap(),
-            email_account_recovery_version_id: env::var(EMAIL_ACCOUNT_RECOVERY_VERSION_ID_KEY)
-                .unwrap()
-                .parse()
-                .unwrap(),
-            email_templates: env::var(EMAIL_TEMPLATES_PATH_KEY).unwrap(),
-        }
-    }
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct IcpConfig {
+    pub canister_id: String,
+    pub ic_replica_url: String,
 }
 
-impl Default for RelayerConfig {
-    fn default() -> Self {
-        Self::new()
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct ChainConfig {
+    pub private_key: String,
+    pub rpc_url: String,
+    pub explorer_url: String,
+    pub chain_id: u32,
+}
+
+// Function to load the configuration from a JSON file
+pub fn load_config() -> Result<Config, Error> {
+    // Open the configuration file
+    let mut file = File::open("config.json")
+        .map_err(|e| anyhow::anyhow!("Failed to open config file: {}", e))?;
+
+    // Read the file's content into a string
+    let mut data = String::new();
+    file.read_to_string(&mut data)
+        .map_err(|e| anyhow::anyhow!("Failed to read config file: {}", e))?;
+
+    // Deserialize the JSON content into a Config struct
+    let config: Config = serde_json::from_str(&data)
+        .map_err(|e| anyhow::anyhow!("Failed to parse config file: {}", e))?;
+
+    // Setting Logger ENV
+    if config.json_logger {
+        env::set_var("JSON_LOGGER", "true");
     }
+
+    Ok(config)
 }

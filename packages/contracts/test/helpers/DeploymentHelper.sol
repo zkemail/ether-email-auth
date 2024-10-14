@@ -7,6 +7,7 @@ import "forge-std/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
 import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
+import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
@@ -43,8 +44,8 @@ contract DeploymentHelper is Test {
 
     bytes32 accountSalt;
     uint templateId;
-    string[] subjectTemplate;
-    string[] newSubjectTemplate;
+    string[] commandTemplate;
+    string[] newCommandTemplate;
     bytes mockProof = abi.encodePacked(bytes1(0x01));
 
     string selector = "12345";
@@ -101,9 +102,13 @@ contract DeploymentHelper is Test {
                 "Verifier implementation deployed at: %s",
                 address(verifierImpl)
             );
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
         }
@@ -115,8 +120,8 @@ contract DeploymentHelper is Test {
 
         uint templateIdx = 0;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
-        subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
-        newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
+        commandTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
+        newCommandTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
@@ -135,7 +140,6 @@ contract DeploymentHelper is Test {
         recoveryController = RecoveryController(
             payable(address(recoveryControllerProxy))
         );
-
 
         // Create SimpleWallet
         simpleWalletImpl = new SimpleWallet();

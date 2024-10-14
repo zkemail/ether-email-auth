@@ -1,0 +1,250 @@
+<!doctype html>
+<html>
+  <style>
+    @font-face {
+      font-family: "Fustat";
+      src: url("https://storage.googleapis.com/email-templates-artifacts/Fustat/Fustat-Regular.ttf") format('truetype');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: "Fustat";
+      src: url("https://storage.googleapis.com/email-templates-artifacts/Fustat/Fustat-Medium.ttf") format('truetype');
+      font-weight: 500;
+    }
+    @font-face {
+      font-family: "Fustat";
+      src: url("https://storage.googleapis.com/email-templates-artifacts/Fustat/Fustat-SemiBold.ttf") format('truetype');
+      font-weight: 600;
+    }
+    @font-face {
+      font-family: "Fustat";
+      src: url("https://storage.googleapis.com/email-templates-artifacts/Fustat/Fustat-Bold.ttf") format('truetype');
+      font-weight: 700;
+    }
+
+    *,
+    *:before,
+    *:after {
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      line-height: 1.4;
+      padding: 0;
+      margin: 0;
+      font-family: "Fustat", sans-serif;
+      -ms-text-size-adjust: 100%;
+      -webkit-text-size-adjust: 100%;
+      -webkit-font-smoothing: antialiased;
+    }
+    a {
+      color: #5e6ad2;
+      text-decoration: underline;
+      line-height: 20px;
+    }
+    .primary-button {
+      border: none;
+      background-color: #5e6ad2;
+      color: white;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-weight: 500;
+    }
+    .secondary-button {
+      border: none;
+      background-color: #26272e;
+      color: white;
+      stroke: #2d2f31;
+      border-radius: 8px;
+      font-weight: 500;
+      padding: 10px 24px;
+    }
+
+    .social-links-logo {
+      border-radius: 50%;
+      background: #ffffff18;
+      border: 1px solid #bfbfbf20;
+      height: 24px;
+      width: 24px;
+      display: inline-block;
+      text-align: center;
+    }
+  </style>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link href="https://fonts.googleapis.com/css?family=Fustat&display=swap" rel="stylesheet" />
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      font-family: 'Fustat', sans-serif;
+    "
+  >
+    <table
+      align="center"
+      width="100%"
+      style="
+        max-width: 480px;
+        margin: 0 auto;
+        padding: 0;
+      "
+    >
+      <tr>
+        <td align="center" style="padding: 0">
+          <!-- Header -->
+          <table
+            width="100%"
+            style="
+              background-image: url(https://storage.googleapis.com/email-templates-artifacts/Header.png?ignoreCache=1);
+              background-size: cover;
+              background-position: center;
+              height: 4.5rem;
+              border-radius: 8px 8px 0 0;
+            "
+          >
+          </table>
+
+          <!-- Content -->
+          <table
+            width="100%"
+            style="
+              background-color: white;
+              padding: 2rem 1rem;
+              border: 1px solid #dddddd;
+            "
+          >
+            <tr>
+              <td style="padding: 0; font-size: 16px; color: #000">
+                Hi,
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 15px; font-family: 'Fustat', sans-serif;">
+                We have received your following request: <strong>{{request}}</strong>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top: 20px">
+                <p style="margin: 0">
+                  Cheers,<br /><strong>The ZK Email Team</strong>
+                </p>
+              </td>
+            </tr>
+          </table>
+
+          <!-- Footer -->
+          <table
+            width="100%"
+            style="
+              background-image: url(https://storage.googleapis.com/email-templates-artifacts/Footer.png?ignoreCache=1);
+              background-size: cover;
+              height: 4.5rem;
+              border-radius: 0 0 8px 8px;
+            "
+          >
+            <tr>
+              <td align="center" style="padding: 5px">
+                <p style="color: #D4D4D4; font-weight: 500; font-size: 14px; margin: 0; margin-bottom: 4px;">
+                  Powered by
+                  <a
+                    href="#"
+                    style="color: white; font-size: 14px; text-decoration: underline;"
+                    >ZK Email</a
+                  >
+                </p>
+                <table>
+                  <tr>
+                    <td>
+                      <a
+                        href="https://github.com/zkemail"
+                        class="social-links-logo"
+                        style=" border-radius: 50%;
+                            background: #161819;
+                            border: 1px solid #3B3B3B;
+                            backdrop-filter: blur(8px);
+                            margin-left: 4px;
+                            margin-right: 4px;
+                            height: 24px;
+                            width: 24px;
+                            text-align: center;
+                            line-height: 24px;
+                            display: block"
+                        ><img
+                          src="https://storage.googleapis.com/email-templates-artifacts/GithubLogo.png?ignoreCache=1"
+                          alt="GitHub Logo"
+                          style="height: 12px; width: 12px;"
+                      /></a>
+                    </td>
+                    <td>
+                      <a
+                        href="https://twitter.com/zkemail"
+                        class="social-links-logo"
+                        style=" border-radius: 50%;
+                            background: #161819;
+                            border: 1px solid #3B3B3B;
+                            backdrop-filter: blur(8px);
+                            margin-left: 4px;
+                            margin-right: 4px;
+                            height: 24px;
+                            width: 24px;
+                            text-align: center;
+                            line-height: 24px;
+                            display: block"
+                        ><img
+                          src="https://storage.googleapis.com/email-templates-artifacts/XLogo.png?ignoreCache=1"
+                          alt="Twitter Logo"
+                          style="height: 12px; width: 12px;"
+                      /></a>
+                    </td>
+                    <td>
+                      <a href="https://t.me/zkemail/1" class="social-links-logo"
+                      style=" border-radius: 50%;
+                            background: #161819;
+                            border: 1px solid #3B3B3B;
+                            backdrop-filter: blur(8px);
+                            margin-left: 4px;
+                            margin-right: 4px;
+                            height: 24px;
+                            width: 24px;
+                            text-align: center;
+                            line-height: 24px;
+                            display: block"
+                        ><img
+                          src="https://storage.googleapis.com/email-templates-artifacts/TelegramLogo.png?ignoreCache=1"
+                          alt="Telegram Logo"
+                          style="height: 12px; width: 12px;"
+                      /></a>
+                    </td>
+                    <td>
+                      <a
+                        href="https://discord.gg/XgAUbX3F4T"
+                        class="social-links-logo"
+                        style=" border-radius: 50%;
+                            background: #161819;
+                            border: 1px solid #3B3B3B;
+                            backdrop-filter: blur(8px);
+                            margin-left: 4px;
+                            margin-right: 4px;
+                            height: 24px;
+                            width: 24px;
+                            text-align: center;
+                            line-height: 24px;
+                            display: block"
+                        ><img
+                          src="https://storage.googleapis.com/email-templates-artifacts/DiscordLogo.png?ignoreCache=1"
+                          alt="Discord Logo"
+                          style="height: 12px; width: 12px;"
+                      /></a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

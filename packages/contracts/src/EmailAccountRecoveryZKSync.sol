@@ -9,13 +9,13 @@ import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 /// @notice Provides mechanisms for email-based account recovery, leveraging guardians and template-based email verification.
 /// @dev This contract is abstract and requires implementation of several methods for configuring a new guardian and recovering an account contract.
 abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
-
     // This is the address of the zkSync factory contract
     address public factoryAddr;
     // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
     // If you failed some test cases, check the bytecodeHash by yourself
     // see, test/ComputeCreate2Address.t.sol
-    bytes32 public constant proxyBytecodeHash = 0x0100008338d33e12c716a5b695c6f7f4e526cf162a9378c0713eea5386c09951;
+    bytes32 public constant proxyBytecodeHash =
+        0x010000835b32e9a15f4b6353ad649fa33f4fbe4f5139126c07205e738b9f758e;
 
     /// @notice Returns the address of the zkSyncfactory contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -34,19 +34,20 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     function computeEmailAuthAddress(
         address recoveredAccount,
         bytes32 accountSalt
-    ) public view override returns (address) {
+    ) public view virtual override returns (address) {
         // If on zksync, we use another logic to calculate create2 address.
-        return ZKSyncCreate2Factory(factory()).computeAddress(
-            accountSalt,
-            proxyBytecodeHash,
-            abi.encode(
-                emailAuthImplementation(),
-                abi.encodeCall(
-                    EmailAuth.initialize,
-                    (recoveredAccount, accountSalt, address(this))
+        return
+            ZKSyncCreate2Factory(factory()).computeAddress(
+                accountSalt,
+                proxyBytecodeHash,
+                abi.encode(
+                    emailAuthImplementation(),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (recoveredAccount, accountSalt, address(this))
+                    )
                 )
-            )
-        );
+            );
     }
 
     /// @notice Deploys a proxy contract for email authentication using the CREATE2 opcode.
@@ -57,24 +58,22 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     /// @param accountSalt A bytes32 salt value defined as a hash of the guardian's email address and an account code. This is assumed to be unique to a pair of the guardian's email address and the wallet address to be recovered.
     /// @return address The address of the deployed proxy contract.
     function deployEmailAuthProxy(
-        address recoveredAccount, 
+        address recoveredAccount,
         bytes32 accountSalt
-    ) internal override returns (address) {
-        (bool success, bytes memory returnData) = ZKSyncCreate2Factory(factory()).deploy(
-            accountSalt, 
-            proxyBytecodeHash, 
-            abi.encode(
-                emailAuthImplementation(),
-                abi.encodeCall(
-                    EmailAuth.initialize,
-                    (
-                        recoveredAccount,
-                        accountSalt,
-                        address(this)
+    ) internal virtual override returns (address) {
+        (bool success, bytes memory returnData) = ZKSyncCreate2Factory(
+            factory()
+        ).deploy(
+                accountSalt,
+                proxyBytecodeHash,
+                abi.encode(
+                    emailAuthImplementation(),
+                    abi.encodeCall(
+                        EmailAuth.initialize,
+                        (recoveredAccount, accountSalt, address(this))
                     )
                 )
-            )
-        );
+            );
         address payable proxyAddress = abi.decode(returnData, (address));
         return proxyAddress;
     }

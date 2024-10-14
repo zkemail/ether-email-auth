@@ -1,33 +1,61 @@
+use std::collections::HashMap;
+
 use crate::*;
-use abis::email_account_recovery::EmailAuthMsg;
-use ethers::middleware::Middleware;
+use abi::{Abi, Token};
+use abis::{ECDSAOwnedDKIMRegistry, EmailAuth, EmailAuthMsg, EmailProof};
+use anyhow::anyhow;
+use config::ChainConfig;
 use ethers::prelude::*;
 use ethers::signers::Signer;
-use relayer_utils::converters::u64_to_u8_array_32;
-use relayer_utils::LOG;
+use ethers::utils::hex;
+use model::RequestModel;
+use statics::SHARED_MUTEX;
 
 const CONFIRMATIONS: usize = 1;
 
 type SignerM = SignerMiddleware<Provider<Http>, LocalWallet>;
 
+/// Represents a client for interacting with the blockchain.
 #[derive(Debug, Clone)]
 pub struct ChainClient {
     pub client: Arc<SignerM>,
 }
 
 impl ChainClient {
-    pub async fn setup() -> Result<Self> {
-        let wallet: LocalWallet = PRIVATE_KEY.get().unwrap().parse()?;
-        let provider = Provider::<Http>::try_from(CHAIN_RPC_PROVIDER.get().unwrap())?;
+    /// Sets up a new ChainClient.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the new `ChainClient` if successful, or an error if not.
+    pub async fn setup(chain: String, chains: HashMap<String, ChainConfig>) -> Result<Self> {
+        let chain_config = chains
+            .get(&chain)
+            .ok_or_else(|| anyhow!("Chain configuration not found"))?;
+        let wallet: LocalWallet = chain_config.private_key.parse()?;
+        let provider = Provider::<Http>::try_from(chain_config.rpc_url.clone())?;
 
+        // Create a new SignerMiddleware with the provider and wallet
         let client = Arc::new(SignerMiddleware::new(
             provider,
-            wallet.with_chain_id(*CHAIN_ID.get().unwrap()),
+            wallet.with_chain_id(chain_config.chain_id),
         ));
 
         Ok(Self { client })
     }
 
+    /// Sets the DKIM public key hash.
+    ///
+    /// # Arguments
+    ///
+    /// * `selector` - The selector string.
+    /// * `domain_name` - The domain name.
+    /// * `public_key_hash` - The public key hash as a 32-byte array.
+    /// * `signature` - The signature as Bytes.
+    /// * `dkim` - The ECDSA Owned DKIM Registry.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the transaction hash as a String if successful, or an error if not.
     pub async fn set_dkim_public_key_hash(
         &self,
         selector: String,
@@ -40,24 +68,41 @@ impl ChainClient {
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
+        // Call the contract method
         let call = dkim.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
         let tx = call.send().await?;
+
+        // Wait for the transaction to be confirmed
         let receipt = tx
             .log()
             .confirmations(CONFIRMATIONS)
             .await?
             .ok_or(anyhow!("No receipt"))?;
+
+        // Format the transaction hash
         let tx_hash = receipt.transaction_hash;
         let tx_hash = format!("0x{}", hex::encode(tx_hash.as_bytes()));
         Ok(tx_hash)
     }
 
+    /// Checks if a DKIM public key hash is valid.
+    ///
+    /// # Arguments
+    ///
+    /// * `domain_name` - The domain name.
+    /// * `public_key_hash` - The public key hash as a 32-byte array.
+    /// * `dkim` - The ECDSA Owned DKIM Registry.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing a boolean indicating if the hash is valid.
     pub async fn check_if_dkim_public_key_hash_valid(
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
         dkim: ECDSAOwnedDKIMRegistry<SignerM>,
     ) -> Result<bool> {
+        // Call the contract method to check if the hash is valid
         let is_valid = dkim
             .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
             .call()
@@ -65,240 +110,99 @@ impl ChainClient {
         Ok(is_valid)
     }
 
-    pub async fn get_dkim_from_wallet(
-        &self,
-        controller_eth_addr: &String,
-    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let dkim = contract.dkim().call().await?;
-        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
-    }
-
+    /// Gets the DKIM from an email auth address.
+    ///
+    /// # Arguments
+    ///
+    /// * `email_auth_addr` - The email auth address as a string.
+    ///
+    /// # Returns
+    ///
+    /// A `Result` containing the ECDSA Owned DKIM Registry if successful, or an error if not.
     pub async fn get_dkim_from_email_auth(
         &self,
-        email_auth_addr: &String,
+        email_auth_address: Address,
     ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
-        let email_auth_address: H160 = email_auth_addr.parse()?;
+        // Create a new EmailAuth contract instance
         let contract = EmailAuth::new(email_auth_address, self.client.clone());
+
+        // Call the dkim_registry_addr method to get the DKIM registry address
         let dkim = contract.dkim_registry_addr().call().await?;
 
+        // Create and return a new ECDSAOwnedDKIMRegistry instance
         Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
     }
 
-    pub async fn get_email_auth_addr_from_wallet(
-        &self,
-        controller_eth_addr: &String,
-        wallet_addr: &String,
-        account_salt: &String,
-    ) -> Result<H160, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let wallet_address: H160 = wallet_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let account_salt_bytes = hex::decode(account_salt.trim_start_matches("0x"))
-            .map_err(|e| anyhow!("Failed to decode account_salt: {}", e))?;
-        let email_auth_addr = contract
-            .compute_email_auth_address(
-                wallet_address,
-                account_salt_bytes
-                    .try_into()
-                    .map_err(|_| anyhow!("account_salt must be 32 bytes"))?,
-            )
-            .await?;
-        Ok(email_auth_addr)
-    }
+    pub async fn call(&self, request: RequestModel, email_auth_msg: EmailAuthMsg) -> Result<()> {
+        let abi = Abi {
+            functions: vec![request.email_tx_auth.function_abi.clone()]
+                .into_iter()
+                .map(|f| (f.name.clone(), vec![f]))
+                .collect(),
+            events: Default::default(),
+            constructor: None,
+            receive: false,
+            fallback: false,
+            errors: Default::default(),
+        };
 
-    pub async fn is_wallet_deployed(&self, wallet_addr_str: &String) -> bool {
-        let wallet_addr: H160 = wallet_addr_str.parse().unwrap();
-        match self.client.get_code(wallet_addr, None).await {
-            Ok(code) => !code.is_empty(),
-            Err(e) => {
-                // Log the error or handle it as needed
-                error!(LOG, "Error querying contract code: {:?}", e);
-                false
-            }
-        }
-    }
-
-    pub async fn get_acceptance_subject_templates(
-        &self,
-        controller_eth_addr: &String,
-        template_idx: u64,
-    ) -> Result<Vec<String>, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let templates = contract
-            .acceptance_subject_templates()
-            .call()
-            .await
-            .map_err(|e| anyhow::Error::from(e))?;
-        Ok(templates[template_idx as usize].clone())
-    }
-
-    pub async fn get_recovery_subject_templates(
-        &self,
-        controller_eth_addr: &String,
-        template_idx: u64,
-    ) -> Result<Vec<String>, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let templates = contract
-            .recovery_subject_templates()
-            .call()
-            .await
-            .map_err(|e| anyhow::Error::from(e))?;
-        Ok(templates[template_idx as usize].clone())
-    }
-
-    pub async fn complete_recovery(
-        &self,
-        controller_eth_addr: &String,
-        account_eth_addr: &String,
-        complete_calldata: &String,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let decoded_calldata =
-            hex::decode(&complete_calldata.trim_start_matches("0x")).expect("Decoding failed");
-        let call = contract.complete_recovery(
-            account_eth_addr
-                .parse::<H160>()
-                .expect("Invalid H160 address"),
-            Bytes::from(decoded_calldata),
+        let contract = Contract::new(
+            request.email_tx_auth.contract_address,
+            abi,
+            self.client.clone(),
         );
+        let function = request.email_tx_auth.function_abi;
+        let remaining_args = request.email_tx_auth.remaining_args;
+
+        // Assuming remaining_args is a Vec of some type that can be converted to tokens
+        let mut tokens = email_auth_msg.to_tokens();
+
+        // Convert remaining_args to tokens and add them to the tokens vector
+        for arg in remaining_args {
+            // Convert each arg to a Token. This conversion depends on the type of arg.
+            // For example, if arg is a string, you might use Token::String(arg).
+            // Adjust the conversion based on the actual type of arg.
+            let token = Token::from(arg);
+            tokens.push(token);
+        }
+
+        // Now you can use the tokens vector to call the contract function
+        let call = contract.method::<_, ()>(&function.name, tokens)?;
+
         let tx = call.send().await?;
-        // If the transaction is successful, the function will return true and false otherwise.
-        let receipt = tx
-            .log()
-            .confirmations(CONFIRMATIONS)
-            .await?
-            .ok_or(anyhow!("No receipt"))?;
-        Ok(receipt
-            .status
-            .map(|status| status == U64::from(1))
-            .unwrap_or(false))
-    }
+        let receipt = tx.await?;
 
-    pub async fn handle_acceptance(
-        &self,
-        controller_eth_addr: &String,
-        email_auth_msg: EmailAuthMsg,
-        template_idx: u64,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let call = contract.handle_acceptance(email_auth_msg, template_idx.into());
-        let tx = call.send().await?;
-        // If the transaction is successful, the function will return true and false otherwise.
-        let receipt = tx
-            .log()
-            .confirmations(CONFIRMATIONS)
-            .await?
-            .ok_or(anyhow!("No receipt"))?;
-        Ok(receipt
-            .status
-            .map(|status| status == U64::from(1))
-            .unwrap_or(false))
+        Ok(())
     }
+}
 
-    pub async fn handle_recovery(
-        &self,
-        controller_eth_addr: &String,
-        email_auth_msg: EmailAuthMsg,
-        template_idx: u64,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let call = contract.handle_recovery(email_auth_msg, template_idx.into());
-        let tx = call.send().await?;
-        // If the transaction is successful, the function will return true and false otherwise.
-        let receipt = tx
-            .log()
-            .confirmations(CONFIRMATIONS)
-            .await?
-            .ok_or(anyhow!("No receipt"))?;
-        Ok(receipt
-            .status
-            .map(|status| status == U64::from(1))
-            .unwrap_or(false))
+impl EmailAuthMsg {
+    pub fn to_tokens(&self) -> Vec<Token> {
+        vec![
+            Token::Uint(self.template_id),
+            Token::Array(
+                self.command_params
+                    .iter()
+                    .map(|param| Token::Bytes(param.clone().to_vec()))
+                    .collect(),
+            ),
+            Token::Uint(self.skipped_command_prefix),
+            Token::Tuple(self.proof.to_tokens()),
+        ]
     }
+}
 
-    pub async fn get_bytecode(&self, wallet_addr: &String) -> Result<Bytes, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        Ok(self.client.get_code(wallet_address, None).await?)
-    }
-
-    pub async fn get_storage_at(
-        &self,
-        wallet_addr: &String,
-        slot: u64,
-    ) -> Result<H256, anyhow::Error> {
-        let wallet_address: H160 = wallet_addr.parse()?;
-        Ok(self
-            .client
-            .get_storage_at(wallet_address, u64_to_u8_array_32(slot).into(), None)
-            .await?)
-    }
-
-    pub async fn get_recovered_account_from_acceptance_subject(
-        &self,
-        controller_eth_addr: &String,
-        subject_params: Vec<TemplateValue>,
-        template_idx: u64,
-    ) -> Result<H160, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let subject_params_bytes = subject_params
-            .iter() // Change here: use iter() instead of map() directly on Vec
-            .map(|s| {
-                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
-                    .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
-            }) // Error handling
-            .collect::<Vec<_>>();
-        let recovered_account = contract
-            .extract_recovered_account_from_acceptance_subject(
-                subject_params_bytes,
-                template_idx.into(),
-            )
-            .call()
-            .await?;
-        Ok(recovered_account)
-    }
-
-    pub async fn get_recovered_account_from_recovery_subject(
-        &self,
-        controller_eth_addr: &String,
-        subject_params: Vec<TemplateValue>,
-        template_idx: u64,
-    ) -> Result<H160, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let subject_params_bytes = subject_params
-            .iter() // Change here: use iter() instead of map() directly on Vec
-            .map(|s| {
-                s.abi_encode(None) // Assuming decimal_size is not needed or can be None
-                    .unwrap_or_else(|_| Bytes::from("Error encoding".as_bytes().to_vec()))
-            }) // Error handling
-            .collect::<Vec<_>>();
-        let recovered_account = contract
-            .extract_recovered_account_from_recovery_subject(
-                subject_params_bytes,
-                template_idx.into(),
-            )
-            .call()
-            .await?;
-        Ok(recovered_account)
-    }
-
-    pub async fn get_is_activated(
-        &self,
-        controller_eth_addr: &String,
-        account_eth_addr: &String,
-    ) -> Result<bool, anyhow::Error> {
-        let controller_eth_addr: H160 = controller_eth_addr.parse()?;
-        let account_eth_addr: H160 = account_eth_addr.parse()?;
-        let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
-        let is_activated = contract.is_activated(account_eth_addr).call().await?;
-        Ok(is_activated)
+impl EmailProof {
+    pub fn to_tokens(&self) -> Vec<Token> {
+        vec![
+            Token::String(self.domain_name.clone()),
+            Token::FixedBytes(self.public_key_hash.to_vec()),
+            Token::Uint(self.timestamp),
+            Token::String(self.masked_command.clone()),
+            Token::FixedBytes(self.email_nullifier.to_vec()),
+            Token::FixedBytes(self.account_salt.to_vec()),
+            Token::Bool(self.is_code_exist),
+            Token::Bytes(self.proof.clone().to_vec()),
+        ]
     }
 }
