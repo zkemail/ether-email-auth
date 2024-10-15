@@ -6,7 +6,14 @@
     "install": "yarn build",
     "build": "npx tsc"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@zk-email/helpers": "^6.1.5",
+    "@zk-email/relayer-utils": "^0.3.7",
+    "axios": "^1.6.7",
+    "circomlibjs": "^0.1.7",
+    "dotenv": "^16.4.5",
+    "viem": "^2.21.25"
+  },
   "devDependencies": {
     "@babel/core": "^7.22.5",
     "@babel/preset-env": "^7.22.2",
