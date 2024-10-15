@@ -77,3 +77,4 @@ example/contracts/artifacts
 example/contracts/cache
 example/contracts/node_modules
 example/scripts/dist
+example/contracts/broadcast

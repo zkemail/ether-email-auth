@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::*;
-use abi::{Abi, Token};
+use abi::{encode, Abi, ParamType, Token, Tokenize};
 use abis::{ECDSAOwnedDKIMRegistry, EmailAuth, EmailAuthMsg, EmailProof};
 use anyhow::anyhow;
 use config::ChainConfig;
@@ -14,6 +14,16 @@ use statics::SHARED_MUTEX;
 const CONFIRMATIONS: usize = 1;
 
 type SignerM = SignerMiddleware<Provider<Http>, LocalWallet>;
+
+struct CustomTokenVec {
+    tokens: Vec<Token>,
+}
+
+impl Tokenize for CustomTokenVec {
+    fn into_tokens(self) -> Vec<Token> {
+        self.tokens
+    }
+}
 
 /// Represents a client for interacting with the blockchain.
 #[derive(Debug, Clone)]
@@ -110,29 +120,6 @@ impl ChainClient {
         Ok(is_valid)
     }
 
-    /// Gets the DKIM from an email auth address.
-    ///
-    /// # Arguments
-    ///
-    /// * `email_auth_addr` - The email auth address as a string.
-    ///
-    /// # Returns
-    ///
-    /// A `Result` containing the ECDSA Owned DKIM Registry if successful, or an error if not.
-    pub async fn get_dkim_from_email_auth(
-        &self,
-        email_auth_address: Address,
-    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
-        // Create a new EmailAuth contract instance
-        let contract = EmailAuth::new(email_auth_address, self.client.clone());
-
-        // Call the dkim_registry_addr method to get the DKIM registry address
-        let dkim = contract.dkim_registry_addr().call().await?;
-
-        // Create and return a new ECDSAOwnedDKIMRegistry instance
-        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
-    }
-
     pub async fn call(&self, request: RequestModel, email_auth_msg: EmailAuthMsg) -> Result<()> {
         let abi = Abi {
             functions: vec![request.email_tx_auth.function_abi.clone()]
@@ -151,26 +138,29 @@ impl ChainClient {
             abi,
             self.client.clone(),
         );
+
         let function = request.email_tx_auth.function_abi;
         let remaining_args = request.email_tx_auth.remaining_args;
 
-        // Assuming remaining_args is a Vec of some type that can be converted to tokens
-        let mut tokens = email_auth_msg.to_tokens();
+        // Initialize your tokens vector
+        let mut tokens = Vec::new();
+
+        // Add the first token (assuming email_auth_msg.to_tokens() returns Vec<Token>)
+        tokens.push(Token::Tuple(email_auth_msg.to_tokens()));
 
         // Convert remaining_args to tokens and add them to the tokens vector
         for arg in remaining_args {
-            // Convert each arg to a Token. This conversion depends on the type of arg.
-            // For example, if arg is a string, you might use Token::String(arg).
-            // Adjust the conversion based on the actual type of arg.
             let token = Token::from(arg);
             tokens.push(token);
         }
 
-        // Now you can use the tokens vector to call the contract function
-        let call = contract.method::<_, ()>(&function.name, tokens)?;
+        let custom_tokens = CustomTokenVec { tokens };
 
-        let tx = call.send().await?;
-        let receipt = tx.await?;
+        // Now you can use the tokens vector to call the contract function
+        let call = contract.method::<_, ()>(&function.name, custom_tokens)?;
+
+        let tx = call.send().await?.await?;
+        info!(LOG, "tx: {:?}", tx.expect("tx not found").transaction_hash);
 
         Ok(())
     }

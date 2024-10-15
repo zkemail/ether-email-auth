@@ -111,27 +111,31 @@ contract EmitEmailCommand {
     /// @notice Returns a two-dimensional array of strings representing the command templates.
     /// @return string[][] A two-dimensional array of strings, where each inner array represents a set of fixed strings and matchers for a command template.
     function commandTemplates() public pure returns (string[][] memory) {
-        string[][] memory templates = new string[][](2);
-        templates[0] = new string[](5);
+        string[][] memory templates = new string[][](5); // Corrected size to 5
+        templates[0] = new string[](3); // Corrected size to 3
         templates[0][0] = "Emit";
         templates[0][1] = "string";
         templates[0][2] = "{string}";
 
+        templates[1] = new string[](3); // Added missing initialization
         templates[1][0] = "Emit";
         templates[1][1] = "uint";
         templates[1][2] = "{uint}";
 
+        templates[2] = new string[](3); // Added missing initialization
         templates[2][0] = "Emit";
         templates[2][1] = "int";
         templates[2][2] = "{int}";
 
+        templates[3] = new string[](3); // Added missing initialization
         templates[3][0] = "Emit";
         templates[3][1] = "decimals";
         templates[3][2] = "{decimals}";
 
+        templates[4] = new string[](4); // Corrected size to 4
         templates[4][0] = "Emit";
         templates[4][1] = "ethereum";
-        templates[4][2] = "adddress";
+        templates[4][2] = "address"; // Fixed typo: "adddress" to "address"
         templates[4][3] = "{ethAddr}";
 
         return templates;

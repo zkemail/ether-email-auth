@@ -255,7 +255,6 @@ pub async fn get_status_handler(
         })?;
 
     let response = json!({
-        "status": "success",
         "message": "request status",
         "request": request,
     });

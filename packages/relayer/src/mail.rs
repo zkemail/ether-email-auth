@@ -147,7 +147,7 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
                 "requestId": request_id,
             });
             let body_html = render_html(
-                "acceptance_success.html",
+                "completion_template.html",
                 render_data,
                 relayer_state.clone(),
             )
@@ -216,7 +216,8 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
                 "error": error,
                 "userEmailAddr": email_addr,
             });
-            let body_html = render_html("error.html", render_data, relayer_state.clone()).await?;
+            let body_html =
+                render_html("error_template.html", render_data, relayer_state.clone()).await?;
 
             // Create and send the email
             let email = EmailMessage {
@@ -382,7 +383,7 @@ pub async fn handle_email(
 
     check_and_update_dkim(
         &parsed_email,
-        request.email_tx_auth.email_auth_contract_address,
+        request.email_tx_auth.dkim_contract_address,
         chain_client.clone(),
         relayer_state.clone(),
     )

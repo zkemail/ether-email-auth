@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct EmailTxAuthSchema {
     pub contract_address: Address,
-    pub email_auth_contract_address: Address,
+    pub dkim_contract_address: Address,
     pub account_code: AccountCode,
     pub code_exists_in_email: bool,
     pub function_abi: Function,
@@ -23,13 +23,4 @@ pub struct EmailTxAuthSchema {
     pub subject: String,
     pub body: String,
     pub chain: String,
-}
-
-#[derive(Deserialize, Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct DKIMSchema {
-    dkim_contract_address: Address,
-    selector: String,
-    domain: String,
-    chain: String,
 }

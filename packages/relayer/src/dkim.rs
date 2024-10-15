@@ -1,5 +1,6 @@
 use std::env;
 
+use abis::ECDSAOwnedDKIMRegistry;
 use anyhow::anyhow;
 use chain::ChainClient;
 use ethers::types::Address;
@@ -134,7 +135,7 @@ impl<'a> DkimOracleClient<'a> {
 /// A `Result<()>`.
 pub async fn check_and_update_dkim(
     parsed_email: &ParsedEmail,
-    email_auth_addr: Address,
+    dkim: Address,
     chain_client: ChainClient,
     relayer_state: RelayerState,
 ) -> Result<()> {
@@ -149,9 +150,7 @@ pub async fn check_and_update_dkim(
     info!(LOG, "domain {:?}", domain);
 
     // Get DKIM
-    let dkim = chain_client
-        .get_dkim_from_email_auth(email_auth_addr)
-        .await?;
+    let dkim = ECDSAOwnedDKIMRegistry::new(dkim, chain_client.client.clone());
 
     info!(LOG, "dkim {:?}", dkim);
 
@@ -182,13 +181,22 @@ pub async fn check_and_update_dkim(
 
     // Generate IC agent and create oracle client
     let ic_agent = DkimOracleClient::gen_agent(
-        &env::var(relayer_state.config.path.pem).unwrap(),
-        &env::var(relayer_state.config.icp.ic_replica_url).unwrap(),
+        &relayer_state.config.path.pem,
+        &relayer_state.config.icp.ic_replica_url,
     )?;
-    let oracle_client = DkimOracleClient::new(
-        &env::var(relayer_state.config.icp.canister_id).unwrap(),
-        &ic_agent,
-    )?;
+    info!(LOG, "ic_agent {:?}", ic_agent);
+
+    info!(
+        LOG,
+        "icp canister id {:?}", &relayer_state.config.icp.canister_id
+    );
+    info!(
+        LOG,
+        "icp replica url {:?}", &relayer_state.config.icp.ic_replica_url
+    );
+
+    let oracle_client = DkimOracleClient::new(&relayer_state.config.icp.canister_id, &ic_agent)?;
+    info!(LOG, "oracle_client {:?}", oracle_client);
 
     // Request signature from oracle
     let oracle_result = oracle_client.request_signature(&selector, &domain).await?;
