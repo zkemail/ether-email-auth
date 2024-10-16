@@ -22,7 +22,7 @@ describe("Email Auth", () => {
     it("Verify a sent email whose subject has an email address", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test1.eml"
+            "./emails/email_auth_legacy_test1.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -106,7 +106,7 @@ describe("Email Auth", () => {
     it("Verify a sent email whose from field has a dummy email address name", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test3.eml"
+            "./emails/email_auth_legacy_test3.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -190,7 +190,7 @@ describe("Email Auth", () => {
     it("Verify a sent email whose from field has a non-English name", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test4.eml"
+            "./emails/email_auth_legacy_test4.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -272,7 +272,7 @@ describe("Email Auth", () => {
     });
 
     it("Verify a sent email whose subject has an invitation code", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test5.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test5.eml");
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
         console.log(parsedEmail.canonicalizedHeader);
@@ -347,7 +347,7 @@ describe("Email Auth", () => {
     });
 
     it("Verify a sent email with a too large subject_email_addr_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const {
