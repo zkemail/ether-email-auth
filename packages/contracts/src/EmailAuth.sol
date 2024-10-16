@@ -149,7 +149,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Inserts a new command template.
-    /// @dev This function can only be called by the owner of the contract.
+    /// @dev This function can only be called by the controller of the contract.
     /// @param _templateId The ID for the new command template.
     /// @param _commandTemplate The command template as an array of strings.
     function insertCommandTemplate(
@@ -183,7 +183,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Deletes an existing command template by its ID.
-    /// @dev This function can only be called by the owner of the contract.
+    /// @dev This function can only be called by the controller of the contract.
     /// @param _templateId The ID of the command template to be deleted.
     function deleteCommandTemplate(uint _templateId) public onlyController {
         require(
@@ -269,7 +269,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /// @notice Enables or disables the timestamp check.
-    /// @dev This function can only be called by the contract owner.
+    /// @dev This function can only be called by the controller.
     /// @param _enabled Boolean flag to enable or disable the timestamp check.
     function setTimestampCheckEnabled(bool _enabled) public onlyController {
         timestampCheckEnabled = _enabled;

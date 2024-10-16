@@ -10,6 +10,5 @@ yarn workspace @zk-email/ether-email-auth-circom gen-input \
     --email-file $EMAIL_FILE_PATH \
     --account-code $ACCOUNT_CODE \
     --input-file $INPUT_FILE \
-    --prove \
-    --body
+    --prove
 exit 0

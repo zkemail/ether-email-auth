@@ -453,6 +453,49 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
+    function testAuthEmailWithMultiBytePrefix() public {
+        vm.startPrank(deployer);
+        _testInsertCommandTemplate();
+        vm.stopPrank();
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.proof.maskedCommand = string.concat(
+            unicode"Japanese Prefix ねこ ",
+            emailAuthMsg.proof.maskedCommand
+        );
+        // The japanese word "ねこ" has six bytes.
+        // "ねこ" means cats.
+        emailAuthMsg.skippedCommandPrefix = 17 + 6;
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            false
+        );
+        assertEq(emailAuth.lastTimestamp(), 0);
+
+        vm.startPrank(deployer);
+        vm.expectEmit(true, true, true, true);
+        emit EmailAuth.EmailAuthed(
+            emailAuthMsg.proof.emailNullifier,
+            emailAuthMsg.proof.accountSalt,
+            emailAuthMsg.proof.isCodeExist,
+            emailAuthMsg.templateId
+        );
+        vm.mockCall(
+            address(verifier),
+            abi.encodeCall(Verifier.verifyEmailProof, (emailAuthMsg.proof)),
+            abi.encode(true)
+        );
+        emailAuth.authEmail(emailAuthMsg);
+        vm.stopPrank();
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            true
+        );
+        assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
+    }
+
     function testExpectRevertAuthEmailInvalidSizeOfTheSkippedCommandPrefix()
         public
     {

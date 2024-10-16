@@ -24,6 +24,10 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
     uint256 public constant COMMAND_FIELDS = 20;
     uint256 public constant COMMAND_BYTES = 605;
 
+    // Base field size
+    uint256 constant q =
+        21888242871839275222246405745257275088696311157297823662689037894645226208583;
+
     constructor() {}
 
     /// @notice Initialize the contract with the initial owner and deploy Groth16Verifier
@@ -44,7 +48,12 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
             uint256[2][2] memory pB,
             uint256[2] memory pC
         ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
-
+        require(pA[0] < q && pA[1] < q, "invalid format of pA");
+        require(
+            pB[0][0] < q && pB[0][1] < q && pB[1][0] < q && pB[1][1] < q,
+            "invalid format of pB"
+        );
+        require(pC[0] < q && pC[1] < q, "invalid format of pC");
         uint256[DOMAIN_FIELDS + COMMAND_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
         stringFields = _packBytes2Fields(bytes(proof.domainName), DOMAIN_BYTES);
@@ -74,7 +83,7 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
     function _packBytes2Fields(
         bytes memory _bytes,
         uint256 _paddedSize
-    ) public pure returns (uint256[] memory) {
+    ) private pure returns (uint256[] memory) {
         uint256 remain = _paddedSize % 31;
         uint256 numFields = (_paddedSize - remain) / 31;
         if (remain > 0) {

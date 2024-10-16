@@ -26,7 +26,7 @@ program
         "Path of a json file to write the generated input"
     )
     .option("--silent", "No console logs")
-    .option("--body", "Enable body parsing")
+    .option("--legacy", "Use a legacy circuit")
     .option("--prove", "Also generate proof");
 
 program.parse();
@@ -43,7 +43,7 @@ async function generate() {
         throw new Error("--input file path arg must end with .json");
     }
 
-    if (!args.body) {
+    if (args.legacy) {
         log("Generating Inputs for:", args);
 
         const circuitInputs = await genEmailCircuitInput(args.emailFile, args.accountCode, {
@@ -58,10 +58,10 @@ async function generate() {
 
         if (args.prove) {
             const dir = path.dirname(args.inputFile);
-            const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInputs, path.join(dir, "email_auth.wasm"), path.join(dir, "email_auth.zkey"), console);
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_proof.json"), JSON.stringify(proof, null, 2));
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_public.json"), JSON.stringify(publicSignals, null, 2));
-            log("✓ Proof for email auth circuit generated");
+            const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInputs, path.join(dir, "email_auth_legacy.wasm"), path.join(dir, "email_auth_legacy.zkey"), console);
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_legacy_proof.json"), JSON.stringify(proof, null, 2));
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_legacy_public.json"), JSON.stringify(publicSignals, null, 2));
+            log("✓ Proof for email auth legacy circuit generated");
         }
     } else {
         log("Generating Inputs for:", args);
@@ -81,9 +81,9 @@ async function generate() {
 
         if (args.prove) {
             const dir = path.dirname(args.inputFile);
-            const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInputs, path.join(dir, "email_auth_with_body_parsing_with_qp_encoding.wasm"), path.join(dir, "email_auth_with_body_parsing_with_qp_encoding.zkey"), console);
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_parsing_with_qp_encoding_proof.json"), JSON.stringify(proof, null, 2));
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_parsing_with_qp_encoding_public.json"), JSON.stringify(publicSignals, null, 2));
+            const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInputs, path.join(dir, "email_auth.wasm"), path.join(dir, "email_auth.zkey"), console);
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_proof.json"), JSON.stringify(proof, null, 2));
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_public.json"), JSON.stringify(publicSignals, null, 2));
             log("✓ Proof for email auth circuit generated");
         }
     }

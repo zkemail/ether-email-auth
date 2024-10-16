@@ -74,6 +74,7 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
                     )
                 )
             );
+        require(success, "zksync deploy failed");
         address payable proxyAddress = abi.decode(returnData, (address));
         return proxyAddress;
     }
