@@ -9,6 +9,7 @@ import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
+import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryControllerZKSync.sol";
@@ -76,9 +77,13 @@ contract IntegrationZKSyncTest is Test {
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
         }
@@ -142,7 +147,7 @@ contract IntegrationZKSyncTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x7c5E4b26643682AF77A196781A851c9Fe769472d
+            0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -164,7 +169,7 @@ contract IntegrationZKSyncTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -177,7 +182,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
+            .maskedCommand = "Accept guardian request for 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -185,7 +190,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -211,14 +216,14 @@ contract IntegrationZKSyncTest is Test {
         );
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
             templateId: recoveryControllerZKSync.computeAcceptanceTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForAcceptance,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForAcceptance,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryControllerZKSync.handleAcceptance(emailAuthMsg, templateIdx);
@@ -246,7 +251,7 @@ contract IntegrationZKSyncTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -258,7 +263,7 @@ contract IntegrationZKSyncTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -270,7 +275,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -284,17 +289,17 @@ contract IntegrationZKSyncTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call handleRecovery -> isRecovering = true;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(address(simpleWallet));
-        subjectParamsForRecovery[1] = abi.encode(
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(address(simpleWallet));
+        commandParamsForRecovery[1] = abi.encode(
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
             templateId: recoveryControllerZKSync.computeRecoveryTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForRecovery,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForRecovery,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryControllerZKSync.handleRecovery(emailAuthMsg, templateIdx);
