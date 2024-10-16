@@ -9,6 +9,8 @@ use ethers::prelude::*;
 use ethers::signers::Signer;
 use ethers::utils::hex;
 use model::RequestModel;
+use relayer_utils::{bytes_to_hex, h160_to_hex, u256_to_hex};
+use slog::error;
 use statics::SHARED_MUTEX;
 
 const CONFIRMATIONS: usize = 1;
@@ -120,7 +122,12 @@ impl ChainClient {
         Ok(is_valid)
     }
 
-    pub async fn call(&self, request: RequestModel, email_auth_msg: EmailAuthMsg) -> Result<()> {
+    pub async fn call(
+        &self,
+        request: RequestModel,
+        email_auth_msg: EmailAuthMsg,
+        relayer_state: RelayerState,
+    ) -> Result<()> {
         let abi = Abi {
             functions: vec![request.email_tx_auth.function_abi.clone()]
                 .into_iter()
@@ -158,9 +165,74 @@ impl ChainClient {
 
         // Now you can use the tokens vector to call the contract function
         let call = contract.method::<_, ()>(&function.name, custom_tokens)?;
+        let tx = call.clone().tx;
+        let from = h160_to_hex(&self.client.address());
+        let to = h160_to_hex(
+            tx.to()
+                .expect("to not found")
+                .as_address()
+                .expect("to not found"),
+        );
+        let data = bytes_to_hex(&tx.data().expect("data not found").to_vec());
 
-        let tx = call.send().await?.await?;
-        info!(LOG, "tx: {:?}", tx.expect("tx not found").transaction_hash);
+        // Call Alchemy to check for asset changes (Make a POST request to Alchemy)
+        let alchemy_url = format!(
+            "https://{}.g.alchemy.com/v2/{}",
+            relayer_state.config.chains[request.email_tx_auth.chain.as_str()].alchemy_name,
+            relayer_state.config.alchemy_api_key
+        );
+
+        // Prepare the JSON body for the POST request using extracted transaction details
+        let json_body = serde_json::json!({
+            "id": 1,
+            "jsonrpc": "2.0",
+            "method": "alchemy_simulateAssetChanges",
+            "params": [
+                {
+                    "from": from,
+                    "to": to,
+                    "value": "0x0",
+                    "data": data,
+                }
+            ]
+        });
+
+        info!(LOG, "Alchemy request: {:?}", json_body);
+
+        // Send the POST request
+        let response = relayer_state
+            .http_client
+            .post(&alchemy_url)
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .json(&json_body)
+            .send()
+            .await?;
+
+        // Handle the response
+        if response.status().is_success() {
+            let response_text = response.text().await?;
+            info!(LOG, "Alchemy response: {:?}", response_text);
+
+            // Parse the response to check if changes is empty
+            let response_json: serde_json::Value = serde_json::from_str(&response_text)?;
+            if let Some(changes) = response_json["result"]["changes"].as_array() {
+                if !changes.is_empty() {
+                    error!(LOG, "Unexpected changes in Alchemy response: {:?}", changes);
+                    return Err(anyhow!("Unexpected changes in Alchemy response"));
+                }
+            }
+        } else {
+            let error_text = response.text().await?;
+            error!(LOG, "Alchemy request failed: {:?}", error_text);
+        }
+
+        let receipt = call.send().await?.await?;
+        info!(
+            LOG,
+            "tx hash: {:?}",
+            receipt.expect("tx not found").transaction_hash
+        );
 
         Ok(())
     }

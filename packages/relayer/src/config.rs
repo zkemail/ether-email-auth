@@ -12,6 +12,7 @@ pub struct Config {
     pub database_url: String,
     pub smtp_url: String,
     pub prover_url: String,
+    pub alchemy_api_key: String,
     pub path: PathConfig,
     pub icp: IcpConfig,
     pub chains: HashMap<String, ChainConfig>,
@@ -39,6 +40,7 @@ pub struct ChainConfig {
     pub rpc_url: String,
     pub explorer_url: String,
     pub chain_id: u32,
+    pub alchemy_name: String,
 }
 
 // Function to load the configuration from a JSON file

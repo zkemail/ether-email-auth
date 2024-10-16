@@ -3,6 +3,7 @@
   "databaseUrl": "postgres://test@localhost:5432/relayer",
   "smtpUrl": "http://localhost:3000",
   "proverUrl": "https://zkemail--email-auth-prover-v1-4-0-flask-app.modal.run",
+  "alchemyApiKey": "",
   "paths": {
     "pem": "./.ic.pem",
     "emailTemplates": "./email_templates"
@@ -16,7 +17,8 @@
       "privateKey": "0x...",
       "rpcUrl": "https://mainnet.infura.io/v3/...",
       "explorerUrl": "https://etherscan.io/tx/",
-      "chainId": 1
+      "chainId": 1,
+      "alchemyName": "base-sepolia"
     }
   },
   "jsonLogger": true

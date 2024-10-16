@@ -389,9 +389,11 @@ pub async fn handle_email(
     )
     .await?;
 
-    let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state).await?;
+    let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
-    chain_client.call(request.clone(), email_auth_msg).await?;
+    chain_client
+        .call(request.clone(), email_auth_msg, relayer_state)
+        .await?;
 
     Ok(EmailEvent::Completion {
         email_addr: parsed_email.get_from_addr()?,
