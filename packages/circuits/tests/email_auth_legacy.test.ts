@@ -23,7 +23,7 @@ describe("Email Auth Legacy", () => {
     it("Verify a sent email whose subject has an email address", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test1.eml"
+            "./emails/email_auth_legacy_test1.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -88,7 +88,7 @@ describe("Email Auth Legacy", () => {
     it("Verify a sent email whose subject does not have an email address", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test2.eml"
+            "./emails/email_auth_legacy_test2.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -152,7 +152,7 @@ describe("Email Auth Legacy", () => {
     it("Verify a sent email whose from field has a dummy email address name", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test3.eml"
+            "./emails/email_auth_legacy_test3.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -216,7 +216,7 @@ describe("Email Auth Legacy", () => {
     it("Verify a sent email whose from field has a non-English name", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test4.eml"
+            "./emails/email_auth_legacy_test4.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -280,7 +280,7 @@ describe("Email Auth Legacy", () => {
     it("Verify a sent email whose subject has an email address and an invitation code", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test5.eml"
+            "./emails/email_auth_legacy_test5.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -342,10 +342,10 @@ describe("Email Auth Legacy", () => {
         );
     });
 
-    it("Verify a sent email whose subject has an invitation code", async () => {
+    it("Verify a sent email whose subject has an invitation code and another hex string", async () => {
         const emailFilePath = path.join(
             __dirname,
-            "./emails/email_auth_test6.eml"
+            "./emails/email_auth_legacy_test6.eml"
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
@@ -407,25 +407,8 @@ describe("Email Auth Legacy", () => {
         );
     });
 
-    it("Verify a sent email whose subject tries to forge the From field", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test7.eml");
-        const accountCode =
-            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
-            maxHeaderLength: 1024,
-            ignoreBodyHashCheck: true,
-        });
-        circuitInputs.from_addr_idx = circuitInputs.subject_idx;
-        async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
-            await circuit.checkConstraints(witness);
-        }
-        await expect(failFn).rejects.toThrow();
-    });
-
-
     it("Verify a sent email with a too large from_addr_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -441,7 +424,7 @@ describe("Email Auth Legacy", () => {
     });
 
     it("Verify a sent email with a too large domain_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -457,7 +440,7 @@ describe("Email Auth Legacy", () => {
     });
 
     it("Verify a sent email with a too large subject_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -473,7 +456,7 @@ describe("Email Auth Legacy", () => {
     });
 
     it("Verify a sent email with a too large timestamp_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -489,7 +472,7 @@ describe("Email Auth Legacy", () => {
     });
 
     it("Verify a sent email with a too large code_idx", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -505,7 +488,7 @@ describe("Email Auth Legacy", () => {
     });
 
     it("Verify a sent email with a too large code_idx 2", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
@@ -520,8 +503,24 @@ describe("Email Auth Legacy", () => {
         await expect(failFn).rejects.toThrow();
     });
 
+    it("Verify a sent email whose subject tries to forge the From field", async () => {
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_invalid_test1.eml");
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+            maxHeaderLength: 1024,
+            ignoreBodyHashCheck: true,
+        });
+        circuitInputs.from_addr_idx = circuitInputs.subject_idx;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
     it("Verify a sent email with non-utf8 character", async () => {
-        const emailFilePath = path.join(__dirname, "./emails/email_auth_invalid_test1.eml");
+        const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_invalid_test2.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
