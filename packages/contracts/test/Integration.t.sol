@@ -146,7 +146,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E
+            0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -168,7 +168,7 @@ contract IntegrationTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -189,7 +189,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
@@ -250,7 +250,7 @@ contract IntegrationTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -274,7 +274,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
