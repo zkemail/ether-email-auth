@@ -93,7 +93,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 account_eth_addr, command, account_code, request_id
             );
 
-            let subject = format!("Email Recovery: Acceptance Request");
+            let subject = format!("ZK Email Recovery: Acceptance Request");
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
@@ -184,7 +184,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<()> {
                 account_eth_addr, request_id
             );
 
-            let subject = format!("Email Recovery: Recovery Request");
+            let subject = format!("ZK Email Recovery: Recovery Request");
 
             let render_data = serde_json::json!({
                 "userEmailAddr": guardian_email_addr,
