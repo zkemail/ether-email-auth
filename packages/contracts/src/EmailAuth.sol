@@ -284,15 +284,18 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
 
     function removePrefix(
         string memory str,
-        uint numChars
+        uint numBytes
     ) private pure returns (string memory) {
-        require(numChars <= bytes(str).length, "Invalid number of characters");
+        require(
+            numBytes <= bytes(str).length,
+            "Invalid size of the removed bytes"
+        );
 
         bytes memory strBytes = bytes(str);
-        bytes memory result = new bytes(strBytes.length - numChars);
+        bytes memory result = new bytes(strBytes.length - numBytes);
 
-        for (uint i = numChars; i < strBytes.length; i++) {
-            result[i - numChars] = strBytes[i];
+        for (uint i = numBytes; i < strBytes.length; i++) {
+            result[i - numBytes] = strBytes[i];
         }
 
         return string(result);
