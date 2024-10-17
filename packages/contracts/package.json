@@ -1,6 +1,6 @@
 {
   "name": "@zk-email/ether-email-auth-contracts",
-  "version": "0.0.2-preview",
+  "version": "0.1.0-preview",
   "license": "MIT",
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
