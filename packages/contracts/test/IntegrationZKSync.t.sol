@@ -41,7 +41,7 @@ contract IntegrationZKSyncTest is Test {
 
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
-    
+
         vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
@@ -169,7 +169,7 @@ contract IntegrationZKSyncTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -190,7 +190,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
@@ -251,7 +251,7 @@ contract IntegrationZKSyncTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -263,7 +263,7 @@ contract IntegrationZKSyncTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedCommand = "Set the new signer of 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6 to 0xA0EE7A142D267C1F36714E4A8F75612F20A79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -275,7 +275,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
@@ -314,8 +314,9 @@ contract IntegrationZKSyncTest is Test {
             "newSignerCandidate should be set"
         );
         require(
-            recoveryControllerZKSync.currentTimelockOfAccount(address(simpleWallet)) >
-                0,
+            recoveryControllerZKSync.currentTimelockOfAccount(
+                address(simpleWallet)
+            ) > 0,
             "timelock should be set"
         );
         require(
