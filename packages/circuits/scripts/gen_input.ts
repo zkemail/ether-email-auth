@@ -82,8 +82,8 @@ async function generate() {
         if (args.prove) {
             const dir = path.dirname(args.inputFile);
             const { proof, publicSignals } = await snarkjs.groth16.fullProve(circuitInputs, path.join(dir, "email_auth.wasm"), path.join(dir, "email_auth.zkey"), console);
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_proof.json"), JSON.stringify(proof, null, 2));
-            await promisify(fs.writeFile)(path.join(dir, "email_auth_with_body_public.json"), JSON.stringify(publicSignals, null, 2));
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_proof.json"), JSON.stringify(proof, null, 2));
+            await promisify(fs.writeFile)(path.join(dir, "email_auth_public.json"), JSON.stringify(publicSignals, null, 2));
             log("✓ Proof for email auth circuit generated");
         }
     }

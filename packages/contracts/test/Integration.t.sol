@@ -181,7 +181,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E";
+            .maskedCommand = "Accept guardian request for 0xF5B492ADBC2EF7AE61825A69E34DC75E2E3A83E4";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -259,11 +259,8 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-
-        // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedCommand = "Set the new signer of 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
-
+            .maskedCommand = "Set the new signer of 0xF5B492ADBC2EF7AE61825A69E34DC75E2E3A83E4 to 0xA0EE7A142D267C1F36714E4A8F75612F20A79720";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(

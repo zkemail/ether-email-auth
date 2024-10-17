@@ -15,7 +15,7 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     // If you failed some test cases, check the bytecodeHash by yourself
     // see, test/ComputeCreate2Address.t.sol
     bytes32 public constant proxyBytecodeHash =
-        0x01000079fe5d47bffb6ad03a28da66955df7842652c6be781d33bbcb757d1f5d;
+        0x010000811cd49b008c9f2cc4f7a770c8b6d7b80f58bbc56de4626eb35c2eed00;
 
     /// @notice Returns the address of the zkSyncfactory contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
