@@ -2,7 +2,7 @@
     "parts": [
         {
             "is_public": false,
-            "regex_def": "(\r\n|^)subject:[^\r\n]+ZK Email[^\r\n]+\r\n"
+            "regex_def": "(\r\n|^)subject:ZK Email[^\r\n]+\r\n"
         }
     ]
 }
