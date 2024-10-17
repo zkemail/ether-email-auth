@@ -65,7 +65,7 @@ template EmailAuthLegacy(n, k, max_header_bytes, max_subject_bytes, recipient_en
     signal output is_code_exist;
     
     // Verify Email Signature
-    component email_verifier = EmailVerifier(max_header_bytes, 0, n, k, 1, 0, 0);
+    component email_verifier = EmailVerifier(max_header_bytes, 0, n, k, 1, 0, 0, 0);
     email_verifier.emailHeader <== padded_header;
     email_verifier.pubkey <== public_key;
     email_verifier.signature <== signature;

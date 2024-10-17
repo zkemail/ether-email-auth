@@ -71,7 +71,7 @@ template EmailAuth(n, k, max_header_bytes, max_body_bytes, max_command_bytes, re
     signal output is_code_exist;
     
     // Verify Email Signature
-    component email_verifier = EmailVerifier(max_header_bytes, max_body_bytes, n, k, 0, is_qp_encoded, 0);
+    component email_verifier = EmailVerifier(max_header_bytes, max_body_bytes, n, k, 0, 0, 0, is_qp_encoded);
     email_verifier.emailHeader <== padded_header;
     email_verifier.emailHeaderLength <== padded_header_len;
     email_verifier.pubkey <== public_key;
