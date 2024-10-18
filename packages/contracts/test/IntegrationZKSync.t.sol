@@ -39,7 +39,7 @@ contract IntegrationZKSyncTest is Test {
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
     uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
     
-    bytes32 public proxyBytecodeHash = vm.envBytes32("PROXY_BYTECODE_HASH");
+    bytes32 public proxyBytecodeHash = vm.envOr("PROXY_BYTECODE_HASH", bytes32(0));
 
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
