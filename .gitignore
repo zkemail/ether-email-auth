@@ -40,7 +40,7 @@ packages/relayer/config.json
 
 # ABIs
 packages/relayer/src/abis/*
-!packages/realyer/src/abis/mod.rs
+!packages/relayer/src/abis/mod.rs
 
 # Prover
 packages/prover/build/*
