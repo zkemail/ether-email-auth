@@ -38,6 +38,9 @@ contract IntegrationZKSyncTest is Test {
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
     uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
+    
+    // UPDATE THIS: You must update this line
+    bytes32 public proxyBytecodeHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
 
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
@@ -109,7 +112,8 @@ contract IntegrationZKSyncTest is Test {
                     address(verifier),
                     address(dkim),
                     address(emailAuthImpl),
-                    address(factoryImpl)
+                    address(factoryImpl),
+                    proxyBytecodeHash
                 )
             )
         );
