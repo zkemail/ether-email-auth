@@ -37,13 +37,15 @@ contract RecoveryControllerZKSync is
         address _verifier,
         address _dkim,
         address _emailAuthImplementation,
-        address _factory
+        address _factory,
+        bytes32 _proxyBytecodeHash
     ) public initializer {
         __Ownable_init(_initialOwner);
         verifierAddr = _verifier;
         dkimAddr = _dkim;
         emailAuthImplementationAddr = _emailAuthImplementation;
         factoryAddr = _factory;
+        proxyBytecodeHash = _proxyBytecodeHash;
     }
 
     function isActivated(

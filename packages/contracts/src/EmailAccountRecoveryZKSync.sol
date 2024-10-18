@@ -11,11 +11,10 @@ import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     // This is the address of the zkSync factory contract
     address public factoryAddr;
-    // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+    // The bytecodeHash is assumed to be provided as an initialization parameter because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
     // If you failed some test cases, check the bytecodeHash by yourself
     // see, test/ComputeCreate2Address.t.sol
-    bytes32 public constant proxyBytecodeHash =
-        0x010000811cd49b008c9f2cc4f7a770c8b6d7b80f58bbc56de4626eb35c2eed00;
+    bytes32 public proxyBytecodeHash;
 
     /// @notice Returns the address of the zkSyncfactory contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
