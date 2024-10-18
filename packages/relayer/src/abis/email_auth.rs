@@ -897,10 +897,10 @@ pub mod email_auth {
                     ],
                 ),
                 (
-                    ::std::borrow::ToOwned::to_owned("FailedInnerCall"),
+                    ::std::borrow::ToOwned::to_owned("FailedCall"),
                     ::std::vec![
                         ::ethers::core::abi::ethabi::AbiError {
-                            name: ::std::borrow::ToOwned::to_owned("FailedInnerCall"),
+                            name: ::std::borrow::ToOwned::to_owned("FailedCall"),
                             inputs: ::std::vec![],
                         },
                     ],
@@ -1443,7 +1443,7 @@ pub mod email_auth {
     )]
     #[etherror(name = "ERC1967NonPayable", abi = "ERC1967NonPayable()")]
     pub struct ERC1967NonPayable;
-    ///Custom Error type `FailedInnerCall` with signature `FailedInnerCall()` and selector `0x1425ea42`
+    ///Custom Error type `FailedCall` with signature `FailedCall()` and selector `0xd6bda275`
     #[derive(
         Clone,
         ::ethers::contract::EthError,
@@ -1454,8 +1454,8 @@ pub mod email_auth {
         Eq,
         Hash
     )]
-    #[etherror(name = "FailedInnerCall", abi = "FailedInnerCall()")]
-    pub struct FailedInnerCall;
+    #[etherror(name = "FailedCall", abi = "FailedCall()")]
+    pub struct FailedCall;
     ///Custom Error type `InvalidInitialization` with signature `InvalidInitialization()` and selector `0xf92ee8a9`
     #[derive(
         Clone,
@@ -1555,7 +1555,7 @@ pub mod email_auth {
         AddressEmptyCode(AddressEmptyCode),
         ERC1967InvalidImplementation(ERC1967InvalidImplementation),
         ERC1967NonPayable(ERC1967NonPayable),
-        FailedInnerCall(FailedInnerCall),
+        FailedCall(FailedCall),
         InvalidInitialization(InvalidInitialization),
         NotInitializing(NotInitializing),
         OwnableInvalidOwner(OwnableInvalidOwner),
@@ -1591,10 +1591,10 @@ pub mod email_auth {
             ) {
                 return Ok(Self::ERC1967NonPayable(decoded));
             }
-            if let Ok(decoded) = <FailedInnerCall as ::ethers::core::abi::AbiDecode>::decode(
+            if let Ok(decoded) = <FailedCall as ::ethers::core::abi::AbiDecode>::decode(
                 data,
             ) {
-                return Ok(Self::FailedInnerCall(decoded));
+                return Ok(Self::FailedCall(decoded));
             }
             if let Ok(decoded) = <InvalidInitialization as ::ethers::core::abi::AbiDecode>::decode(
                 data,
@@ -1641,7 +1641,7 @@ pub mod email_auth {
                 Self::ERC1967NonPayable(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
-                Self::FailedInnerCall(element) => {
+                Self::FailedCall(element) => {
                     ::ethers::core::abi::AbiEncode::encode(element)
                 }
                 Self::InvalidInitialization(element) => {
@@ -1683,9 +1683,7 @@ pub mod email_auth {
                     true
                 }
                 _ if selector
-                    == <FailedInnerCall as ::ethers::contract::EthError>::selector() => {
-                    true
-                }
+                    == <FailedCall as ::ethers::contract::EthError>::selector() => true,
                 _ if selector
                     == <InvalidInitialization as ::ethers::contract::EthError>::selector() => {
                     true
@@ -1722,7 +1720,7 @@ pub mod email_auth {
                     ::core::fmt::Display::fmt(element, f)
                 }
                 Self::ERC1967NonPayable(element) => ::core::fmt::Display::fmt(element, f),
-                Self::FailedInnerCall(element) => ::core::fmt::Display::fmt(element, f),
+                Self::FailedCall(element) => ::core::fmt::Display::fmt(element, f),
                 Self::InvalidInitialization(element) => {
                     ::core::fmt::Display::fmt(element, f)
                 }
@@ -1763,9 +1761,9 @@ pub mod email_auth {
             Self::ERC1967NonPayable(value)
         }
     }
-    impl ::core::convert::From<FailedInnerCall> for EmailAuthErrors {
-        fn from(value: FailedInnerCall) -> Self {
-            Self::FailedInnerCall(value)
+    impl ::core::convert::From<FailedCall> for EmailAuthErrors {
+        fn from(value: FailedCall) -> Self {
+            Self::FailedCall(value)
         }
     }
     impl ::core::convert::From<InvalidInitialization> for EmailAuthErrors {
