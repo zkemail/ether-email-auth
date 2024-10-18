@@ -1625,14 +1625,14 @@
     url-template "^2.0.8"
 
 "@openzeppelin/contracts-upgradeable@^5.0.0":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-5.0.2.tgz#3e5321a2ecdd0b206064356798c21225b6ec7105"
-  integrity sha512-0MmkHSHiW2NRFiT9/r5Lu4eJq5UJ4/tzlOgYXNAIj/ONkQTVnz22pLxDvp4C4uZ9he7ZFvGn3Driptn1/iU7tQ==
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-5.1.0.tgz#4d37648b7402929c53e2ff6e45749ecff91eb2b6"
+  integrity sha512-AIElwP5Ck+cslNE+Hkemf5SxjJoF4wBvvjxc27Rp+9jaPs/CLIaUBMYe1FNzhdiN0cYuwGRmYaRHmmntuiju4Q==
 
 "@openzeppelin/contracts@^5.0.0":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.0.2.tgz#b1d03075e49290d06570b2fd42154d76c2a5d210"
-  integrity sha512-ytPc6eLGcHHnapAZ9S+5qsdomhjo6QBHTDRRBFfTxXIpsicMhVPouPgmUPebZZZGX7vt9USA+Z+0M0dSVtSUEA==
+  version "5.1.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.1.0.tgz#4e61162f2a2bf414c4e10c45eca98ce5f1aadbd4"
+  integrity sha512-p1ULhl7BXzjjbha5aqst+QMLY+4/LCWADXOCsmLHRM77AqiPjnd9vvUN9sosUfhL9JGKpZ0TjEGxgvnizmWGSA==
 
 "@sinclair/typebox@^0.27.8":
   version "0.27.8"
@@ -1756,16 +1756,18 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?bc6f9460aba7e53c0fdcb66e431cbb1b8cdb8797":
-  version "6.1.6"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?bc6f9460aba7e53c0fdcb66e431cbb1b8cdb8797#5b07201ede86f67d7b54656565ca37c4767e51c4"
+"@zk-email/circuits@6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.2.0.tgz#82d8e0b61d7ff953f78bda80652b37ac83ae3e63"
+  integrity sha512-G68nAwl4svlE4pCxytgV7NLz80uUCmwzFFdMZ0qcvqzccT1ytMsay19cV1tcKJdzDrMWphGXjxpCNtn+lb7NXA==
   dependencies:
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?bc6f9460aba7e53c0fdcb66e431cbb1b8cdb8797":
-  version "6.1.6"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?bc6f9460aba7e53c0fdcb66e431cbb1b8cdb8797#fb690dfb26959536e4e08ae4a63fe96ec1c62415"
+"@zk-email/contracts@6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.2.0.tgz#36550aea54a9a8962f0ca8ef16ad6f24bfec6942"
+  integrity sha512-HlMyQNKmwdqfht6hHfTLgNnt/pGEc1cR5X4v8dMV+8IqoJTPbuvv19u69p/3U1W1SK2KUJl2Hg/bf0OxqVCNRQ==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     dotenv "^16.3.1"
@@ -2550,9 +2552,9 @@ ejs@^3.1.10, ejs@^3.1.6:
     jake "^10.8.5"
 
 electron-to-chromium@^1.5.28:
-  version "1.5.40"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.40.tgz#5f6aec13751123c5c3185999ebe3e7bcaf828c2b"
-  integrity sha512-LYm78o6if4zTasnYclgQzxEcgMoIcybWOhkATWepN95uwVVWV0/IW10v+2sIeHE+bIYWipLneTftVyQm45UY7g==
+  version "1.5.41"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.41.tgz#eae1ba6c49a1a61d84cf8263351d3513b2bcc534"
+  integrity sha512-dfdv/2xNjX0P8Vzme4cfzHqnPm5xsZXwsolTYr0eyW18IUmNyG08vL+fttvinTfhKfIKdRoqkDIC9e9iWQCNYQ==
 
 elliptic@6.5.4:
   version "6.5.4"
