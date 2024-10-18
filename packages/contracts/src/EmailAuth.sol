@@ -8,7 +8,6 @@ import {CommandUtils} from "./libraries/CommandUtils.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {console} from "forge-std/console.sol";
 
 /// @notice Struct to hold the email authentication/authorization message.
 struct EmailAuthMsg {
