@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
+import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 // import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
@@ -34,7 +35,7 @@ contract Deploy is Script {
         }
 
         vm.startBroadcast(deployerPrivateKey);
-        address initialOwner = msg.sender;
+        address initialOwner = vm.addr(deployerPrivateKey);
 
         // Deploy ECDSAOwned DKIM registry
         dkim = ECDSAOwnedDKIMRegistry(vm.envOr("ECDSA_DKIM", address(0)));
@@ -75,9 +76,13 @@ contract Deploy is Script {
                 "Verifier implementation deployed at: %s",
                 address(verifierImpl)
             );
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (initialOwner))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (initialOwner, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
@@ -103,7 +108,7 @@ contract Deploy is Script {
                 abi.encodeCall(
                     recoveryControllerImpl.initialize,
                     (
-                        signer,
+                        initialOwner,
                         address(verifier),
                         address(dkim),
                         address(emailAuthImpl)
@@ -138,7 +143,7 @@ contract Deploy is Script {
                 address(simpleWalletImpl),
                 abi.encodeCall(
                     simpleWalletImpl.initialize,
-                    (signer, address(recoveryController))
+                    (initialOwner, address(recoveryController))
                 )
             );
             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));

@@ -9,6 +9,7 @@ import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
+import "../src/utils/Groth16Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
@@ -76,9 +77,13 @@ contract IntegrationTest is Test {
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
         }
@@ -141,7 +146,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xeb8E21A363Dce22ff6057dEEF7c074062037F571
+            0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -163,7 +168,7 @@ contract IntegrationTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -176,7 +181,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0xeb8E21A363Dce22ff6057dEEF7c074062037F571";
+            .maskedCommand = "Accept guardian request for 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -184,7 +189,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -210,14 +215,14 @@ contract IntegrationTest is Test {
         );
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
             templateId: recoveryController.computeAcceptanceTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForAcceptance,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForAcceptance,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
@@ -245,7 +250,7 @@ contract IntegrationTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_public.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -257,7 +262,7 @@ contract IntegrationTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedSubject = "Set the new signer of 0xeb8E21A363Dce22ff6057dEEF7c074062037F571 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -269,7 +274,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_proof.json"
+                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
             )
         );
 
@@ -283,17 +288,17 @@ contract IntegrationTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call handleRecovery -> isRecovering = true;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(address(simpleWallet));
-        subjectParamsForRecovery[1] = abi.encode(
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(address(simpleWallet));
+        commandParamsForRecovery[1] = abi.encode(
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
             templateId: recoveryController.computeRecoveryTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForRecovery,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForRecovery,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryController.handleRecovery(emailAuthMsg, templateIdx);

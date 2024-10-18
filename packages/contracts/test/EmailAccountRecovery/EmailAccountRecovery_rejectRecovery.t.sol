@@ -9,7 +9,9 @@ import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelper {
+contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is
+    StructHelper
+{
     constructor() {}
 
     function setUp() public override {
@@ -49,12 +51,12 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
         uint templateIdx = 0;
 
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.commandParams = commandParamsForAcceptance;
         address recoveredAccount = recoveryController
-            .extractRecoveredAccountFromAcceptanceSubject(
-                emailAuthMsg.subjectParams,
+            .extractRecoveredAccountFromAcceptanceCommand(
+                emailAuthMsg.commandParams,
                 templateIdx
             );
         address computedGuardian = recoveryController.computeEmailAuthAddress(
@@ -107,10 +109,10 @@ contract EmailAccountRecoveryForRejectRecoveryTest_rejectRecovery is StructHelpe
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(simpleWallet);
-        subjectParamsForRecovery[1] = abi.encode(newSigner);
-        emailAuthMsg.subjectParams = subjectParamsForRecovery;
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(simpleWallet);
+        commandParamsForRecovery[1] = abi.encode(newSigner);
+        emailAuthMsg.commandParams = commandParamsForRecovery;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),

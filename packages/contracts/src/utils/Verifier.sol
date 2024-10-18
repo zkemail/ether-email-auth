@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Groth16Verifier.sol";
+import "../interfaces/IGroth16Verifier.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -9,7 +9,7 @@ struct EmailProof {
     string domainName; // Domain name of the sender's email
     bytes32 publicKeyHash; // Hash of the DKIM public key used in email/proof
     uint timestamp; // Timestamp of the email
-    string maskedSubject; // Masked subject of the email
+    string maskedCommand; // Masked command of the email
     bytes32 emailNullifier; // Nullifier of the email to prevent its reuse.
     bytes32 accountSalt; // Create2 salt of the account
     bool isCodeExist; // Check if the account code is exist
@@ -17,20 +17,23 @@ struct EmailProof {
 }
 
 contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
-    Groth16Verifier groth16Verifier;
+    IGroth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
-    uint256 public constant SUBJECT_FIELDS = 20;
-    uint256 public constant SUBJECT_BYTES = 605;
+    uint256 public constant COMMAND_FIELDS = 20;
+    uint256 public constant COMMAND_BYTES = 605;
 
     constructor() {}
 
     /// @notice Initialize the contract with the initial owner and deploy Groth16Verifier
     /// @param _initialOwner The address of the initial owner
-    function initialize(address _initialOwner) public initializer {
+    function initialize(
+        address _initialOwner,
+        address _groth16Verifier
+    ) public initializer {
         __Ownable_init(_initialOwner);
-        groth16Verifier = new Groth16Verifier();
+        groth16Verifier = IGroth16Verifier(_groth16Verifier);
     }
 
     function verifyEmailProof(
@@ -42,7 +45,7 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
             uint256[2] memory pC
         ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
 
-        uint256[DOMAIN_FIELDS + SUBJECT_FIELDS + 5] memory pubSignals;
+        uint256[DOMAIN_FIELDS + COMMAND_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
         stringFields = _packBytes2Fields(bytes(proof.domainName), DOMAIN_BYTES);
         for (uint256 i = 0; i < DOMAIN_FIELDS; i++) {
@@ -52,16 +55,16 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
         pubSignals[DOMAIN_FIELDS + 1] = uint256(proof.emailNullifier);
         pubSignals[DOMAIN_FIELDS + 2] = uint256(proof.timestamp);
         stringFields = _packBytes2Fields(
-            bytes(proof.maskedSubject),
-            SUBJECT_BYTES
+            bytes(proof.maskedCommand),
+            COMMAND_BYTES
         );
-        for (uint256 i = 0; i < SUBJECT_FIELDS; i++) {
+        for (uint256 i = 0; i < COMMAND_FIELDS; i++) {
             pubSignals[DOMAIN_FIELDS + 3 + i] = stringFields[i];
         }
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS] = uint256(
+        pubSignals[DOMAIN_FIELDS + 3 + COMMAND_FIELDS] = uint256(
             proof.accountSalt
         );
-        pubSignals[DOMAIN_FIELDS + 3 + SUBJECT_FIELDS + 1] = proof.isCodeExist
+        pubSignals[DOMAIN_FIELDS + 3 + COMMAND_FIELDS + 1] = proof.isCodeExist
             ? 1
             : 0;
 

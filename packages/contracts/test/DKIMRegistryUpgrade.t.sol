@@ -43,15 +43,15 @@ contract DKIMRegistryUpgradeTest is StructHelper {
         assertEq(dkimAddr, address(dkim));
     }
 
-    function _testInsertSubjectTemplate() private {
-        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
-        string[] memory result = emailAuth.getSubjectTemplate(templateId);
-        assertEq(result, subjectTemplate);
+    function _testInsertCommandTemplate() private {
+        emailAuth.insertCommandTemplate(templateId, commandTemplate);
+        string[] memory result = emailAuth.getCommandTemplate(templateId);
+        assertEq(result, commandTemplate);
     }
 
     function testAuthEmail() public {
         vm.startPrank(deployer);
-        _testInsertSubjectTemplate();
+        _testInsertCommandTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
