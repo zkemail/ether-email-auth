@@ -26,8 +26,8 @@ WORKDIR /root/params
 # RUN gdown "https://drive.google.com/uc?id=1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH"
 # RUN unzip params.zip
 # RUN mv params/* /root/params
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.0-preview/email_auth.zkey --output ./email_auth.zkey
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.0-preview/email_auth.wasm --output ./email_auth.wasm
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.zkey --output ./email_auth.zkey
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.wasm --output ./email_auth.wasm
 WORKDIR /root
 RUN ls params
 # RUN mv build params
