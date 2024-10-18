@@ -56,7 +56,7 @@ contract DeploymentHelper is Test {
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
     // UPDATE THIS: You must update this line
-    bytes32 public proxyBytecodeHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public proxyBytecodeHash = vm.envBytes32("PROXY_BYTECODE_HASH");
 
     function setUp() public virtual {
         vm.startPrank(deployer);

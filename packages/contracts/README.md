@@ -282,14 +282,20 @@ Run this command, you'll get the bytecode hash.
 forge test --match-test "testComputeCreate2Address" --no-match-contract ".*Script.*" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv
 ```
 
-And then, you should replace the following line to the correct bytecode hash you get in the above command.
+And then, you should set the PROXY_BYTECODE_HASH in the .env
 
-packages/contracts/test/IntegrationZKSync.t.sol:L43
-packages/contracts/test/helpers/DeploymentHelper.sol:L59
+```
+PROXY_BYTECODE_HASH={YOUR_BYTECODE_HASH}
+```
 
 # For zkSync testing
 
-Run `yarn zktest`.
+Run the following command
+
+```
+source .env
+yarn zktest
+```
 
 Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will fail. If you want to test on other EVM, please install foundry.
 
@@ -351,26 +357,26 @@ forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_
 
 Set the libraries in foundry.toml using the above deployed address.
 
-Due to this change in the address of the missing libraries, the value of the proxyBytecodeHash must also be changed: change the value of the proxyBytecodeHash in these files
+Run this command, you'll get the bytecode hash.
 
-packages/contracts/test/IntegrationZKSync.t.sol:L43
-packages/contracts/test/helpers/DeploymentHelper.sol:L59
+```
+forge test --match-test "testComputeCreate2Address" --no-match-contract ".*Script.*" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv
+```
+
+And then, you should set the PROXY_BYTECODE_HASH in the .env
+
+```
+PROXY_BYTECODE_HASH={YOUR_BYTECODE_HASH}
+```
 
 And then, run the integration testing.
 
 ```
+source .env
 forge test --match-contract "IntegrationZKSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
 ```
 
 # For zkSync deployment (For test net)
-
-You need to edit .env at first.
-Second, just run the following commands with `--zksync`
-
-```
-source .env
-forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
-```
 
 As you saw before, you need to deploy missing libraries.
 You can deploy them by the following command for example.
@@ -394,20 +400,18 @@ libraries = [
 
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
 
-About Create2, `L2ContractHelper.computeCreate2Address` should be used.
-And `type(ERC1967Proxy).creationCode` doesn't work correctly in zkSync.
-We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
-Perhaps that is a different value in each compiler version.
-
 Run this command, you'll get the bytecode hash.
 
 ```
 forge test --match-test "testComputeCreate2Address" --no-match-contract ".*Script.*" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv
 ```
 
-And then, you should replace the following line to the correct bytecode hash you get in the above command.
+And then, you should set the PROXY_BYTECODE_HASH in the .env
 
-script/DeployRecoveryControllerZKSync.s.sol:L28
+```
+PROXY_BYTECODE_HASH={YOUR_BYTECODE_HASH}
+```
+
 You need to edit .env at first.
 Second just run the following commands with `--zksync`
 

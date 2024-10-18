@@ -24,8 +24,7 @@ contract Deploy is Script {
     RecoveryControllerZKSync recoveryControllerZKSync;
     ZKSyncCreate2Factory factoryImpl;
 
-    // UPDATE THIS: You must update this line
-    bytes32 public proxyBytecodeHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
+    bytes32 public proxyBytecodeHash = vm.envBytes32("PROXY_BYTECODE_HASH");
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
