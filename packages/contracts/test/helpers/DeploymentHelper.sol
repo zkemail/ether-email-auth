@@ -55,6 +55,9 @@ contract DeploymentHelper is Test {
     bytes32 emailNullifier =
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
 
+    // UPDATE THIS: You must update this line
+    bytes32 public proxyBytecodeHash = 0x0000000000000000000000000000000000000000000000000000000000000000;
+
     function setUp() public virtual {
         vm.startPrank(deployer);
         address signer = deployer;
@@ -160,7 +163,8 @@ contract DeploymentHelper is Test {
         //                 address(verifier),
         //                 address(dkim),
         //                 address(emailAuthImpl),
-        //                 address(factoryImpl)
+        //                 address(factoryImpl),
+        //                 proxyBytecodeHash
         //             )
         //         )
         //     );
