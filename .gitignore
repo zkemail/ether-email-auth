@@ -33,7 +33,6 @@ packages/contracts/deployments
 
 # Relayer
 target
-packages/relayer/.sqlx/*
 packages/relayer/logs
 packages/relayer/config.json
 .ic.pem
