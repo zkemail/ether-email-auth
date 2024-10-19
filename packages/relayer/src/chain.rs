@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Duration};
 
 use crate::*;
 use abi::{encode, Abi, ParamType, Token, Tokenize};
@@ -9,9 +9,11 @@ use ethers::prelude::*;
 use ethers::signers::Signer;
 use ethers::utils::hex;
 use model::RequestModel;
+use rand::Rng;
 use relayer_utils::{bytes_to_hex, h160_to_hex, u256_to_hex};
 use slog::error;
 use statics::SHARED_MUTEX;
+use tokio::time::sleep;
 
 const CONFIRMATIONS: usize = 1;
 
@@ -200,14 +202,14 @@ impl ChainClient {
         info!(LOG, "Alchemy request: {:?}", json_body);
 
         // Send the POST request
-        let response = relayer_state
-            .http_client
-            .post(&alchemy_url)
-            .header("accept", "application/json")
-            .header("content-type", "application/json")
-            .json(&json_body)
-            .send()
-            .await?;
+        let response = simulate_with_retry(
+            &relayer_state.http_client,
+            &alchemy_url,
+            &json_body,
+            5,
+            1000,
+        )
+        .await?;
 
         // Handle the response
         if response.status().is_success() {
@@ -266,5 +268,69 @@ impl EmailProof {
             Token::Bool(self.is_code_exist),
             Token::Bytes(self.proof.clone().to_vec()),
         ]
+    }
+}
+
+async fn simulate_with_retry(
+    http_client: &reqwest::Client,
+    url: &str,
+    json_body: &serde_json::Value,
+    max_attempts: usize,
+    max_backoff: u64,
+) -> Result<reqwest::Response> {
+    let mut attempts = 0;
+
+    loop {
+        attempts += 1;
+        let response = http_client
+            .post(url)
+            .header("accept", "application/json")
+            .header("content-type", "application/json")
+            .json(json_body)
+            .send()
+            .await;
+
+        match response {
+            Ok(resp) if resp.status().is_success() => return Ok(resp),
+            Ok(_) | Err(_) if attempts < max_attempts => {
+                // Calculate exponential backoff with jitter using spawn_blocking
+                let backoff = tokio::task::spawn_blocking(move || {
+                    let mut rng = rand::thread_rng();
+                    2u64.pow(attempts as u32) + rng.gen_range(0..1000)
+                })
+                .await?
+                .min(max_backoff);
+
+                error!(
+                    LOG,
+                    "Request failed, retrying in {} ms... (attempt {}/{})",
+                    backoff,
+                    attempts,
+                    max_attempts
+                );
+                sleep(Duration::from_millis(backoff)).await;
+                continue;
+            }
+            Ok(resp) => {
+                // Log the final failed attempt
+                let error_text = resp
+                    .text()
+                    .await
+                    .unwrap_or_else(|_| "Unknown error".to_string());
+                error!(LOG, "Alchemy request failed: {:?}", error_text);
+                return Err(anyhow!(
+                    "Alchemy request failed after {} attempts",
+                    max_attempts
+                ));
+            }
+            Err(err) => {
+                // Log the final failed attempt
+                error!(LOG, "Alchemy request failed: {:?}", err);
+                return Err(anyhow!(
+                    "Alchemy request failed after {} attempts",
+                    max_attempts
+                ));
+            }
+        }
     }
 }
