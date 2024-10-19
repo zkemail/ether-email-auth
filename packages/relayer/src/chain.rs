@@ -229,7 +229,14 @@ impl ChainClient {
             error!(LOG, "Alchemy request failed: {:?}", error_text);
         }
 
-        let receipt = call.send().await?.await?;
+        let receipt = call
+            .send()
+            .await?
+            .interval(Duration::from_secs(1))
+            .retries(5)
+            .confirmations(CONFIRMATIONS)
+            .await?;
+
         info!(
             LOG,
             "tx hash: {:?}",
