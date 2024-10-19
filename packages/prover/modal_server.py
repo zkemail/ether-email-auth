@@ -15,7 +15,7 @@ image = modal.Image.from_dockerfile("Dockerfile")
     mounts=[
         modal.Mount.from_local_python_packages("core"),
     ],
-    cpu=16,
+    cpu=1,
     gpu="any",
     secrets=[modal.Secret.from_name("gc-ether-email-auth-prover")],
     keep_warm=True
