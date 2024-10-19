@@ -45,8 +45,20 @@ WORKDIR /root
 RUN ls /root
 RUN mkdir params
 WORKDIR /root/params
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.zkey --output ./email_auth.zkey
+# RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.zkey --output ./email_auth.zkey
 RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.wasm --output ./email_auth.wasm
+RUN mkdir /root/params/email_auth_cpp/
+WORKDIR /root/params/email_auth_cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/Makefile --output ./Makefile
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/calcwit.cpp --output ./calcwit.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/calcwit.hpp --output ./calcwit.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/circom.hpp --output ./circom.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/email_auth.cpp --output ./email_auth.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/email_auth.dat --output ./email_auth.dat
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/fr.asm --output ./fr.asm
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/fr.cpp --output ./fr.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/fr.hpp --output ./fr.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth_cpp/main.cpp --output ./main.cpp
 WORKDIR /root
 RUN ls params
 RUN chmod +x circom_proofgen.sh
