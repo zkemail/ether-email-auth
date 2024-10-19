@@ -88,7 +88,6 @@ impl ChainClient {
 
         // Wait for the transaction to be confirmed
         let receipt = tx
-            .log()
             .confirmations(CONFIRMATIONS)
             .await?
             .ok_or(anyhow!("No receipt"))?;
