@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Result};
 use ethers::types::{Bytes, U256};
 use relayer_utils::{
-    command_templates, extract_template_vals_from_command, u256_to_bytes32_little,
+    extract_template_vals_from_command, u256_to_bytes32_little,
 };
 
 use crate::{constants::COMMAND_FIELDS, model::RequestModel};

@@ -3,19 +3,19 @@ use std::path::PathBuf;
 use anyhow::Result;
 use ethers::types::U256;
 use handlebars::Handlebars;
-use relayer_utils::ParsedEmail;
+use relayer_utils::{ParsedEmail, LOG};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use sqlx::PgPool;
+use slog::info;
 use tokio::fs::read_to_string;
 use uuid::Uuid;
 
 use crate::{
-    abis::{EmailAuthMsg, EmailProof},
+    abis::EmailAuthMsg,
     chain::ChainClient,
     command::get_encoded_command_params,
     dkim::check_and_update_dkim,
-    model::{insert_expected_reply, is_valid_reply, update_request, RequestModel, RequestStatus},
+    model::{insert_expected_reply, update_request, RequestModel, RequestStatus},
     prove::generate_email_proof,
     RelayerState,
 };
@@ -123,6 +123,8 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
                 body_html,
                 body_attachments: None,
             };
+
+            info!(LOG, "Sending email");
 
             send_email(
                 email,
@@ -333,39 +335,6 @@ impl ExpectsReply {
             request_id: Some(request_id.to_string()),
         }
     }
-
-    /// Creates a new `ExpectsReply` instance without a request ID.
-    fn new_no_request_id() -> Self {
-        Self { request_id: None }
-    }
-}
-
-/// Checks if the email is a reply to a command that expects a reply.
-/// Will return false for duplicate replies.
-/// Will return true if the email is not a reply.
-///
-/// # Arguments
-///
-/// * `email` - The `ParsedEmail` to be checked.
-///
-/// # Returns
-///
-/// A `Result` containing a boolean indicating if the request is valid.
-pub async fn check_is_valid_request(email: &ParsedEmail, pool: &PgPool) -> Result<bool> {
-    // Check if the email is a reply by looking for the "In-Reply-To" header
-    let reply_message_id = match email
-        .headers
-        .get_header("In-Reply-To")
-        .and_then(|v| v.first().cloned())
-    {
-        Some(id) => id,
-        // Email is not a reply, so it's valid
-        None => return Ok(true),
-    };
-
-    // Check if the reply is valid (not a duplicate) using the database
-    let is_valid = is_valid_reply(pool, &reply_message_id).await?;
-    Ok(is_valid)
 }
 
 pub async fn handle_email(
@@ -392,8 +361,10 @@ pub async fn handle_email(
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
     chain_client
-        .call(request.clone(), email_auth_msg, relayer_state)
+        .call(request.clone(), email_auth_msg, relayer_state.clone())
         .await?;
+
+    update_request(&relayer_state.db, request.id, RequestStatus::Finished).await?;
 
     Ok(EmailEvent::Completion {
         email_addr: parsed_email.get_from_addr()?,

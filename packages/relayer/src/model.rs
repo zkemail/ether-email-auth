@@ -1,7 +1,5 @@
-use std::fmt::Display;
-
 use anyhow::{Error, Ok, Result};
-use chrono::{DateTime, NaiveDateTime, Utc};
+use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use sqlx::{FromRow, PgPool};
@@ -126,19 +124,4 @@ pub async fn insert_expected_reply(
     .map_err(|e| Error::msg(format!("Failed to insert expected_reply: {}", e)))?;
 
     Ok(())
-}
-
-pub async fn is_valid_reply(pool: &PgPool, message_id: &str) -> Result<bool> {
-    let query_result = sqlx::query!(
-        "UPDATE expected_replies
-         SET has_reply = true
-         WHERE message_id = $1 AND has_reply = false
-         RETURNING has_reply",
-        message_id
-    )
-    .fetch_one(pool)
-    .await
-    .map_err(|e| Error::msg(format!("Failed to validate reply: {}", e)))?;
-
-    Ok(query_result.has_reply.unwrap_or(false))
 }

@@ -1,16 +1,16 @@
 use std::{collections::HashMap, time::Duration};
 
 use crate::*;
-use abi::{encode, Abi, ParamType, Token, Tokenize};
-use abis::{ECDSAOwnedDKIMRegistry, EmailAuth, EmailAuthMsg, EmailProof};
+use abi::{Abi, Token, Tokenize};
+use abis::{ECDSAOwnedDKIMRegistry, EmailAuthMsg, EmailProof};
 use anyhow::anyhow;
 use config::ChainConfig;
 use ethers::prelude::*;
 use ethers::signers::Signer;
 use ethers::utils::hex;
-use model::RequestModel;
+use model::{update_request, RequestModel, RequestStatus};
 use rand::Rng;
-use relayer_utils::{bytes_to_hex, h160_to_hex, u256_to_hex};
+use relayer_utils::{bytes_to_hex, h160_to_hex};
 use slog::error;
 use statics::SHARED_MUTEX;
 use tokio::time::sleep;
@@ -129,6 +129,13 @@ impl ChainClient {
         email_auth_msg: EmailAuthMsg,
         relayer_state: RelayerState,
     ) -> Result<()> {
+        update_request(
+            &relayer_state.db,
+            request.id,
+            RequestStatus::PerformingOnChainTransaction,
+        )
+        .await?;
+
         let abi = Abi {
             functions: vec![request.email_tx_auth.function_abi.clone()]
                 .into_iter()

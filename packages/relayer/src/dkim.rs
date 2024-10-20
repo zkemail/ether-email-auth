@@ -1,4 +1,3 @@
-use std::env;
 
 use abis::ECDSAOwnedDKIMRegistry;
 use anyhow::anyhow;

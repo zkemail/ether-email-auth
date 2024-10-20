@@ -1,8 +1,6 @@
-use anyhow::{anyhow, Result};
-use ethers::types::U256;
+use anyhow::Result;
 use relayer_utils::{
-    generate_email_circuit_input, generate_proof, hex_to_field, u256_to_bytes32,
-    u256_to_bytes32_little, AccountCode, AccountSalt, EmailCircuitParams, ParsedEmail, LOG,
+    generate_email_circuit_input, generate_proof, u256_to_bytes32, EmailCircuitParams, ParsedEmail, LOG,
 };
 use slog::info;
 
@@ -10,7 +8,7 @@ use crate::{
     abis::EmailProof,
     command::get_masked_command,
     constants::{COMMAND_FIELDS, DOMAIN_FIELDS, SHA_PRECOMPUTE_SELECTOR},
-    model::RequestModel,
+    model::{update_request, RequestModel, RequestStatus},
     RelayerState,
 };
 
@@ -28,6 +26,8 @@ pub async fn generate_email_proof(
     request: RequestModel,
     relayer_state: RelayerState,
 ) -> Result<EmailProof> {
+    update_request(&relayer_state.db, request.id, RequestStatus::Proving).await?;
+
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
     let circuit_input = generate_email_circuit_input(
         &email,
@@ -65,5 +65,5 @@ pub async fn generate_email_proof(
         is_code_exist,
     };
 
-    Ok((email_proof))
+    Ok(email_proof)
 }

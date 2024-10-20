@@ -46,7 +46,11 @@ pub async fn submit_handler(
             )
         })?;
 
+    info!(LOG, "Request ID created: {}", uuid);
+
     let command = parse_command_template(&body.command_template, body.command_params);
+
+    info!(LOG, "Command: {:?}", command);
 
     let account_code = if body.code_exists_in_email {
         let hex_code = field_to_hex(&body.account_code.clone().0);

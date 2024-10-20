@@ -1,7 +1,6 @@
-use std::collections::HashMap;
 
 use ethers::{
-    abi::{Abi, Function, Token},
+    abi::{Function, Token},
     types::{Address, U256},
 };
 use relayer_utils::AccountCode;

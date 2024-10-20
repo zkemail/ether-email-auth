@@ -5,7 +5,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'status_enum') THEN
-        CREATE TYPE status_enum AS ENUM ('Request received', 'Processing', 'Completed', 'Failed');
+        CREATE TYPE status_enum AS ENUM ('Request received', 'Email sent', 'Email response received', 'Proving', 'Performing on chain transaction', 'Finished');
     END IF;
 END $$;
 
