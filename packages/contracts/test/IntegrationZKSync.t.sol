@@ -48,8 +48,6 @@ contract IntegrationZKSyncTest is Test {
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
 
-        vm.warp(startTimestamp);
-
         vm.startPrank(deployer);
         address signer = deployer;
 
