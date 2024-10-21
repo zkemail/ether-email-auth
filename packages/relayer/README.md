@@ -9,12 +9,12 @@ You can run the relayer either on your local environments or cloud instances (we
 3. If you have not deployed common contracts, build contract artifacts and deploy required contracts.
     1. `cd packages/contracts` and run `forge build`.
     2. Set the env file in `packages/contracts/.env`, an example env file is as follows,
-    
+
     ```jsx
     LOCALHOST_RPC_URL=http://127.0.0.1:8545
     SEPOLIA_RPC_URL=https://sepolia.base.org
     MAINNET_RPC_URL=https://mainnet.base.org
-    
+
     PRIVATE_KEY=""
     CHAIN_ID=84532
     RPC_URL="https://sepolia.base.org"
@@ -38,7 +38,7 @@ You can run the relayer either on your local environments or cloud instances (we
         CHAIN_RPC_PROVIDER=https://sepolia.base.org
         CHAIN_RPC_EXPLORER=https://sepolia.basescan.org
         CHAIN_ID=84532                    # Chain ID of the testnet.
-        
+
         # IMAP + SMTP (Settings will be provided by your email provider)
         IMAP_DOMAIN_NAME=imap.gmail.com
         IMAP_PORT=993
@@ -46,19 +46,27 @@ You can run the relayer either on your local environments or cloud instances (we
         SMTP_DOMAIN_NAME=smtp.gmail.com
         LOGIN_ID=                    # IMAP login id - usually your email address.
         LOGIN_PASSWORD=""         # IMAP password - usually your email password.
-        
+
         PROVER_ADDRESS="http://localhost:8080"  # Address of the prover.
-        
+
         DATABASE_URL= "postgres://new_user:my_secure_password@localhost/my_new_database"
         WEB_SERVER_ADDRESS="127.0.0.1:4500"
-        CIRCUITS_DIR_PATH=  # Absolute path to packages/circuits
         EMAIL_TEMPLATES_PATH=  # Absolute path to packages/relayer/eml_templates
-        
+
         CANISTER_ID="q7eci-dyaaa-aaaak-qdbia-cai"
         PEM_PATH="./.ic.pem"
         IC_REPLICA_URL="https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
-        
+
         JSON_LOGGER=false
+        ```
+    3. Generate the `.ic.pem` file and password.
+        - Create the `.ic.pem` file using OpenSSL:
+        ```sh
+        openssl genpkey -algorithm RSA -out .ic.pem -aes-256-cbc -pass pass:your_password
+        ```
+        - If you need a password, you can generate a random password using:
+        ```sh
+        openssl rand -base64 32
         ```
 7. You should have your entire setup up and running!
 
@@ -76,11 +84,11 @@ Note that from June 2024, IMAP will be enabled by default.
 
 ##### Enable two-factor authentication for your Google account:
 
-Refer to the following help link. 
+Refer to the following help link.
 
 [Google 2FA Setup](https://support.google.com/accounts/answer/185839?hl=en&co=GENIE.Platform%3DDesktop)
 
-##### Create an app password: 
+##### Create an app password:
 
 Refer to the following help link. If you do not see the 'App passwords' option, try searching for 'app pass' in the search box to select it.
 
@@ -97,7 +105,7 @@ Refer to the following help link. If you do not see the 'App passwords' option, 
 4. (Optional) Delete `db.yml` , `ingress.yml`  and `relayer.yml` if applied already
 5. (Optional) Build the Relayer’s Docker image and publish it.
 6. Set the config in the respective manifests (Here, you can set the image of the relayer in `relayer.yml` , latest image already present in the config.)
-7. Apply `db.yml` 
+7. Apply `db.yml`
 8. Apply `relayer.yml` , ssh into the pod and run `nohup cargo run &` , this step should be done under a min to pass the liveness check.
 9. Apply `ingress.yml`
 
@@ -143,9 +151,9 @@ It exposes the following REST APIs.
     5. If the contract of `account_eth_addr` is not deployed, return a 400 response.
     4. If a record with `account_code` exists in the `credentials` table, return a 400 response.
     6. Randomly generate a `request_id`. If a record with `request_id` exists in the `requests` table, regenerate a new `request_id`.
-    7. If a record with `account_eth_addr`, `guardian_email_addr` and `is_set=true` exists in the `credentials`  table, 
+    7. If a record with `account_eth_addr`, `guardian_email_addr` and `is_set=true` exists in the `credentials`  table,
         1. Insert `(request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, false, template_idx, false)` into the `requests` table.
-        2. Send `guardian_email_addr` an error email to say that `account_eth_addr` tries to set you to a guardian, which is rejected since you are already its guardian. 
+        2. Send `guardian_email_addr` an error email to say that `account_eth_addr` tries to set you to a guardian, which is rejected since you are already its guardian.
         3. Return a 200 response along with `request_id` and `subject_params` **to prevent a malicious client user from learning if the pair of the `account_eth_addr` and the `guardian_email_addr` is already set or not.**
     8. Insert `(account_code, account_eth_addr, controller_eth_addr, guardian_email_addr, false)` into the `credentials` table.
     9. Insert `(request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, false, template_idx)` into the `requests` table.
@@ -158,12 +166,12 @@ It exposes the following REST APIs.
 
 - `POST recoveryRequest`
     1. Receive  `controller_eth_addr`, `guardian_email_addr`, `template_idx`, and `subject`.
-    2. Let `subject_template` be the `template_idx`-th template in `recoverySubjectTemplates()` of `wallet_eth_addr`.
+    2. Let `subject_template` be the `template_idx`-th template in `recoverySubjectTemplates()` of `account_eth_addr`.
     3. If the `subject` does not match with `subject_template` return a 400 response. Let `subject_params` be the parsed values.
     4. Extract `account_eth_addr` from the given `subject` by following `subject_template`.
     5. If the contract of `account_eth_addr` is not deployed, return a 400 response.
     6. Randomly generate a `request_id`. If a record with `request_id` exists in the `requests` table, regenerate a new `request_id`.
-    7. If a record with `account_eth_addr`, `guardian_email_addr`, and `is_set=true` exists in the `credentials`  table, 
+    7. If a record with `account_eth_addr`, `guardian_email_addr`, and `is_set=true` exists in the `credentials`  table,
         1. Insert `(request_id, account_eth_addr, controller_eth_addr, guardian_email_addr, true, template_idx, false)` into the `requests` table.
         2. Send an email as follows.
             - To: `guardian_email_addr`
@@ -171,14 +179,14 @@ It exposes the following REST APIs.
             - Reply-to: `relayer_email_addr_before_domain ~~+ "+code" + hex(account_code)~~ + "@" + relayer_email_addr_domain`.
             - Body: Any message, but it MUST contain `"#" + digit(request_id)`.
         3. Return a 200 response along with `request_id` and `subject_params`.
-    7. If a record with `account_eth_addr`, `guardian_email_addr`, and `is_set=false` exists in the `credentials`  table, 
-        1. Insert `(request_id, wallet_eth_addr, guardian_email_addr, true, template_idx, false)` into the `requests` table.
+    7. If a record with `account_eth_addr`, `guardian_email_addr`, and `is_set=false` exists in the `credentials`  table,
+        1. Insert `(request_id, account_eth_addr, guardian_email_addr, true, template_idx, false)` into the `requests` table.
         2. Send an email as follows.
             - To: `guardian_email_addr`
             - Subject: A message to say that `account_eth_addr` requests your account recovery, but you have not approved being its guardian.
         3. Return a 200 response along with `request_id` and `subject_params`.
-    8. If a record with `wallet_eth_addr`, `guardian_email_addr` does not exist in the `credentials`  table, 
-        1. Insert `(request_id, wallet_eth_addr, guardian_email_addr, true, template_idx, false)` into the `requests` table.
+    8. If a record with `account_eth_addr`, `guardian_email_addr` does not exist in the `credentials`  table,
+        1. Insert `(request_id, account_eth_addr, guardian_email_addr, true, template_idx, false)` into the `requests` table.
         2. Send an email as follows.
             - To: `guardian_email_addr`
             - Subject: if the domain of `guardian_email_addr` signs the To field, `subject`. Otherwise, `subject + " Code "`.
