@@ -114,7 +114,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, command, account_code, request_id
             );
 
-            let subject = "Email Recovery: Acceptance Request".to_string();
+            let subject = "ZK Email Recovery: Acceptance Request".to_string();
 
             // Prepare data for HTML rendering
             let render_data = serde_json::json!({
@@ -217,7 +217,7 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                 account_eth_addr, request_id
             );
 
-            let subject = "Email Recovery: Recovery Request".to_string();
+            let subject = "ZK Email Recovery: Recovery Request".to_string();
 
             // Prepare data for HTML rendering
             let render_data = serde_json::json!({
