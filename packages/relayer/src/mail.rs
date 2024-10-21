@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use ethers::types::U256;
+use ethers::types::{TxHash, U256};
 use handlebars::Handlebars;
 use relayer_utils::{ParsedEmail, LOG};
 use serde::{Deserialize, Serialize};
@@ -63,7 +63,7 @@ pub enum EmailEvent {
         original_subject: String,
         original_message_id: Option<String>,
         explorer_url: String,
-        tx_hash: String,
+        tx_hash: TxHash,
     },
     Error {
         email_addr: String,
@@ -148,10 +148,16 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
             let subject = format!("Re: {}", original_subject);
             let body_plain = format!("Your request ID is #{} is now complete.", request_id);
 
+            info!(
+                LOG,
+                "Explorer URL: {:?}",
+                format!("{}/tx/{:?}", explorer_url, tx_hash)
+            );
+
             // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "requestId": request_id,
-                "explorerUrl": format!("{}/tx/{}", explorer_url, tx_hash)
+                "explorerUrl": format!("{}/tx/{:?}", explorer_url, tx_hash)
             });
             let body_html = render_html(
                 "completion_template.html",
