@@ -38,13 +38,14 @@ contract IntegrationTest is Test {
     string domainName = "gmail.com";
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
-    uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
+    // uint256 startTimestamp = 1729512214;
+    uint256 recoveryTimelock = 5 days;
     uint256 setTimeDelay = 3 days;
 
     function setUp() public {
         vm.createSelectFork("https://mainnet.base.org");
 
-        vm.warp(startTimestamp);
+        // vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
         address signer = deployer;
@@ -87,6 +88,7 @@ contract IntegrationTest is Test {
                 signer,
                 signature
             );
+            vm.warp(block.timestamp + setTimeDelay + 1);
         }
 
         // Create Verifier
@@ -145,9 +147,10 @@ contract IntegrationTest is Test {
         //     "emailAuthImplementation",
         //     simpleWallet.emailAuthImplementation()
         // );
-
         vm.stopPrank();
-        vm.warp(block.timestamp + setTimeDelay + 10);
+        vm.startPrank(address(simpleWallet));
+        recoveryController.configureTimelockPeriod(recoveryTimelock);
+        vm.stopPrank();
     }
 
     function testIntegration_Account_Recovery() public {
@@ -162,7 +165,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4
+            0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -197,7 +200,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0xF5B492ADBC2EF7AE61825A69E34DC75E2E3A83E4";
+            .maskedCommand = "Accept guardian request for 0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -276,7 +279,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Set the new signer of 0xF5B492ADBC2EF7AE61825A69E34DC75E2E3A83E4 to 0xA0EE7A142D267C1F36714E4A8F75612F20A79720";
+            .maskedCommand = "Set the new signer of 0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
@@ -336,8 +339,7 @@ contract IntegrationTest is Test {
         );
 
         // Call completeRecovery
-        // Warp at 3 days + 10 seconds later
-        vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
+        vm.warp(block.timestamp + recoveryTimelock + 1);
         recoveryController.completeRecovery(
             address(simpleWallet),
             new bytes(0)
