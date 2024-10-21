@@ -10,12 +10,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract IntegrationTest is Test {
     using Strings for *;
@@ -23,7 +23,7 @@ contract IntegrationTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ForwardDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkim;
 
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
@@ -53,27 +53,18 @@ contract IntegrationTest is Test {
         // Create DKIM registry
         UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
         {
-            ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy forwardDkimProxy = new ERC1967Proxy(
-                address(forwardDkimImpl),
+            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+                address(overrideableDkimImpl),
                 abi.encodeCall(
-                    forwardDkimImpl.initializeWithUserOverrideableDKIMRegistry,
-                    (
-                        msg.sender,
-                        address(overrideableDkimImpl),
-                        signer,
-                        setTimeDelay
-                    )
+                    overrideableDkimImpl.initialize,
+                    (msg.sender, signer, setTimeDelay)
                 )
             );
-            dkim = ForwardDKIMRegistry(address(forwardDkimProxy));
+            dkim = UserOverrideableDKIMRegistry(address(overrideableDkimProxy));
         }
         {
-            UserOverrideableDKIMRegistry overrideableDkimProxy = UserOverrideableDKIMRegistry(
-                    address(dkim.sourceDKIMRegistry())
-                );
-            string memory signedMsg = overrideableDkimProxy.computeSignedMsg(
-                overrideableDkimProxy.SET_PREFIX(),
+            string memory signedMsg = dkim.computeSignedMsg(
+                dkim.SET_PREFIX(),
                 domainName,
                 publicKeyHash
             );
@@ -82,7 +73,7 @@ contract IntegrationTest is Test {
             );
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
             bytes memory signature = abi.encodePacked(r, s, v);
-            overrideableDkimProxy.setDKIMPublicKeyHash(
+            dkim.setDKIMPublicKeyHash(
                 domainName,
                 publicKeyHash,
                 signer,
@@ -165,7 +156,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708
+            0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -200,7 +191,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708";
+            .maskedCommand = "Accept guardian request for 0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -279,7 +270,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Set the new signer of 0x2Bf6c838250B295102ddEfcAfb31b3059bDd1708 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(

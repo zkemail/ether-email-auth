@@ -5,10 +5,10 @@ import "forge-std/Script.sol";
 
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 
 contract Upgrades is Script {
     function run() external {
@@ -37,9 +37,9 @@ contract Upgrades is Script {
             );
         }
         if (dkim != address(0)) {
-            ForwardDKIMRegistry newForwardDKIMRegistryImpl = new ForwardDKIMRegistry();
+            UserOverrideableDKIMRegistry newDkimImpl = new UserOverrideableDKIMRegistry();
             UUPSUpgradeable(dkim).upgradeToAndCall(
-                address(newForwardDKIMRegistryImpl),
+                address(newDkimImpl),
                 bytes("")
             );
         }

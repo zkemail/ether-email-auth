@@ -4,7 +4,6 @@ pragma solidity ^0.8.13;
 import "forge-std/Script.sol";
 
 import "../src/utils/Verifier.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract ChangeOwners is Script {
@@ -32,9 +31,6 @@ contract ChangeOwners is Script {
         }
         if (dkim != address(0)) {
             OwnableUpgradeable(dkim).transferOwnership(newOwner);
-            OwnableUpgradeable(
-                address(ForwardDKIMRegistry(dkim).sourceDKIMRegistry())
-            ).transferOwnership(newOwner);
         }
         vm.stopBroadcast();
     }

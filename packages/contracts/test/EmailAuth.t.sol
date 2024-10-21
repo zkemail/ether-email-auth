@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -59,30 +58,30 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
     }
 
-    function testUpdateDKIMRegistryToForward() public {
-        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
+    // function testUpdateDKIMRegistryToForward() public {
+    //     assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
 
-        vm.startPrank(deployer);
-        ECDSAOwnedDKIMRegistry dummyDKIM = new ECDSAOwnedDKIMRegistry();
-        ForwardDKIMRegistry newDKIM;
-        {
-            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy dkimProxy = new ERC1967Proxy(
-                address(dkimImpl),
-                abi.encodeCall(
-                    dkimImpl.initialize,
-                    (msg.sender, address(dummyDKIM))
-                )
-            );
-            newDKIM = ForwardDKIMRegistry(address(dkimProxy));
-        }
-        vm.expectEmit(true, false, false, false);
-        emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
-        emailAuth.updateDKIMRegistry(address(newDKIM));
-        vm.stopPrank();
+    //     vm.startPrank(deployer);
+    //     ECDSAOwnedDKIMRegistry dummyDKIM = new ECDSAOwnedDKIMRegistry();
+    //     ForwardDKIMRegistry newDKIM;
+    //     {
+    //         ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
+    //         ERC1967Proxy dkimProxy = new ERC1967Proxy(
+    //             address(dkimImpl),
+    //             abi.encodeCall(
+    //                 dkimImpl.initialize,
+    //                 (msg.sender, address(dummyDKIM))
+    //             )
+    //         );
+    //         newDKIM = ForwardDKIMRegistry(address(dkimProxy));
+    //     }
+    //     vm.expectEmit(true, false, false, false);
+    //     emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
+    //     emailAuth.updateDKIMRegistry(address(newDKIM));
+    //     vm.stopPrank();
 
-        assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
-    }
+    //     assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
+    // }
 
     function testExpectRevertUpdateDKIMRegistryInvalidDkimRegistryAddress()
         public

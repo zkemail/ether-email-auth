@@ -5,7 +5,6 @@ import "forge-std/Script.sol";
 
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 contract RenounceOwners is Script {
@@ -28,9 +27,6 @@ contract RenounceOwners is Script {
         }
         if (dkim != address(0)) {
             OwnableUpgradeable(dkim).renounceOwnership();
-            OwnableUpgradeable(
-                address(ForwardDKIMRegistry(dkim).sourceDKIMRegistry())
-            ).renounceOwnership();
         }
         vm.stopBroadcast();
     }

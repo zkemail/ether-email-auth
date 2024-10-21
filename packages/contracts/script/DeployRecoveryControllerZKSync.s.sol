@@ -8,8 +8,6 @@ import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryControllerZKSync.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
-// import "../src/utils/ForwardDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
@@ -18,7 +16,7 @@ import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideable
 contract Deploy is Script {
     using ECDSA for *;
 
-    ForwardDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkim;
     Verifier verifier;
     EmailAuth emailAuthImpl;
     SimpleWallet simpleWallet;
@@ -46,33 +44,26 @@ contract Deploy is Script {
         address initialOwner = vm.addr(deployerPrivateKey);
 
         // Deploy Useroverridable and Forward DKIM registries
-        dkim = ForwardDKIMRegistry(vm.envOr("DKIM", address(0)));
+        dkim = UserOverrideableDKIMRegistry(vm.envOr("DKIM", address(0)));
         uint setTimeDelay = vm.envOr("DKIM_DELAY", uint(0));
         if (address(dkim) == address(0)) {
-            UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
+            UserOverrideableDKIMRegistry dkimImpl = new UserOverrideableDKIMRegistry();
             console.log(
                 "UserOverrideableDKIMRegistry implementation deployed at: %s",
-                address(overrideableDkimImpl)
+                address(dkimImpl)
             );
-            ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy forwardDkimProxy = new ERC1967Proxy(
-                address(forwardDkimImpl),
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
                 abi.encodeCall(
-                    forwardDkimImpl.initializeWithUserOverrideableDKIMRegistry,
-                    (
-                        initialOwner,
-                        address(overrideableDkimImpl),
-                        signer,
-                        setTimeDelay
-                    )
+                    dkimImpl.initialize,
+                    (initialOwner, signer, setTimeDelay)
                 )
             );
-            dkim = ForwardDKIMRegistry(address(forwardDkimProxy));
+            dkim = UserOverrideableDKIMRegistry(address(dkimProxy));
             console.log(
                 "UseroverrideableDKIMRegistry proxy deployed at: %s",
-                address(dkim.sourceDKIMRegistry())
+                address(dkim)
             );
-            console.log("ForwardDKIMRegistry deployed at: %s", address(dkim));
         }
         // Deploy Verifier
         verifier = Verifier(vm.envOr("VERIFIER", address(0)));

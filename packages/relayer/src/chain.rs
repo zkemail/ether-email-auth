@@ -102,8 +102,16 @@ impl ChainClient {
         dkim: ForwardDKIMRegistry<SignerM>,
     ) -> Result<bool> {
         // Call the contract method to check if the hash is valid
-        let is_valid = dkim
-            .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
+        let overridable_registry_addr = dkim.source_dkim_registry().call().await?;
+        let overrdiable_registry =
+            UserOverridableDKIMRegistry::new(overridable_registry_addr, self.client.clone());
+        let main_authorizer = overrdiable_registry.main_authorizer().call().await?;
+        let is_valid = overrdiable_registry
+            .is_dkim_public_key_hash_valid_with_domain_name_and_public_key_hash(
+                domain_name,
+                public_key_hash,
+                main_authorizer,
+            )
             .call()
             .await?;
         Ok(is_valid)
