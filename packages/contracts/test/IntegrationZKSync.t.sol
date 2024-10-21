@@ -10,11 +10,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
-import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "../src/utils/ForwardDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryControllerZKSync.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 
 contract IntegrationZKSyncTest is Test {
     using Strings for *;
@@ -22,7 +23,7 @@ contract IntegrationZKSyncTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry dkim;
+    ForwardDKIMRegistry dkim;
 
     RecoveryControllerZKSync recoveryControllerZKSync;
     SimpleWallet simpleWallet;
@@ -38,8 +39,10 @@ contract IntegrationZKSyncTest is Test {
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
     uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
-    
-    bytes32 public proxyBytecodeHash = vm.envOr("PROXY_BYTECODE_HASH", bytes32(0));
+    uint256 setTimeDelay = 3 days;
+
+    bytes32 public proxyBytecodeHash =
+        vm.envOr("PROXY_BYTECODE_HASH", bytes32(0));
 
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
@@ -50,31 +53,44 @@ contract IntegrationZKSyncTest is Test {
         address signer = deployer;
 
         // Create DKIM registry
+        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
         {
-            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
-            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
-                address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
+            ERC1967Proxy forwardDkimProxy = new ERC1967Proxy(
+                address(forwardDkimImpl),
+                abi.encodeCall(
+                    forwardDkimImpl.initializeWithUserOverrideableDKIMRegistry,
+                    (
+                        msg.sender,
+                        address(overrideableDkimImpl),
+                        signer,
+                        setTimeDelay
+                    )
+                )
             );
-            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            dkim = ForwardDKIMRegistry(address(forwardDkimProxy));
         }
-        string memory signedMsg = dkim.computeSignedMsg(
-            dkim.SET_PREFIX(),
-            selector,
-            domainName,
-            publicKeyHash
-        );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
-            bytes(signedMsg)
-        );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(
-            selector,
-            domainName,
-            publicKeyHash,
-            signature
-        );
+        {
+            UserOverrideableDKIMRegistry overrideableDkimProxy = UserOverrideableDKIMRegistry(
+                    address(dkim.sourceDKIMRegistry())
+                );
+            string memory signedMsg = overrideableDkimProxy.computeSignedMsg(
+                overrideableDkimProxy.SET_PREFIX(),
+                domainName,
+                publicKeyHash
+            );
+            bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+                bytes(signedMsg)
+            );
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+            bytes memory signature = abi.encodePacked(r, s, v);
+            overrideableDkimProxy.setDKIMPublicKeyHash(
+                domainName,
+                publicKeyHash,
+                signer,
+                signature
+            );
+        }
 
         // Create Verifier
         {
