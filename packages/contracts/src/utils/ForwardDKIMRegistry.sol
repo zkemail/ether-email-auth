@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.12;
 
-import "@zk-email/contracts/DKIMRegistry.sol";
+import {IDKIMRegistry} from "@zk-email/contracts/interfaces/IDKIMRegistry.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 /// @title Forward DKIM Registry
 /// @notice This contract forwards outputs from a source DKIMRegistry contract.
@@ -32,6 +34,23 @@ contract ForwardDKIMRegistry is
     ) public initializer {
         __Ownable_init(_initialOwner);
         sourceDKIMRegistry = IDKIMRegistry(_sourceDKIMRegistry);
+    }
+
+    function initializeWithUserOverrideableDKIMRegistry(
+        address _initialOwner,
+        address _userOverrideableDKIMRegistryImpl,
+        address _mainAuthorizer,
+        uint _setTimestampDelay
+    ) public initializer {
+        __Ownable_init(_initialOwner);
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(_userOverrideableDKIMRegistryImpl),
+            abi.encodeCall(
+                UserOverrideableDKIMRegistry.initialize,
+                (_initialOwner, _mainAuthorizer, _setTimestampDelay)
+            )
+        );
+        sourceDKIMRegistry = UserOverrideableDKIMRegistry(address(proxy));
     }
 
     /// @notice Checks if a DKIM public key hash is valid and not revoked for a given domain name.

@@ -34,7 +34,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
     function test_SetDKIMPublicKeyHash() public {
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -59,7 +58,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -84,7 +82,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         publicKeyHash = bytes32(uint256(2));
         signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -107,7 +104,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -126,7 +122,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // Revoke
         string memory revokeMsg = dkim.computeSignedMsg(
             dkim.REVOKE_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -149,7 +144,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -184,7 +178,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -207,7 +200,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // Revoke
         string memory revokeMsg = dkim.computeSignedMsg(
             dkim.REVOKE_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -226,7 +218,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
 
         signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -245,7 +236,6 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -271,7 +261,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
                 address(dkimImpl),
                 abi.encodeCall(
                     dkimImpl.initialize,
-                    (msg.sender, 0x69Bec2Dd161d6Bbcc91ec32AA44D9333EBc864c0)
+                    (msg.sender, 0x6293A80BF4Bd3fff995a0CAb74CBf281d922dA02)
                 )
             );
             dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
@@ -284,7 +274,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash,
             vm.parseBytes(
-                "0xe5fb9c45bd6468877e8ec7e04063b03e8ac89206354060e757b15d6269f7754e6c515b5825fbb6be4e939f92d1ad62dc7f548607fe4349033ed51f8da8a18c4c1c"
+                "0x717dd7beb1dbb010ebeba264e4467cb5fa5a18a7bb002c7fd36dd1c146aab31b0785012022dfe05940bfb9a639eb3fe520f8c35ee0df7d5715384e2d4ee8df461c"
             )
         );
         require(

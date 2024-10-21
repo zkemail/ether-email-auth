@@ -27,6 +27,23 @@ contract DKIMRegistryUpgradeTest is StructHelper {
         emailAuth.updateDKIMRegistry(address(dkim));
 
         ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
+        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
+        ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+            address(overrideableDkimImpl),
+            abi.encodeCall(
+                overrideableDkimImpl.initialize,
+                (deployer, deployer, setTimestampDelay)
+            )
+        );
+        UserOverrideableDKIMRegistry overrideableDkim = UserOverrideableDKIMRegistry(
+                address(overrideableDkimProxy)
+            );
+        overrideableDkim.setDKIMPublicKeyHash(
+            domainName,
+            publicKeyHash,
+            deployer,
+            new bytes(0)
+        );
         dkim.upgradeToAndCall(
             address(forwardDkimImpl),
             abi.encodeCall(

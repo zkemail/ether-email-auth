@@ -24,11 +24,25 @@ contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
         ERC1967Proxy forwardDKIMRegistryProxy = new ERC1967Proxy(
             address(forwardDkimImpl),
             abi.encodeCall(
-                forwardDkimImpl.initialize,
-                (deployer, address(overrideableDkim))
+                forwardDkimImpl.initializeWithUserOverrideableDKIMRegistry,
+                (
+                    deployer,
+                    address(overrideableDkimImpl),
+                    deployer,
+                    setTimestampDelay
+                )
             )
         );
         forwardDkim = ForwardDKIMRegistry(address(forwardDKIMRegistryProxy));
+        UserOverrideableDKIMRegistry overrideableDkim = UserOverrideableDKIMRegistry(
+                address(forwardDkim.sourceDKIMRegistry())
+            );
+        overrideableDkim.setDKIMPublicKeyHash(
+            domainName,
+            publicKeyHash,
+            deployer,
+            new bytes(0)
+        );
 
         emailAuth.initialize(deployer, accountSalt, deployer);
         vm.expectEmit(true, false, false, false);
@@ -38,15 +52,6 @@ contract EmailAuthWithUserOverrideableDkimTest is StructHelper {
         emit EmailAuth.DKIMRegistryUpdated(address(forwardDkim));
         emailAuth.updateDKIMRegistry(address(forwardDkim));
         vm.stopPrank();
-    }
-
-    function testDkimRegistryAddr() public view {
-        address dkimAddr = emailAuth.dkimRegistryAddr();
-        assertEq(dkimAddr, address(forwardDkim));
-        assertEq(
-            address(forwardDkim.sourceDKIMRegistry()),
-            address(overrideableDkim)
-        );
     }
 
     function _testInsertCommandTemplate() private {

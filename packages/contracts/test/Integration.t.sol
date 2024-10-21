@@ -58,7 +58,6 @@ contract IntegrationTest is Test {
         }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
