@@ -4,7 +4,7 @@
   "smtpUrl": "http://localhost:3000",
   "proverUrl": "https://zkemail--email-auth-prover-v1-4-0-flask-app.modal.run",
   "alchemyApiKey": "",
-  "paths": {
+  "path": {
     "pem": "./.ic.pem",
     "emailTemplates": "./email_templates"
   },
@@ -14,12 +14,19 @@
   },
   "chains": {
     "baseSepolia": {
-      "privateKey": "0x...",
-      "rpcUrl": "https://mainnet.infura.io/v3/...",
-      "explorerUrl": "https://etherscan.io/tx/",
-      "chainId": 1,
+      "privateKey": "",
+      "rpcUrl": "https://sepolia.base.org",
+      "explorerUrl": "https://sepolia.basescan.org",
+      "chainId": 84532,
       "alchemyName": "base-sepolia"
+    },
+    "sepolia": {
+      "privateKey": "",
+      "rpcUrl": "https://rpc.sepolia.org",
+      "explorerUrl": "https://sepolia.etherscan.io",
+      "chainId": 11155111,
+      "alchemyName": "eth-sepolia"
     }
   },
-  "jsonLogger": true
+  "jsonLogger": false
 }
