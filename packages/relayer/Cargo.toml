@@ -34,7 +34,7 @@ reqwest = "0.11.22"
 num-bigint = { version = "0.4", features = ["rand"] }
 num-traits = "0.2.16"
 hex = "0.4.3"
-chrono = "0.4.31"
+chrono = "0.4.38"
 ff = { version = "0.13.0", default-features = false, features = ["std"] }
 async-trait = "0.1.36"
 handlebars = "4.4.0"
