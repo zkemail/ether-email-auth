@@ -360,6 +360,7 @@ pub async fn handle_email(
 
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
+    info!(LOG, "Hitting chain");
     chain_client
         .call(request.clone(), email_auth_msg, relayer_state.clone())
         .await?;
@@ -389,7 +390,9 @@ async fn get_email_auth_msg(
     relayer_state: RelayerState,
 ) -> Result<EmailAuthMsg> {
     let command_params_encoded = get_encoded_command_params(email, request.clone()).await?;
+    info!(LOG, "Generating email proof");
     let email_proof = generate_email_proof(email, request.clone(), relayer_state).await?;
+    info!(LOG, "Email proof generated");
     let email_auth_msg = EmailAuthMsg {
         template_id: request.email_tx_auth.template_id.into(),
         command_params: command_params_encoded,
