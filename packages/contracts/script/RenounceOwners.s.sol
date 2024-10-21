@@ -28,6 +28,9 @@ contract RenounceOwners is Script {
         }
         if (dkim != address(0)) {
             OwnableUpgradeable(dkim).renounceOwnership();
+            OwnableUpgradeable(
+                address(ForwardDKIMRegistry(dkim).sourceDKIMRegistry())
+            ).renounceOwnership();
         }
         vm.stopBroadcast();
     }

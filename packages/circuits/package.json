@@ -10,7 +10,7 @@
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "6.2.0",
+    "@zk-email/circuits": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?feat/dkim-registry-updates",
     "@zk-email/relayer-utils": "=0.3.7",
     "@zk-email/zk-regex-circom": "=2.2.0",
     "commander": "^11.0.0",
