@@ -141,7 +141,7 @@ impl ChainClient {
     /// A `Result` containing the ECDSA Owned DKIM Registry if successful, or an error if not.
     pub async fn get_dkim_from_email_auth(
         &self,
-        email_auth_addr: &String,
+        email_auth_addr: &str,
     ) -> Result<UserOverridableDKIMRegistry<SignerM>, anyhow::Error> {
         let email_auth_address: H160 = email_auth_addr.parse()?;
 
