@@ -90,20 +90,48 @@
         margin: 0 auto;
         padding: 0;
       "
+      cellspacing="0"
+      cellpadding="0"
     >
       <tr>
-        <td align="center" style="padding: 0">
+        <td align="center" style="padding: 0; margin: 0">
           <!-- Header -->
           <table
             width="100%"
             style="
-              background-image: url(https://storage.googleapis.com/email-templates-artifacts/Header.png?ignoreCache=1);
+              background-image: url(https://storage.googleapis.com/email-templates-artifacts/Header.png);
               background-size: cover;
               background-position: center;
               height: 4.5rem;
               border-radius: 8px 8px 0 0;
+              padding: 0;
+              margin: 0;
             "
+            cellspacing="0"
+            cellpadding="0"
           >
+            <tr>
+              <td style="padding: 0; margin: 0">
+                <table width="100%" cellspacing="0" cellpadding="0">
+                  <tr>
+                    <td align="left" style="padding: 0; margin: 0">
+                      <img
+                        src="https://storage.googleapis.com/email-templates-artifacts/Z.png?ignoreCache=1"
+                        style="display: block; width: 70px; height: 70px; margin: 0"
+                        alt="Z logo"
+                      />
+                    </td>
+                    <td align="right" style="padding: 0; margin: 0">
+                      <img
+                        src="https://storage.googleapis.com/email-templates-artifacts/K.png"
+                        style="display: block; width: 70px; height: 70px; margin: 0"
+                        alt="K logo"
+                      />
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
           </table>
 
           <!-- Content -->
@@ -111,13 +139,14 @@
             width="100%"
             style="
               background-color: white;
+              z-index: 100;
               padding: 2rem 1rem;
               border: 1px solid #dddddd;
             "
           >
             <tr>
-              <td style="padding: 0; font-size: 16px; color: #000">
-                Hi, {{userEmailAddr}}!
+              <td style="padding: 0; font-size: 16px; color: #000;">
+                Hi,
               </td>
             </tr>
             <tr>
@@ -143,7 +172,11 @@
               background-size: cover;
               height: 4.5rem;
               border-radius: 0 0 8px 8px;
+              padding: 0;
+              margin: 0;
             "
+            cellspacing="0"
+            cellpadding="0"
           >
             <tr>
               <td align="center" style="padding: 5px">
@@ -201,7 +234,7 @@
                     </td>
                     <td>
                       <a href="https://t.me/zkemail/1" class="social-links-logo"
-                      style=" border-radius: 50%;
+                        style=" border-radius: 50%;
                             background: #161819;
                             border: 1px solid #3B3B3B;
                             backdrop-filter: blur(8px);
