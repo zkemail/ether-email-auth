@@ -128,7 +128,7 @@ impl ChainClient {
         request: RequestModel,
         email_auth_msg: EmailAuthMsg,
         relayer_state: RelayerState,
-    ) -> Result<()> {
+    ) -> Result<String> {
         update_request(
             &relayer_state.db,
             request.id,
@@ -246,10 +246,10 @@ impl ChainClient {
         info!(
             LOG,
             "tx hash: {:?}",
-            receipt.expect("tx not found").transaction_hash
+            receipt.clone().expect("tx not found").transaction_hash
         );
 
-        Ok(())
+        Ok(receipt.expect("tx not found").transaction_hash.to_string())
     }
 }
 

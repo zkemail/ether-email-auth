@@ -62,6 +62,8 @@ pub enum EmailEvent {
         request_id: Uuid,
         original_subject: String,
         original_message_id: Option<String>,
+        explorer_url: String,
+        tx_hash: String,
     },
     Error {
         email_addr: String,
@@ -140,6 +142,8 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
             request_id,
             original_subject,
             original_message_id,
+            explorer_url,
+            tx_hash,
         } => {
             let subject = format!("Re: {}", original_subject);
             let body_plain = format!("Your request ID is #{} is now complete.", request_id);
@@ -147,6 +151,7 @@ pub async fn handle_email_event(event: EmailEvent, relayer_state: RelayerState) 
             // Prepare data for HTML rendering
             let render_data = serde_json::json!({
                 "requestId": request_id,
+                "explorerUrl": format!("{}/tx/{}", explorer_url, tx_hash)
             });
             let body_html = render_html(
                 "completion_template.html",
@@ -361,17 +366,23 @@ pub async fn handle_email(
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
     info!(LOG, "Hitting chain");
-    chain_client
+    let tx_hash = chain_client
         .call(request.clone(), email_auth_msg, relayer_state.clone())
         .await?;
 
     update_request(&relayer_state.db, request.id, RequestStatus::Finished).await?;
 
+    let explorer_url = relayer_state.config.chains[&request.email_tx_auth.chain.to_string()]
+        .clone()
+        .explorer_url;
+
     Ok(EmailEvent::Completion {
         email_addr: parsed_email.get_from_addr()?,
-        request_id: request.id,
+        request_id: request.id.clone(),
         original_subject: parsed_email.get_subject_all()?,
         original_message_id: parsed_email.get_message_id().ok(),
+        explorer_url,
+        tx_hash,
     })
 }
 
