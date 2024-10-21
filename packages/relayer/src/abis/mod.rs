@@ -1,7 +1,9 @@
-pub mod ecdsa_owned_dkim_registry;
 pub mod email_account_recovery;
 pub mod email_auth;
+pub mod forward_dkim_registry;
+pub mod user_overridable_dkim_registry;
 
-pub use ecdsa_owned_dkim_registry::ECDSAOwnedDKIMRegistry;
 pub use email_account_recovery::EmailAccountRecovery;
 pub use email_auth::*;
+pub use forward_dkim_registry::ForwardDKIMRegistry;
+pub use user_overridable_dkim_registry::UserOverridableDKIMRegistry;

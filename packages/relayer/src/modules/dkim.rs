@@ -130,7 +130,6 @@ pub async fn check_and_update_dkim(
     info!(LOG, "signature {:?}", signature);
     let tx_hash = CLIENT
         .set_dkim_public_key_hash(
-            selector,
             domain,
             TryInto::<[u8; 32]>::try_into(public_key_hash).unwrap(),
             signature,

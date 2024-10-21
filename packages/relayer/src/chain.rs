@@ -30,17 +30,25 @@ impl ChainClient {
 
     pub async fn set_dkim_public_key_hash(
         &self,
-        selector: String,
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,
-        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
+        dkim: ForwardDKIMRegistry<SignerM>,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
-        let call = dkim.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
+        let overridable_registry_addr = dkim.source_dkim_registry().call().await?;
+        let overrdiable_registry =
+            UserOverridableDKIMRegistry::new(overridable_registry_addr, self.client.clone());
+        let main_authorizer = overrdiable_registry.main_authorizer().call().await?;
+        let call = overrdiable_registry.set_dkim_public_key_hash(
+            domain_name,
+            public_key_hash,
+            main_authorizer,
+            signature,
+        );
         let tx = call.send().await?;
         let receipt = tx
             .log()
@@ -56,7 +64,7 @@ impl ChainClient {
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
-        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
+        dkim: ForwardDKIMRegistry<SignerM>,
     ) -> Result<bool> {
         let is_valid = dkim
             .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
@@ -68,22 +76,22 @@ impl ChainClient {
     pub async fn get_dkim_from_wallet(
         &self,
         controller_eth_addr: &String,
-    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
+    ) -> Result<ForwardDKIMRegistry<SignerM>, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
         let contract = EmailAccountRecovery::new(controller_eth_addr, self.client.clone());
         let dkim = contract.dkim().call().await?;
-        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
+        Ok(ForwardDKIMRegistry::new(dkim, self.client.clone()))
     }
 
     pub async fn get_dkim_from_email_auth(
         &self,
         email_auth_addr: &String,
-    ) -> Result<ECDSAOwnedDKIMRegistry<SignerM>, anyhow::Error> {
+    ) -> Result<ForwardDKIMRegistry<SignerM>, anyhow::Error> {
         let email_auth_address: H160 = email_auth_addr.parse()?;
         let contract = EmailAuth::new(email_auth_address, self.client.clone());
         let dkim = contract.dkim_registry_addr().call().await?;
 
-        Ok(ECDSAOwnedDKIMRegistry::new(dkim, self.client.clone()))
+        Ok(ForwardDKIMRegistry::new(dkim, self.client.clone()))
     }
 
     pub async fn get_email_auth_addr_from_wallet(
