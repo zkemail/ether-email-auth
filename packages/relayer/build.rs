@@ -29,15 +29,6 @@ fn main() {
     .write_to_file("./src/abis/user_overridable_dkim_registry.rs")
     .unwrap();
     Abigen::new(
-        "ForwardDKIMRegistry",
-        "../contracts/artifacts/ForwardDKIMRegistry.sol/ForwardDKIMRegistry.json",
-    )
-    .unwrap()
-    .generate()
-    .unwrap()
-    .write_to_file("./src/abis/forward_dkim_registry.rs")
-    .unwrap();
-    Abigen::new(
         "EmailAccountRecovery",
         "../contracts/artifacts/EmailAccountRecovery.sol/EmailAccountRecovery.json",
     )

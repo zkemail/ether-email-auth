@@ -53,22 +53,15 @@ impl ChainClient {
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,
-        dkim: ForwardDKIMRegistry<SignerM>,
+        dkim: UserOverridableDKIMRegistry<SignerM>,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
-        let overridable_registry_addr = dkim.source_dkim_registry().call().await?;
-        let overrdiable_registry =
-            UserOverridableDKIMRegistry::new(overridable_registry_addr, self.client.clone());
-        let main_authorizer = overrdiable_registry.main_authorizer().call().await?;
-        let call = overrdiable_registry.set_dkim_public_key_hash(
-            domain_name,
-            public_key_hash,
-            main_authorizer,
-            signature,
-        );
+        let main_authorizer = dkim.main_authorizer().call().await?;
+        let call =
+            dkim.set_dkim_public_key_hash(domain_name, public_key_hash, main_authorizer, signature);
         let tx = call.send().await?;
 
         // Wait for the transaction to be confirmed
@@ -99,14 +92,11 @@ impl ChainClient {
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
-        dkim: ForwardDKIMRegistry<SignerM>,
+        dkim: UserOverridableDKIMRegistry<SignerM>,
     ) -> Result<bool> {
         // Call the contract method to check if the hash is valid
-        let overridable_registry_addr = dkim.source_dkim_registry().call().await?;
-        let overrdiable_registry =
-            UserOverridableDKIMRegistry::new(overridable_registry_addr, self.client.clone());
-        let main_authorizer = overrdiable_registry.main_authorizer().call().await?;
-        let is_valid = overrdiable_registry
+        let main_authorizer = dkim.main_authorizer().call().await?;
+        let is_valid = dkim
             .is_dkim_public_key_hash_valid_with_domain_name_and_public_key_hash(
                 domain_name,
                 public_key_hash,
@@ -129,7 +119,7 @@ impl ChainClient {
     pub async fn get_dkim_from_controller(
         &self,
         controller_eth_addr: &str,
-    ) -> Result<ForwardDKIMRegistry<SignerM>, anyhow::Error> {
+    ) -> Result<UserOverridableDKIMRegistry<SignerM>, anyhow::Error> {
         let controller_eth_addr: H160 = controller_eth_addr.parse()?;
 
         // Create a new EmailAccountRecovery contract instance
@@ -137,7 +127,7 @@ impl ChainClient {
 
         // Call the dkim method to get the DKIM registry address
         let dkim = contract.dkim().call().await?;
-        Ok(ForwardDKIMRegistry::new(dkim, self.client.clone()))
+        Ok(UserOverridableDKIMRegistry::new(dkim, self.client.clone()))
     }
 
     /// Gets the DKIM from an email auth address.
@@ -152,7 +142,7 @@ impl ChainClient {
     pub async fn get_dkim_from_email_auth(
         &self,
         email_auth_addr: &String,
-    ) -> Result<ForwardDKIMRegistry<SignerM>, anyhow::Error> {
+    ) -> Result<UserOverridableDKIMRegistry<SignerM>, anyhow::Error> {
         let email_auth_address: H160 = email_auth_addr.parse()?;
 
         // Create a new EmailAuth contract instance
@@ -161,7 +151,7 @@ impl ChainClient {
         // Call the dkim_registry_addr method to get the DKIM registry address
         let dkim = contract.dkim_registry_addr().call().await?;
 
-        Ok(ForwardDKIMRegistry::new(dkim, self.client.clone()))
+        Ok(UserOverridableDKIMRegistry::new(dkim, self.client.clone()))
     }
 
     /// Gets the email auth address from a wallet.
