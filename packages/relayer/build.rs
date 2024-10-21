@@ -10,6 +10,7 @@ fn main() {
     .unwrap()
     .write_to_file("./src/abis/email_auth.rs")
     .unwrap();
+
     Abigen::new(
         "ECDSAOwnedDKIMRegistry",
         "../contracts/artifacts/ECDSAOwnedDKIMRegistry.sol/ECDSAOwnedDKIMRegistry.json",
@@ -18,14 +19,5 @@ fn main() {
     .generate()
     .unwrap()
     .write_to_file("./src/abis/ecdsa_owned_dkim_registry.rs")
-    .unwrap();
-    Abigen::new(
-        "EmailAccountRecovery",
-        "../contracts/artifacts/EmailAccountRecovery.sol/EmailAccountRecovery.json",
-    )
-    .unwrap()
-    .generate()
-    .unwrap()
-    .write_to_file("./src/abis/email_account_recovery.rs")
     .unwrap();
 }

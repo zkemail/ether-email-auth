@@ -1,0 +1,30 @@
+name: Build and Format
+
+on: [push]
+
+jobs:
+  build-and-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: rustup show
+
+      - name: Install rustfmt and clippy
+        run: |
+          rustup component add rustfmt
+          rustup component add clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build and check for warnings
+        env:
+          RUSTFLAGS: "-D warnings"
+        run: cargo build --release
+
+      - name: Check formatting
+        run: cargo fmt -- --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings

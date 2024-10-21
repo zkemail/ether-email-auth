@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE requests SET status = $1 WHERE id = $2",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "status_enum",
+            "kind": {
+              "Enum": [
+                "Request received",
+                "Email sent",
+                "Email response received",
+                "Proving",
+                "Performing on chain transaction",
+                "Finished"
+              ]
+            }
+          }
+        },
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "51babdcefaa164b8d2498552e2924c83c6394dc0c6ae546f72a5cb08c2fa5485"
+}

@@ -1,0 +1,14 @@
+[
+  {
+    "contract_name": "CommandUtils",
+    "contract_path": "src/libraries/CommandUtils.sol",
+    "missing_libraries": [
+      "src/libraries/DecimalUtils.sol:DecimalUtils"
+    ]
+  },
+  {
+    "contract_name": "DecimalUtils",
+    "contract_path": "src/libraries/DecimalUtils.sol",
+    "missing_libraries": []
+  }
+]

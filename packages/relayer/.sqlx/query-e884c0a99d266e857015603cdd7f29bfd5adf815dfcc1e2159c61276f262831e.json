@@ -1,0 +1,54 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id, \n            status as \"status: RequestStatus\", \n            updated_at::timestamp as \"updated_at: NaiveDateTime\",\n            email_tx_auth as \"email_tx_auth: Json<EmailTxAuthSchema>\"\n        FROM requests \n        WHERE id = $1\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "status: RequestStatus",
+        "type_info": {
+          "Custom": {
+            "name": "status_enum",
+            "kind": {
+              "Enum": [
+                "Request received",
+                "Email sent",
+                "Email response received",
+                "Proving",
+                "Performing on chain transaction",
+                "Finished"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "updated_at: NaiveDateTime",
+        "type_info": "Timestamp"
+      },
+      {
+        "ordinal": 3,
+        "name": "email_tx_auth: Json<EmailTxAuthSchema>",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      null,
+      false
+    ]
+  },
+  "hash": "e884c0a99d266e857015603cdd7f29bfd5adf815dfcc1e2159c61276f262831e"
+}

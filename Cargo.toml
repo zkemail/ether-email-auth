@@ -1,4 +1,4 @@
 [workspace]
 members = ["packages/relayer"]
-exclude = ["node_modules/*"]
+exclude = ["node_modules/*", "packages/relayer/src/abis"]
 resolver = "2"

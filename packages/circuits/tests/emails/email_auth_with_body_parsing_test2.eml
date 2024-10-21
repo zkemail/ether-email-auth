@@ -1,0 +1,99 @@
+Delivered-To: shryas.londhe@gmail.com
+Received: by 2002:a05:6a20:de1b:b0:1c3:edfb:6113 with SMTP id kz27csp2292972pzb;
+        Mon, 2 Sep 2024 20:26:30 -0700 (PDT)
+X-Received: by 2002:a05:6a21:33aa:b0:1ce:d418:8ee6 with SMTP id adf61e73a8af0-1ced4188f03mr11873583637.41.1725333989839;
+        Mon, 02 Sep 2024 20:26:29 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1725333989; cv=none;
+        d=google.com; s=arc-20160816;
+        b=VkgqqX17BqArmHM9zE1Sv38Sy/WhZlJqc8+fTIlevFZmhTSupOGBBP/PJlU7e7GrKD
+         ANVk+jaZ8iSrDXRrKz9kl7b8PzwgBjLx6zZS7ukjQCFHhjRLgfHx85S9IpbHWmV3s85A
+         +fAf8mjJSGIQTfcvAr/CsD7C01/s62Z5cB6Ws42ahzrs3a+jG6g//LVEpt4OxI8MlpD3
+         NpLh4JISg/+Qj3WtDc+vGH8geo+K3l84sncA+3ssSbl7obf+paM11oRmQ0HZ6Kxjgl42
+         DoatwZc92XdNwyLYRrj1GBP5Wjj4B0Nsl2+gPaZfNeJRjSV5vIcrNQFWQAUVPpABJNOs
+         MvJA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20160816;
+        h=subject:to:from:mime-version:date:message-id:dkim-signature;
+        bh=kMJCDTrnZkOSpmyPJBDtHkISRN8g4Yz0r8180BggkYs=;
+        fh=QOoFRDdHXpnQH3LJHwmsRKR4EZHwtZQ4a9eIuVllZDs=;
+        b=Pe1HohCMTk6Sk+AP6eKP9xNdL1jC7oOuSYn75vUkF4y7U1/aWCFn2qmQnqJGLH3Re3
+         vffLCSoyC53egaN3PKUppB/OKplKet5va8JpWpTVktwxn+aWJJi2QZJlruM7pnLQuRNq
+         iLw9TgrCYsfKE4d9Z4MRH15AfJXgXk2iqjUFDsBlNTQ4GBJ3bP3BG78lGCe44Gg1Zu/c
+         yBTNFr4sxa/UmcaPxK3jPIdYcWQkNvvellzySbLYZO1jBqKBoLlsSHSSoAoHSJL9jEVu
+         MLCCZgi4FIq7WYk6kQGCUJOSrbhhrRNNxlUcxp3IjLaVJfBOmC4wePFf+SVPcyiC8xes
+         R+vw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=MVtCnZAi;
+       spf=pass (google.com: domain of zkemail.relayer.test@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=zkemail.relayer.test@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
+Return-Path: <zkemail.relayer.test@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id d9443c01a7336-2057e0422a7sor20920025ad.10.2024.09.02.20.26.29
+        for <shryas.londhe@gmail.com>
+        (Google Transport Security);
+        Mon, 02 Sep 2024 20:26:29 -0700 (PDT)
+Received-SPF: pass (google.com: domain of zkemail.relayer.test@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=MVtCnZAi;
+       spf=pass (google.com: domain of zkemail.relayer.test@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=zkemail.relayer.test@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1725333989; x=1725938789; dara=google.com;
+        h=subject:to:from:mime-version:date:message-id:from:to:cc:subject
+         :date:message-id:reply-to;
+        bh=kMJCDTrnZkOSpmyPJBDtHkISRN8g4Yz0r8180BggkYs=;
+        b=MVtCnZAiJUQcLe90vtckJLx7wZ9v1+/fIznIS8E+MhWrLiTNJnLH6mFO9B9+1MaxvA
+         Nf/DygEK/RkJdxGVUUKztJbb4dhibFlPosq30puiv8VAz/eQ3byOjs7ttgbg9cTKb0z1
+         yOFB0KvGikzizhJ7194FtnB3Gkj6ou+95UhmLwwdhLMjc5l324/3EZkjMtAbQIsJDA+l
+         uMY1oAQu3STheckLgwfQNX9Nd/RP6dlXDCT+S2RCfhOIGCTtUXCNiWQCqI4W40LhkocT
+         WNv63OF/yAlVAeujej563hKSS7yez4hXgEUjlaEhuOUk6cIlQZQe8zh0R/24N4DrzhwJ
+         hzrw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1725333989; x=1725938789;
+        h=subject:to:from:mime-version:date:message-id:x-gm-message-state
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=kMJCDTrnZkOSpmyPJBDtHkISRN8g4Yz0r8180BggkYs=;
+        b=vj7fWIRsDdLPRuVSHhuxSKSZ6OAP//6i1E8HCoJvaNgXBkQ1kWWb39B3HSyWqbnMyi
+         KEVfYVhXWB2gSDjZ0ACgVoXm5XwpCpLrX8owtV1w0szJMt61XnhyScLPnIAHyXjoGJJs
+         7O0UjtA7xJ+NKcBCa5+VMoTvsS0aYAkn+MqN7krvr5LMJCLkLcVL70cX3CccUyEclU8Y
+         nU8zPqK58NJh6TX2m797dfklm6C7PkNqfFGaRbkiz7nDnNRWv2/FDqiqgGtKw9Hm7YGP
+         e8A1fPHCUaBVOr8wqfDCBtdzSdqw91Qv7SNeOUZDOaUYtMNNeAagjLXhGEyoJEd8bzGM
+         XLLA==
+X-Gm-Message-State: AOJu0YzVx0Rb+UU6K7nLWD86jmPMZ/4D4SC788YtnLiBvnEn5FOs3lnK
+	1CYLUW2x1KDPn3iCmxZYRhCSr0+9W4h0bAYlti8fLY9mGWDEj0tOiN1FoWf/
+X-Google-Smtp-Source: AGHT+IET6Mh/8Hf1vpOk9aRB4RCcB68oWyYgqDrlXcWvQPb0/3KXubl7we74mTvi+Wv+cIBhzIlcfQ==
+X-Received: by 2002:a17:902:d4c4:b0:203:a150:e5f5 with SMTP id d9443c01a7336-2054584f0cemr125616665ad.0.1725333988901;
+        Mon, 02 Sep 2024 20:26:28 -0700 (PDT)
+Return-Path: <zkemail.relayer.test@gmail.com>
+Received: from adityas-macbook-air-4.local ([59.184.57.198])
+        by smtp.gmail.com with ESMTPSA id d9443c01a7336-205152d6a82sm72589255ad.73.2024.09.02.20.26.27
+        for <shryas.londhe@gmail.com>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Mon, 02 Sep 2024 20:26:28 -0700 (PDT)
+Message-ID: <66d681e4.170a0220.3d8a18.8403@mx.google.com>
+Date: Mon, 02 Sep 2024 20:26:28 -0700 (PDT)
+Content-Type: multipart/alternative; boundary="===============0042709324325514954=="
+MIME-Version: 1.0
+From: zkemail.relayer.test@gmail.com
+To: shryas.londhe@gmail.com
+Subject: Test Email 2 in Quoted-Printable Encoding
+
+--===============0042709324325514954==
+Content-Type: text/html; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html; charset=utf-8
+
+
+    <html>
+    <body>
+        <h1>Hello!</h1>
+        <p>This is a test email with a basic HTML body.</p>
+        <div id=3D"zkemail">Swap 1 ETH to DAI</div>=20
+        <p><b>Thank you!</b></p>
+    </body>
+    </html>
+   =20
+--===============0042709324325514954==--
