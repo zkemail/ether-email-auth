@@ -10,12 +10,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryControllerZKSync.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract IntegrationZKSyncTest is Test {
     using Strings for *;
@@ -23,7 +23,7 @@ contract IntegrationZKSyncTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ForwardDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkim;
 
     RecoveryControllerZKSync recoveryControllerZKSync;
     SimpleWallet simpleWallet;
@@ -54,27 +54,18 @@ contract IntegrationZKSyncTest is Test {
         // Create DKIM registry
         UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
         {
-            ForwardDKIMRegistry forwardDkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy forwardDkimProxy = new ERC1967Proxy(
-                address(forwardDkimImpl),
+            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+                address(overrideableDkimImpl),
                 abi.encodeCall(
-                    forwardDkimImpl.initializeWithUserOverrideableDKIMRegistry,
-                    (
-                        msg.sender,
-                        address(overrideableDkimImpl),
-                        signer,
-                        setTimeDelay
-                    )
+                    overrideableDkimImpl.initialize,
+                    (msg.sender, signer, setTimeDelay)
                 )
             );
-            dkim = ForwardDKIMRegistry(address(forwardDkimProxy));
+            dkim = UserOverrideableDKIMRegistry(address(overrideableDkimProxy));
         }
         {
-            UserOverrideableDKIMRegistry overrideableDkimProxy = UserOverrideableDKIMRegistry(
-                    address(dkim.sourceDKIMRegistry())
-                );
-            string memory signedMsg = overrideableDkimProxy.computeSignedMsg(
-                overrideableDkimProxy.SET_PREFIX(),
+            string memory signedMsg = dkim.computeSignedMsg(
+                dkim.SET_PREFIX(),
                 domainName,
                 publicKeyHash
             );
@@ -83,7 +74,7 @@ contract IntegrationZKSyncTest is Test {
             );
             (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
             bytes memory signature = abi.encodePacked(r, s, v);
-            overrideableDkimProxy.setDKIMPublicKeyHash(
+            dkim.setDKIMPublicKeyHash(
                 domainName,
                 publicKeyHash,
                 signer,
