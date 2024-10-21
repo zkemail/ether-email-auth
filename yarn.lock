@@ -1758,14 +1758,14 @@
 
 "@zk-email/circuits@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?feat/dkim-registry-updates":
   version "6.2.0"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?feat/dkim-registry-updates#0fc4d9181c29845310222b7426ac21718d5ba165"
+  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?feat/dkim-registry-updates#7dc11d2c914b325379cd07f504b11d845ead298f"
   dependencies:
     "@zk-email/zk-regex-circom" "^2.1.0"
     circomlib "^2.0.5"
 
 "@zk-email/contracts@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?feat/dkim-registry-updates":
   version "6.2.0"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?feat/dkim-registry-updates#38ed13515a08539fc79679856358c0939610b783"
+  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?feat/dkim-registry-updates#920582f145b85ae4c1174e3b340191a7d5b3ec02"
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     "@openzeppelin/contracts-upgradeable" "^5.0.0"
