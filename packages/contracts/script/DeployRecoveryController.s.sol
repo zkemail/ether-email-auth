@@ -8,6 +8,7 @@ import "../test/helpers/SimpleWallet.sol";
 import "../test/helpers/RecoveryController.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
+import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "../src/EmailAuth.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
@@ -36,7 +37,7 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
         address initialOwner = vm.addr(deployerPrivateKey);
 
-        // Deploy Useroverridable and Forward DKIM registries
+        // Deploy Useroverrideable DKIM registry
         dkim = UserOverrideableDKIMRegistry(vm.envOr("DKIM", address(0)));
         uint setTimeDelay = vm.envOr("DKIM_DELAY", uint(0));
         console.log("DKIM_DELAY: %s", setTimeDelay);
@@ -58,7 +59,31 @@ contract Deploy is Script {
                 "UseroverrideableDKIMRegistry proxy deployed at: %s",
                 address(dkim)
             );
+            vm.setEnv("DKIM", vm.toString(address(dkim)));
         }
+
+        // Deploy ECDSAOwned DKIM registry
+        ECDSAOwnedDKIMRegistry ecdsaDkim = ECDSAOwnedDKIMRegistry(
+            vm.envOr("ECDSA_DKIM", address(0))
+        );
+        if (address(ecdsaDkim) == address(0)) {
+            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+            console.log(
+                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
+                address(ecdsaDkimImpl)
+            );
+            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+                address(ecdsaDkimImpl),
+                abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
+            );
+            ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            console.log(
+                "ECDSAOwnedDKIMRegistry deployed at: %s",
+                address(ecdsaDkim)
+            );
+            vm.setEnv("ECDSA_DKIM", vm.toString(address(ecdsaDkim)));
+        }
+
         // Deploy Verifier
         verifier = Verifier(vm.envOr("VERIFIER", address(0)));
         if (address(verifier) == address(0)) {
@@ -77,7 +102,7 @@ contract Deploy is Script {
             );
             verifier = Verifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
-            // vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
         }
 
         // Deploy EmailAuth Implementation
@@ -88,7 +113,7 @@ contract Deploy is Script {
                 "EmailAuth implementation deployed at: %s",
                 address(emailAuthImpl)
             );
-            // vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
+            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
         // Create RecoveryController as EmailAccountRecovery implementation
@@ -113,10 +138,10 @@ contract Deploy is Script {
                 "RecoveryController deployed at: %s",
                 address(recoveryController)
             );
-            // vm.setEnv(
-            //     "RECOVERY_CONTROLLER",
-            //     vm.toString(address(recoveryController))
-            // );
+            vm.setEnv(
+                "RECOVERY_CONTROLLER",
+                vm.toString(address(recoveryController))
+            );
         }
 
         // Deploy SimpleWallet Implementation
@@ -139,7 +164,7 @@ contract Deploy is Script {
             );
             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
             console.log("SimpleWallet deployed at: %s", address(simpleWallet));
-            // vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
+            vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
         }
         vm.stopBroadcast();
     }
