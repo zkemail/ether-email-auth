@@ -191,8 +191,11 @@ pub async fn check_and_update_dkim(
             )
         })?;
     let selector = {
-        let idxes =
-            extract_substr_idxes(&parsed_email.canonicalized_header, &selector_decomposed_def)?[0];
+        let idxes = extract_substr_idxes(
+            &parsed_email.canonicalized_header,
+            &selector_decomposed_def,
+            false,
+        )?[0];
         parsed_email.canonicalized_header[idxes.0..idxes.1].to_string()
     };
 
