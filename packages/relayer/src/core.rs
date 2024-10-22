@@ -47,7 +47,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
     })?;
     let request_decomposed_def = serde_json::from_str(&request_def_contents)
         .map_err(|e| EmailError::Parse(format!("Failed to parse request_def.json: {}", e)))?;
-    let request_idxes = extract_substr_idxes(&email, &request_decomposed_def)?;
+    let request_idxes = extract_substr_idxes(&email, &request_decomposed_def, false)?;
     if request_idxes.is_empty() {
         return Err(EmailError::Body(WRONG_COMMAND_FORMAT.to_string()));
     }
