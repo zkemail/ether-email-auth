@@ -17,7 +17,6 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 // // FOR_ZKSYNC:START
 // import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
-// import "../../src/utils/ForwardDKIMRegistry.sol";
 // import {RecoveryControllerZKSync, EmailAccountRecoveryZKSync} from "./RecoveryControllerZKSync.sol";
 // // FOR_ZKSYNC:END
 
