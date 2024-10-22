@@ -4,19 +4,9 @@ pragma solidity ^0.8.9;
 import "../interfaces/IGroth16Verifier.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IVerifier, EmailProof} from "../interfaces/IVerifier.sol";
 
-struct EmailProof {
-    string domainName; // Domain name of the sender's email
-    bytes32 publicKeyHash; // Hash of the DKIM public key used in email/proof
-    uint timestamp; // Timestamp of the email
-    string maskedCommand; // Masked command of the email
-    bytes32 emailNullifier; // Nullifier of the email to prevent its reuse.
-    bytes32 accountSalt; // Create2 salt of the account
-    bool isCodeExist; // Check if the account code is exist
-    bytes proof; // ZK Proof of Email
-}
-
-contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
+contract Verifier is OwnableUpgradeable, UUPSUpgradeable, IVerifier {
     IGroth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
@@ -38,6 +28,10 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
     ) public initializer {
         __Ownable_init(_initialOwner);
         groth16Verifier = IGroth16Verifier(_groth16Verifier);
+    }
+
+    function commandBytes() external pure returns (uint256) {
+        return COMMAND_BYTES;
     }
 
     function verifyEmailProof(

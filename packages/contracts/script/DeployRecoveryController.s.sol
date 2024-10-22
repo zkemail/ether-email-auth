@@ -126,10 +126,10 @@ contract Deploy is Script {
                 "SimpleWallet implementation deployed at: %s",
                 address(simpleWalletImpl)
             );
-            vm.setEnv(
-                "SIMPLE_WALLET_IMPL",
-                vm.toString(address(simpleWalletImpl))
-            );
+            // vm.setEnv(
+            //     "SIMPLE_WALLET_IMPL",
+            //     vm.toString(address(simpleWalletImpl))
+            // );
             ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
                 address(simpleWalletImpl),
                 abi.encodeCall(

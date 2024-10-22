@@ -83,7 +83,7 @@ contract Deploy is Script {
             );
             verifier = Verifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
-            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+            // vm.setEnv("VERIFIER", vm.toString(address(verifier)));
         }
 
         // Deploy EmailAuth Implementation
@@ -94,7 +94,7 @@ contract Deploy is Script {
                 "EmailAuth implementation deployed at: %s",
                 address(emailAuthImpl)
             );
-            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
+            // vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
         // Deploy Factory
@@ -105,7 +105,7 @@ contract Deploy is Script {
                 "Factory implementation deployed at: %s",
                 address(factoryImpl)
             );
-            vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
+            // vm.setEnv("FACTORY", vm.toString(address(factoryImpl)));
         }
 
         // Create RecoveryControllerZKSync as EmailAccountRecovery implementation
@@ -132,10 +132,10 @@ contract Deploy is Script {
                 "RecoveryControllerZKSync deployed at: %s",
                 address(recoveryControllerZKSync)
             );
-            vm.setEnv(
-                "RECOVERY_CONTROLLER_ZKSYNC",
-                vm.toString(address(recoveryControllerZKSync))
-            );
+            // vm.setEnv(
+            //     "RECOVERY_CONTROLLER_ZKSYNC",
+            //     vm.toString(address(recoveryControllerZKSync))
+            // );
         }
 
         // Deploy SimpleWallet Implementation
@@ -145,10 +145,10 @@ contract Deploy is Script {
                 "SimpleWallet implementation deployed at: %s",
                 address(simpleWalletImpl)
             );
-            vm.setEnv(
-                "SIMPLE_WALLET_IMPL",
-                vm.toString(address(simpleWalletImpl))
-            );
+            // vm.setEnv(
+            //     "SIMPLE_WALLET_IMPL",
+            //     vm.toString(address(simpleWalletImpl))
+            // );
             ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
                 address(simpleWalletImpl),
                 abi.encodeCall(
@@ -158,7 +158,7 @@ contract Deploy is Script {
             );
             simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
             console.log("SimpleWallet deployed at: %s", address(simpleWallet));
-            vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
+            // vm.setEnv("SIMPLE_WALLET", vm.toString(address(simpleWallet)));
         }
         vm.stopBroadcast();
     }

@@ -3,7 +3,7 @@ pragma solidity ^0.8.12;
 
 import {EmailProof} from "./utils/Verifier.sol";
 import {IDKIMRegistry} from "@zk-email/contracts/DKIMRegistry.sol";
-import {Verifier} from "./utils/Verifier.sol";
+import {IVerifier, EmailProof} from "./interfaces/IVerifier.sol";
 import {CommandUtils} from "./libraries/CommandUtils.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
@@ -30,7 +30,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// An instance of the DKIM registry contract.
     IDKIMRegistry internal dkim;
     /// An instance of the Verifier contract.
-    Verifier internal verifier;
+    IVerifier internal verifier;
     /// An address of a controller contract, defining the command templates supported by this contract.
     address public controller;
     /// A mapping of the supported command templates associated with its ID.
@@ -112,7 +112,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
             address(verifier) == address(0),
             "verifier already initialized"
         );
-        verifier = Verifier(_verifierAddr);
+        verifier = IVerifier(_verifierAddr);
         emit VerifierUpdated(_verifierAddr);
     }
 
@@ -131,7 +131,7 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
     /// @param _verifierAddr The new address of the verifier contract.
     function updateVerifier(address _verifierAddr) public onlyOwner {
         require(_verifierAddr != address(0), "invalid verifier address");
-        verifier = Verifier(_verifierAddr);
+        verifier = IVerifier(_verifierAddr);
         emit VerifierUpdated(_verifierAddr);
     }
 
@@ -223,11 +223,11 @@ contract EmailAuth is OwnableUpgradeable, UUPSUpgradeable {
         );
         require(
             bytes(emailAuthMsg.proof.maskedCommand).length <=
-                verifier.COMMAND_BYTES(),
+                verifier.commandBytes(),
             "invalid masked command length"
         );
         require(
-            emailAuthMsg.skippedCommandPrefix < verifier.COMMAND_BYTES(),
+            emailAuthMsg.skippedCommandPrefix < verifier.commandBytes(),
             "invalid size of the skipped command prefix"
         );
 
