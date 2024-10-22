@@ -43,7 +43,7 @@ contract Deploy is Script {
         vm.startBroadcast(deployerPrivateKey);
         address initialOwner = vm.addr(deployerPrivateKey);
 
-        // Deploy Useroverridable and Forward DKIM registries
+        // Deploy Useroverrideable registry
         dkim = UserOverrideableDKIMRegistry(vm.envOr("DKIM", address(0)));
         uint setTimeDelay = vm.envOr("DKIM_DELAY", uint(0));
         if (address(dkim) == address(0)) {
