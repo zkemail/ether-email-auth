@@ -4079,8 +4079,8 @@ dependencies = [
 
 [[package]]
 name = "relayer-utils"
-version = "0.4.1"
-source = "git+https://github.com/zkemail/relayer-utils.git?branch=fix%2Fclave-depl#d952b605904addf55140ad36c04b721315d515cd"
+version = "0.4.2"
+source = "git+https://github.com/zkemail/relayer-utils.git#298a0f90c49b232fd749a4a361c4999a83c713c4"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
