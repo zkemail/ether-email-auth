@@ -274,7 +274,7 @@ contract ECDSAOwnedDKIMRegistryTest is Test {
             domainName,
             publicKeyHash,
             vm.parseBytes(
-                "0x717dd7beb1dbb010ebeba264e4467cb5fa5a18a7bb002c7fd36dd1c146aab31b0785012022dfe05940bfb9a639eb3fe520f8c35ee0df7d5715384e2d4ee8df461c"
+                "0xb491dad31ddd0fd9994e76e0325f29a0f44732c56220b6df0e2672750b87fb2d46e41069e3e93d88ee55e45bb6c712e2b077749c8392908a1a862432e68b104b1b"
             )
         );
         require(
