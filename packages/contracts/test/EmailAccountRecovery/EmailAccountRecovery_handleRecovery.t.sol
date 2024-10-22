@@ -73,18 +73,21 @@ contract EmailAccountRecoveryTest_handleRecovery is StructHelper {
         );
     }
 
-function testExpectRevertHandleRecoveryInvalidRecoveredAccount() public {
-    skipIfZkSync();
+    function testExpectRevertHandleRecoveryInvalidRecoveredAccount() public {
+        skipIfZkSync();
 
-    EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-    emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(0);
-    emailAuthMsg.commandParams[0] = abi.encode(address(0x0)); // Invalid account
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.templateId = recoveryController.computeRecoveryTemplateId(
+            0
+        );
+        emailAuthMsg.commandParams[0] = abi.encode(address(0x0)); // Invalid account
 
-    vm.startPrank(someRelayer);
-    vm.expectRevert(bytes("invalid account in email"));
-    recoveryController.handleRecovery(emailAuthMsg, 0);
-    vm.stopPrank();
-}
+        vm.startPrank(someRelayer);
+        vm.expectRevert(bytes("invalid account in email"));
+        recoveryController.handleRecovery(emailAuthMsg, 0);
+        vm.stopPrank();
+    }
+
     function testExpectRevertHandleRecoveryInvalidAccountInEmail() public {
         skipIfZkSync();
 
