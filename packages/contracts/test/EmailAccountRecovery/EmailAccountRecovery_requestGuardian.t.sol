@@ -108,22 +108,4 @@ contract EmailAccountRecoveryTest_requestGuardian is StructHelper {
                 RecoveryController.GuardianStatus.REQUESTED
         );
     }
-
-    // function testRequestGuardianNotOwner() public {
-    //     setUp();
-
-    //     require(
-    //         recoveryController.guardians(guardian) ==
-    //             recoveryController.GuardianStatus.NONE
-    //     );
-
-    //     vm.startPrank(receiver);
-    //     recoveryController.requestGuardian(guardian);
-    //     vm.stopPrank();
-
-    //     require(
-    //         recoveryController.guardians(guardian) ==
-    //             recoveryController.GuardianStatus.NONE
-    //     );
-    // }
 }
