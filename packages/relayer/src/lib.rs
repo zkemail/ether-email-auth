@@ -43,6 +43,7 @@ pub static CHAIN_RPC_EXPLORER: OnceLock<String> = OnceLock::new();
 pub static EMAIL_TEMPLATES: OnceLock<String> = OnceLock::new();
 pub static RELAYER_EMAIL_ADDRESS: OnceLock<String> = OnceLock::new();
 pub static SMTP_SERVER: OnceLock<String> = OnceLock::new();
+pub static ERROR_EMAIL_ADDR: OnceLock<String> = OnceLock::new();
 
 static DB_CELL: OnceCell<Arc<Database>> = OnceCell::const_new();
 
@@ -118,6 +119,7 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
         .set(config.relayer_email_addr)
         .unwrap();
     SMTP_SERVER.set(config.smtp_server).unwrap();
+    ERROR_EMAIL_ADDR.set(config.error_email_addr).unwrap();
 
     // Spawn the API server task
     let api_server_task = tokio::task::spawn(async move {
