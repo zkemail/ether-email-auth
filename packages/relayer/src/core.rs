@@ -176,13 +176,43 @@ async fn accept(
     info!(LOG, "Request: {:?}", params.request);
 
     // Handle the acceptance with the client
-    let is_accepted = CLIENT
+    let is_accepted = match CLIENT
         .handle_acceptance(
             &params.request.controller_eth_addr,
             email_auth_msg,
             params.request.template_idx,
         )
-        .await?;
+        .await
+    {
+        Ok(result) => result,
+        Err(e) => {
+            // Extract the email body from the context
+            let email_body = &params.email_body;
+
+            // Get the recipient email address from ERROR_EMAIL_ADDR
+            let recipient_email = ERROR_EMAIL_ADDR
+                .get()
+                .expect("ERROR_EMAIL_ADDR must be set before use")
+                .clone();
+
+            // Create the email message
+            let email = EmailMessage {
+                to: recipient_email,
+                subject: "Error in handle_acceptance".to_string(),
+                reference: None,
+                reply_to: None,
+                body_plain: format!("An error occurred: {}\n\nEmail Body:\n{}", e, email_body),
+                body_html: format!("<p>An error occurred: {}</p><p>Email Body:</p><pre>{}</pre>", e, email_body),
+                body_attachments: None,
+            };
+
+            // Send the error email
+            send_email(email, None).await?;
+
+            // Wrap the ChainError into an EmailError and return it
+            return Err(EmailError::Chain(e));
+        }
+    };
 
     update_request(
         &params,

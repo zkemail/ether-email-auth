@@ -488,7 +488,7 @@ fn parse_error(error: String) -> Result<Option<String>> {
 /// # Returns
 ///
 /// A `Result` indicating success or an `EmailError`.
-async fn send_email(
+pub async fn send_email(
     email: EmailMessage,
     expects_reply: Option<ExpectsReply>,
 ) -> Result<(), EmailError> {
