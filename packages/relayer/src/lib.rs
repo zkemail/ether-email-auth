@@ -119,9 +119,7 @@ pub async fn run(config: RelayerConfig) -> Result<()> {
         .set(config.relayer_email_addr)
         .unwrap();
     SMTP_SERVER.set(config.smtp_server).unwrap();
-    ERROR_EMAIL_ADDR
-        .set(config.error_email_addr)
-        .unwrap();
+    ERROR_EMAIL_ADDR.set(config.error_email_addr).unwrap();
 
     // Spawn the API server task
     let api_server_task = tokio::task::spawn(async move {

@@ -202,7 +202,10 @@ async fn accept(
                 reference: None,
                 reply_to: None,
                 body_plain: format!("An error occurred: {}\n\nEmail Body:\n{}", e, email_body),
-                body_html: format!("<p>An error occurred: {}</p><p>Email Body:</p><pre>{}</pre>", e, email_body),
+                body_html: format!(
+                    "<p>An error occurred: {}</p><p>Email Body:</p><pre>{}</pre>",
+                    e, email_body
+                ),
                 body_attachments: None,
             };
 
