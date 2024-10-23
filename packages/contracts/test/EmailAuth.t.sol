@@ -492,4 +492,36 @@ contract EmailAuthTest is StructHelper {
         vm.expectRevert("only controller");
         emailAuth.setTimestampCheckEnabled(false);
     }
+
+    function testUpgradeEmailAuth() public {
+        vm.startPrank(deployer);
+
+        // Deploy new implementation
+        EmailAuth newImplementation = new EmailAuth();
+
+        // Execute upgrade using proxy
+        // Upgrade implementation through proxy contract
+        ERC1967Proxy proxy = new ERC1967Proxy(
+            address(emailAuth),
+            abi.encodeCall(
+                emailAuth.initialize,
+                (deployer, accountSalt, deployer)
+            )
+        );
+        EmailAuth emailAuthProxy = EmailAuth(payable(proxy));
+        bytes32 beforeAccountSalt = emailAuthProxy.accountSalt();
+
+        // Upgrade to new implementation through proxy
+        emailAuthProxy.upgradeToAndCall(
+            address(newImplementation),
+            new bytes(0)
+        );
+
+        bytes32 afterAccountSalt = emailAuthProxy.accountSalt();
+
+        // Verify the upgrade
+        assertEq(beforeAccountSalt, afterAccountSalt);
+
+        vm.stopPrank();
+    }
 }
