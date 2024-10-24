@@ -5,15 +5,15 @@
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
     "zkbuild": "forge build --zksync",
-    "test": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
+    "test": "forge test --force --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
     "zktest": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },
   "dependencies": {
+    "@matterlabs/zksync-contracts": "^0.6.1",
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
     "@zk-email/contracts": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?057b8e95b7bca2884d8da384379c15be9975b30d",
-    "@matterlabs/zksync-contracts": "^0.6.1",
     "solady": "^0.0.123"
   },
   "devDependencies": {
