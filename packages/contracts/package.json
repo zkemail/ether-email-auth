@@ -5,7 +5,7 @@
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
     "zkbuild": "forge build --zksync",
-    "test": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
+    "test": "forge test --force --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
     "zktest": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },

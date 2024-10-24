@@ -25,6 +25,7 @@ contract Deploy is Script {
 
         Options memory opts;
         opts.defender.useDefenderDeploy = true;
+        opts.unsafeSkipAllChecks = true;
 
         address initOwner = upgradeApprovalProcess.via;
         // address controller = vm.envAddress("CONTROLLER");
