@@ -4,31 +4,38 @@ pragma solidity ^0.8.13;
 import "forge-std/Script.sol";
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Defender, ApprovalProcessResponse} from "openzeppelin-foundry-upgrades/Defender.sol";
+import {Upgrades, Options} from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import "../test/helpers/SimpleWallet.sol";
 
 contract Deploy is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        if (deployerPrivateKey == 0) {
-            console.log("PRIVATE_KEY env var not set");
-            return;
-        }
-        address initOwner = vm.addr(deployerPrivateKey);
-        address controller = vm.envAddress("CONTROLLER");
-        address simpleWalletImpl = vm.envAddress("SIMPLE_WALLET_IMPL");
-        if (simpleWalletImpl == address(0)) {
-            console.log("SIMPLE_WALLET_IMPL env var not set");
-            return;
+        ApprovalProcessResponse memory upgradeApprovalProcess = Defender
+            .getUpgradeApprovalProcess();
+
+        if (upgradeApprovalProcess.via == address(0)) {
+            revert(
+                string.concat(
+                    "Upgrade approval process with id ",
+                    upgradeApprovalProcess.approvalProcessId,
+                    " has no assigned address"
+                )
+            );
         }
 
-        vm.startBroadcast(deployerPrivateKey);
-        bytes memory data = abi.encodeWithSelector(
-            SimpleWallet(payable(simpleWalletImpl)).initialize.selector,
-            initOwner,
-            controller
+        Options memory opts;
+        opts.defender.useDefenderDeploy = true;
+
+        address initOwner = upgradeApprovalProcess.via;
+        // address controller = vm.envAddress("CONTROLLER");
+        address controller = address(1);
+
+        address proxyAddress = Upgrades.deployUUPSProxy(
+            "SimpleWallet.sol",
+            abi.encodeCall(SimpleWallet.initialize, (initOwner, controller)),
+            opts
         );
-        ERC1967Proxy proxy = new ERC1967Proxy(address(simpleWalletImpl), data);
+        ERC1967Proxy proxy = ERC1967Proxy(payable(proxyAddress));
         console.log("SimpleWallet deployed at: %s", address(proxy));
-        vm.stopBroadcast();
     }
 }
