@@ -244,7 +244,7 @@ contract ECDSAOwnedDKIMRegistryTest_revokeDKIMPublicKeyHash is Test {
 
         // Attempt to revoke with an invalid signature
         bytes memory invalidSignature = abi.encodePacked(r, s, v + 1); // Alter the signature
-        vm.expectRevert(ECDSA.ECDSAInvalidSignature.selector);
+        vm.expectRevert("Invalid signature");
         dkim.revokeDKIMPublicKeyHash(
             selector,
             domainName,
