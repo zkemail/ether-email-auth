@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
-import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -50,31 +49,6 @@ contract EmailAuthTest is StructHelper {
                 abi.encodeCall(dkimImpl.initialize, (msg.sender, msg.sender))
             );
             newDKIM = ECDSAOwnedDKIMRegistry(address(dkimProxy));
-        }
-        vm.expectEmit(true, false, false, false);
-        emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
-        emailAuth.updateDKIMRegistry(address(newDKIM));
-        vm.stopPrank();
-
-        assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
-    }
-
-    function testUpdateDKIMRegistryToForward() public {
-        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
-
-        vm.startPrank(deployer);
-        ECDSAOwnedDKIMRegistry dummyDKIM = new ECDSAOwnedDKIMRegistry();
-        ForwardDKIMRegistry newDKIM;
-        {
-            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
-            ERC1967Proxy dkimProxy = new ERC1967Proxy(
-                address(dkimImpl),
-                abi.encodeCall(
-                    dkimImpl.initialize,
-                    (msg.sender, address(dummyDKIM))
-                )
-            );
-            newDKIM = ForwardDKIMRegistry(address(dkimProxy));
         }
         vm.expectEmit(true, false, false, false);
         emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
@@ -451,6 +425,49 @@ contract EmailAuthTest is StructHelper {
         vm.expectRevert(bytes("invalid masked command length"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
+    }
+
+    function testAuthEmailWithMultiBytePrefix() public {
+        vm.startPrank(deployer);
+        _testInsertCommandTemplate();
+        vm.stopPrank();
+
+        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
+        emailAuthMsg.proof.maskedCommand = string.concat(
+            unicode"Japanese Prefix ねこ ",
+            emailAuthMsg.proof.maskedCommand
+        );
+        // The japanese word "ねこ" has six bytes.
+        // "ねこ" means cats.
+        emailAuthMsg.skippedCommandPrefix = 17 + 6;
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            false
+        );
+        assertEq(emailAuth.lastTimestamp(), 0);
+
+        vm.startPrank(deployer);
+        vm.expectEmit(true, true, true, true);
+        emit EmailAuth.EmailAuthed(
+            emailAuthMsg.proof.emailNullifier,
+            emailAuthMsg.proof.accountSalt,
+            emailAuthMsg.proof.isCodeExist,
+            emailAuthMsg.templateId
+        );
+        vm.mockCall(
+            address(verifier),
+            abi.encodeCall(Verifier.verifyEmailProof, (emailAuthMsg.proof)),
+            abi.encode(true)
+        );
+        emailAuth.authEmail(emailAuthMsg);
+        vm.stopPrank();
+
+        assertEq(
+            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
+            true
+        );
+        assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
     }
 
     function testExpectRevertAuthEmailInvalidSizeOfTheSkippedCommandPrefix()

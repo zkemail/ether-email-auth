@@ -13,7 +13,6 @@ contract ZKSyncCreate2Factory is ZKSyncCreate2FactoryBase {
     // function computeAddress(bytes32 salt, bytes32 bytecodeHash, bytes memory input) external override view returns (address) {
     //     return L2ContractHelper.computeCreate2Address(address(this), salt, bytes32(bytecodeHash), keccak256(input));
     // }
-
     // function deploy(bytes32 salt, bytes32 bytecodeHash, bytes memory input)
     //     external
     //     override

@@ -11,11 +11,10 @@ import {ZKSyncCreate2Factory} from "./utils/ZKSyncCreate2Factory.sol";
 abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
     // This is the address of the zkSync factory contract
     address public factoryAddr;
-    // The bytecodeHash is hardcoded here because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
+    // The bytecodeHash is assumed to be provided as an initialization parameter because type(ERC1967Proxy).creationCode doesn't work on eraVM currently
     // If you failed some test cases, check the bytecodeHash by yourself
     // see, test/ComputeCreate2Address.t.sol
-    bytes32 public constant proxyBytecodeHash =
-        0x010000835b32e9a15f4b6353ad649fa33f4fbe4f5139126c07205e738b9f758e;
+    bytes32 public proxyBytecodeHash;
 
     /// @notice Returns the address of the zkSyncfactory contract.
     /// @dev This function is virtual and can be overridden by inheriting contracts.
@@ -74,6 +73,7 @@ abstract contract EmailAccountRecoveryZKSync is EmailAccountRecovery {
                     )
                 )
             );
+        require(success, "zksync deploy failed");
         address payable proxyAddress = abi.decode(returnData, (address));
         return proxyAddress;
     }

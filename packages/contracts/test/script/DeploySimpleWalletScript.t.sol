@@ -4,7 +4,7 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-import {Deploy} from "../../script/DeployCommons.s.sol";
+import {Deploy} from "../../script/DeployRecoveryController.s.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 
 contract DeploySimpleWalletScriptTest is StructHelper {

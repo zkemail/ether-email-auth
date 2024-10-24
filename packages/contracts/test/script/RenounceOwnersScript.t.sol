@@ -4,8 +4,7 @@ pragma solidity ^0.8.12;
 import "forge-std/Test.sol";
 import "forge-std/console.sol";
 
-import {Deploy} from "../../script/DeployCommons.s.sol";
-import {Deploy as Deploy2} from "../../script/DeployForwardDKIMRegistry.s.sol";
+import {Deploy} from "../../script/DeployRecoveryController.s.sol";
 import {RenounceOwners} from "../../script/RenounceOwners.s.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
@@ -24,9 +23,6 @@ contract RenounceOwnersScriptTest is StructHelper {
 
         Deploy deploy = new Deploy();
         deploy.run();
-        vm.setEnv("SOURCE_DKIM", vm.toString(vm.envAddress("ECDSA_DKIM")));
-        Deploy2 deploy2 = new Deploy2();
-        deploy2.run();
         RenounceOwners renounceOwners = new RenounceOwners();
         renounceOwners.run();
         address verifier = vm.envAddress("VERIFIER");

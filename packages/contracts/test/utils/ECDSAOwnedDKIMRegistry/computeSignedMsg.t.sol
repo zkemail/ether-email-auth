@@ -24,9 +24,7 @@ contract ECDSAOwnedDKIMRegistryTest_computeSignedMsg is Test {
 
         string memory expectedMsg = string.concat(
             prefix,
-            "selector=",
-            selector,
-            ";domain=",
+            "domain=",
             domainName,
             ";public_key_hash=",
             uint256(publicKeyHash).toHexString(),
@@ -35,7 +33,6 @@ contract ECDSAOwnedDKIMRegistryTest_computeSignedMsg is Test {
 
         string memory computedMsg = dkim.computeSignedMsg(
             prefix,
-            selector,
             domainName,
             publicKeyHash
         );

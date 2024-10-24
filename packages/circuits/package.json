@@ -1,31 +1,30 @@
 {
   "name": "@zk-email/ether-email-auth-circom",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "0.1.1-preview",
   "scripts": {
-    "build": "mkdir -p build && circom src/email_auth.circom --r1cs --wasm --sym -l ../../node_modules -o ./build",
-    "build-body": "mkdir -p build && circom src/email_auth_with_body_parsing_with_qp_encoding.circom --r1cs --wasm --sym -l ../../node_modules -o ./build",
+    "build": "mkdir -p build && circom src/email_auth.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
+    "build-legacy": "mkdir -p build && circom src/email_auth_legacy.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
     "dev-setup": "NODE_OPTIONS=--max_old_space_size=16384 npx ts-node scripts/dev-setup.ts --output ./build",
     "gen-input": "NODE_OPTIONS=--max_old_space_size=8192 npx ts-node scripts/gen_input.ts",
-    "verify-proofs": "NODE_OPTIONS=--max_old_space_size=8192 npx ts-node scripts/verify_proofs.ts",
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "=6.1.5",
+    "@zk-email/circuits": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?057b8e95b7bca2884d8da384379c15be9975b30d",
     "@zk-email/relayer-utils": "=0.3.7",
-    "@zk-email/zk-regex-circom": "=2.1.1",
-    "commander": "^11.0.0",
-    "snarkjs": "^0.7.4"
+    "@zk-email/zk-regex-circom": "=2.2.0",
+    "commander": "^12.1.0",
+    "snarkjs": "^0.7.5"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.22.20",
     "@babel/preset-typescript": "^7.23.0",
     "@types/jest": "^29.5.4",
     "chai": "^4.3.7",
-    "circom_tester": "^0.0.19",
+    "circom_tester": "^0.0.20",
     "circomlib": "^2.0.5",
     "circomlibjs": "^0.1.2",
-    "ffjavascript": "^0.2.59",
+    "ffjavascript": "^0.3.1",
     "jest": "^29.5.0",
     "mocha": "^10.2.0",
     "ts-jest": "^29.1.1",
@@ -41,5 +40,12 @@
         "jest"
       ]
     ]
-  }
+  },
+  "files": [
+    "/src",
+    "/helpers",
+    "/scripts",
+    "package.json",
+    "README.md"
+  ]
 }

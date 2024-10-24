@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Smart contracts to auth messages via emails",
   "engines": {
-    "node": "18"
+    "node": ">=18"
   },
   "scripts": {
     "test": "yarn workspaces -pt run test",

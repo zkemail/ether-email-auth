@@ -1,0 +1,8 @@
+{
+    "parts": [
+        {
+            "is_public": false,
+            "regex_def": "(\r\n|^)subject:(Re: )?ZK Email[^\r\n]*\r\n"
+        }
+    ]
+}

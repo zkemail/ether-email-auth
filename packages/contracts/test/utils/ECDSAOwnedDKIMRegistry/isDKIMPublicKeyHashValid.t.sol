@@ -26,7 +26,6 @@ contract ECDSAOwnedDKIMRegistryTest_isDKIMPublicKeyHashValid is Test {
         // Set a valid public key hash
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -61,7 +60,6 @@ contract ECDSAOwnedDKIMRegistryTest_isDKIMPublicKeyHashValid is Test {
         // Set and then revoke a public key hash
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -80,7 +78,6 @@ contract ECDSAOwnedDKIMRegistryTest_isDKIMPublicKeyHashValid is Test {
         // Revoke the public key hash
         string memory revokeMsg = dkim.computeSignedMsg(
             dkim.REVOKE_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );

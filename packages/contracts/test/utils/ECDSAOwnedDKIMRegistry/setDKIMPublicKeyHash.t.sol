@@ -35,32 +35,44 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         string memory invalidSelector = ""; // Example of an invalid selector (empty string)
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            invalidSelector,
             domainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.expectRevert("Invalid selector");
-        dkim.setDKIMPublicKeyHash(invalidSelector, domainName, publicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            invalidSelector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
     }
 
     function test_Revert_IfInvalidDomainName() public {
         string memory invalidDomainName = ""; // Example of an invalid domain name (empty string)
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             invalidDomainName,
             publicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.expectRevert("Invalid domain name");
-        dkim.setDKIMPublicKeyHash(selector, invalidDomainName, publicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            invalidDomainName,
+            publicKeyHash,
+            signature
+        );
     }
 
     function test_MinLengthSelectorAndDomainName() public {
@@ -69,16 +81,25 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         bytes32 minPublicKeyHash = bytes32(uint256(1));
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            minSelector,
             minDomainName,
             minPublicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        dkim.setDKIMPublicKeyHash(minSelector, minDomainName, minPublicKeyHash, signature);
-        require(dkim.isDKIMPublicKeyHashValid(minDomainName, minPublicKeyHash), "Invalid public key hash");
+        dkim.setDKIMPublicKeyHash(
+            minSelector,
+            minDomainName,
+            minPublicKeyHash,
+            signature
+        );
+        require(
+            dkim.isDKIMPublicKeyHashValid(minDomainName, minPublicKeyHash),
+            "Invalid public key hash"
+        );
     }
 
     function test_MaxLengthSelectorAndDomainName() public {
@@ -87,54 +108,77 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         bytes32 aPublicKeyHash = bytes32(uint256(1));
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            maxSelector,
             maxDomainName,
             aPublicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        dkim.setDKIMPublicKeyHash(maxSelector, maxDomainName, aPublicKeyHash, signature);
-        require(dkim.isDKIMPublicKeyHashValid(maxDomainName, aPublicKeyHash), "Invalid public key hash");
+        dkim.setDKIMPublicKeyHash(
+            maxSelector,
+            maxDomainName,
+            aPublicKeyHash,
+            signature
+        );
+        require(
+            dkim.isDKIMPublicKeyHashValid(maxDomainName, aPublicKeyHash),
+            "Invalid public key hash"
+        );
     }
 
     function test_Revert_IfInvalidPublicKeyHash() public {
         bytes32 zeroPublicKeyHash = bytes32(0);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             zeroPublicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
         vm.expectRevert("Invalid public key hash");
-        dkim.setDKIMPublicKeyHash(selector, domainName, zeroPublicKeyHash, signature);
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            zeroPublicKeyHash,
+            signature
+        );
     }
 
     function test_MaxValuePublicKeyHash() public {
         bytes32 maxPublicKeyHash = bytes32(type(uint256).max);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             maxPublicKeyHash
         );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(bytes(signedMsg));
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        dkim.setDKIMPublicKeyHash(selector, domainName, maxPublicKeyHash, signature);
-        require(dkim.isDKIMPublicKeyHashValid(domainName, maxPublicKeyHash), "Invalid public key hash");
+        dkim.setDKIMPublicKeyHash(
+            selector,
+            domainName,
+            maxPublicKeyHash,
+            signature
+        );
+        require(
+            dkim.isDKIMPublicKeyHashValid(domainName, maxPublicKeyHash),
+            "Invalid public key hash"
+        );
     }
 
     function test_SetDKIMPublicKeyHash() public {
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -159,7 +203,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -184,7 +227,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         publicKeyHash = bytes32(uint256(2));
         signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -203,12 +245,50 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         );
     }
 
-
-    function test_Revert_IfDuplicated() public {
+    function test_RevokeDKIMPublicKeyHash() public {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
+            domainName,
+            publicKeyHash
+        );
+        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+            bytes(signedMsg)
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        dkim.setDKIMPublicKeyHash(
             selector,
+            domainName,
+            publicKeyHash,
+            signature
+        );
+
+        // Revoke
+        string memory revokeMsg = dkim.computeSignedMsg(
+            dkim.REVOKE_PREFIX(),
+            domainName,
+            publicKeyHash
+        );
+        (uint8 v1, bytes32 r1, bytes32 s1) = vm.sign(
+            1,
+            MessageHashUtils.toEthSignedMessageHash(bytes(revokeMsg))
+        );
+        bytes memory revokeSig = abi.encodePacked(r1, s1, v1);
+        dkim.revokeDKIMPublicKeyHash(
+            selector,
+            domainName,
+            publicKeyHash,
+            revokeSig
+        );
+
+        require(!dkim.isDKIMPublicKeyHashValid(domainName, publicKeyHash));
+    }
+
+    function test_RevertIfDuplicated() public {
+        // vm.chainId(1);
+        string memory signedMsg = dkim.computeSignedMsg(
+            dkim.SET_PREFIX(),
             domainName,
             publicKeyHash
         );
@@ -243,7 +323,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -266,7 +345,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         // Revoke
         string memory revokeMsg = dkim.computeSignedMsg(
             dkim.REVOKE_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -285,7 +363,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
 
         signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -304,7 +381,6 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
         // vm.chainId(1);
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
-            selector,
             domainName,
             publicKeyHash
         );
@@ -330,7 +406,7 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
                 address(dkimImpl),
                 abi.encodeCall(
                     dkimImpl.initialize,
-                    (msg.sender, 0x69Bec2Dd161d6Bbcc91ec32AA44D9333EBc864c0)
+                    (msg.sender, 0x6293A80BF4Bd3fff995a0CAb74CBf281d922dA02)
                 )
             );
             dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
@@ -343,7 +419,7 @@ contract ECDSAOwnedDKIMRegistryTest_setDKIMPublicKeyHash is Test {
             domainName,
             publicKeyHash,
             vm.parseBytes(
-                "0xe5fb9c45bd6468877e8ec7e04063b03e8ac89206354060e757b15d6269f7754e6c515b5825fbb6be4e939f92d1ad62dc7f548607fe4349033ed51f8da8a18c4c1c"
+                "0xb491dad31ddd0fd9994e76e0325f29a0f44732c56220b6df0e2672750b87fb2d46e41069e3e93d88ee55e45bb6c712e2b077749c8392908a1a862432e68b104b1b"
             )
         );
         require(

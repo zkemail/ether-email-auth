@@ -151,14 +151,14 @@ pub async fn check_and_update_dkim(
         return Ok(());
     }
 
-    // Get email auth address
+    // Get email auth address from controller
     let email_auth_addr = CLIENT
         .get_email_auth_addr_from_wallet(controller_eth_addr, wallet_addr, account_salt)
         .await?;
     let email_auth_addr = format!("0x{:x}", email_auth_addr);
 
-    // Get DKIM from wallet or email auth
-    let mut dkim = CLIENT.get_dkim_from_wallet(controller_eth_addr).await?;
+    // Get DKIM from controller or email auth
+    let mut dkim = CLIENT.get_dkim_from_controller(controller_eth_addr).await?;
     if CLIENT.get_bytecode(&email_auth_addr).await? != Bytes::new() {
         dkim = CLIENT.get_dkim_from_email_auth(&email_auth_addr).await?;
     }
@@ -221,7 +221,6 @@ pub async fn check_and_update_dkim(
     // Set DKIM public key hash
     let tx_hash = CLIENT
         .set_dkim_public_key_hash(
-            selector,
             domain,
             TryInto::<[u8; 32]>::try_into(public_key_hash).unwrap(),
             signature,

@@ -4,25 +4,19 @@ pragma solidity ^0.8.9;
 import "../interfaces/IGroth16Verifier.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IVerifier, EmailProof} from "../interfaces/IVerifier.sol";
 
-struct EmailProof {
-    string domainName; // Domain name of the sender's email
-    bytes32 publicKeyHash; // Hash of the DKIM public key used in email/proof
-    uint timestamp; // Timestamp of the email
-    string maskedCommand; // Masked command of the email
-    bytes32 emailNullifier; // Nullifier of the email to prevent its reuse.
-    bytes32 accountSalt; // Create2 salt of the account
-    bool isCodeExist; // Check if the account code is exist
-    bytes proof; // ZK Proof of Email
-}
-
-contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
+contract Verifier is OwnableUpgradeable, UUPSUpgradeable, IVerifier {
     IGroth16Verifier groth16Verifier;
 
     uint256 public constant DOMAIN_FIELDS = 9;
     uint256 public constant DOMAIN_BYTES = 255;
     uint256 public constant COMMAND_FIELDS = 20;
     uint256 public constant COMMAND_BYTES = 605;
+
+    // Base field size
+    uint256 constant q =
+        21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     constructor() {}
 
@@ -36,6 +30,10 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
         groth16Verifier = IGroth16Verifier(_groth16Verifier);
     }
 
+    function commandBytes() external pure returns (uint256) {
+        return COMMAND_BYTES;
+    }
+
     function verifyEmailProof(
         EmailProof memory proof
     ) public view returns (bool) {
@@ -44,7 +42,12 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
             uint256[2][2] memory pB,
             uint256[2] memory pC
         ) = abi.decode(proof.proof, (uint256[2], uint256[2][2], uint256[2]));
-
+        require(pA[0] < q && pA[1] < q, "invalid format of pA");
+        require(
+            pB[0][0] < q && pB[0][1] < q && pB[1][0] < q && pB[1][1] < q,
+            "invalid format of pB"
+        );
+        require(pC[0] < q && pC[1] < q, "invalid format of pC");
         uint256[DOMAIN_FIELDS + COMMAND_FIELDS + 5] memory pubSignals;
         uint256[] memory stringFields;
         stringFields = _packBytes2Fields(bytes(proof.domainName), DOMAIN_BYTES);
@@ -74,7 +77,7 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable {
     function _packBytes2Fields(
         bytes memory _bytes,
         uint256 _paddedSize
-    ) public pure returns (uint256[] memory) {
+    ) private pure returns (uint256[] memory) {
         uint256 remain = _paddedSize % 31;
         uint256 numFields = (_paddedSize - remain) / 31;
         if (remain > 0) {
