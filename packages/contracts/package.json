@@ -10,10 +10,11 @@
     "lint": "solhint 'src/**/*.sol'"
   },
   "dependencies": {
+    "@matterlabs/zksync-contracts": "^0.6.1",
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
+    "@openzeppelin/upgrades-core": "^1.40.0",
     "@zk-email/contracts": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?057b8e95b7bca2884d8da384379c15be9975b30d",
-    "@matterlabs/zksync-contracts": "^0.6.1",
     "solady": "^0.0.123"
   },
   "devDependencies": {
