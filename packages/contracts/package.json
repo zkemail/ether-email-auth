@@ -15,7 +15,8 @@
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
     "@zk-email/contracts": "^6.3.1",
     "solady": "^0.0.123",
-    "solidity-stringutils": "github:LayerZero-Labs/solidity-stringutils"
+    "solidity-stringutils": "github:LayerZero-Labs/solidity-stringutils",
+    "@openzeppelin/upgrades-core": "^1.40.0"
   },
   "devDependencies": {
     "ds-test": "https://github.com/dapphub/ds-test",
