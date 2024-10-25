@@ -1755,16 +1755,18 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?057b8e95b7bca2884d8da384379c15be9975b30d":
-  version "6.2.0"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/circuits?057b8e95b7bca2884d8da384379c15be9975b30d#7dc11d2c914b325379cd07f504b11d845ead298f"
+"@zk-email/circuits@=6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.3.0.tgz#9e1be249fe0b04471d75c7f38be3782d9cfc8183"
+  integrity sha512-6ksOxRTNaZmuIesoWUsZpaN1p5+VK9QucOUpAry9Y5NWZtHJ0GKzIvDzI0DYfPCy+BicT8PnrNpIoJRnXS+22Q==
   dependencies:
-    "@zk-email/zk-regex-circom" "^2.1.0"
+    "@zk-email/zk-regex-circom" "^2.3.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?e518903643c2c06080ccd9b409273b5fcb518a9a":
-  version "6.2.0"
-  resolved "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?e518903643c2c06080ccd9b409273b5fcb518a9a#0af63f7fce40022137cd5d7ccad0955585ddb47c"
+"@zk-email/contracts@^6.3.0":
+  version "6.3.0"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.0.tgz#f9b301f17b9fc81861dc8d15801428bb650c93f2"
+  integrity sha512-zt6EQbjczfCr1MAV0V0UVrYXDUFAaA+gcVqUSgbEOzMPByNXk8zlshoE49Aop/wC0K5gzgsB0OlcGDkNJg944w==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     "@openzeppelin/contracts-upgradeable" "^5.0.0"
@@ -1779,7 +1781,7 @@
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@=2.3.0", "@zk-email/zk-regex-circom@^2.1.0":
+"@zk-email/zk-regex-circom@=2.3.0", "@zk-email/zk-regex-circom@^2.3.0":
   version "2.3.0"
   resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.0.tgz#9db949c53737bfddbae3ea1db0737783987a0ed5"
   integrity sha512-puEcLa5og+vwf2gx2zULJ2A3R8mu89hw87Kq0O0g5+8ojL1hKGMDKY9+oIwOhg6uCJesq9/9TETXcR4JW2/Zog==

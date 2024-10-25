@@ -12,7 +12,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@zk-email/contracts": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?e518903643c2c06080ccd9b409273b5fcb518a9a",
+    "@zk-email/contracts": "^6.3.0",
     "@matterlabs/zksync-contracts": "^0.6.1",
     "solady": "^0.0.123"
   },
