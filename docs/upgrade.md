@@ -1,4 +1,4 @@
-# Emergency Response
+# Upgrading Contracts
 
 Sometimes, we need to fix problems in our smart contracts. We can do this by upgrading contracts that use ERC1967Proxy. Here's how to do it:
 

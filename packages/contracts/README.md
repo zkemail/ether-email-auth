@@ -431,4 +431,4 @@ forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-u
 
 ## Emergency Response
 
-For information on how to handle emergency situations and upgrade contracts, please refer to our [Emergency Response Guide](../../docs/emergency.md).
+For information on how upgrade contracts for handling emergency situations, please refer to our [Upgrading Contracts](../../docs/upgrade.md).
