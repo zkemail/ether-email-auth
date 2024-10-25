@@ -66,7 +66,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1729099216n;
+        const timestamp = BigInt(1729865810);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 0.1 ETH to ";
@@ -85,7 +85,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
 
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
@@ -132,7 +132,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1729099274n;
+        const timestamp = BigInt(1729865832);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Swap 1 ETH to DAI";
@@ -151,7 +151,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
 
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
@@ -199,7 +199,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1729099750n;
+        const timestamp = BigInt(1729866032);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 1 ETH to ";
@@ -217,7 +217,7 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
@@ -266,7 +266,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1729099930n;
+        const timestamp = BigInt(1729866112);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand = "Send 1 ETH to ";
@@ -285,7 +285,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
 
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
@@ -334,7 +334,7 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 1]
         );
 
-        const timestamp = 1729100194n;
+        const timestamp = BigInt(1729866146);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
 
         const maskedCommand =
@@ -353,7 +353,143 @@ describe("Email Auth", () => {
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
 
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
+            witness[
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            ]
+        );
+    });
+
+    it("Verify a sent email whose subject has Re:", async () => {
+        const emailFilePath = path.join(
+            __dirname,
+            "./emails/email_auth_test6.eml"
+        );
+        const emailRaw = readFileSync(emailFilePath, "utf8");
+        const parsedEmail = await relayerUtils.parseEmail(emailRaw);
+
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+
+        const circuitInputs =
+            await genEmailCircuitInput(emailFilePath, accountCode, {
+                maxHeaderLength: 640,
+                maxBodyLength: 768,
+                ignoreBodyHashCheck: false,
+                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+            });
+        const witness = await circuit.calculateWitness(circuitInputs);
+        await circuit.checkConstraints(witness);
+
+        const domainName = "gmail.com";
+        const paddedDomain = relayerUtils.padString(domainName, 255);
+        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        for (let idx = 0; idx < domainFields.length; ++idx) {
+            expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
+        }
+
+        const expectedPubKeyHash = relayerUtils.publicKeyHash(
+            parsedEmail.publicKey
+        );
+        expect(BigInt(expectedPubKeyHash)).toEqual(
+            witness[1 + domainFields.length]
+        );
+
+        const expectedEmailNullifier = relayerUtils.emailNullifier(
+            parsedEmail.signature
+        );
+        expect(BigInt(expectedEmailNullifier)).toEqual(
+            witness[1 + domainFields.length + 1]
+        );
+
+        const timestamp = BigInt(1729866214);
+        expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
+
+        const maskedCommand =
+            "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
+        const maskedCommandFields =
+            relayerUtils.bytes2Fields(paddedMaskedCommand);
+        for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
+            expect(BigInt(maskedCommandFields[idx])).toEqual(
+                witness[1 + domainFields.length + 3 + idx]
+            );
+        }
+        const fromAddr = "emaiwallet.alice@gmail.com";
+        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        expect(BigInt(accountSalt)).toEqual(
+            witness[1 + domainFields.length + 3 + maskedCommandFields.length]
+        );
+
+        expect(BigInt(1)).toEqual(
+            witness[
+            1 + domainFields.length + 3 + maskedCommandFields.length + 1
+            ]
+        );
+    });
+
+    it("Verify a sent email whose subject has FWD: FWD:", async () => {
+        const emailFilePath = path.join(
+            __dirname,
+            "./emails/email_auth_test7.eml"
+        );
+        const emailRaw = readFileSync(emailFilePath, "utf8");
+        const parsedEmail = await relayerUtils.parseEmail(emailRaw);
+
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+
+        const circuitInputs =
+            await genEmailCircuitInput(emailFilePath, accountCode, {
+                maxHeaderLength: 640,
+                maxBodyLength: 768,
+                ignoreBodyHashCheck: false,
+                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+            });
+        const witness = await circuit.calculateWitness(circuitInputs);
+        await circuit.checkConstraints(witness);
+
+        const domainName = "gmail.com";
+        const paddedDomain = relayerUtils.padString(domainName, 255);
+        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        for (let idx = 0; idx < domainFields.length; ++idx) {
+            expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
+        }
+
+        const expectedPubKeyHash = relayerUtils.publicKeyHash(
+            parsedEmail.publicKey
+        );
+        expect(BigInt(expectedPubKeyHash)).toEqual(
+            witness[1 + domainFields.length]
+        );
+
+        const expectedEmailNullifier = relayerUtils.emailNullifier(
+            parsedEmail.signature
+        );
+        expect(BigInt(expectedEmailNullifier)).toEqual(
+            witness[1 + domainFields.length + 1]
+        );
+
+        const timestamp = BigInt(1729866476);
+        expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
+
+        const maskedCommand =
+            "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
+        const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
+        const maskedCommandFields =
+            relayerUtils.bytes2Fields(paddedMaskedCommand);
+        for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
+            expect(BigInt(maskedCommandFields[idx])).toEqual(
+                witness[1 + domainFields.length + 3 + idx]
+            );
+        }
+        const fromAddr = "emaiwallet.alice@gmail.com";
+        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        expect(BigInt(accountSalt)).toEqual(
+            witness[1 + domainFields.length + 3 + maskedCommandFields.length]
+        );
+
+        expect(BigInt(1)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedCommandFields.length + 1
             ]
@@ -449,6 +585,30 @@ describe("Email Auth", () => {
                 shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
             });
         circuitInputs.code_idx = 768;
+        async function failFn() {
+            const witness = await circuit.calculateWitness(circuitInputs);
+            await circuit.checkConstraints(witness);
+        }
+        await expect(failFn).rejects.toThrow();
+    });
+
+    it("Verify a sent email without the forced subject", async () => {
+        const emailFilePath = path.join(
+            __dirname,
+            "./emails/email_auth_invalid_test1.eml"
+        );
+
+        const accountCode =
+            "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
+
+        const circuitInputs =
+            await genEmailCircuitInput(emailFilePath, accountCode, {
+                maxHeaderLength: 640,
+                maxBodyLength: 768,
+                ignoreBodyHashCheck: false,
+                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+            });
+        circuitInputs.timestamp_idx = 640;
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);

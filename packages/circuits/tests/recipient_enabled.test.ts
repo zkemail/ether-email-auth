@@ -65,7 +65,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(
             witness[1 + domainFields.length + 1]
         );
-        const timestamp = 1694989812n;
+        const timestamp = BigInt(1694989812);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 0.1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
@@ -81,12 +81,12 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
@@ -149,7 +149,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(
             witness[1 + domainFields.length + 1]
         );
-        const timestamp = 1696965932n;
+        const timestamp = BigInt(1696965932);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
@@ -165,12 +165,12 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
@@ -233,7 +233,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(
             witness[1 + domainFields.length + 1]
         );
-        const timestamp = 1696967028n;
+        const timestamp = BigInt(1696967028);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
@@ -249,12 +249,12 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
-        expect(0n).toEqual(
+        expect(BigInt(0)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 1
             ]
         );
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[
             1 + domainFields.length + 3 + maskedSubjectFields.length + 2
             ]
@@ -315,7 +315,7 @@ describe("Email Auth", () => {
         expect(BigInt(expectedEmailNullifier)).toEqual(
             witness[1 + domainFields.length + 1]
         );
-        const timestamp = 1707866192n;
+        const timestamp = BigInt(1707866192);
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 0.12 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
@@ -330,10 +330,10 @@ describe("Email Auth", () => {
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 1]
         );
-        expect(1n).toEqual(
+        expect(BigInt(1)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 2]
         );
         const recipientEmailAddr = "alice@gmail.com";
