@@ -43,6 +43,7 @@ packages/nft_relayer/logs
 sql_database.db
 .sqlx
 .ic.pem
+config.json
 
 # Relayer
 packages/relayer/sendgrid.env

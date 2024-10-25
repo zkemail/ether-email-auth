@@ -1,6 +1,6 @@
 {
   "name": "@zk-email/ether-email-auth-contracts",
-  "version": "0.1.1-preview",
+  "version": "0.2.0-preview",
   "license": "MIT",
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
@@ -12,7 +12,7 @@
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@zk-email/contracts": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?feat/dkim-registry-updates",
+    "@zk-email/contracts": "https://gitpkg.vercel.app/zkemail/zk-email-verify/packages/contracts?e518903643c2c06080ccd9b409273b5fcb518a9a",
     "@matterlabs/zksync-contracts": "^0.6.1",
     "solady": "^0.0.123"
   },

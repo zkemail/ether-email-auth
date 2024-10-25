@@ -59,30 +59,30 @@ contract Deploy is Script {
                 "UseroverrideableDKIMRegistry proxy deployed at: %s",
                 address(dkim)
             );
-            vm.setEnv("DKIM", vm.toString(address(dkim)));
+            // vm.setEnv("DKIM", vm.toString(address(dkim)));
         }
 
         // Deploy ECDSAOwned DKIM registry
-        ECDSAOwnedDKIMRegistry ecdsaDkim = ECDSAOwnedDKIMRegistry(
-            vm.envOr("ECDSA_DKIM", address(0))
-        );
-        if (address(ecdsaDkim) == address(0)) {
-            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
-            console.log(
-                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
-                address(ecdsaDkimImpl)
-            );
-            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
-                address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
-            );
-            ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
-            console.log(
-                "ECDSAOwnedDKIMRegistry deployed at: %s",
-                address(ecdsaDkim)
-            );
-            vm.setEnv("ECDSA_DKIM", vm.toString(address(ecdsaDkim)));
-        }
+        // ECDSAOwnedDKIMRegistry ecdsaDkim = ECDSAOwnedDKIMRegistry(
+        //     vm.envOr("ECDSA_DKIM", address(0))
+        // );
+        // if (address(ecdsaDkim) == address(0)) {
+        //     ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
+        //     console.log(
+        //         "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
+        //         address(ecdsaDkimImpl)
+        //     );
+        //     ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
+        //         address(ecdsaDkimImpl),
+        //         abi.encodeCall(ecdsaDkimImpl.initialize, (initialOwner, signer))
+        //     );
+        //     ecdsaDkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+        //     console.log(
+        //         "ECDSAOwnedDKIMRegistry deployed at: %s",
+        //         address(ecdsaDkim)
+        //     );
+        //     vm.setEnv("ECDSA_DKIM", vm.toString(address(ecdsaDkim)));
+        // }
 
         // Deploy Verifier
         verifier = Verifier(vm.envOr("VERIFIER", address(0)));
