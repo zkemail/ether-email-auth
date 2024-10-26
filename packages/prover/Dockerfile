@@ -9,7 +9,7 @@ RUN apt-get update && \
 RUN npm install -g n 
 RUN n 18
 RUN npm install -g yarn snarkjs
-RUN git clone -b feat/body-parsing-circuit https://github.com/zkemail/ether-email-auth.git
+RUN git clone -b feat/body-parsing-with-audit-fix https://github.com/zkemail/ether-email-auth.git
 WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
@@ -26,8 +26,8 @@ WORKDIR /root/params
 # RUN gdown "https://drive.google.com/uc?id=1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH"
 # RUN unzip params.zip
 # RUN mv params/* /root/params
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.zkey --output ./email_auth.zkey
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v0.1.1-preview/email_auth.wasm --output ./email_auth.wasm
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth.zkey --output ./email_auth.zkey
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth.wasm --output ./email_auth.wasm
 WORKDIR /root
 RUN ls params
 # RUN mv build params
