@@ -1,98 +1,127 @@
-Delivered-To: suegamisora@gmail.com
-Received: by 2002:a05:7010:618b:b0:415:a8ba:b98c with SMTP id x11csp1399453mdc;
-        Mon, 21 Oct 2024 10:38:31 -0700 (PDT)
-X-Received: by 2002:a17:902:cec3:b0:20c:d469:ba95 with SMTP id d9443c01a7336-20e5a8b03c0mr151284645ad.16.1729532311279;
-        Mon, 21 Oct 2024 10:38:31 -0700 (PDT)
-ARC-Seal: i=1; a=rsa-sha256; t=1729532311; cv=none;
+Delivered-To: emaiwallet.alice@gmail.com
+Received: by 2002:a05:6f02:50a:b0:77:b002:4a0a with SMTP id 10csp353988rch;
+        Sat, 26 Oct 2024 03:05:56 -0700 (PDT)
+X-Received: by 2002:a05:690c:4702:b0:6d6:aa50:9267 with SMTP id 00721157ae682-6e9d8afb4d1mr18547287b3.39.1729937156263;
+        Sat, 26 Oct 2024 03:05:56 -0700 (PDT)
+ARC-Seal: i=1; a=rsa-sha256; t=1729937156; cv=none;
         d=google.com; s=arc-20240605;
-        b=U2B3+lBZSSs/qyRPUr+mWwk3PhMns+TyqhPIaJynUNT8/Vka+1+kzK/1fYqHCBk+RZ
-         QYxRhnQTUil7FeE/kDJHAwPpan1HGDqVyHsvx3K6j3No/DCTaKrig+EMV9iwWjb8+TpM
-         hYKP9CtE+hU6A+K2nh30z+mtyXAYfzmS58oCqNXU2gXOlG4kxqy34RPOqboKykK6jI1T
-         X3oiEHjpARb0w/bmViXqNhbaNqpKCgMQzlDosQ4grV3bAa9X00ab/2e/mu+o4yKPGCFu
-         HOZB70LNO/T7QVCKtjTvAofQtkNP6NU1qrxHq3Y7APdZft08+wC7TGf0cvov4o5qWE/Z
-         5IMw==
+        b=QxdEwYbmP058RIlOcHy18xkCbraFkxflwqslfrV/NxOFtTpI4r4fRySol5D547ZaGj
+         crGTZWPo2oqzHswkm0roUC20FeFZFcc6/K4TJpv5WoHTvhD8Rg1AbGltHs73nszhVs4U
+         XrreTaL4H3yDx05pTj52ZOk+ALNTMo5gC61H5tuazKQ+PuCTs9NBJafru8ozZz2Ch8XG
+         AJ7l1B7w8YxHo/1LMe+M6vgEZABh3OE/hqHjQV1kSlmR2/KtybwtpLhdvdDRxzH7X69o
+         yNK2d1X1F9Ac2JSyLwl/2EKxokIRw+p9NoTRqO/XBq8xnhQCJ6tqyGUugKbOhgp0cTEv
+         MCJw==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
-        h=subject:to:from:mime-version:date:message-id:dkim-signature;
-        bh=CHpVq6yTheIkGR2URH1BgCscdUONSVRZuX+Hj5I7ajQ=;
-        fh=r9ZW45D/4i7BIl/4UeFGrkYKwbplztqhOVKfbV+WD3I=;
-        b=Cu4xR1PNtPqOVz3yXrB3uf9sVykY0Uja/Fp5b3cpe3B6nydlKfJqkL8JrAYHPCyZ/b
-         sJyrl/7RiSX0A+LD/FZ78nt/DJiBtCe2eRInVUG0cLat6Jp53AlbX9A4y+GeNvGfLmiD
-         7f+xPIPry6LKlgQOsq8tIVaqDJgTe2cg/JL8/8X/mEFaPu1pjECdM1x1zB2jMvAn35BV
-         1KM5WAO5uP+LJSZ8LCK31qieaz3DzOgLa9xowUG9MzVAIvdi+Pd+QynwU7IRamAGbf4Q
-         HcVARjB1m6V39FZ84t0LzIksX3CaSktuz4c4VNFZWGg1DTK+qH++SGZuknd52qF8IH87
-         e8KA==;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :dkim-signature;
+        bh=CP7ZtbUv//ow2bVqoNWzza+Fx/7DIfv+mcNgEHfZROo=;
+        fh=piqzy4ujdlR+MUXqs15gF7XdlDw2mZShl76veKMclKc=;
+        b=V2jv/H+FV1gay4RM3JsR8suPfF/Gbmo238UYucocV+IIEtmU66q6U2N0A3x7FM/bt/
+         3reVDFYcLn9ynk0uwDe1gKCRnYrssLyDBvrx3II7xYwMZrC6Pmabpdq/4y/wt64sSjZN
+         kZ4Fr3/4ZSTQ6zPjSewd2rOelPaDhCjeSb3A5Qq8ItXkbwgcUJpaWoOLzJUiHny4SokI
+         a0PFwjqfnsnpfGGhM2++QthZWdDUippIz9R0cBtkfYSqUouwJnFzXS6r6L0xGQBZiweU
+         982ikxZf8mjVcgErUJEeH0lGqnMDZCxNhERN3Jtt+7BNQxF7RqkRa6ftoBIJ7hPSrnAG
+         K87g==;
         dara=google.com
 ARC-Authentication-Results: i=1; mx.google.com;
-       dkim=pass header.i=@gmail.com header.s=20230601 header.b=TaIiQufT;
-       spf=pass (google.com: domain of emaiwallet.alice@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emaiwallet.alice@gmail.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=RciNrGrT;
+       spf=pass (google.com: domain of suegamisora@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=suegamisora@gmail.com;
        dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
        dara=pass header.i=@gmail.com
-Return-Path: <emaiwallet.alice@gmail.com>
+Return-Path: <suegamisora@gmail.com>
 Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
-        by mx.google.com with SMTPS id d9443c01a7336-20e7f1aba92sor9472135ad.19.2024.10.21.10.38.31
-        for <suegamisora@gmail.com>
+        by mx.google.com with SMTPS id 00721157ae682-6e9c6bc5530sor21334727b3.5.2024.10.26.03.05.56
+        for <emaiwallet.alice@gmail.com>
         (Google Transport Security);
-        Mon, 21 Oct 2024 10:38:31 -0700 (PDT)
-Received-SPF: pass (google.com: domain of emaiwallet.alice@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+        Sat, 26 Oct 2024 03:05:56 -0700 (PDT)
+Received-SPF: pass (google.com: domain of suegamisora@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
 Authentication-Results: mx.google.com;
-       dkim=pass header.i=@gmail.com header.s=20230601 header.b=TaIiQufT;
-       spf=pass (google.com: domain of emaiwallet.alice@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=emaiwallet.alice@gmail.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=RciNrGrT;
+       spf=pass (google.com: domain of suegamisora@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=suegamisora@gmail.com;
        dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
        dara=pass header.i=@gmail.com
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=gmail.com; s=20230601; t=1729532310; x=1730137110; dara=google.com;
-        h=subject:to:from:mime-version:date:message-id:from:to:cc:subject
-         :date:message-id:reply-to;
-        bh=CHpVq6yTheIkGR2URH1BgCscdUONSVRZuX+Hj5I7ajQ=;
-        b=TaIiQufT/DJedvQcN9XubStVBAZ+WCo3T0piGJ9E7Kw6s9aKJQtHqRQZ11HrldWawL
-         WNJCyY/QXftr3W02EUAv2DiemZJunM+dA7hVb14ZErBA/POnQgvbM0KwsdPDB7EfsB/8
-         4oXugrWPZKeVtPMxa6dVqJA87d8PXqAd6yB+FuUoz7/TfswqPczbLZAt9uJhIZgQNXF4
-         YT+5UoIec9LXrkFzmJCDM6Djwz6I/ZGTQg8qxnNgiQZKlZR1dxhqzP1rIAa/GnR4zBKu
-         4ItWJHPe6nGs5t3E+2zpHP8DREjMOOTMXXTChANvAT+vnAg5cT6f+aw7BXkOe3ZWE1tk
-         +tyg==
-X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1729532310; x=1730137110;
-        h=subject:to:from:mime-version:date:message-id:x-gm-message-state
+        d=gmail.com; s=20230601; t=1729937155; x=1730541955; dara=google.com;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
          :from:to:cc:subject:date:message-id:reply-to;
-        bh=CHpVq6yTheIkGR2URH1BgCscdUONSVRZuX+Hj5I7ajQ=;
-        b=nFrAckAX6+Y2QO7Tt9bxatya7uTNxhWbczfOhMZssurGQFjRfma4yHWClCJ6f3jkE8
-         fzHTw2PyY29fX2U4yJsEirE2JBRSyqK74Rcd/t5TDW99NlpQMUp2vtIAbFr+iyecR/fi
-         UoFyIdmiRtUtv3yNEk5mEJcDq91Qa751ogqgUS3RQUEAG7/ryxrxs1zGtrzmnp7WQ5aq
-         px9OQNiyKF6arTJCg5ETvGdv5lTZGCz9t0ObqhbX7wx/DN96PfkQchEgeA/YRGZfYKii
-         UaN4Vx7Bbhz+B+eLa07QMFCWijDO2xw7llHUiNmptUjsmlNGYVX1k3Jluv3pllcw347j
-         WwDw==
-X-Gm-Message-State: AOJu0Yxbx9UYvoiJ8GUFSAu4fwOyZfhS5BlaXNuo39xsLz34VaFgy/0U
-	3tMKE1v60doX6GNhliztRZdD2xupli9uEAj7he7PvFUV3CPlAVu6bQiEgxlXys0=
-X-Google-Smtp-Source: AGHT+IF5gFMlISJvXvaCRbEthBzsgp5NTnD8nMS1mFWRDSLx5KSNTnjRGtkS5dvA5EUf34aglhvZIw==
-X-Received: by 2002:a17:902:e547:b0:20c:a44b:3221 with SMTP id d9443c01a7336-20e5a8b09f6mr182536435ad.15.1729532310389;
-        Mon, 21 Oct 2024 10:38:30 -0700 (PDT)
-Return-Path: <emaiwallet.alice@gmail.com>
-Received: from SoraMacBook-4.local ([45.80.184.145])
-        by smtp.gmail.com with ESMTPSA id d9443c01a7336-20e7eee89d8sm28905385ad.14.2024.10.21.10.38.28
-        for <suegamisora@gmail.com>
-        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
-        Mon, 21 Oct 2024 10:38:29 -0700 (PDT)
-Message-ID: <67169195.170a0220.8cf4.92ed@mx.google.com>
-Date: Mon, 21 Oct 2024 10:38:29 -0700 (PDT)
-Content-Type: multipart/alternative; boundary="===============1515776820414120221=="
+        bh=CP7ZtbUv//ow2bVqoNWzza+Fx/7DIfv+mcNgEHfZROo=;
+        b=RciNrGrTtnGe0pwaR9worHIt5QZXvvbTFPnE6iUliL4dOj1qEoFp3DqZEjO4lASUWT
+         Q6YoO3VQyifJ8FzO5M58Sjp5QKLOD2hLz38muX6vSQbqTj9nGCHolOOP7aX+rQwFu5ff
+         +slLyX8Fds8zGsEy10/rOkArQ9kQmLPM/bSIWgUXw4wp3DcmXTpivlw/SbO26/eMmhce
+         dHCBi8dpuktl0CR7Qj6gjEjwwS3GCwKhfTx8Moy4oXr3cCfx4KGs6Lg7F27w/+o0Hvjw
+         kzJmEXWDRDQX9xjB3ckDhGUXCI6Wwl1nx+jWAGHXnx7XlBJq8fEAspsazuRW0mmumGxr
+         93/g==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1729937155; x=1730541955;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=CP7ZtbUv//ow2bVqoNWzza+Fx/7DIfv+mcNgEHfZROo=;
+        b=pIXtANGjeM37aR7JVhNDi1jyQFkJT2jbQTmFMhG27wSD4/orj48IzE9rKBx8iKnoyl
+         OQCsJNwlONFaJpQkjSyYfKI5AbfA9jHMul2Py+G5Vy9cXBiVGTJzRPNUBVRj13/qyyeT
+         ZAm/w0YHLV//jWgEWrt/h9a9/A+B962qYHXblnliQvyc+yQYt+GRBWG+PNEfT9dIhucY
+         Zsf8AnFmgdl4TYoHfcLAXjoaZMvGoUUgYGS3Fd62vQ2GGkYa+cVgfmGEuU2IoBPV3ugq
+         j0SbPT0QO+uBfAaSNmgCqXrkB1TUwVrMZ95vN4GCJm6xzdSZcNQT/7ktC4aFfTGtHDq1
+         ZddA==
+X-Gm-Message-State: AOJu0YwzCS/Yo1g2FdX8VzCZGUCA9fm01hxc4VDmgWEgp2v3kut/ZHBm
+	65lEsdUpM7XlalkM6M7J8lNVUDjsEdRhU8l1HiWXCXWJsN/SQkwIIspUlEFQjZFILbwTtr+5lC/
+	bb8kZnImkbP5LrQjJtILZ8v3QD/q21xc6
+X-Google-Smtp-Source: AGHT+IF8eIfzz7WpTU8Il/tbsQGfnNVEGTo/FjUmCgHCURPbQJPTPzN6SSUsXS5k07r9dKCAPBnT4usJCVk0HNFyK9g=
+X-Received: by 2002:a05:690c:61c8:b0:6dd:bcce:7cd7 with SMTP id
+ 00721157ae682-6e9d8aff19emr22366757b3.42.1729937154654; Sat, 26 Oct 2024
+ 03:05:54 -0700 (PDT)
 MIME-Version: 1.0
-From: emaiwallet.alice@gmail.com
-To: suegamisora@gmail.com
-Subject: ZK Email: Accept Email
+References: <671cbe0c.170a0220.227c6.9303@mx.google.com>
+In-Reply-To: <671cbe0c.170a0220.227c6.9303@mx.google.com>
+From: Sora Suegami <suegamisora@gmail.com>
+Date: Sat, 26 Oct 2024 19:05:43 +0900
+Message-ID: <CAJ7Y6jcaUE4WXSQduhHb1mTokCzOP+1PVRfV_Kg7HB2vMayG4Q@mail.gmail.com>
+Subject: Re: [Reply Needed] Accept Email
+To: Alice <emaiwallet.alice@gmail.com>
+Content-Type: multipart/alternative; boundary="00000000000096498206255e6161"
 
---===============1515776820414120221==
-Content-Type: text/html; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
+--00000000000096498206255e6161
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Sat, Oct 26, 2024 at 7:01=E2=80=AFPM Alice <emaiwallet.alice@gmail.com> =
+wrote:
+
+> Hello!
+>
+> This is a test email with a basic HTML body.
+> Accept guardian request for 0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4
+> Code 1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54
+>
+> *Thank you!*
+>
 
 
-    <html>
-    <body>
+--=20
+---
+Sent with Gmail for Sidekick Browser <https://join.meetsidekick.com/_cdpcg>
+
+--00000000000096498206255e6161
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr"><br></div><br><div class=3D"gmail_quote"><div dir=3D"ltr" =
+class=3D"gmail_attr">On Sat, Oct 26, 2024 at 7:01=E2=80=AFPM Alice &lt;<a h=
+ref=3D"mailto:emaiwallet.alice@gmail.com">emaiwallet.alice@gmail.com</a>&gt=
+; wrote:<br></div><blockquote class=3D"gmail_quote" style=3D"margin:0px 0px=
+ 0px 0.8ex;border-left:1px solid rgb(204,204,204);padding-left:1ex">
+   =20
+    <div>
         <h1>Hello!</h1>
         <p>This is a test email with a basic HTML body.</p>
-        <div id=3D"zkemail">Accept guardian request for 0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4 Code 1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54</div>
+        <div id=3D"m_16945853983377788483D&quot;zkemail&quot;">Accept guard=
+ian request for 0xf5b492aDbc2ef7AE61825a69e34dc75E2e3a83E4 Code 1162ebff409=
+18afe5305e68396f0283eb675901d0387f97d21928d423aaa0b54</div>
         <p><b>Thank you!</b></p>
-    </body>
-    </html>
-    
---===============1515776820414120221==--
+    </div>
+   =20
+    </blockquote></div><br clear=3D"all"><div><br></div><span class=3D"gmai=
+l_signature_prefix">-- </span><br><div dir=3D"ltr" class=3D"gmail_signature=
+"><div dir=3D"ltr">---<br>Sent with Gmail for <a href=3D"https://join.meets=
+idekick.com/_cdpcg" target=3D"_blank">Sidekick Browser</a></div></div>
+
+--00000000000096498206255e6161--
