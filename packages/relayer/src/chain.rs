@@ -96,15 +96,11 @@ impl ChainClient {
     ) -> Result<bool> {
         // Call the contract method to check if the hash is valid
         let main_authorizer = dkim.main_authorizer().call().await?;
-        let is_valid = dkim
-            .is_dkim_public_key_hash_valid_with_domain_name_and_public_key_hash(
-                domain_name,
-                public_key_hash,
-                main_authorizer,
-            )
+        let is_set = dkim
+            .dkim_public_key_hashes(domain_name, public_key_hash, main_authorizer)
             .call()
             .await?;
-        Ok(is_valid)
+        Ok(is_set)
     }
 
     /// Gets the DKIM from a controller.
