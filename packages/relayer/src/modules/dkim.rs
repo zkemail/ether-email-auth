@@ -124,7 +124,7 @@ impl<'a> DkimOracleClient<'a> {
         let (response,) = self
             .wallet_canister
             .call128::<(Result<SignedDkimPublicKey, String>,), _>(
-                self.dkim_canister.canister_id().clone(),
+                *self.dkim_canister.canister_id(),
                 "sign_dkim_public_key",
                 arg,
                 SIGN_CHARGED_CYCLE,
