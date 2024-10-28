@@ -360,7 +360,7 @@ export PRIVATE_KEY={YOUR_PRIVATE_KEY}
 export RPC_URL=http://127.0.0.1:8011
 export CHAIN_ID=260
 forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
-forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_ADDRESS_YOU_DEPLOYED}
+forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_ADDRESS_YOU_DEPLOYED} --gas-limit 1000000000
 ```
 
 Set the libraries in foundry.toml using the above deployed address.
