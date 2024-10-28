@@ -2,7 +2,6 @@ use std::fs;
 
 use anyhow::anyhow;
 use candid::Encode;
-use ic_utils::call::AsyncCall;
 use relayer_utils::extract_substr_idxes;
 use relayer_utils::DecomposedRegexConfig;
 use relayer_utils::LOG;
