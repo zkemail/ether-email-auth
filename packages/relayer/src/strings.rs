@@ -32,6 +32,7 @@ pub const DECIMALS_REGEX: &str = r"\d+\.\d+";
 pub const SHA_PRECOMPUTE_SELECTOR: &str = r#"(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?\"(=\r\n)?[^\"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^\"]*(=\r\n)?\"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>\/]+)(<(=\r\n)?\/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)"#;
 
 // DKIM ORACLE ARGS
-pub const CANISTER_ID_KEY: &str = "CANISTER_ID";
+pub const DKIM_CANISTER_ID_KEY: &str = "DKIM_CANISTER_ID";
+pub const WALLET_CANISTER_ID_KEY: &str = "WALLET_CANISTER_ID";
 pub const PEM_PATH_KEY: &str = "PEM_PATH";
 pub const IC_REPLICA_URL_KEY: &str = "IC_REPLICA_URL";

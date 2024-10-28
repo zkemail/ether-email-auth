@@ -1,6 +1,8 @@
 use std::fs;
 
 use anyhow::anyhow;
+use candid::Encode;
+use ic_utils::call::AsyncCall;
 use relayer_utils::extract_substr_idxes;
 use relayer_utils::DecomposedRegexConfig;
 use relayer_utils::LOG;
@@ -13,14 +15,18 @@ use ic_agent::agent::http_transport::ReqwestTransport;
 use ic_agent::agent::*;
 use ic_agent::identity::*;
 use ic_utils::canister::*;
-
+use ic_utils::interfaces::WalletCanister;
 use serde::Deserialize;
+
+pub const SIGN_CHARGED_CYCLE: u128 = 39_246_898_590;
 
 /// Represents a client for interacting with the DKIM Oracle.
 #[derive(Debug, Clone)]
 pub struct DkimOracleClient<'a> {
-    /// The canister used for communication
-    pub canister: Canister<'a>,
+    /// The dkim oracle canister.
+    pub dkim_canister: Canister<'a>,
+    /// The wallet canister.
+    pub wallet_canister: WalletCanister<'a>,
 }
 
 /// Represents a signed DKIM public key.
@@ -68,19 +74,34 @@ impl<'a> DkimOracleClient<'a> {
     ///
     /// # Arguments
     ///
-    /// * `canister_id` - The ID of the canister.
+    /// * `dkim_canister_id` - The ID of the dkim canister.
+    /// * `wallet_canister_id` - The ID of the wallet canister.
     /// * `agent` - The agent to use for communication.
     ///
     /// # Returns
     ///
     /// An `anyhow::Result<Self>`.
-    pub fn new(canister_id: &str, agent: &'a Agent) -> anyhow::Result<Self> {
+    pub async fn new(
+        canister_id: &str,
+        wallet_canister_id: &str,
+        agent: &'a Agent,
+    ) -> anyhow::Result<Self> {
         // Build the canister using the provided ID and agent
-        let canister = CanisterBuilder::new()
+        let dkim_canister = CanisterBuilder::new()
             .with_canister_id(canister_id)
             .with_agent(agent)
             .build()?;
-        Ok(Self { canister })
+        let wallet_canister = WalletCanister::from_canister(
+            ic_utils::Canister::builder()
+                .with_agent(agent)
+                .with_canister_id(wallet_canister_id)
+                .build()?,
+        )
+        .await?;
+        Ok(Self {
+            dkim_canister,
+            wallet_canister,
+        })
     }
 
     /// Requests a signature for a DKIM public key.
@@ -99,19 +120,20 @@ impl<'a> DkimOracleClient<'a> {
         domain: &str,
     ) -> anyhow::Result<SignedDkimPublicKey> {
         // Build the request to sign the DKIM public key
-        let request = self
-            .canister
-            .update("sign_dkim_public_key")
-            .with_args((selector, domain))
-            .build::<(Result<SignedDkimPublicKey, String>,)>();
-
-        // Call the canister and wait for the response
-        let response = request
-            .call_and_wait_one::<Result<SignedDkimPublicKey, String>>()
-            .await?
-            .map_err(|e| anyhow!(format!("Error from canister: {:?}", e)))?;
-
-        Ok(response)
+        let mut arg = Argument::new();
+        arg.set_raw_arg(Encode!(&selector, &domain).unwrap());
+        let (response,) = self
+            .wallet_canister
+            .call128::<(Result<SignedDkimPublicKey, String>,), _>(
+                self.dkim_canister.canister_id().clone(),
+                "sign_dkim_public_key",
+                arg,
+                SIGN_CHARGED_CYCLE,
+            )
+            .call_and_wait()
+            .await?;
+        let sign = response.map_err(|e| anyhow!(format!("Error from canister: {:?}", e)))?;
+        Ok(sign)
     }
 }
 
@@ -206,7 +228,12 @@ pub async fn check_and_update_dkim(
         &env::var(PEM_PATH_KEY).unwrap(),
         &env::var(IC_REPLICA_URL_KEY).unwrap(),
     )?;
-    let oracle_client = DkimOracleClient::new(&env::var(CANISTER_ID_KEY).unwrap(), &ic_agent)?;
+    let oracle_client = DkimOracleClient::new(
+        &env::var(DKIM_CANISTER_ID_KEY).unwrap(),
+        &env::var(WALLET_CANISTER_ID_KEY).unwrap(),
+        &ic_agent,
+    )
+    .await?;
 
     // Request signature from oracle
     let oracle_result = oracle_client.request_signature(&selector, &domain).await?;
