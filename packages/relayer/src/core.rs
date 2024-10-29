@@ -65,6 +65,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
                 error: format!("Request {} not found", request_id),
                 original_subject,
                 original_message_id: parsed_email.get_message_id().ok(),
+                email_request_context: None,
+                command: None,
             });
         }
     };
@@ -142,6 +144,8 @@ async fn handle_email_request(
                 error: "Account code found and for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
+                email_request_context: None,
+                command: None,
             })
         }
         (None, _) => {
@@ -151,6 +155,8 @@ async fn handle_email_request(
                 error: "No account code found and not for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
+                email_request_context: None,
+                command: None,
             })
         }
     }
@@ -171,51 +177,19 @@ async fn accept(
     invitation_code: String,
 ) -> Result<EmailAuthEvent, EmailError> {
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
-
+    // It's needed for error message
+    let email_auth_msg_clone = email_auth_msg.clone();
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
 
     // Handle the acceptance with the client
-    let is_accepted = match CLIENT
+    let is_accepted = CLIENT
         .handle_acceptance(
             &params.request.controller_eth_addr,
             email_auth_msg,
             params.request.template_idx,
         )
-        .await
-    {
-        Ok(result) => result,
-        Err(e) => {
-            // Extract the email body from the context
-            let email_body = &params.email_body;
-
-            // Get the recipient email address from ERROR_EMAIL_ADDR
-            let recipient_email = ERROR_EMAIL_ADDR
-                .get()
-                .expect("ERROR_EMAIL_ADDR must be set before use")
-                .clone();
-
-            // Create the email message
-            let email = EmailMessage {
-                to: recipient_email,
-                subject: "Error in handle_acceptance".to_string(),
-                reference: None,
-                reply_to: None,
-                body_plain: format!("An error occurred: {}\n\nEmail Body:\n{}", e, email_body),
-                body_html: format!(
-                    "<p>An error occurred: {}</p><p>Email Body:</p><pre>{}</pre>",
-                    e, email_body
-                ),
-                body_attachments: None,
-            };
-
-            // Send the error email
-            send_email(email, None).await?;
-
-            // Wrap the ChainError into an EmailError and return it
-            return Err(EmailError::Chain(e));
-        }
-    };
+        .await?;
 
     update_request(
         &params,
@@ -245,10 +219,12 @@ async fn accept(
     } else {
         let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
+            email_addr: params.request.guardian_email_addr.clone(),
             error: "Failed to handle acceptance".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
+            email_request_context: Some(params),
+            command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
 }
@@ -301,6 +277,8 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
             error: "Failed to handle recovery".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
+            email_request_context: None,
+            command: None,
         })
     }
 }
@@ -509,15 +487,15 @@ async fn get_email_auth_msg(
 
 /// Represents the context for an email authentication request.
 #[derive(Debug, Clone)]
-struct EmailRequestContext {
+pub struct EmailRequestContext {
     /// The request details.
-    request: Request,
+    pub request: Request,
     /// The body of the email.
     email_body: String,
     /// The account code as a string.
     account_code_str: String,
     /// The full raw email.
-    email: String,
+    pub email: String,
     /// The parsed email.
     parsed_email: ParsedEmail,
 }

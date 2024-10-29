@@ -1,4 +1,5 @@
 use crate::*;
+use crate::core::EmailRequestContext;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -23,6 +24,8 @@ pub enum EmailAuthEvent {
         error: String,
         original_subject: String,
         original_message_id: Option<String>,
+        email_request_context: Option<EmailRequestContext>,
+        command: Option<String>,
     },
     RecoveryRequest {
         account_eth_addr: String,
@@ -143,7 +146,57 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             error,
             original_subject,
             original_message_id,
+            email_request_context,
+            command,
         } => {
+
+            // Send error notification to system user if this is a contract call error
+            if let (Some(email_request_context), Some(command)) = (email_request_context, command) {
+                let recipient_email = ERROR_EMAIL_ADDR
+                    .get()
+                    .expect("ERROR_EMAIL_ADDR must be set before use")
+                    .clone();
+                
+                let body_plain = format!(
+                    "Error: {}\n\n\
+                    Request ID: {}\n\
+                    Command: {}\n\
+                    Account Address: {}\n\
+                    Controller Address: {}\n\n\
+                    Email:\n{}",
+                    error,
+                    email_request_context.request.request_id,
+                    command,
+                    email_request_context.request.account_eth_addr,
+                    email_request_context.request.controller_eth_addr,
+                    email_request_context.email
+                );
+
+                let render_data = serde_json::json!({
+                    "error": error,
+                    "requestId": email_request_context.request.request_id,
+                    "command": command,
+                    "account_address": email_request_context.request.account_eth_addr,
+                    "controller_address": email_request_context.request.controller_eth_addr,
+                    "email": email_request_context.email,
+                });
+
+                let subject = format!("[Error] Request ID: {}", email_request_context.request.request_id);
+                let body_html = render_html("error_for_admin.html", render_data).await?;
+
+                let email = EmailMessage {
+                    to: recipient_email,
+                    subject,
+                    reference: None,
+                    reply_to: None,
+                    body_plain,
+                    body_html,
+                    body_attachments: None,
+                };
+
+                send_email(email, None).await?;
+            }
+
             let subject = format!("Re: {}", original_subject);
 
             let body_plain = format!(
