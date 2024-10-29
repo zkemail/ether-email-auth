@@ -21,7 +21,7 @@ public_path="${buildDir}/rapidsnark_public_${circuitName}_${nonce}.json"
 cd "${SCRIPT_DIR}"
 echo "entered zk email path: ${SCRIPT_DIR}"
 
-${paramsDir}/${circuitName} "${input_path}" "${witness_path}" | tee /dev/stderr
+${paramsDir}/${circuitName}_cpp/${circuitName} "${input_path}" "${witness_path}" | tee /dev/stderr
 status_jswitgen=$?
 echo "✓ Finished witness generation with cpp! ${status_jswitgen}"
 
