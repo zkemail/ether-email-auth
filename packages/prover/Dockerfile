@@ -36,6 +36,7 @@ RUN npm install -g n
 RUN n 22
 RUN npm install -g yarn snarkjs
 
+
 RUN git clone -b feat/audit-fix-2024-09-gpus https://github.com/zkemail/ether-email-auth.git
 WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
