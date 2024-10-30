@@ -85,7 +85,7 @@ contract Deploy is Script {
         // }
 
         // Deploy Verifier
-        verifier = Verifier(vm.envOr("_VERIFIER", address(0)));
+        verifier = Verifier(vm.envOr("VERIFIER", address(0)));
         if (address(verifier) == address(0)) {
             Verifier verifierImpl = new Verifier();
             console.log(
@@ -106,7 +106,7 @@ contract Deploy is Script {
         }
 
         // Deploy EmailAuth Implementation
-        emailAuthImpl = EmailAuth(vm.envOr("_EMAIL_AUTH_IMPL", address(0)));
+        emailAuthImpl = EmailAuth(vm.envOr("EMAIL_AUTH_IMPL", address(0)));
         if (address(emailAuthImpl) == address(0)) {
             emailAuthImpl = new EmailAuth();
             console.log(
