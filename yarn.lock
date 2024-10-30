@@ -3958,9 +3958,9 @@ node-int64@^0.4.0:
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
   integrity sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==
 
-"node-pre-gyp-github@git+https://github.com/ultamatt/node-pre-gyp-github.git":
+"node-pre-gyp-github@https://github.com/ultamatt/node-pre-gyp-github.git":
   version "1.4.3"
-  resolved "git+https://github.com/ultamatt/node-pre-gyp-github.git#e4961827f77751489bc8d4760a0479f3f985f34f"
+  resolved "https://github.com/ultamatt/node-pre-gyp-github.git#e4961827f77751489bc8d4760a0479f3f985f34f"
   dependencies:
     "@octokit/rest" "^15.9.5"
     commander "^2.17.0"
@@ -4512,6 +4512,10 @@ solhint@^3.6.1:
     text-table "^0.2.0"
   optionalDependencies:
     prettier "^2.8.3"
+
+"solidity-stringutils@github:LayerZero-Labs/solidity-stringutils":
+  version "0.0.1"
+  resolved "https://codeload.github.com/LayerZero-Labs/solidity-stringutils/tar.gz/eb21d6b502c2741145ab2a90f5f5b4fda9dfb218"
 
 source-map-support@0.5.13:
   version "0.5.13"
