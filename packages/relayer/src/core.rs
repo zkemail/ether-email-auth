@@ -179,6 +179,7 @@ async fn accept(
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
     // It's needed for error message
     let email_auth_msg_clone = email_auth_msg.clone();
+
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
 
@@ -240,6 +241,8 @@ async fn accept(
 /// A `Result` containing an `EmailAuthEvent` or an `EmailError`.
 async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailError> {
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
+    // It's needed for error message
+    let email_auth_msg_clone = email_auth_msg.clone();
 
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
@@ -273,12 +276,12 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
     } else {
         let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
+            email_addr: params.request.guardian_email_addr.clone(),
             error: "Failed to handle recovery".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
-            email_request_context: None,
-            command: None,
+            email_request_context: Some(params),
+            command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
 }
