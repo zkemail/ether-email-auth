@@ -1,5 +1,5 @@
-use crate::*;
 use crate::core::EmailRequestContext;
+use crate::*;
 use handlebars::Handlebars;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -149,14 +149,13 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
             email_request_context,
             command,
         } => {
-
             // Send error notification to system user if this is a contract call error
             if let (Some(email_request_context), Some(command)) = (email_request_context, command) {
                 let recipient_email = ERROR_EMAIL_ADDR
                     .get()
                     .expect("ERROR_EMAIL_ADDR must be set before use")
                     .clone();
-                
+
                 let body_plain = format!(
                     "Error: {}\n\n\
                     Request ID: {}\n\
@@ -181,7 +180,10 @@ pub async fn handle_email_event(event: EmailAuthEvent) -> Result<(), EmailError>
                     "email": email_request_context.email,
                 });
 
-                let subject = format!("[Error] Request ID: {}", email_request_context.request.request_id);
+                let subject = format!(
+                    "[Error] Request ID: {}",
+                    email_request_context.request.request_id
+                );
                 let body_html = render_html("error_for_admin.html", render_data).await?;
 
                 let email = EmailMessage {
