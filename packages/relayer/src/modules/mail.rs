@@ -24,7 +24,7 @@ pub enum EmailAuthEvent {
         error: String,
         original_subject: String,
         original_message_id: Option<String>,
-        email_request_context: Option<EmailRequestContext>,
+        email_request_context: Option<Box<EmailRequestContext>>,
         command: Option<String>,
     },
     RecoveryRequest {

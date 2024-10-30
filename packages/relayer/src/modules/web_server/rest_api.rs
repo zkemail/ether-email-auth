@@ -480,7 +480,7 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
                     error: e.to_string(),
                     original_subject,
                     original_message_id: parsed_email.get_message_id().ok(),
-                    email_request_context: None,
+                    email_request_context: *Box::new(None),
                     command: None,
                 })
                 .await

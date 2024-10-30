@@ -65,7 +65,7 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
                 error: format!("Request {} not found", request_id),
                 original_subject,
                 original_message_id: parsed_email.get_message_id().ok(),
-                email_request_context: None,
+                email_request_context: *Box::new(None),
                 command: None,
             });
         }
@@ -144,7 +144,7 @@ async fn handle_email_request(
                 error: "Account code found and for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
-                email_request_context: None,
+                email_request_context: *Box::new(None),
                 command: None,
             })
         }
@@ -155,7 +155,7 @@ async fn handle_email_request(
                 error: "No account code found and not for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
-                email_request_context: None,
+                email_request_context: *Box::new(None),
                 command: None,
             })
         }
@@ -224,7 +224,7 @@ async fn accept(
             error: "Failed to handle acceptance".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
-            email_request_context: Some(params),
+            email_request_context: Some(Box::new(params)),
             command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
@@ -280,7 +280,7 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
             error: "Failed to handle recovery".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
-            email_request_context: Some(params),
+            email_request_context: Some(Box::new(params)),
             command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
