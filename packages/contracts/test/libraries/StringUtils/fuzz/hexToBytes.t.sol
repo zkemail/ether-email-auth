@@ -2,13 +2,10 @@
 pragma solidity ^0.8.25;
 
 import {console} from "forge-std/console.sol";
-import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {StringUtils} from "src/libraries/StringUtils.sol";
 import {StructHelper} from "../../../helpers/StructHelper.sol";
 
 contract StringUtils_HexToBytes_Fuzz_Test is StructHelper {
-    using Strings for uint256;
-
     function setUp() public override {
         super.setUp();
     }

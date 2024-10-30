@@ -1,15 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { strings } from "solidity-stringutils/src/strings.sol";
 import { StringUtils } from "src/libraries/StringUtils.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import {StructHelper} from "../../helpers/StructHelper.sol";
 
 contract StringUtils_HexToBytes32_Test is StructHelper {
     using Strings for uint256;
-    using strings for *;
-
+    
     function setUp() public override {
         super.setUp();
     }
