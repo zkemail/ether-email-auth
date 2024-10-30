@@ -1763,10 +1763,10 @@
     "@zk-email/zk-regex-circom" "^2.3.0"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.0.tgz#f9b301f17b9fc81861dc8d15801428bb650c93f2"
-  integrity sha512-zt6EQbjczfCr1MAV0V0UVrYXDUFAaA+gcVqUSgbEOzMPByNXk8zlshoE49Aop/wC0K5gzgsB0OlcGDkNJg944w==
+"@zk-email/contracts@^6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.1.tgz#bb8c29181819974f766e0669c7bb7e012be32fff"
+  integrity sha512-SiSSaHvn6BrT0vFFPA48r7jdoZi+2ZmRfU4QEQamtMqBlzVbs3ZmgTzgR4SFWz2/1SP+IIzDs9pfkkqf+6Wqcw==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     "@openzeppelin/contracts-upgradeable" "^5.0.0"
