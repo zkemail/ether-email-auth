@@ -1,6 +1,7 @@
 import subprocess
 import os
 import json
+
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,6 +32,10 @@ def store_input(circuit_name: str, nonce: str, json_data: dict):
     logger.info(f"Store user input to {json_file_path}")
     with open(json_file_path, "w") as json_file:
         json_file.write(json_data)
+    # Read the file back
+    with open(json_file_path, "r") as json_file:
+        print(json_file.read())
+    print("Stored input")
 
 
 def load_proof(circuit_name: str, nonce: str) -> dict:
