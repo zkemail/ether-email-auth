@@ -229,4 +229,19 @@ contract DeploymentHelper is Test {
             vm.skip(false);
         }
     }
+
+    function resetEnviromentVariables() public {
+        vm.setEnv("PRIVATE_KEY", vm.toString(uint256(0)));
+        vm.setEnv("INITIAL_OWNER", vm.toString(uint256(0)));
+        vm.setEnv("DKIM_SIGNER", vm.toString(address(0)));
+        vm.setEnv("DKIM", vm.toString(address(0)));
+        vm.setEnv("DKIM_DELAY", vm.toString(uint256(0)));
+        vm.setEnv("ECDSA_DKIM", vm.toString(address(0)));
+        vm.setEnv("VERIFIER", vm.toString(address(0)));
+        vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(0)));
+        vm.setEnv("RECOVERY_CONTROLLER", vm.toString(address(0)));
+        vm.setEnv("RECOVERY_CONTROLLER_ZKSYNC", vm.toString(address(0)));
+        vm.setEnv("ZKSYNC_CREATE2_FACTORY", vm.toString(address(0)));
+        vm.setEnv("SIMPLE_WALLET", vm.toString(address(0)));
+    }
 }
