@@ -13,10 +13,6 @@ import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideable
 import {BaseDeployScript} from "./BaseDeployScript.sol";
 
 contract Upgrades is BaseDeployScript {
-    bytes32 verifierImplSalt = bytes32(uint256(0));
-    bytes32 ecdsaDkimImplSalt = bytes32(uint256(0));
-    bytes32 dkimImplSalt = bytes32(uint256(0));
-
     function run() public override {
         super.run();
 
@@ -39,7 +35,6 @@ contract Upgrades is BaseDeployScript {
 
     function upgradeVerifier(address verifierProxy) public {
         if (useDefender()) {
-            opts.defender.salt = verifierImplSalt;
             string memory newImplContractName = "Verifier.sol";
             ProposeUpgradeResponse memory response = Defender.proposeUpgrade(
                 verifierProxy,
@@ -56,9 +51,9 @@ contract Upgrades is BaseDeployScript {
             );
         }
     }
+    
     function upgradeECDSAOwnedDKIMRegistry(address ecdsaDkimProxy) public {
         if (useDefender()) {
-            opts.defender.salt = ecdsaDkimImplSalt;
             string memory newImplContractName = "ECDSAOwnedDKIMRegistry.sol";
             ProposeUpgradeResponse memory response = Defender.proposeUpgrade(
                 ecdsaDkimProxy,
@@ -78,9 +73,9 @@ contract Upgrades is BaseDeployScript {
             );
         }
     }
+
     function upgradeUserOverrideableDKIMRegistry(address dkimProxy) public {
         if (useDefender()) {
-            opts.defender.salt = dkimImplSalt;
             string
                 memory newImplContractName = "UserOverrideableDKIMRegistry.sol";
             ProposeUpgradeResponse memory response = Defender.proposeUpgrade(

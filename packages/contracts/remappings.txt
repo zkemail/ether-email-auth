@@ -9,4 +9,3 @@ solady/=../../node_modules/solady/src/
 accountabstraction/=../../node_modules/accountabstraction/
 solidity-stringutils/=../../node_modules/solidity-stringutils/
 openzeppelin-foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/
-openzeppelin-contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/

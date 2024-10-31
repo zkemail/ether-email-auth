@@ -26,7 +26,7 @@ contract SimpleWallet is OwnableUpgradeable, IERC1271 {
 
     constructor() {}
 
-        function initialize(
+    function initialize(
         address _initialOwner,
         address _recoveryController
     ) public initializer {
