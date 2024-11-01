@@ -59,7 +59,7 @@ contract BaseDeployScript is Script {
                 return;
             }
 
-            initialOwner = vm.envAddress("INITIAL_OWNER");
+            initialOwner = vm.envOr("INITIAL_OWNER", address(0));
             if (initialOwner == address(0)) {
                 initialOwner = vm.addr(deployerPrivateKey);
             }
