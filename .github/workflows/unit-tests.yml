@@ -63,6 +63,10 @@ jobs:
         working-directory: packages/contracts
         run: yarn test
 
+      - name: Run script tests
+        working-directory: packages/contracts
+        run: yarn test:script
+
   relayer:
     name: relayer
     runs-on: ubuntu-latest
