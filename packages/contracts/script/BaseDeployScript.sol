@@ -61,22 +61,25 @@ contract BaseDeployScript is Script {
 
             initialOwner = vm.envAddress("INITIAL_OWNER");
             if (initialOwner == address(0)) {
-                console.log("INITIAL_OWNER env var not set");
-                return;
+                initialOwner = vm.addr(deployerPrivateKey);
             }
         }
     }
 
     /// @notice Deploys a UserOverrideableDKIMRegistry contract with a specified owner, dkim signer and time delay
-    function deployUserOverrideableDKIMRegistry(address owner, address dkimSigner, uint256 timeDelay)
-        public
-        returns (address)
-    {
+    function deployUserOverrideableDKIMRegistry(
+        address owner,
+        address dkimSigner,
+        uint256 timeDelay
+    ) public returns (address) {
         address dkimProxyAddress;
         if (useDefender()) {
             dkimProxyAddress = Upgrades.deployUUPSProxy(
                 "UserOverrideableDKIMRegistry.sol",
-                abi.encodeCall(UserOverrideableDKIMRegistry.initialize, (owner, dkimSigner, timeDelay)),
+                abi.encodeCall(
+                    UserOverrideableDKIMRegistry.initialize,
+                    (owner, dkimSigner, timeDelay)
+                ),
                 opts
             );
         } else {
@@ -84,30 +87,51 @@ contract BaseDeployScript is Script {
             dkimProxyAddress = address(
                 new ERC1967Proxy(
                     address(dkimImpl),
-                    abi.encodeCall(UserOverrideableDKIMRegistry.initialize, (owner, dkimSigner, timeDelay))
+                    abi.encodeCall(
+                        UserOverrideableDKIMRegistry.initialize,
+                        (owner, dkimSigner, timeDelay)
+                    )
                 )
             );
         }
-        console.log("UseroverrideableDKIMRegistry proxy deployed at: %s", dkimProxyAddress);
+        console.log(
+            "UseroverrideableDKIMRegistry proxy deployed at: %s",
+            dkimProxyAddress
+        );
         return dkimProxyAddress;
     }
 
     /// @notice Deploys an ECDSAOwnedDKIMRegistry contract with a specified owner and dkim signer
-    function deployECDSAOwnedDKIMRegistry(address owner, address dkimSigner) public returns (address) {
+    function deployECDSAOwnedDKIMRegistry(
+        address owner,
+        address dkimSigner
+    ) public returns (address) {
         address ecdsaDkimProxyAddress;
         if (useDefender()) {
             ecdsaDkimProxyAddress = Upgrades.deployUUPSProxy(
                 "ECDSAOwnedDKIMRegistry.sol",
-                abi.encodeCall(ECDSAOwnedDKIMRegistry.initialize, (owner, dkimSigner)),
+                abi.encodeCall(
+                    ECDSAOwnedDKIMRegistry.initialize,
+                    (owner, dkimSigner)
+                ),
                 opts
             );
         } else {
             ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
             ecdsaDkimProxyAddress = address(
-                new ERC1967Proxy(address(ecdsaDkimImpl), abi.encodeCall(ecdsaDkimImpl.initialize, (owner, dkimSigner)))
+                new ERC1967Proxy(
+                    address(ecdsaDkimImpl),
+                    abi.encodeCall(
+                        ecdsaDkimImpl.initialize,
+                        (owner, dkimSigner)
+                    )
+                )
             );
         }
-        console.log("ECDSAOwnedDKIMRegistry proxy deployed at: %s", ecdsaDkimProxyAddress);
+        console.log(
+            "ECDSAOwnedDKIMRegistry proxy deployed at: %s",
+            ecdsaDkimProxyAddress
+        );
         return ecdsaDkimProxyAddress;
     }
 
@@ -115,16 +139,25 @@ contract BaseDeployScript is Script {
     function deployVerifier(address owner) public returns (address) {
         address verifierProxyAddress;
         if (useDefender()) {
-            address groth16Verifier = Defender.deployContract("Groth16Verifier.sol", opts.defender);
+            address groth16Verifier = Defender.deployContract(
+                "Groth16Verifier.sol",
+                opts.defender
+            );
             verifierProxyAddress = Upgrades.deployUUPSProxy(
-                "Verifier.sol", abi.encodeCall(Verifier.initialize, (owner, groth16Verifier)), opts
+                "Verifier.sol",
+                abi.encodeCall(Verifier.initialize, (owner, groth16Verifier)),
+                opts
             );
         } else {
             Verifier verifierImpl = new Verifier();
             Groth16Verifier groth16Verifier = new Groth16Verifier();
             verifierProxyAddress = address(
                 new ERC1967Proxy(
-                    address(verifierImpl), abi.encodeCall(verifierImpl.initialize, (owner, address(groth16Verifier)))
+                    address(verifierImpl),
+                    abi.encodeCall(
+                        verifierImpl.initialize,
+                        (owner, address(groth16Verifier))
+                    )
                 )
             );
         }
@@ -136,24 +169,35 @@ contract BaseDeployScript is Script {
     function deployEmailAuthImplementation() public returns (address) {
         address emailAuthImplAddress;
         if (useDefender()) {
-            emailAuthImplAddress = Upgrades.deployImplementation("EmailAuth.sol", opts);
+            emailAuthImplAddress = Upgrades.deployImplementation(
+                "EmailAuth.sol",
+                opts
+            );
         } else {
             emailAuthImplAddress = address(new EmailAuth());
         }
-        console.log("EmailAuth implementation deployed at: %s", emailAuthImplAddress);
+        console.log(
+            "EmailAuth implementation deployed at: %s",
+            emailAuthImplAddress
+        );
         return emailAuthImplAddress;
     }
 
     /// @notice Deploys a RecoveryController contract with specified owner, verifier, DKIM registry and EmailAuth implementation
-    function deployRecoveryController(address owner, address verifier, address dkim, address emailAuthImpl)
-        public
-        returns (address)
-    {
+    function deployRecoveryController(
+        address owner,
+        address verifier,
+        address dkim,
+        address emailAuthImpl
+    ) public returns (address) {
         address recoveryControllerProxyAddress;
         if (useDefender()) {
             recoveryControllerProxyAddress = Upgrades.deployUUPSProxy(
                 "RecoveryController.sol",
-                abi.encodeCall(RecoveryController.initialize, (owner, verifier, dkim, emailAuthImpl)),
+                abi.encodeCall(
+                    RecoveryController.initialize,
+                    (owner, verifier, dkim, emailAuthImpl)
+                ),
                 opts
             );
         } else {
@@ -161,11 +205,17 @@ contract BaseDeployScript is Script {
             recoveryControllerProxyAddress = address(
                 new ERC1967Proxy(
                     address(recoveryControllerImpl),
-                    abi.encodeCall(RecoveryController.initialize, (owner, verifier, dkim, emailAuthImpl))
+                    abi.encodeCall(
+                        RecoveryController.initialize,
+                        (owner, verifier, dkim, emailAuthImpl)
+                    )
                 )
             );
         }
-        console.log("RecoveryController deployed at: %s", recoveryControllerProxyAddress);
+        console.log(
+            "RecoveryController deployed at: %s",
+            recoveryControllerProxyAddress
+        );
         return recoveryControllerProxyAddress;
     }
 
@@ -184,7 +234,14 @@ contract BaseDeployScript is Script {
                 "RecoveryControllerZKSync.sol",
                 abi.encodeCall(
                     RecoveryControllerZKSync.initialize,
-                    (owner, verifier, dkim, emailAuthImpl, factoryImpl, proxyBytecodeHash)
+                    (
+                        owner,
+                        verifier,
+                        dkim,
+                        emailAuthImpl,
+                        factoryImpl,
+                        proxyBytecodeHash
+                    )
                 ),
                 opts
             );
@@ -195,12 +252,22 @@ contract BaseDeployScript is Script {
                     address(recoveryControllerZKSyncImpl),
                     abi.encodeCall(
                         recoveryControllerZKSyncImpl.initialize,
-                        (owner, verifier, dkim, emailAuthImpl, factoryImpl, proxyBytecodeHash)
+                        (
+                            owner,
+                            verifier,
+                            dkim,
+                            emailAuthImpl,
+                            factoryImpl,
+                            proxyBytecodeHash
+                        )
                     )
                 )
             );
         }
-        console.log("RecoveryControllerZKSync deployed at: %s", recoveryControllerProxyAddress);
+        console.log(
+            "RecoveryControllerZKSync deployed at: %s",
+            recoveryControllerProxyAddress
+        );
         return recoveryControllerProxyAddress;
     }
 
@@ -208,7 +275,10 @@ contract BaseDeployScript is Script {
     function deployZKSyncCreate2Factory() public returns (address) {
         address factoryImplAddress;
         if (useDefender()) {
-            factoryImplAddress = Defender.deployContract("ZKSyncCreate2Factory.sol", opts.defender);
+            factoryImplAddress = Defender.deployContract(
+                "ZKSyncCreate2Factory.sol",
+                opts.defender
+            );
         } else {
             factoryImplAddress = address(new ZKSyncCreate2Factory());
         }
@@ -217,18 +287,29 @@ contract BaseDeployScript is Script {
     }
 
     /// @notice Deploys a SimpleWallet contract with a specified owner and recovery controller
-    function deploySimpleWallet(address owner, address recoveryController) public returns (address) {
+    function deploySimpleWallet(
+        address owner,
+        address recoveryController
+    ) public returns (address) {
         address simpleWalletProxyAddress;
         if (useDefender()) {
             simpleWalletProxyAddress = Upgrades.deployUUPSProxy(
-                "SimpleWallet.sol", abi.encodeCall(SimpleWallet.initialize, (owner, recoveryController)), opts
+                "SimpleWallet.sol",
+                abi.encodeCall(
+                    SimpleWallet.initialize,
+                    (owner, recoveryController)
+                ),
+                opts
             );
         } else {
             SimpleWallet simpleWalletImpl = new SimpleWallet();
             simpleWalletProxyAddress = address(
                 new ERC1967Proxy(
                     address(simpleWalletImpl),
-                    abi.encodeCall(simpleWalletImpl.initialize, (owner, address(recoveryController)))
+                    abi.encodeCall(
+                        simpleWalletImpl.initialize,
+                        (owner, address(recoveryController))
+                    )
                 )
             );
         }
