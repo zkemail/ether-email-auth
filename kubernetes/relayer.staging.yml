@@ -33,7 +33,7 @@ data:
   DATABASE_URL:
   PROVER_ADDRESS:
   ICPEM:
-
+  ERROR_EMAIL_ADDR:
 ---
 apiVersion: v1
 kind: Secret

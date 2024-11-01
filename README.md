@@ -67,6 +67,9 @@ This allows our on-chain verifier to authenticate the email sender and authorize
 
 For detailed setup instructions, see [here](./packages/circuits/README.md).
 
+### Infrastructure Package
+For detailed instructions on how to manage infrastructure metrics and alerts in Google Cloud Platform (GCP), please refer to the [Infrastructure Management Scripts](./infrastructure/README.md) documentation.
+
 ### `contracts` Package
 It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
 

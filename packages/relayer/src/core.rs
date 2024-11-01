@@ -65,6 +65,8 @@ pub async fn handle_email(email: String) -> Result<EmailAuthEvent, EmailError> {
                 error: format!("Request {} not found", request_id),
                 original_subject,
                 original_message_id: parsed_email.get_message_id().ok(),
+                email_request_context: *Box::new(None),
+                command: None,
             });
         }
     };
@@ -142,6 +144,8 @@ async fn handle_email_request(
                 error: "Account code found and for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
+                email_request_context: *Box::new(None),
+                command: None,
             })
         }
         (None, _) => {
@@ -151,6 +155,8 @@ async fn handle_email_request(
                 error: "No account code found and not for recovery".to_string(),
                 original_subject,
                 original_message_id: params.parsed_email.get_message_id().ok(),
+                email_request_context: *Box::new(None),
+                command: None,
             })
         }
     }
@@ -171,6 +177,8 @@ async fn accept(
     invitation_code: String,
 ) -> Result<EmailAuthEvent, EmailError> {
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
+    // It's needed for error message
+    let email_auth_msg_clone = email_auth_msg.clone();
 
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
@@ -212,10 +220,12 @@ async fn accept(
     } else {
         let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
+            email_addr: params.request.guardian_email_addr.clone(),
             error: "Failed to handle acceptance".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
+            email_request_context: Some(Box::new(params)),
+            command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
 }
@@ -231,6 +241,8 @@ async fn accept(
 /// A `Result` containing an `EmailAuthEvent` or an `EmailError`.
 async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailError> {
     let (email_auth_msg, email_proof, account_salt) = get_email_auth_msg(&params).await?;
+    // It's needed for error message
+    let email_auth_msg_clone = email_auth_msg.clone();
 
     info!(LOG, "Email Auth Msg: {:?}", email_auth_msg);
     info!(LOG, "Request: {:?}", params.request);
@@ -264,10 +276,12 @@ async fn recover(params: EmailRequestContext) -> Result<EmailAuthEvent, EmailErr
     } else {
         let original_subject = params.parsed_email.get_subject_all()?;
         Ok(EmailAuthEvent::Error {
-            email_addr: params.request.guardian_email_addr,
+            email_addr: params.request.guardian_email_addr.clone(),
             error: "Failed to handle recovery".to_string(),
             original_subject,
             original_message_id: params.parsed_email.get_message_id().ok(),
+            email_request_context: Some(Box::new(params)),
+            command: Some(email_auth_msg_clone.proof.masked_command),
         })
     }
 }
@@ -476,15 +490,15 @@ async fn get_email_auth_msg(
 
 /// Represents the context for an email authentication request.
 #[derive(Debug, Clone)]
-struct EmailRequestContext {
+pub struct EmailRequestContext {
     /// The request details.
-    request: Request,
+    pub request: Request,
     /// The body of the email.
     email_body: String,
     /// The account code as a string.
     account_code_str: String,
     /// The full raw email.
-    email: String,
+    pub email: String,
     /// The parsed email.
     parsed_email: ParsedEmail,
 }

@@ -56,7 +56,7 @@ You can run the relayer either on your local environments or cloud instances (we
         CANISTER_ID="q7eci-dyaaa-aaaak-qdbia-cai"
         PEM_PATH="./.ic.pem"
         IC_REPLICA_URL="https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
-
+        ERROR_EMAIL_ADDR="" # System user email address receiving error notification for user
         JSON_LOGGER=false
         ```
     3. Generate the `.ic.pem` file and password.
