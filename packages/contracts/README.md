@@ -242,6 +242,13 @@ Partial comment-out files can be found the following. Please uncomment them.
 - src/utils/ZKSyncCreate2Factory.sol
 - test/helpers/DeploymentHelper.sol
 
+In contrast, at this point you need to comment out the following files. We plan to fix this issue in the near future:
+
+- test/libraries/StringUtils/hexToBytes.t.sol
+- test/libraries/StringUtils/hexToBytes32.t.sol
+- test/libraries/StringUtils/fuzz/hexToBytes.t.sol
+- test/libraries/StringUtils/fuzz/hexToBytes32.t.sol
+
 At the first forge build, you need to detect the missing libraries.
 
 ```
@@ -274,7 +281,9 @@ Also, this line is needed only for foundry-zksync, if you use foundry, please re
 ```
 libraries = [
     "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
-    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"]
+    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"
+    "{PROJECT_DIR}/packages/contracts/src/libraries/StringUtils.sol:StringUtils:{DEPLOYED_ADDRESS}" # IF YOU WANT
+]
 ```
 
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
@@ -330,7 +339,8 @@ EmailAuth.t.sol
 
 EmailAuthWithUserOverrideableDkim.t.sol
 
-- testAuthEmail()
+- testAuthEmailAfterEnabled()
+- testAuthEmailBeforeEnabled()
 
 # For integration testing
 
@@ -397,6 +407,13 @@ forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key $PRIVATE_
 forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_ADDRESS_YOU_DEPLOYED}
 ```
 
+We have StringUtils in this repo, but this repo don't use this util contract. 
+If you want to use this, you need to deploy.
+
+```
+forge create src/libraries/StringUtils.sol:StringUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
+```
+
 After that, you can see the following line in foundry.toml.
 Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
 
@@ -404,6 +421,7 @@ Also, this line is needed only for foundry-zksync, if you use foundry, please re
 libraries = [
     "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
     "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"]
+    "{PROJECT_DIR}/packages/contracts/src/libraries/StringUtils.sol:StringUtils:{DEPLOYED_ADDRESS}" # IF YOU WANT    
 ```
 
 Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
