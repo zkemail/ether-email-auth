@@ -18,7 +18,7 @@ You can run the relayer either on your local environments or cloud instances (we
     PRIVATE_KEY=""
     CHAIN_ID=84532
     RPC_URL="https://sepolia.base.org"
-    SIGNER=0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0 # Signer for the dkim oracle on IC
+    SIGNER=0x6293a80bf4bd3fff995a0cab74cbf281d922da02 # Signer for the dkim oracle on IC (Don't change this)
     ETHERSCAN_API_KEY=
     # CHAIN_NAME="base_sepolia"
     ```
