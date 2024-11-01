@@ -89,7 +89,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("UseroverrideableDKIMRegistry proxy deployed at: %s", dkimProxyAddress);
-        vm.setEnv("DKIM", vm.toString(dkimProxyAddress));
         return dkimProxyAddress;
     }
 
@@ -109,7 +108,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("ECDSAOwnedDKIMRegistry proxy deployed at: %s", ecdsaDkimProxyAddress);
-        vm.setEnv("ECDSA_DKIM", vm.toString(ecdsaDkimProxyAddress));
         return ecdsaDkimProxyAddress;
     }
 
@@ -131,7 +129,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("Verifier deployed at: %s", verifierProxyAddress);
-        vm.setEnv("VERIFIER", vm.toString(verifierProxyAddress));
         return verifierProxyAddress;
     }
 
@@ -144,7 +141,6 @@ contract BaseDeployScript is Script {
             emailAuthImplAddress = address(new EmailAuth());
         }
         console.log("EmailAuth implementation deployed at: %s", emailAuthImplAddress);
-        vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(emailAuthImplAddress));
         return emailAuthImplAddress;
     }
 
@@ -170,7 +166,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("RecoveryController deployed at: %s", recoveryControllerProxyAddress);
-        vm.setEnv("RECOVERY_CONTROLLER", vm.toString(recoveryControllerProxyAddress));
         return recoveryControllerProxyAddress;
     }
 
@@ -206,7 +201,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("RecoveryControllerZKSync deployed at: %s", recoveryControllerProxyAddress);
-        vm.setEnv("RECOVERY_CONTROLLER_ZKSYNC", vm.toString(recoveryControllerProxyAddress));
         return recoveryControllerProxyAddress;
     }
 
@@ -219,7 +213,6 @@ contract BaseDeployScript is Script {
             factoryImplAddress = address(new ZKSyncCreate2Factory());
         }
         console.log("ZKSyncCreate2Factory deployed at: %s", factoryImplAddress);
-        vm.setEnv("ZKSYNC_CREATE2_FACTORY", vm.toString(factoryImplAddress));
         return factoryImplAddress;
     }
 
@@ -240,7 +233,6 @@ contract BaseDeployScript is Script {
             );
         }
         console.log("SimpleWallet deployed at: %s", simpleWalletProxyAddress);
-        vm.setEnv("SIMPLE_WALLET", vm.toString(simpleWalletProxyAddress));
         return simpleWalletProxyAddress;
     }
 }
