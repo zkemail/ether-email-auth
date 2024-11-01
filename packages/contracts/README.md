@@ -427,3 +427,8 @@ Second just run the following commands with `--zksync`
 source .env
 forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
 ```
+
+
+## Emergency Response
+
+For information on how upgrade contracts for handling emergency situations, please refer to our [Upgrading Contracts](../../docs/upgrade.md).
