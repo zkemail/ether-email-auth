@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
-import { strings } from "solidity-stringutils/src/strings.sol";
-import { console } from "forge-std/console.sol";
+import {strings} from "solidity-stringutils/src/strings.sol";
 
 /**
  * @title StringUtils
@@ -17,16 +16,26 @@ library StringUtils {
      * @param hexStr The hexadecimal string to convert. Must start with "0x" prefix.
      * @return bytes A bytes array representing the converted hexadecimal string.
      */
-    function hexToBytes(string calldata hexStr) public pure returns (bytes memory) {
-        require(hexStr.toSlice().startsWith("0x".toSlice()), "invalid hex prefix");
+    function hexToBytes(
+        string calldata hexStr
+    ) public pure returns (bytes memory) {
+        require(
+            hexStr.toSlice().startsWith("0x".toSlice()),
+            "invalid hex prefix"
+        );
         string memory hexStrNoPrefix = hexStr[2:];
         bytes memory hexBytes = bytes(hexStrNoPrefix);
-        require(hexBytes.length != 0 && hexBytes.length % 2 == 0, "invalid hex string length");
+        require(
+            hexBytes.length != 0 && hexBytes.length % 2 == 0,
+            "invalid hex string length"
+        );
 
         bytes memory result = new bytes(hexBytes.length / 2);
         for (uint256 i = 0; i < hexBytes.length / 2; i++) {
-            result[i] =
-                bytes1((hexChar2Int(hexBytes[2 * i]) << 4) + hexChar2Int(hexBytes[2 * i + 1]));
+            result[i] = bytes1(
+                (hexChar2Int(hexBytes[2 * i]) << 4) +
+                    hexChar2Int(hexBytes[2 * i + 1])
+            );
         }
         return result;
     }
@@ -36,7 +45,9 @@ library StringUtils {
      * @param hexStr The hexadecimal string to convert.
      * @return bytes32 A bytes32 value representing the converted hexadecimal string.
      */
-    function hexToBytes32(string calldata hexStr) public pure returns (bytes32) {
+    function hexToBytes32(
+        string calldata hexStr
+    ) public pure returns (bytes32) {
         bytes memory result = hexToBytes(hexStr);
         require(result.length == 32, "bytes length is not 32");
         return bytes32(result);
