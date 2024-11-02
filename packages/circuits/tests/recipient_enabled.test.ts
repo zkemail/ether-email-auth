@@ -3,7 +3,7 @@ const wasm_tester = circom_tester.wasm;
 import * as path from "path";
 const relayerUtils = require("@zk-email/relayer-utils");
 import { genEmailCircuitInput } from "../helpers/email_auth";
-import { genRecipientInput } from "../helpers/recipient";
+import { genRecipientInputLegacy } from "../helpers/recipient";
 import { readFileSync } from "fs";
 
 jest.setTimeout(1440000);
@@ -40,7 +40,7 @@ describe("Email Auth", () => {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        const recipientInput = await genRecipientInput(emailFilePath);
+        const recipientInput = await genRecipientInputLegacy(emailFilePath);
         const circuitInputs = {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx,
@@ -124,7 +124,7 @@ describe("Email Auth", () => {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        const recipientInput = await genRecipientInput(emailFilePath);
+        const recipientInput = await genRecipientInputLegacy(emailFilePath);
         const circuitInputs = {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx,
@@ -208,7 +208,7 @@ describe("Email Auth", () => {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        const recipientInput = await genRecipientInput(emailFilePath);
+        const recipientInput = await genRecipientInputLegacy(emailFilePath);
         const circuitInputs = {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx,
@@ -290,7 +290,7 @@ describe("Email Auth", () => {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        const recipientInput = await genRecipientInput(emailFilePath);
+        const recipientInput = await genRecipientInputLegacy(emailFilePath);
         const circuitInputs = {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx,
@@ -362,7 +362,7 @@ describe("Email Auth", () => {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        const recipientInput = await genRecipientInput(emailFilePath);
+        const recipientInput = await genRecipientInputLegacy(emailFilePath);
         const circuitInputs = {
             ...emailAuthInput,
             subject_email_addr_idx: recipientInput.subject_email_addr_idx,
