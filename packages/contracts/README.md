@@ -228,6 +228,9 @@ yarn build
 
 # Install foundry-zksync, please follow this URL
 https://foundry-book.zksync.io/getting-started/installation
+
+# Install era-test-node
+https://github.com/matter-labs/era-test-node
 ```
 
 Next, you should uncomment the following lines in `foundry.toml`.
