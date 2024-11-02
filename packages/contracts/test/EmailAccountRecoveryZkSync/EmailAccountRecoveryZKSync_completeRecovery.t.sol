@@ -163,7 +163,7 @@ contract EmailAccountRecoveryZKSyncTest_completeRecovery is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.warp(4 days);
+        vm.warp(block.timestamp + 4 days);
         recoveryControllerZKSync.completeRecovery(
             address(simpleWallet),
             new bytes(0)
@@ -213,7 +213,7 @@ contract EmailAccountRecoveryZKSyncTest_completeRecovery is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.warp(4 days);
+        vm.warp(block.timestamp + 4 days);
         vm.expectRevert(bytes("recovery not in progress"));
         bytes memory recoveryCalldata;
         recoveryControllerZKSync.completeRecovery(
