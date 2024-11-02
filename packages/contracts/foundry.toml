@@ -23,10 +23,11 @@ ast = true
 build_info = true
 extra_output = ["storageLayout"]
 
-# For missing libraries, please comment out this if you use foundry-zksync for unit test
+# For missing libraries, please comment out following line and replace some placeholders if you use foundry-zksync
 #libraries = [
-#    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
-#    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}",
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}",
+#    "{PROJECT_DIR}/packages/contracts/src/libraries/StringUtils.sol:StringUtils:{DEPLOYED_ADDRESS}"
 #]
 
 [rpc_endpoints]

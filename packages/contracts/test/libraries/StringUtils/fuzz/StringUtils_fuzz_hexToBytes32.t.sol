@@ -5,25 +5,29 @@ import { StringUtils } from "src/libraries/StringUtils.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { StructHelper } from "../../../helpers/StructHelper.sol";
 
+// Currently, tests in this contract are disabled on zkSync 
+// due to LLVM issues with Strings and StringUtils libraries
 contract StringUtils_HexToBytes32_Fuzz_Test is StructHelper {
     using Strings for uint256;
 
     function setUp() public override {
         super.setUp();
     }
+    
+    function testFuzz_hexToBytes32_ComputesExpectedHash(bytes32 expectedHash) public {
+        skipIfZkSync();
 
-    function testFuzz_hexToBytes32_ComputesExpectedHash(bytes32 expectedHash) public pure {
         string memory hashString = uint256(expectedHash).toHexString(32);
-
         bytes32 hashResult = StringUtils.hexToBytes32(hashString);
 
         assertEq(hashResult, expectedHash);
     }
 
-    function testFuzz_hexToBytes32_ComputesExpectedAddressHash(address addressToHash) public pure {
+    function testFuzz_hexToBytes32_ComputesExpectedAddressHash(address addressToHash) public {
+        skipIfZkSync();
+
         bytes32 expectedHash = keccak256(abi.encodePacked(addressToHash));
         string memory hashString = uint256(expectedHash).toHexString(32);
-
         bytes32 hashResult = StringUtils.hexToBytes32(hashString);
 
         assertEq(hashResult, expectedHash);
@@ -31,8 +35,9 @@ contract StringUtils_HexToBytes32_Fuzz_Test is StructHelper {
 
     function testFuzz_hexToBytes32_ComputesExpectedCalldataHash(bytes memory calldataToHash)
         public
-        pure
     {
+        skipIfZkSync();
+
         bytes32 expectedHash = keccak256(calldataToHash);
         string memory hashString = uint256(expectedHash).toHexString(32);
 
