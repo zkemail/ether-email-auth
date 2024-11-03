@@ -60,6 +60,14 @@ The `email_auth.circom` makes constraints and computes the public output as foll
 12. Let `embedded_code`  be an integer parsing `code_str` as a hex string.
 13. If `is_code_exist` is 1, assert that `embedded_code` is equal to `account_code`.
 14. Let `account_salt` be `PoseidonHash(from_addr|0..0, account_code, 0)`.
-15. Let `masked_subject` be a string that removes `code_str`, the prefix of the invitation code, and one email address from `subject`, if they appear in `subject`.
+15. Let `masked_subject` be a string that removes the invitation code with the prefix `code_str` and one email address from `subject`, if they appear in `subject`.
 
 Note that the email address in the subject is assumbed not to overlap with the invitation code.
+
+
+#### `email_auth_with_body_parsing_with_qp_encoding.circom`
+A circuit to verify that a message in the email body, called command, is authorized by a user of an account salt, derived from an email address in the From field and a random field value called account code.
+This is basically the same as the `email_auth.circom` described above except for the following features:
+- Instead of `subject_idx`, it additionally takes as a private input a padded email body `padded_cleaned_body` and an index of the command in the email body `command_idx`.
+- It extracts a substring `command` between a prefix `(<div id=3D\"[^\"]*zkemail[^\"]*\"[^>]*>)"` and a suffix `</div>` from `padded_cleaned_body`.
+- It outputs `masked_command` instead of `masked_subject`, which removes the invitation code with the prefix and one email address from `command`.

@@ -6,7 +6,10 @@ import {EmailAccountRecoveryZKSync} from "../../src/EmailAccountRecoveryZKSync.s
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
 
-contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKSync {
+contract RecoveryControllerZKSync is
+    OwnableUpgradeable,
+    EmailAccountRecoveryZKSync
+{
     enum GuardianStatus {
         NONE,
         REQUESTED,
@@ -34,13 +37,15 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
         address _verifier,
         address _dkim,
         address _emailAuthImplementation,
-        address _factory
+        address _factory,
+        bytes32 _proxyBytecodeHash
     ) public initializer {
         __Ownable_init(_initialOwner);
         verifierAddr = _verifier;
         dkimAddr = _dkim;
         emailAuthImplementationAddr = _emailAuthImplementation;
         factoryAddr = _factory;
+        proxyBytecodeHash = _proxyBytecodeHash;
     }
 
     function isActivated(
@@ -49,7 +54,7 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
         return isActivatedOfAccount[recoveredAccount];
     }
 
-    function acceptanceSubjectTemplates()
+    function acceptanceCommandTemplates()
         public
         pure
         override
@@ -65,7 +70,7 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
         return templates;
     }
 
-    function recoverySubjectTemplates()
+    function recoveryCommandTemplates()
         public
         pure
         override
@@ -84,22 +89,22 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
         return templates;
     }
 
-    function extractRecoveredAccountFromAcceptanceSubject(
-        bytes[] memory subjectParams,
+    function extractRecoveredAccountFromAcceptanceCommand(
+        bytes[] memory commandParams,
         uint templateIdx
     ) public pure override returns (address) {
         require(templateIdx == 0, "invalid template index");
-        require(subjectParams.length == 1, "invalid subject params");
-        return abi.decode(subjectParams[0], (address));
+        require(commandParams.length == 1, "invalid command params");
+        return abi.decode(commandParams[0], (address));
     }
 
-    function extractRecoveredAccountFromRecoverySubject(
-        bytes[] memory subjectParams,
+    function extractRecoveredAccountFromRecoveryCommand(
+        bytes[] memory commandParams,
         uint templateIdx
     ) public pure override returns (address) {
         require(templateIdx == 0, "invalid template index");
-        require(subjectParams.length == 2, "invalid subject params");
-        return abi.decode(subjectParams[0], (address));
+        require(commandParams.length == 2, "invalid command params");
+        return abi.decode(commandParams[0], (address));
     }
 
     function requestGuardian(address guardian) public {
@@ -123,10 +128,10 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
     function acceptGuardian(
         address guardian,
         uint templateIdx,
-        bytes[] memory subjectParams,
+        bytes[] memory commandParams,
         bytes32
     ) internal override {
-        address account = abi.decode(subjectParams[0], (address));
+        address account = abi.decode(commandParams[0], (address));
         require(!isRecovering[account], "recovery in progress");
         require(guardian != address(0), "invalid guardian");
 
@@ -135,17 +140,17 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
             "guardian status must be REQUESTED"
         );
         require(templateIdx == 0, "invalid template index");
-        require(subjectParams.length == 1, "invalid subject params");
+        require(commandParams.length == 1, "invalid command params");
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 
     function processRecovery(
         address guardian,
         uint templateIdx,
-        bytes[] memory subjectParams,
+        bytes[] memory commandParams,
         bytes32
     ) internal override {
-        address account = abi.decode(subjectParams[0], (address));
+        address account = abi.decode(commandParams[0], (address));
         require(!isRecovering[account], "recovery in progress");
         require(guardian != address(0), "invalid guardian");
         require(
@@ -153,8 +158,8 @@ contract RecoveryControllerZKSync is OwnableUpgradeable, EmailAccountRecoveryZKS
             "guardian status must be ACCEPTED"
         );
         require(templateIdx == 0, "invalid template index");
-        require(subjectParams.length == 2, "invalid subject params");
-        address newSignerInEmail = abi.decode(subjectParams[1], (address));
+        require(commandParams.length == 2, "invalid command params");
+        address newSignerInEmail = abi.decode(commandParams[1], (address));
         require(newSignerInEmail != address(0), "invalid new signer");
         isRecovering[account] = true;
         newSignerCandidateOfAccount[account] = newSignerInEmail;

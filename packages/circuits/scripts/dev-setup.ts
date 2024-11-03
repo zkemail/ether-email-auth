@@ -20,7 +20,8 @@ program
     "--output <string>",
     "Path to the directory storing output files"
   )
-  .option("--silent", "No console logs");
+  .option("--silent", "No console logs")
+  .option("--legacy", "Use a legacy circuit");
 
 program.parse();
 const args = program.opts();
@@ -40,8 +41,12 @@ if (ZKEY_BEACON == null) {
   ZKEY_BEACON = "0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f";
 }
 
-const phase1Url =
-  "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_22.ptau";
+let phase1Url =
+  "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_23.ptau";
+if (args.legacy) {
+  phase1Url =
+    "https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_22.ptau";
+}
 // const buildDir = path.join(__dirname, "../build");
 // const phase1Path = path.join(buildDir, "powersOfTau28_hez_final_21.ptau");
 // const r1cPath = path.join(buildDir, "wallet.r1cs");
@@ -135,19 +140,34 @@ async function generateKeys(
 
 async function exec() {
   const buildDir = args.output;
-  const phase1Path = path.join(buildDir, "powersOfTau28_hez_final_22.ptau");
 
-  await downloadPhase1(phase1Path);
-  log("✓ Phase 1:", phase1Path);
 
-  const emailAuthR1csPath = path.join(buildDir, "email_auth.r1cs");
-  if (!fs.existsSync(emailAuthR1csPath)) {
-    throw new Error(`${emailAuthR1csPath} does not exist.`);
+  if (args.legacy) {
+    const phase1Path = path.join(buildDir, "powersOfTau28_hez_final_22.ptau");
+
+    await downloadPhase1(phase1Path);
+    log("✓ Phase 1:", phase1Path);
+
+    const emailAuthR1csPath = path.join(buildDir, "email_auth_legacy.r1cs");
+    if (!fs.existsSync(emailAuthR1csPath)) {
+      throw new Error(`${emailAuthR1csPath} does not exist.`);
+    }
+    await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth_legacy.zkey"), path.join(buildDir, "email_auth_legacy.vkey"), path.join(buildDir, "Groth16LegacyVerifier.sol"));
+    log("✓ Keys for email auth legacy circuit generated");
+  } else {
+    const phase1Path = path.join(buildDir, "powersOfTau28_hez_final_23.ptau");
+
+    await downloadPhase1(phase1Path);
+    log("✓ Phase 1:", phase1Path);
+
+    const emailAuthR1csPath = path.join(buildDir, "email_auth.r1cs");
+    if (!fs.existsSync(emailAuthR1csPath)) {
+      throw new Error(`${emailAuthR1csPath} does not exist.`);
+    }
+    await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth.zkey"), path.join(buildDir, "email_auth.vkey"), path.join(buildDir, "Groth16Verifier.sol"));
+    log("✓ Keys for email auth circuit generated");
   }
-  await generateKeys(phase1Path, emailAuthR1csPath, path.join(buildDir, "email_auth.zkey"), path.join(buildDir, "email_auth.vkey"), path.join(buildDir, "Groth16Verifier.sol"));
-  log("✓ Keys for email auth circuit generated");
 
-  
 }
 
 

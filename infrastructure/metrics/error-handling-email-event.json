@@ -1,0 +1,14 @@
+{
+  "createTime": "2024-10-30T09:19:28.911872031Z",
+  "filter": "resource.type=\"k8s_container\"\nresource.labels.container_name=\"relayer-container\"\nresource.labels.namespace_name=\"ar-base-sepolia\"\n\"Error handling email event:\"\n",
+  "metricDescriptor": {
+    "metricKind": "DELTA",
+    "name": "projects/zkairdrop/metricDescriptors/logging.googleapis.com/user/error-handling-email-event",
+    "type": "logging.googleapis.com/user/error-handling-email-event",
+    "unit": "1",
+    "valueType": "INT64"
+  },
+  "name": "error-handling-email-event",
+  "resourceName": "projects/zkairdrop/metrics/error-handling-email-event",
+  "updateTime": "2024-10-30T09:19:28.911872031Z"
+}
