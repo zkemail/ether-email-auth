@@ -81,6 +81,49 @@ pub async fn handle_acceptance_request(
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     }
 
+    // // Check if hash of bytecode of proxy contract is equal or not
+    // let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
+    // let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
+
+    // let permitted_wallets: Vec<PermittedWallet> =
+    //     serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    // let permitted_wallet = permitted_wallets
+    //     .iter()
+    //     .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+
+    // if let Some(permitted_wallet) = permitted_wallet {
+    //     let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+    //     let impl_contract_from_proxy = {
+    //         let raw_hex = hex::encode(
+    //             CLIENT
+    //                 .get_storage_at(&account_eth_addr, slot_location)
+    //                 .await
+    //                 .unwrap(),
+    //         );
+    //         format!("0x{}", &raw_hex[24..])
+    //     };
+
+    //     if !permitted_wallet
+    //         .impl_contract_address
+    //         .eq_ignore_ascii_case(&impl_contract_from_proxy)
+    //     {
+    //         return Err(ApiError::Validation(
+    //             "Not permitted bytecode, impl contract address mismatch".to_string(),
+    //         ));
+    //     }
+
+    //     if !permitted_wallet
+    //         .controller_eth_addr
+    //         .eq_ignore_ascii_case(&payload.controller_eth_addr)
+    //     {
+    //         return Err(ApiError::Validation(
+    //             "Not permitted controller eth addr".to_string(),
+    //         ));
+    //     }
+    // } else {
+    //     return Err(ApiError::Validation("Not permitted bytecode".to_string()));
+    // }
+
     // Check if the account code is already used
     if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
         return Err(ApiError::Validation(
@@ -205,6 +248,49 @@ pub async fn handle_recovery_request(
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await? {
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     }
+
+    // // Check if hash of bytecode of proxy contract is equal or not
+    // let bytecode = CLIENT.get_bytecode(&account_eth_addr).await.unwrap();
+    // let bytecode_hash = format!("0x{}", hex::encode(keccak256(bytecode.as_ref())));
+
+    // let permitted_wallets: Vec<PermittedWallet> =
+    //     serde_json::from_str(include_str!("../../permitted_wallets.json")).unwrap();
+    // let permitted_wallet = permitted_wallets
+    //     .iter()
+    //     .find(|w| w.hash_of_bytecode_of_proxy == bytecode_hash);
+
+    // if let Some(permitted_wallet) = permitted_wallet {
+    //     let slot_location = permitted_wallet.slot_location.parse::<u64>().unwrap();
+    //     let impl_contract_from_proxy = {
+    //         let raw_hex = hex::encode(
+    //             CLIENT
+    //                 .get_storage_at(&account_eth_addr, slot_location)
+    //                 .await
+    //                 .unwrap(),
+    //         );
+    //         format!("0x{}", &raw_hex[24..])
+    //     };
+
+    //     if !permitted_wallet
+    //         .impl_contract_address
+    //         .eq_ignore_ascii_case(&impl_contract_from_proxy)
+    //     {
+    //         return Err(ApiError::Validation(
+    //             "Not permitted bytecode, impl contract address mismatch".to_string(),
+    //         ));
+    //     }
+
+    //     if !permitted_wallet
+    //         .controller_eth_addr
+    //         .eq_ignore_ascii_case(&payload.controller_eth_addr)
+    //     {
+    //         return Err(ApiError::Validation(
+    //             "Not permitted controller eth addr".to_string(),
+    //         ));
+    //     }
+    // } else {
+    //     return Err(ApiError::Validation("Not permitted bytecode".to_string()));
+    // }
 
     // Generate a unique request ID
     let mut request_id = rand::thread_rng().gen::<u32>();
