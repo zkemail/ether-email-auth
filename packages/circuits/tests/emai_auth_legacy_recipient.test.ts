@@ -7,7 +7,7 @@ import { genRecipientInputLegacy } from "../helpers/recipient";
 import { readFileSync } from "fs";
 
 jest.setTimeout(1440000);
-describe("Email Auth", () => {
+describe("Email Auth Legacy with Recipient", () => {
     let circuit;
     beforeAll(async () => {
         const option = {
