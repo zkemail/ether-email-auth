@@ -1,0 +1,40 @@
+{
+  "alertStrategy": {
+    "autoClose": "1800s",
+    "notificationPrompts": [
+      "OPENED",
+      "CLOSED"
+    ]
+  },
+  "combiner": "OR",
+  "conditions": [
+    {
+      "conditionThreshold": {
+        "aggregations": [
+          {
+            "alignmentPeriod": "60s",
+            "crossSeriesReducer": "REDUCE_SUM",
+            "perSeriesAligner": "ALIGN_COUNT"
+          }
+        ],
+        "comparison": "COMPARISON_GT",
+        "duration": "0s",
+        "filter": "metric.type=\"logging.googleapis.com/user/error-from-prover\" AND resource.type=\"k8s_container\"",
+        "trigger": {
+          "count": 1
+        }
+      },
+      "displayName": "logging/user/error-from-prover [SUM]"
+    }
+  ],
+  "displayName": "logging/user/error-from-prover [SUM]",
+  "documentation": {
+    "content": "This error happens when the prover get some error",
+    "mimeType": "text/markdown"
+  },
+  "enabled": true,
+  "notificationChannels": [
+    "projects/zkairdrop/notificationChannels/16929435408944174030"
+  ],
+  "severity": "ERROR"
+}

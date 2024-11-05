@@ -21,9 +21,11 @@ contract EmailAccountRecoveryZKSyncTest_transfer is StructHelper {
 
         setUp();
 
+        vm.deal(address(simpleWallet), 1 ether);
         assertEq(address(simpleWallet).balance, 1 ether);
-        assertEq(receiver.balance, 0 ether);
 
+        vm.deal(receiver, 0 ether);
+        assertEq(receiver.balance, 0 ether);
         vm.startPrank(deployer);
         simpleWallet.transfer(receiver, 1 ether);
         vm.stopPrank();
@@ -37,7 +39,10 @@ contract EmailAccountRecoveryZKSyncTest_transfer is StructHelper {
 
         setUp();
 
+        vm.deal(address(simpleWallet), 1 ether);
         assertEq(address(simpleWallet).balance, 1 ether);
+
+        vm.deal(receiver, 0 ether);
         assertEq(receiver.balance, 0 ether);
 
         vm.startPrank(receiver);
@@ -55,12 +60,13 @@ contract EmailAccountRecoveryZKSyncTest_transfer is StructHelper {
         skipIfNotZkSync();
 
         setUp();
-
+        vm.deal(address(simpleWallet), 1 ether);
         assertEq(address(simpleWallet).balance, 1 ether);
+
+        vm.deal(receiver, 0 ether);
         assertEq(receiver.balance, 0 ether);
 
         vm.startPrank(deployer);
-        assertEq(receiver.balance, 0 ether);
         vm.expectRevert(bytes("insufficient balance"));
         simpleWallet.transfer(receiver, 2 ether);
         vm.stopPrank();

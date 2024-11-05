@@ -1,0 +1,14 @@
+{
+  "createTime": "2024-10-30T09:37:19.291096099Z",
+  "filter": "SEARCH(\"`ether-email-auth-prover`\")\nseverity=ERROR",
+  "metricDescriptor": {
+    "metricKind": "DELTA",
+    "name": "projects/zkairdrop/metricDescriptors/logging.googleapis.com/user/error-from-prover",
+    "type": "logging.googleapis.com/user/error-from-prover",
+    "unit": "1",
+    "valueType": "INT64"
+  },
+  "name": "error-from-prover",
+  "resourceName": "projects/zkairdrop/metrics/error-from-prover",
+  "updateTime": "2024-10-30T09:37:19.291096099Z"
+}

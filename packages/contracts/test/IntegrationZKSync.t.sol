@@ -9,11 +9,13 @@ import "@zk-email/contracts/DKIMRegistry.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
-import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "../src/utils/Groth16Verifier.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryControllerZKSync.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract IntegrationZKSyncTest is Test {
     using Strings for *;
@@ -21,7 +23,7 @@ contract IntegrationZKSyncTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkim;
 
     RecoveryControllerZKSync recoveryControllerZKSync;
     SimpleWallet simpleWallet;
@@ -36,49 +38,61 @@ contract IntegrationZKSyncTest is Test {
     string domainName = "gmail.com";
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
-    uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
+    // uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
+    uint256 recoveryTimelock = 5 days;
+    uint256 setTimeDelay = 3 days;
+
+    bytes32 public proxyBytecodeHash =
+        vm.envOr("PROXY_BYTECODE_HASH", bytes32(0));
 
     function setUp() public {
         vm.createSelectFork("http://127.0.0.1:8011");
-    
-        vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
         address signer = deployer;
 
         // Create DKIM registry
+        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
         {
-            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
-            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
-                address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+                address(overrideableDkimImpl),
+                abi.encodeCall(
+                    overrideableDkimImpl.initialize,
+                    (msg.sender, signer, setTimeDelay)
+                )
             );
-            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            dkim = UserOverrideableDKIMRegistry(address(overrideableDkimProxy));
         }
-        string memory signedMsg = dkim.computeSignedMsg(
-            dkim.SET_PREFIX(),
-            selector,
-            domainName,
-            publicKeyHash
-        );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
-            bytes(signedMsg)
-        );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(
-            selector,
-            domainName,
-            publicKeyHash,
-            signature
-        );
+        {
+            string memory signedMsg = dkim.computeSignedMsg(
+                dkim.SET_PREFIX(),
+                domainName,
+                publicKeyHash
+            );
+            bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+                bytes(signedMsg)
+            );
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+            bytes memory signature = abi.encodePacked(r, s, v);
+            dkim.setDKIMPublicKeyHash(
+                domainName,
+                publicKeyHash,
+                signer,
+                signature
+            );
+            vm.warp(block.timestamp + setTimeDelay + 1);
+        }
 
         // Create Verifier
         {
             Verifier verifierImpl = new Verifier();
+            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(verifierImpl.initialize, (msg.sender))
+                abi.encodeCall(
+                    verifierImpl.initialize,
+                    (msg.sender, address(groth16Verifier))
+                )
             );
             verifier = Verifier(address(verifierProxy));
         }
@@ -104,7 +118,8 @@ contract IntegrationZKSyncTest is Test {
                     address(verifier),
                     address(dkim),
                     address(emailAuthImpl),
-                    address(factoryImpl)
+                    address(factoryImpl),
+                    proxyBytecodeHash
                 )
             )
         );
@@ -122,11 +137,9 @@ contract IntegrationZKSyncTest is Test {
             )
         );
         simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-        // console.log(
-        //     "emailAuthImplementation",
-        //     simpleWallet.emailAuthImplementation()
-        // );
-
+        vm.stopPrank();
+        vm.startPrank(address(simpleWallet));
+        recoveryControllerZKSync.configureTimelockPeriod(recoveryTimelock);
         vm.stopPrank();
     }
 
@@ -142,7 +155,7 @@ contract IntegrationZKSyncTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0x7c5E4b26643682AF77A196781A851c9Fe769472d
+            0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -177,7 +190,7 @@ contract IntegrationZKSyncTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedSubject = "Accept guardian request for 0x7c5E4b26643682AF77A196781A851c9Fe769472d";
+            .maskedCommand = "Accept guardian request for 0xc9a403a0f75924677Dc0b011Da7eD8dD902063A6";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -211,14 +224,14 @@ contract IntegrationZKSyncTest is Test {
         );
 
         // Call handleAcceptance -> GuardianStatus.ACCEPTED
-        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
-        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        bytes[] memory commandParamsForAcceptance = new bytes[](1);
+        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
         EmailAuthMsg memory emailAuthMsg = EmailAuthMsg({
             templateId: recoveryControllerZKSync.computeAcceptanceTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForAcceptance,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForAcceptance,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryControllerZKSync.handleAcceptance(emailAuthMsg, templateIdx);
@@ -258,7 +271,7 @@ contract IntegrationZKSyncTest is Test {
 
         // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedSubject = "Set the new signer of 0x7c5E4b26643682AF77A196781A851c9Fe769472d to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0xC9A403A0F75924677DC0B011DA7ED8DD902063A6 to 0xA0EE7A142D267C1F36714E4A8F75612F20A79720";
 
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
@@ -284,17 +297,17 @@ contract IntegrationZKSyncTest is Test {
         console.log("is code exist: ", vm.parseUint(pubSignals[33]));
 
         // Call handleRecovery -> isRecovering = true;
-        bytes[] memory subjectParamsForRecovery = new bytes[](2);
-        subjectParamsForRecovery[0] = abi.encode(address(simpleWallet));
-        subjectParamsForRecovery[1] = abi.encode(
+        bytes[] memory commandParamsForRecovery = new bytes[](2);
+        commandParamsForRecovery[0] = abi.encode(address(simpleWallet));
+        commandParamsForRecovery[1] = abi.encode(
             address(0xa0Ee7A142d267C1f36714E4a8F75612F20a79720)
         );
         emailAuthMsg = EmailAuthMsg({
             templateId: recoveryControllerZKSync.computeRecoveryTemplateId(
                 templateIdx
             ),
-            subjectParams: subjectParamsForRecovery,
-            skipedSubjectPrefix: 0,
+            commandParams: commandParamsForRecovery,
+            skippedCommandPrefix: 0,
             proof: emailProof
         });
         recoveryControllerZKSync.handleRecovery(emailAuthMsg, templateIdx);
@@ -309,8 +322,9 @@ contract IntegrationZKSyncTest is Test {
             "newSignerCandidate should be set"
         );
         require(
-            recoveryControllerZKSync.currentTimelockOfAccount(address(simpleWallet)) >
-                0,
+            recoveryControllerZKSync.currentTimelockOfAccount(
+                address(simpleWallet)
+            ) > 0,
             "timelock should be set"
         );
         require(
@@ -319,8 +333,7 @@ contract IntegrationZKSyncTest is Test {
         );
 
         // Call completeRecovery
-        // Warp at 3 days + 10 seconds later
-        vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
+        vm.warp(block.timestamp + recoveryTimelock + 1);
         recoveryControllerZKSync.completeRecovery(
             address(simpleWallet),
             new bytes(0)
