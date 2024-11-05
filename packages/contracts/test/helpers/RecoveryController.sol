@@ -22,6 +22,12 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     mapping(address => uint) public timelockPeriodOfAccount;
     mapping(address => uint) public currentTimelockOfAccount;
 
+    // modifier onlyNotRecoveringOwner() {
+    //     require(msg.sender == owner(), "only owner");
+    //     require(!isRecovering, "recovery in progress");
+    //     _;
+    // }
+
     constructor() {}
 
     function initialize(
@@ -42,7 +48,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         return isActivatedOfAccount[recoveredAccount];
     }
 
-    function acceptanceCommandTemplates()
+    function acceptanceSubjectTemplates()
         public
         pure
         override
@@ -58,7 +64,7 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         return templates;
     }
 
-    function recoveryCommandTemplates()
+    function recoverySubjectTemplates()
         public
         pure
         override
@@ -77,22 +83,22 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
         return templates;
     }
 
-    function extractRecoveredAccountFromAcceptanceCommand(
-        bytes[] memory commandParams,
+    function extractRecoveredAccountFromAcceptanceSubject(
+        bytes[] memory subjectParams,
         uint templateIdx
     ) public pure override returns (address) {
         require(templateIdx == 0, "invalid template index");
-        require(commandParams.length == 1, "invalid command params");
-        return abi.decode(commandParams[0], (address));
+        require(subjectParams.length == 1, "invalid subject params");
+        return abi.decode(subjectParams[0], (address));
     }
 
-    function extractRecoveredAccountFromRecoveryCommand(
-        bytes[] memory commandParams,
+    function extractRecoveredAccountFromRecoverySubject(
+        bytes[] memory subjectParams,
         uint templateIdx
     ) public pure override returns (address) {
         require(templateIdx == 0, "invalid template index");
-        require(commandParams.length == 2, "invalid command params");
-        return abi.decode(commandParams[0], (address));
+        require(subjectParams.length == 2, "invalid subject params");
+        return abi.decode(subjectParams[0], (address));
     }
 
     function requestGuardian(address guardian) public {
@@ -116,10 +122,10 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
     function acceptGuardian(
         address guardian,
         uint templateIdx,
-        bytes[] memory commandParams,
+        bytes[] memory subjectParams,
         bytes32
     ) internal override {
-        address account = abi.decode(commandParams[0], (address));
+        address account = abi.decode(subjectParams[0], (address));
         require(!isRecovering[account], "recovery in progress");
         require(guardian != address(0), "invalid guardian");
 
@@ -128,17 +134,17 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
             "guardian status must be REQUESTED"
         );
         require(templateIdx == 0, "invalid template index");
-        require(commandParams.length == 1, "invalid command params");
+        require(subjectParams.length == 1, "invalid subject params");
         guardians[guardian] = GuardianStatus.ACCEPTED;
     }
 
     function processRecovery(
         address guardian,
         uint templateIdx,
-        bytes[] memory commandParams,
+        bytes[] memory subjectParams,
         bytes32
     ) internal override {
-        address account = abi.decode(commandParams[0], (address));
+        address account = abi.decode(subjectParams[0], (address));
         require(!isRecovering[account], "recovery in progress");
         require(guardian != address(0), "invalid guardian");
         require(
@@ -146,8 +152,8 @@ contract RecoveryController is OwnableUpgradeable, EmailAccountRecovery {
             "guardian status must be ACCEPTED"
         );
         require(templateIdx == 0, "invalid template index");
-        require(commandParams.length == 2, "invalid command params");
-        address newSignerInEmail = abi.decode(commandParams[1], (address));
+        require(subjectParams.length == 2, "invalid subject params");
+        address newSignerInEmail = abi.decode(subjectParams[1], (address));
         require(newSignerInEmail != address(0), "invalid new signer");
         isRecovering[account] = true;
         newSignerCandidateOfAccount[account] = newSignerInEmail;

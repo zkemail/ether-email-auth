@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "../src/utils/ForwardDKIMRegistry.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "./helpers/StructHelper.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -58,6 +59,31 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
     }
 
+    function testUpdateDKIMRegistryToForward() public {
+        assertEq(emailAuth.dkimRegistryAddr(), address(dkim));
+
+        vm.startPrank(deployer);
+        ECDSAOwnedDKIMRegistry dummyDKIM = new ECDSAOwnedDKIMRegistry();
+        ForwardDKIMRegistry newDKIM;
+        {
+            ForwardDKIMRegistry dkimImpl = new ForwardDKIMRegistry();
+            ERC1967Proxy dkimProxy = new ERC1967Proxy(
+                address(dkimImpl),
+                abi.encodeCall(
+                    dkimImpl.initialize,
+                    (msg.sender, address(dummyDKIM))
+                )
+            );
+            newDKIM = ForwardDKIMRegistry(address(dkimProxy));
+        }
+        vm.expectEmit(true, false, false, false);
+        emit EmailAuth.DKIMRegistryUpdated(address(newDKIM));
+        emailAuth.updateDKIMRegistry(address(newDKIM));
+        vm.stopPrank();
+
+        assertEq(emailAuth.dkimRegistryAddr(), address(newDKIM));
+    }
+
     function testExpectRevertUpdateDKIMRegistryInvalidDkimRegistryAddress()
         public
     {
@@ -91,140 +117,140 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testGetCommandTemplate() public {
+    function testGetSubjectTemplate() public {
         vm.startPrank(deployer);
-        emailAuth.insertCommandTemplate(templateId, commandTemplate);
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
         vm.stopPrank();
-        string[] memory result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, commandTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
     }
 
-    function testExpectRevertGetCommandTemplateTemplateIdNotExists() public {
+    function testExpectRevertGetSubjectTemplateTemplateIdNotExists() public {
         vm.expectRevert(bytes("template id not exists"));
-        emailAuth.getCommandTemplate(templateId);
+        emailAuth.getSubjectTemplate(templateId);
     }
 
-    function testInsertCommandTemplate() public {
+    function testInsertSubjectTemplate() public {
         vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.CommandTemplateInserted(templateId);
-        _testInsertCommandTemplate();
+        emit EmailAuth.SubjectTemplateInserted(templateId);
+        _testInsertSubjectTemplate();
         vm.stopPrank();
     }
 
-    function _testInsertCommandTemplate() private {
-        emailAuth.insertCommandTemplate(templateId, commandTemplate);
-        string[] memory result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, commandTemplate);
+    function _testInsertSubjectTemplate() private {
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
     }
 
-    function testExpectRevertInsertCommandTemplateCommandTemplateIsEmpty()
+    function testExpectRevertInsertSubjectTemplateSubjectTemplateIsEmpty()
         public
     {
         vm.startPrank(deployer);
-        string[] memory emptyCommandTemplate = new string[](0);
-        vm.expectRevert(bytes("command template is empty"));
-        emailAuth.insertCommandTemplate(templateId, emptyCommandTemplate);
+        string[] memory emptySubjectTemplate = new string[](0);
+        vm.expectRevert(bytes("subject template is empty"));
+        emailAuth.insertSubjectTemplate(templateId, emptySubjectTemplate);
         vm.stopPrank();
     }
 
-    function testExpectRevertInsertCommandTemplateTemplateIdAlreadyExists()
+    function testExpectRevertInsertSubjectTemplateTemplateIdAlreadyExists()
         public
     {
         vm.startPrank(deployer);
-        emailAuth.insertCommandTemplate(templateId, commandTemplate);
-        string[] memory result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, commandTemplate);
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
 
         vm.expectRevert(bytes("template id already exists"));
-        emailAuth.insertCommandTemplate(templateId, commandTemplate);
+        emailAuth.insertSubjectTemplate(templateId, subjectTemplate);
         vm.stopPrank();
     }
 
-    function testUpdateCommandTemplate() public {
+    function testUpdateSubjectTemplate() public {
         vm.expectRevert(bytes("template id not exists"));
-        string[] memory result = emailAuth.getCommandTemplate(templateId);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
 
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         vm.stopPrank();
 
-        result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, commandTemplate);
+        result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
 
         vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.CommandTemplateUpdated(templateId);
-        emailAuth.updateCommandTemplate(templateId, newCommandTemplate);
+        emit EmailAuth.SubjectTemplateUpdated(templateId);
+        emailAuth.updateSubjectTemplate(templateId, newSubjectTemplate);
         vm.stopPrank();
 
-        result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, newCommandTemplate);
+        result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, newSubjectTemplate);
     }
 
-    function testExpectRevertUpdateCommandTemplateCallerIsNotTheModule()
+    function testExpectRevertUpdateSubjectTemplateCallerIsNotTheModule()
         public
     {
         vm.expectRevert("only controller");
-        emailAuth.updateCommandTemplate(templateId, commandTemplate);
+        emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
     }
 
-    function testExpectRevertUpdateCommandTemplateCommandTemplateIsEmpty()
+    function testExpectRevertUpdateSubjectTemplateSubjectTemplateIsEmpty()
         public
     {
         vm.startPrank(deployer);
 
-        string[] memory emptyCommandTemplate = new string[](0);
-        vm.expectRevert(bytes("command template is empty"));
-        emailAuth.updateCommandTemplate(templateId, emptyCommandTemplate);
+        string[] memory emptySubjectTemplate = new string[](0);
+        vm.expectRevert(bytes("subject template is empty"));
+        emailAuth.updateSubjectTemplate(templateId, emptySubjectTemplate);
 
         vm.stopPrank();
     }
 
-    function testExpectRevertUpdateCommandTemplateTemplateIdNotExists() public {
+    function testExpectRevertUpdateSubjectTemplateTemplateIdNotExists() public {
         vm.startPrank(deployer);
 
         vm.expectRevert(bytes("template id not exists"));
-        emailAuth.updateCommandTemplate(templateId, commandTemplate);
+        emailAuth.updateSubjectTemplate(templateId, subjectTemplate);
 
         vm.stopPrank();
     }
 
-    function testDeleteCommandTemplate() public {
+    function testDeleteSubjectTemplate() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         vm.stopPrank();
 
-        string[] memory result = emailAuth.getCommandTemplate(templateId);
-        assertEq(result, commandTemplate);
+        string[] memory result = emailAuth.getSubjectTemplate(templateId);
+        assertEq(result, subjectTemplate);
 
         vm.startPrank(deployer);
         vm.expectEmit(true, false, false, false);
-        emit EmailAuth.CommandTemplateDeleted(templateId);
-        emailAuth.deleteCommandTemplate(templateId);
+        emit EmailAuth.SubjectTemplateDeleted(templateId);
+        emailAuth.deleteSubjectTemplate(templateId);
         vm.stopPrank();
 
         vm.expectRevert(bytes("template id not exists"));
-        emailAuth.getCommandTemplate(templateId);
+        emailAuth.getSubjectTemplate(templateId);
     }
 
-    function testExpectRevertDeleteCommandTemplateCallerIsNotTheModule()
+    function testExpectRevertDeleteSubjectTemplateCallerIsNotTheModule()
         public
     {
         vm.expectRevert("only controller");
-        emailAuth.deleteCommandTemplate(templateId);
+        emailAuth.deleteSubjectTemplate(templateId);
     }
 
-    function testExpectRevertDeleteCommandTemplateTemplateIdNotExists() public {
+    function testExpectRevertDeleteSubjectTemplateTemplateIdNotExists() public {
         vm.startPrank(deployer);
         vm.expectRevert(bytes("template id not exists"));
-        emailAuth.deleteCommandTemplate(templateId);
+        emailAuth.deleteSubjectTemplate(templateId);
         vm.stopPrank();
     }
 
     function testAuthEmail() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -284,7 +310,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidDkimPublicKeyHash() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -303,7 +329,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailEmailNullifierAlreadyUsed() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -322,7 +348,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidAccountSalt() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -341,7 +367,7 @@ contract EmailAuthTest is StructHelper {
 
     function testExpectRevertAuthEmailInvalidTimestamp() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
@@ -361,9 +387,9 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertAuthEmailInvalidCommand() public {
+    function testExpectRevertAuthEmailInvalidSubject() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -374,15 +400,15 @@ contract EmailAuthTest is StructHelper {
         assertEq(emailAuth.lastTimestamp(), 0);
 
         vm.startPrank(deployer);
-        emailAuthMsg.commandParams[0] = abi.encode(2 ether);
-        vm.expectRevert(bytes("invalid command"));
+        emailAuthMsg.subjectParams[0] = abi.encode(2 ether);
+        vm.expectRevert(bytes("invalid subject"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
     }
 
     function testExpectRevertAuthEmailInvalidEmailProof() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -406,9 +432,9 @@ contract EmailAuthTest is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertAuthEmailInvalidMaskedCommandLength() public {
+    function testExpectRevertAuthEmailInvalidMaskedSubjectLength() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -418,63 +444,18 @@ contract EmailAuthTest is StructHelper {
         );
         assertEq(emailAuth.lastTimestamp(), 0);
 
-        // Set masked command length to 606, which should be 605 or less defined in the verifier.
-        emailAuthMsg.proof.maskedCommand = string(new bytes(606));
+        // Set masked subject length to 606, which should be 605 or less defined in the verifier.
+        emailAuthMsg.proof.maskedSubject = string(new bytes(606));
 
         vm.startPrank(deployer);
-        vm.expectRevert(bytes("invalid masked command length"));
+        vm.expectRevert(bytes("invalid masked subject length"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
     }
 
-    function testAuthEmailWithMultiBytePrefix() public {
+    function testExpectRevertAuthEmailInvalidSizeOfTheSkippedSubjectPrefix() public {
         vm.startPrank(deployer);
-        _testInsertCommandTemplate();
-        vm.stopPrank();
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        emailAuthMsg.proof.maskedCommand = string.concat(
-            unicode"Japanese Prefix ねこ ",
-            emailAuthMsg.proof.maskedCommand
-        );
-        // The japanese word "ねこ" has six bytes.
-        // "ねこ" means cats.
-        emailAuthMsg.skippedCommandPrefix = 17 + 6;
-
-        assertEq(
-            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
-            false
-        );
-        assertEq(emailAuth.lastTimestamp(), 0);
-
-        vm.startPrank(deployer);
-        vm.expectEmit(true, true, true, true);
-        emit EmailAuth.EmailAuthed(
-            emailAuthMsg.proof.emailNullifier,
-            emailAuthMsg.proof.accountSalt,
-            emailAuthMsg.proof.isCodeExist,
-            emailAuthMsg.templateId
-        );
-        vm.mockCall(
-            address(verifier),
-            abi.encodeCall(Verifier.verifyEmailProof, (emailAuthMsg.proof)),
-            abi.encode(true)
-        );
-        emailAuth.authEmail(emailAuthMsg);
-        vm.stopPrank();
-
-        assertEq(
-            emailAuth.usedNullifiers(emailAuthMsg.proof.emailNullifier),
-            true
-        );
-        assertEq(emailAuth.lastTimestamp(), emailAuthMsg.proof.timestamp);
-    }
-
-    function testExpectRevertAuthEmailInvalidSizeOfTheSkippedCommandPrefix()
-        public
-    {
-        vm.startPrank(deployer);
-        _testInsertCommandTemplate();
+        _testInsertSubjectTemplate();
         EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
         vm.stopPrank();
 
@@ -484,11 +465,11 @@ contract EmailAuthTest is StructHelper {
         );
         assertEq(emailAuth.lastTimestamp(), 0);
 
-        // Set skipped command prefix length to 605, it should be less than 605.
-        emailAuthMsg.skippedCommandPrefix = 605;
+        // Set skipped subject prefix length to 605, it should be less than 605.
+        emailAuthMsg.skipedSubjectPrefix = 605;
 
         vm.startPrank(deployer);
-        vm.expectRevert(bytes("invalid size of the skipped command prefix"));
+        vm.expectRevert(bytes("invalid size of the skipped subject prefix"));
         emailAuth.authEmail(emailAuthMsg);
         vm.stopPrank();
     }
@@ -508,37 +489,5 @@ contract EmailAuthTest is StructHelper {
     function testExpectRevertSetTimestampCheckEnabled() public {
         vm.expectRevert("only controller");
         emailAuth.setTimestampCheckEnabled(false);
-    }
-
-    function testUpgradeEmailAuth() public {
-        vm.startPrank(deployer);
-
-        // Deploy new implementation
-        EmailAuth newImplementation = new EmailAuth();
-
-        // Execute upgrade using proxy
-        // Upgrade implementation through proxy contract
-        ERC1967Proxy proxy = new ERC1967Proxy(
-            address(emailAuth),
-            abi.encodeCall(
-                emailAuth.initialize,
-                (deployer, accountSalt, deployer)
-            )
-        );
-        EmailAuth emailAuthProxy = EmailAuth(payable(proxy));
-        bytes32 beforeAccountSalt = emailAuthProxy.accountSalt();
-
-        // Upgrade to new implementation through proxy
-        emailAuthProxy.upgradeToAndCall(
-            address(newImplementation),
-            new bytes(0)
-        );
-
-        bytes32 afterAccountSalt = emailAuthProxy.accountSalt();
-
-        // Verify the upgrade
-        assertEq(beforeAccountSalt, afterAccountSalt);
-
-        vm.stopPrank();
     }
 }

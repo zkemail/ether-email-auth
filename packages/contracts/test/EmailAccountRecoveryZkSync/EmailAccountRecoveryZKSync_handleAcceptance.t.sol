@@ -54,9 +54,9 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryControllerZKSync.emailAuthImplementationAddr()),
@@ -97,9 +97,9 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
@@ -131,9 +131,9 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryControllerZKSync.emailAuthImplementationAddr()),
@@ -147,7 +147,7 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertHandleAcceptanceInvalidcommandParams() public {
+    function testExpectRevertHandleAcceptanceInvalidSubjectParams() public {
         skipIfNotZkSync();
 
         requestGuardian();
@@ -164,10 +164,10 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](2);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        commandParamsForAcceptance[1] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](2);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        subjectParamsForAcceptance[1] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryControllerZKSync.emailAuthImplementationAddr()),
@@ -176,7 +176,7 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid command params"));
+        vm.expectRevert(bytes("invalid subject params"));
         recoveryControllerZKSync.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
@@ -200,9 +200,9 @@ contract EmailAccountRecoveryZKSyncTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(0x0));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(0x0));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryControllerZKSync.emailAuthImplementationAddr()),

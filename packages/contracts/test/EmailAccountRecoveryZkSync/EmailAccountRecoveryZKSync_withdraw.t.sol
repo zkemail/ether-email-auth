@@ -21,10 +21,8 @@ contract EmailAccountRecoveryZKSyncTest_withdraw is StructHelper {
 
         setUp();
 
-        vm.deal(address(simpleWallet), 1 ether);
         assertEq(address(simpleWallet).balance, 1 ether);
-
-        vm.deal(deployer, 0 ether);
+        assertEq(deployer.balance, 0 ether);
 
         vm.startPrank(deployer);
         simpleWallet.withdraw(1 ether);
@@ -40,6 +38,7 @@ contract EmailAccountRecoveryZKSyncTest_withdraw is StructHelper {
         setUp();
 
         assertEq(address(simpleWallet).balance, 1 ether);
+        assertEq(deployer.balance, 0 ether);
 
         vm.startPrank(receiver);
         vm.expectRevert(
@@ -58,6 +57,7 @@ contract EmailAccountRecoveryZKSyncTest_withdraw is StructHelper {
         setUp();
 
         assertEq(address(simpleWallet).balance, 1 ether);
+        assertEq(deployer.balance, 0 ether);
 
         vm.startPrank(deployer);
         vm.expectRevert(bytes("insufficient balance"));

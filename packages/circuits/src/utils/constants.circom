@@ -26,3 +26,4 @@ function pack_bytes_const() {
 function timestamp_len_const() {
     return 10;
 }
+

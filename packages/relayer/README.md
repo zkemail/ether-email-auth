@@ -18,7 +18,7 @@ You can run the relayer either on your local environments or cloud instances (we
     PRIVATE_KEY=""
     CHAIN_ID=84532
     RPC_URL="https://sepolia.base.org"
-    SIGNER=0x6293a80bf4bd3fff995a0cab74cbf281d922da02 # Signer for the dkim oracle on IC (Don't change this)
+    SIGNER=0x69bec2dd161d6bbcc91ec32aa44d9333ebc864c0 # Signer for the dkim oracle on IC (Don't change this)
     ETHERSCAN_API_KEY=
     # CHAIN_NAME="base_sepolia"
     ```
@@ -51,12 +51,13 @@ You can run the relayer either on your local environments or cloud instances (we
 
         DATABASE_URL= "postgres://new_user:my_secure_password@localhost/my_new_database"
         WEB_SERVER_ADDRESS="127.0.0.1:4500"
+        CIRCUITS_DIR_PATH=  # Absolute path to packages/circuits
         EMAIL_TEMPLATES_PATH=  # Absolute path to packages/relayer/eml_templates
 
         CANISTER_ID="q7eci-dyaaa-aaaak-qdbia-cai"
         PEM_PATH="./.ic.pem"
         IC_REPLICA_URL="https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
-        ERROR_EMAIL_ADDR="" # System user email address receiving error notification for user
+
         JSON_LOGGER=false
         ```
     3. Generate the `.ic.pem` file and password.

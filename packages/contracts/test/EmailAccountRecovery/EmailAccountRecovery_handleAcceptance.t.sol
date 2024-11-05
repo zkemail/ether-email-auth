@@ -8,7 +8,6 @@ import {RecoveryController} from "../helpers/RecoveryController.sol";
 import {StructHelper} from "../helpers/StructHelper.sol";
 import {SimpleWallet} from "../helpers/SimpleWallet.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {ERC1967Utils} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Utils.sol";
 
 contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
     constructor() {}
@@ -36,228 +35,9 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         );
     }
 
-    function testExpectRevertHandleAcceptanceInvalidRecoveredAccount() public {
-        skipIfZkSync();
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        emailAuthMsg.templateId = recoveryController
-            .computeAcceptanceTemplateId(0);
-        emailAuthMsg.commandParams[0] = abi.encode(address(0x0)); // Invalid account
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid command params"));
-        recoveryController.handleAcceptance(emailAuthMsg, 0);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidTemplateId() public {
-        skipIfZkSync();
-
-        uint templateIdx = 0;
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
-            templateIdx
-        );
-        emailAuthMsg.templateId = 999; // invalid template id
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid template id"));
-        recoveryController.handleAcceptance(emailAuthMsg, 0);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidEmailAuthMsgStructure()
-        public
-    {
-        skipIfZkSync();
-
-        requestGuardian();
-
-        require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
-        );
-
-        uint templateIdx = 0;
-
-        // Create an invalid EmailAuthMsg with empty commandParams
-        EmailAuthMsg memory emailAuthMsg;
-        emailAuthMsg.templateId = recoveryController
-            .computeAcceptanceTemplateId(templateIdx);
-        emailAuthMsg.commandParams = new bytes[](0); // Invalid structure
-
-        vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
-            abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
-            abi.encode(0x0)
-        );
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid command params"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidVerifier() public {
-        skipIfZkSync();
-
-        requestGuardian();
-
-        require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
-        );
-
-        uint templateIdx = 0;
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
-            templateIdx
-        );
-        emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
-
-        // Set Verifier address to address(0)
-        vm.store(
-            address(recoveryController),
-            bytes32(uint256(0)), // Assuming Verifier is the 1st storage slot in RecoveryController
-            bytes32(uint256(0))
-        );
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid verifier address"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidDKIMRegistry() public {
-        skipIfZkSync();
-
-        requestGuardian();
-
-        require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
-        );
-
-        uint templateIdx = 0;
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
-            templateIdx
-        );
-        emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
-
-        // Set DKIMRegistry address to address(0)
-        vm.store(
-            address(recoveryController),
-            bytes32(uint256(1)), // Assuming DKIMRegistry is the 2nd storage slot in RecoveryController
-            bytes32(uint256(0))
-        );
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid dkim registry address"));
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidEmailAuthImplementationAddr()
-        public
-    {
-        skipIfZkSync();
-
-        requestGuardian();
-
-        require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.REQUESTED
-        );
-
-        uint templateIdx = 0;
-
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
-            templateIdx
-        );
-        emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
-
-        // Set EmailAuthImplementationAddr address to address(0)
-        vm.store(
-            address(recoveryController),
-            bytes32(uint256(2)), // Assuming EmailAuthImplementationAddr is the 3rd storage slot in RecoveryController
-            bytes32(uint256(0))
-        );
-
-        vm.startPrank(someRelayer);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ERC1967Utils.ERC1967InvalidImplementation.selector,
-                address(0)
-            )
-        );
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-        vm.stopPrank();
-    }
-
-    function testExpectRevertHandleAcceptanceInvalidController() public {
-        skipIfZkSync();
-
-        // First, request and accept a guardian
-        requestGuardian();
-        uint templateIdx = 0;
-        EmailAuthMsg memory emailAuthMsg = buildEmailAuthMsg();
-        uint templateId = recoveryController.computeAcceptanceTemplateId(
-            templateIdx
-        );
-        emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
-
-        vm.mockCall(
-            address(recoveryController.emailAuthImplementationAddr()),
-            abi.encodeWithSelector(EmailAuth.authEmail.selector, emailAuthMsg),
-            abi.encode(0x0)
-        );
-
-        vm.prank(someRelayer);
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-
-        require(
-            recoveryController.guardians(guardian) ==
-                RecoveryController.GuardianStatus.ACCEPTED,
-            "Guardian should be accepted"
-        );
-
-        // Now, set an invalid controller for the guardian's EmailAuth contract
-        address invalidController = address(0x1234);
-        vm.mockCall(
-            guardian,
-            abi.encodeWithSelector(bytes4(keccak256("controller()"))),
-            abi.encode(invalidController)
-        );
-
-        // Try to handle acceptance again, which should fail due to invalid controller
-        vm.expectRevert("invalid controller");
-        vm.prank(someRelayer);
-        recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
-    }
-
     function testHandleAcceptance() public {
         skipIfZkSync();
-
+        
         requestGuardian();
 
         console.log("guardian", guardian);
@@ -274,9 +54,9 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -317,9 +97,9 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
         emailAuthMsg.proof.accountSalt = 0x0;
 
         vm.mockCall(
@@ -351,9 +131,9 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -367,7 +147,7 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         vm.stopPrank();
     }
 
-    function testExpectRevertHandleAcceptanceInvalidCommandParams() public {
+    function testExpectRevertHandleAcceptanceInvalidSubjectParams() public {
         skipIfZkSync();
 
         requestGuardian();
@@ -384,10 +164,10 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](2);
-        commandParamsForAcceptance[0] = abi.encode(address(simpleWallet));
-        commandParamsForAcceptance[1] = abi.encode(address(simpleWallet));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](2);
+        subjectParamsForAcceptance[0] = abi.encode(address(simpleWallet));
+        subjectParamsForAcceptance[1] = abi.encode(address(simpleWallet));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),
@@ -396,7 +176,7 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
         );
 
         vm.startPrank(someRelayer);
-        vm.expectRevert(bytes("invalid command params"));
+        vm.expectRevert(bytes("invalid subject params"));
         recoveryController.handleAcceptance(emailAuthMsg, templateIdx);
         vm.stopPrank();
     }
@@ -420,9 +200,9 @@ contract EmailAccountRecoveryTest_handleAcceptance is StructHelper {
             templateIdx
         );
         emailAuthMsg.templateId = templateId;
-        bytes[] memory commandParamsForAcceptance = new bytes[](1);
-        commandParamsForAcceptance[0] = abi.encode(address(0x0));
-        emailAuthMsg.commandParams = commandParamsForAcceptance;
+        bytes[] memory subjectParamsForAcceptance = new bytes[](1);
+        subjectParamsForAcceptance[0] = abi.encode(address(0x0));
+        emailAuthMsg.subjectParams = subjectParamsForAcceptance;
 
         vm.mockCall(
             address(recoveryController.emailAuthImplementationAddr()),

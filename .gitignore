@@ -43,7 +43,6 @@ packages/nft_relayer/logs
 sql_database.db
 .sqlx
 .ic.pem
-config.json
 
 # Relayer
 packages/relayer/sendgrid.env
@@ -57,10 +56,6 @@ packages/relayer/logs
 sql_database.db
 .sqlx
 .ic.pem
-
-# ABIs
-packages/relayer/src/abis/*
-!packages/realyer/src/abis/mod.rs
 
 # Prover
 packages/prover/build/*
@@ -84,9 +79,6 @@ book
 
 # Vs code settings
 .vscode
-
-# Editor settings
-.idea
 
 # For zksync
 zkout

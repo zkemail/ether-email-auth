@@ -7,7 +7,6 @@ import "forge-std/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {EmailAuth, EmailAuthMsg} from "../../src/EmailAuth.sol";
 import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
-import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import {SimpleWallet} from "./SimpleWallet.sol";
@@ -17,6 +16,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 
 // // FOR_ZKSYNC:START
 // import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
+// import "../../src/utils/ForwardDKIMRegistry.sol";
 // import {RecoveryControllerZKSync, EmailAccountRecoveryZKSync} from "./RecoveryControllerZKSync.sol";
 // // FOR_ZKSYNC:END
 
@@ -26,7 +26,7 @@ contract DeploymentHelper is Test {
     EmailAuth emailAuth;
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
-    UserOverrideableDKIMRegistry overrideableDkimImpl;
+    UserOverrideableDKIMRegistry overrideableDkim;
     RecoveryController recoveryController;
     SimpleWallet simpleWalletImpl;
     SimpleWallet simpleWallet;
@@ -43,8 +43,8 @@ contract DeploymentHelper is Test {
 
     bytes32 accountSalt;
     uint templateId;
-    string[] commandTemplate;
-    string[] newCommandTemplate;
+    string[] subjectTemplate;
+    string[] newSubjectTemplate;
     bytes mockProof = abi.encodePacked(bytes1(0x01));
 
     string selector = "12345";
@@ -53,10 +53,6 @@ contract DeploymentHelper is Test {
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
     bytes32 emailNullifier =
         0x00a83fce3d4b1c9ef0f600644c1ecc6c8115b57b1596e0e3295e2c5105fbfd8a;
-    uint256 setTimestampDelay = 3 days;
-
-    bytes32 public proxyBytecodeHash =
-        vm.envOr("PROXY_BYTECODE_HASH", bytes32(0));
 
     function setUp() public virtual {
         vm.startPrank(deployer);
@@ -73,6 +69,7 @@ contract DeploymentHelper is Test {
         }
         string memory signedMsg = dkim.computeSignedMsg(
             dkim.SET_PREFIX(),
+            selector,
             domainName,
             publicKeyHash
         );
@@ -88,27 +85,14 @@ contract DeploymentHelper is Test {
             signature
         );
 
-        // Create userOverrideable dkim registry implementation
-        overrideableDkimImpl = new UserOverrideableDKIMRegistry();
-        // {
-        //     UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
-        //     ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
-        //         address(overrideableDkimImpl),
-        //         abi.encodeCall(
-        //             overrideableDkimImpl.initialize,
-        //             (deployer, signer, setTimestampDelay)
-        //         )
-        //     );
-        //     overrideableDkim = UserOverrideableDKIMRegistry(
-        //         address(overrideableDkimProxy)
-        //     );
-        // }
-        // overrideableDkim.setDKIMPublicKeyHash(
-        //     domainName,
-        //     publicKeyHash,
-        //     deployer,
-        //     new bytes(0)
-        // );
+        // Create userOverrideable dkim registry
+        overrideableDkim = new UserOverrideableDKIMRegistry(deployer, deployer);
+        overrideableDkim.setDKIMPublicKeyHash(
+            domainName,
+            publicKeyHash,
+            deployer,
+            new bytes(0)
+        );
 
         // Create Verifier
         {
@@ -117,13 +101,9 @@ contract DeploymentHelper is Test {
                 "Verifier implementation deployed at: %s",
                 address(verifierImpl)
             );
-            Groth16Verifier groth16Verifier = new Groth16Verifier();
             ERC1967Proxy verifierProxy = new ERC1967Proxy(
                 address(verifierImpl),
-                abi.encodeCall(
-                    verifierImpl.initialize,
-                    (msg.sender, address(groth16Verifier))
-                )
+                abi.encodeCall(verifierImpl.initialize, (msg.sender))
             );
             verifier = Verifier(address(verifierProxy));
         }
@@ -135,8 +115,8 @@ contract DeploymentHelper is Test {
 
         uint templateIdx = 0;
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
-        commandTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
-        newCommandTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
+        subjectTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
+        newSubjectTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
 
         // Create RecoveryController as EmailAccountRecovery implementation
         RecoveryController recoveryControllerImpl = new RecoveryController();
@@ -155,6 +135,7 @@ contract DeploymentHelper is Test {
         recoveryController = RecoveryController(
             payable(address(recoveryControllerProxy))
         );
+
 
         // Create SimpleWallet
         simpleWalletImpl = new SimpleWallet();
@@ -175,8 +156,7 @@ contract DeploymentHelper is Test {
         //                 address(verifier),
         //                 address(dkim),
         //                 address(emailAuthImpl),
-        //                 address(factoryImpl),
-        //                 proxyBytecodeHash
+        //                 address(factoryImpl)
         //             )
         //         )
         //     );
@@ -228,20 +208,5 @@ contract DeploymentHelper is Test {
         } else {
             vm.skip(false);
         }
-    }
-
-    function resetEnviromentVariables() public {
-        vm.setEnv("PRIVATE_KEY", vm.toString(uint256(0)));
-        vm.setEnv("INITIAL_OWNER", vm.toString(uint256(0)));
-        vm.setEnv("DKIM_SIGNER", vm.toString(address(0)));
-        vm.setEnv("DKIM", vm.toString(address(0)));
-        vm.setEnv("DKIM_DELAY", vm.toString(uint256(0)));
-        vm.setEnv("ECDSA_DKIM", vm.toString(address(0)));
-        vm.setEnv("VERIFIER", vm.toString(address(0)));
-        vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(0)));
-        vm.setEnv("RECOVERY_CONTROLLER", vm.toString(address(0)));
-        vm.setEnv("RECOVERY_CONTROLLER_ZKSYNC", vm.toString(address(0)));
-        vm.setEnv("ZKSYNC_CREATE2_FACTORY", vm.toString(address(0)));
-        vm.setEnv("SIMPLE_WALLET", vm.toString(address(0)));
     }
 }

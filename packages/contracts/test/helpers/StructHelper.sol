@@ -8,9 +8,9 @@ contract StructHelper is DeploymentHelper {
         public
         returns (EmailAuthMsg memory emailAuthMsg)
     {
-        bytes[] memory commandParams = new bytes[](2);
-        commandParams[0] = abi.encode(1 ether);
-        commandParams[1] = abi.encode(
+        bytes[] memory subjectParams = new bytes[](2);
+        subjectParams[0] = abi.encode(1 ether);
+        subjectParams[1] = abi.encode(
             "0x0000000000000000000000000000000000000020"
         );
 
@@ -18,7 +18,7 @@ contract StructHelper is DeploymentHelper {
             domainName: "gmail.com",
             publicKeyHash: publicKeyHash,
             timestamp: 1694989812,
-            maskedCommand: "Send 1 ETH to 0x0000000000000000000000000000000000000020",
+            maskedSubject: "Send 1 ETH to 0x0000000000000000000000000000000000000020",
             emailNullifier: emailNullifier,
             accountSalt: accountSalt,
             isCodeExist: true,
@@ -27,8 +27,8 @@ contract StructHelper is DeploymentHelper {
 
         emailAuthMsg = EmailAuthMsg({
             templateId: templateId,
-            commandParams: commandParams,
-            skippedCommandPrefix: 0,
+            subjectParams: subjectParams,
+            skipedSubjectPrefix: 0,
             proof: emailProof
         });
 

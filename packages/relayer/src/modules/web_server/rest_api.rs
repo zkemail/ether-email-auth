@@ -1,29 +1,95 @@
 use crate::*;
 use anyhow::Result;
-use axum::Json;
+use axum::{body::Body, response::Response};
 use hex::decode;
 use rand::Rng;
-use relayer_utils::{
-    calculate_account_salt, extract_template_vals_from_command, TemplateValue, LOG,
-};
+use relayer_utils::LOG;
+use reqwest::StatusCode;
 use serde::{Deserialize, Serialize};
+use slog::log;
 use std::str;
 
-/// Retrieves the status of a request.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the request ID.
-///
-/// # Returns
-///
-/// A `Result` containing a JSON `RequestStatusResponse` or an `ApiError`.
-pub async fn request_status_api(
-    Json(payload): Json<RequestStatusRequest>,
-) -> Result<Json<RequestStatusResponse>, ApiError> {
-    let row = DB.get_request(payload.request_id).await?;
+#[derive(Serialize, Deserialize)]
+pub struct RequestStatusRequest {
+    pub request_id: u32,
+}
 
-    // Determine the status based on the retrieved row
+#[derive(Serialize, Deserialize)]
+pub enum RequestStatus {
+    NotExist = 0,
+    Pending = 1,
+    Processed = 2,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RequestStatusResponse {
+    pub request_id: u32,
+    pub status: RequestStatus,
+    pub is_success: bool,
+    pub email_nullifier: Option<String>,
+    pub account_salt: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AcceptanceRequest {
+    pub controller_eth_addr: String,
+    pub guardian_email_addr: String,
+    pub account_code: String,
+    pub template_idx: u64,
+    pub subject: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AcceptanceResponse {
+    pub request_id: u32,
+    pub subject_params: Vec<TemplateValue>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RecoveryRequest {
+    pub controller_eth_addr: String,
+    pub guardian_email_addr: String,
+    pub template_idx: u64,
+    pub subject: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct RecoveryResponse {
+    pub request_id: u32,
+    pub subject_params: Vec<TemplateValue>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct CompleteRecoveryRequest {
+    pub account_eth_addr: String,
+    pub controller_eth_addr: String,
+    pub complete_calldata: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct GetAccountSaltRequest {
+    pub account_code: String,
+    pub email_addr: String,
+}
+
+#[derive(Deserialize)]
+struct PermittedWallet {
+    wallet_name: String,
+    controller_eth_addr: String,
+    hash_of_bytecode_of_proxy: String,
+    impl_contract_address: String,
+    slot_location: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct InactiveGuardianRequest {
+    pub account_eth_addr: String,
+    pub controller_eth_addr: String,
+}
+
+// Create request status API
+pub async fn request_status_api(payload: RequestStatusRequest) -> Result<RequestStatusResponse> {
+    let row = DB.get_request(payload.request_id).await?;
     let status = if let Some(ref row) = row {
         if row.is_processed {
             RequestStatus::Processed
@@ -33,8 +99,7 @@ pub async fn request_status_api(
     } else {
         RequestStatus::NotExist
     };
-
-    Ok(Json(RequestStatusResponse {
+    Ok(RequestStatusResponse {
         request_id: payload.request_id,
         status,
         is_success: row
@@ -42,43 +107,42 @@ pub async fn request_status_api(
             .map_or(false, |r| r.is_success.unwrap_or(false)),
         email_nullifier: row.clone().and_then(|r| r.email_nullifier),
         account_salt: row.clone().and_then(|r| r.account_salt),
-    }))
+    })
 }
 
-/// Handles an acceptance request for a wallet.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the acceptance request details.
-///
-/// # Returns
-///
-/// A `Result` containing a JSON `AcceptanceResponse` or an `ApiError`.
-pub async fn handle_acceptance_request(
-    Json(payload): Json<AcceptanceRequest>,
-) -> Result<Json<AcceptanceResponse>, ApiError> {
-    let command_template = CLIENT
-        .get_acceptance_command_templates(&payload.controller_eth_addr, payload.template_idx)
-        .await?;
+pub async fn handle_acceptance_request(payload: AcceptanceRequest) -> Response<Body> {
+    let subject_template = CLIENT
+        .get_acceptance_subject_templates(&payload.controller_eth_addr, payload.template_idx)
+        .await
+        .unwrap();
 
-    // Extract and validate command parameters
-    let command_params = extract_template_vals_from_command(&payload.command, command_template)
-        .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
+    let subject_params = extract_template_vals(&payload.subject, subject_template);
 
-    // Recover the account address
+    if subject_params.is_err() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Invalid subject"))
+            .unwrap();
+    }
+
+    let subject_params = subject_params.unwrap();
+
     let account_eth_addr = CLIENT
-        .get_recovered_account_from_acceptance_command(
+        .get_recovered_account_from_acceptance_subject(
             &payload.controller_eth_addr,
-            command_params.clone(),
+            subject_params.clone(),
             payload.template_idx,
         )
-        .await?;
+        .await
+        .unwrap();
 
     let account_eth_addr = format!("0x{:x}", account_eth_addr);
 
-    // Check if the wallet is deployed
-    if !CLIENT.is_wallet_deployed(&account_eth_addr).await? {
-        return Err(ApiError::Validation("Wallet not deployed".to_string()));
+    if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
     }
 
     // // Check if hash of bytecode of proxy contract is equal or not
@@ -126,12 +190,12 @@ pub async fn handle_acceptance_request(
 
     // Check if the account code is already used
     if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
-        return Err(ApiError::Validation(
-            "Account code already used".to_string(),
-        ));
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Account code already used"))
+            .unwrap();
     }
 
-    // Generate a unique request ID
     let mut request_id = rand::thread_rng().gen::<u32>();
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
@@ -139,114 +203,151 @@ pub async fn handle_acceptance_request(
 
     let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
 
-    DB.insert_request(&Request {
-        request_id,
-        account_eth_addr: account_eth_addr.clone(),
-        controller_eth_addr: payload.controller_eth_addr.clone(),
-        guardian_email_addr: payload.guardian_email_addr.clone(),
-        is_for_recovery: false,
-        template_idx: payload.template_idx,
-        is_processed: false,
-        is_success: None,
-        email_nullifier: None,
-        account_salt: Some(account_salt.clone()),
-    })
-    .await?;
-
-    // Handle different scenarios based on guardian status
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
-        .await?
+        .await
     {
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: Some(account_salt.clone()),
+        })
+        .await
+        .expect("Failed to insert request");
+
         handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
         })
         .await
-        // TODO: Add custom errors for handle_email_events and map_err
         .expect("Failed to send GuardianAlreadyExists event");
     } else if DB
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
-        .await?
+        .await
     {
-        // Update credentials and send acceptance request email
+        // In this case, the relayer sent a request email to the same guardian before, but it has not been replied yet.
+        // Therefore, the relayer will send an email to the guardian again with a fresh account code.
         DB.update_credentials_of_wallet_and_email(&Credentials {
             account_code: payload.account_code.clone(),
             account_eth_addr: account_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
             is_set: false,
         })
-        .await?;
+        .await
+        .expect("Failed to insert credentials");
+
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: Some(account_salt.clone()),
+        })
+        .await
+        .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::AcceptanceRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.command.clone(),
+            subject: payload.subject.clone(),
             account_code: payload.account_code.clone(),
         })
-        .await?;
+        .await
+        .expect("Failed to send Acceptance event");
     } else {
-        // Insert new credentials and send acceptance request email
         DB.insert_credentials(&Credentials {
             account_code: payload.account_code.clone(),
             account_eth_addr: account_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
             is_set: false,
         })
-        .await?;
+        .await
+        .expect("Failed to insert credentials");
+
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: false,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: Some(account_salt.clone()),
+        })
+        .await
+        .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::AcceptanceRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.command.clone(),
+            subject: payload.subject.clone(),
             account_code: payload.account_code.clone(),
         })
-        .await?;
+        .await
+        .expect("Failed to send Acceptance event");
     }
 
-    Ok(Json(AcceptanceResponse {
-        request_id,
-        command_params,
-    }))
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(
+            serde_json::to_string(&AcceptanceResponse {
+                request_id,
+                subject_params,
+            })
+            .unwrap(),
+        ))
+        .unwrap()
 }
 
-/// Handles a recovery request for a wallet.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the recovery request details.
-///
-/// # Returns
-///
-/// A `Result` containing a JSON `RecoveryResponse` or an `ApiError`.
-pub async fn handle_recovery_request(
-    Json(payload): Json<RecoveryRequest>,
-) -> Result<Json<RecoveryResponse>, ApiError> {
-    // Fetch the command template
-    let command_template = CLIENT
-        .get_recovery_command_templates(&payload.controller_eth_addr, payload.template_idx)
-        .await?;
+pub async fn handle_recovery_request(payload: RecoveryRequest) -> Response<Body> {
+    let subject_template = CLIENT
+        .get_recovery_subject_templates(&payload.controller_eth_addr, payload.template_idx)
+        .await
+        .unwrap();
 
-    // Extract and validate command parameters
-    let command_params = extract_template_vals_from_command(&payload.command, command_template)
-        .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
+    let subject_params = extract_template_vals(&payload.subject, subject_template);
 
-    // Recover the account address
+    if subject_params.is_err() {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Invalid subject"))
+            .unwrap();
+    }
+
+    let subject_params = subject_params.unwrap();
+
     let account_eth_addr = CLIENT
-        .get_recovered_account_from_recovery_command(
+        .get_recovered_account_from_recovery_subject(
             &payload.controller_eth_addr,
-            command_params.clone(),
+            subject_params.clone(),
             payload.template_idx,
         )
-        .await?;
+        .await
+        .unwrap();
 
     let account_eth_addr = format!("0x{:x}", account_eth_addr);
 
-    // Check if the wallet is deployed
-    if !CLIENT.is_wallet_deployed(&account_eth_addr).await? {
-        return Err(ApiError::Validation("Wallet not deployed".to_string()));
+    if !CLIENT.is_wallet_deployed(&account_eth_addr).await {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
     }
 
     // // Check if hash of bytecode of proxy contract is equal or not
@@ -298,24 +399,25 @@ pub async fn handle_recovery_request(
         request_id = rand::thread_rng().gen::<u32>();
     }
 
-    // Fetch account details and calculate account salt
     let account = DB
         .get_credentials_from_wallet_and_email(&account_eth_addr, &payload.guardian_email_addr)
-        .await?;
+        .await;
 
-    let account_salt = if let Some(account_details) = account {
+    let account_salt = if let Ok(Some(account_details)) = account {
         calculate_account_salt(&payload.guardian_email_addr, &account_details.account_code)
     } else {
-        return Err(ApiError::Validation("Wallet not deployed".to_string()));
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Account details not found"))
+            .unwrap();
     };
 
-    // Handle the case when wallet and email are not registered
     if !DB
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
-        .await?
+        .await
     {
         DB.insert_request(&Request {
-            request_id,
+            request_id: request_id.clone(),
             account_eth_addr: account_eth_addr.clone(),
             controller_eth_addr: payload.controller_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -326,85 +428,103 @@ pub async fn handle_recovery_request(
             email_nullifier: None,
             account_salt: Some(account_salt.clone()),
         })
-        .await?;
+        .await
+        .expect("Failed to insert request");
 
         handle_email_event(EmailAuthEvent::GuardianNotRegistered {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
-            command: payload.command.clone(),
+            subject: payload.subject.clone(),
             request_id,
         })
-        .await?;
+        .await
+        .expect("Failed to send GuardianNotRegistered event");
 
-        return Ok(Json(RecoveryResponse {
-            request_id,
-            command_params,
-        }));
+        return Response::builder()
+            .status(StatusCode::OK)
+            .body(Body::from(
+                serde_json::to_string(&RecoveryResponse {
+                    request_id,
+                    subject_params,
+                })
+                .unwrap(),
+            ))
+            .unwrap();
     }
 
-    // Insert the recovery request
-    DB.insert_request(&Request {
-        request_id,
-        account_eth_addr: account_eth_addr.clone(),
-        controller_eth_addr: payload.controller_eth_addr.clone(),
-        guardian_email_addr: payload.guardian_email_addr.clone(),
-        is_for_recovery: true,
-        template_idx: payload.template_idx,
-        is_processed: false,
-        is_success: None,
-        email_nullifier: None,
-        account_salt: Some(account_salt.clone()),
-    })
-    .await?;
-
-    // Handle different scenarios based on guardian status
     if DB
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
-        .await?
+        .await
     {
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: true,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: Some(account_salt.clone()),
+        })
+        .await
+        .expect("Failed to insert request");
+
         handle_email_event(EmailAuthEvent::RecoveryRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
-            command: payload.command.clone(),
+            subject: payload.subject.clone(),
         })
         .await
-        // TODO: Add custom error for handle_email_event
         .expect("Failed to send Recovery event");
     } else {
+        DB.insert_request(&Request {
+            request_id: request_id.clone(),
+            account_eth_addr: account_eth_addr.clone(),
+            controller_eth_addr: payload.controller_eth_addr.clone(),
+            guardian_email_addr: payload.guardian_email_addr.clone(),
+            is_for_recovery: true,
+            template_idx: payload.template_idx,
+            is_processed: false,
+            is_success: None,
+            email_nullifier: None,
+            account_salt: Some(account_salt.clone()),
+        })
+        .await
+        .expect("Failed to insert request");
+
         handle_email_event(EmailAuthEvent::GuardianNotSet {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
+            // request_id,
+            // subject: payload.subject.clone(),
         })
         .await
-        // TODO: Add error handling
         .expect("Failed to send Recovery event");
     }
 
-    Ok(Json(RecoveryResponse {
-        request_id,
-        command_params,
-    }))
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(
+            serde_json::to_string(&RecoveryResponse {
+                request_id,
+                subject_params,
+            })
+            .unwrap(),
+        ))
+        .unwrap()
 }
 
-/// Handles the completion of a recovery request.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the complete recovery request details.
-///
-/// # Returns
-///
-/// A `Result` containing a `String` message or an `ApiError`.
-pub async fn handle_complete_recovery_request(
-    Json(payload): Json<CompleteRecoveryRequest>,
-) -> Result<String, ApiError> {
-    // Check if the wallet is deployed
-    if !CLIENT.is_wallet_deployed(&payload.account_eth_addr).await? {
-        return Err(ApiError::Validation("Wallet not deployed".to_string()));
+pub async fn handle_complete_recovery_request(payload: CompleteRecoveryRequest) -> Response<Body> {
+    if !CLIENT.is_wallet_deployed(&payload.account_eth_addr).await {
+        return Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Wallet not deployed"))
+            .unwrap();
     }
 
-    // Attempt to complete the recovery
     match CLIENT
         .complete_recovery(
             &payload.controller_eth_addr,
@@ -413,8 +533,14 @@ pub async fn handle_complete_recovery_request(
         )
         .await
     {
-        Ok(true) => Ok("Recovery completed".to_string()),
-        Ok(false) => Err(ApiError::Validation("Recovery failed".to_string())),
+        Ok(true) => Response::builder()
+            .status(StatusCode::OK)
+            .body(Body::from("Recovery completed"))
+            .unwrap(),
+        Ok(false) => Response::builder()
+            .status(StatusCode::BAD_REQUEST)
+            .body(Body::from("Recovery failed"))
+            .unwrap(),
         Err(e) => {
             // Parse the error message if it follows the known format
             let error_message = if e
@@ -430,74 +556,56 @@ pub async fn handle_complete_recovery_request(
                 .chars()
                 .filter(|c| c.is_ascii())
                 .collect::<String>();
-            Err(ApiError::Internal(error_message))
+            Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(error_message))
+                .unwrap()
         }
     }
 }
 
-/// Retrieves the account salt for a given email address and account code.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the email address and account code.
-///
-/// # Returns
-///
-/// A `Result` containing the account salt as a `String` or an `ApiError`.
-pub async fn get_account_salt(
-    Json(payload): Json<GetAccountSaltRequest>,
-) -> Result<String, ApiError> {
+pub async fn get_account_salt(payload: GetAccountSaltRequest) -> Response<Body> {
     let account_salt = calculate_account_salt(&payload.email_addr, &payload.account_code);
-    Ok(account_salt)
+
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from(account_salt))
+        .unwrap()
 }
 
-/// Marks a guardian as inactive for a given wallet.
-///
-/// # Arguments
-///
-/// * `payload` - A JSON payload containing the account and controller Ethereum addresses.
-///
-/// # Returns
-///
-/// A `Result` containing a `String` message or an `ApiError`.
-pub async fn inactive_guardian(
-    Json(payload): Json<InactiveGuardianRequest>,
-) -> Result<String, ApiError> {
-    // Check if the wallet is activated
+pub async fn inactive_guardian(payload: InactiveGuardianRequest) -> Response<Body> {
     let is_activated = CLIENT
         .get_is_activated(&payload.controller_eth_addr, &payload.account_eth_addr)
-        .await?;
-
-    if is_activated {
-        return Ok("Wallet is activated".to_string());
+        .await;
+    match is_activated {
+        Ok(true) => {
+            return Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .body(Body::from("Wallet is activated"))
+                .unwrap()
+        }
+        Ok(false) => {}
+        Err(e) => {
+            return Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Body::from(e.to_string()))
+                .unwrap()
+        }
     }
-
-    trace!(LOG, "Inactive guardian"; "is_activated" => is_activated);
-
-    // Parse and format the account Ethereum address
-    let account_eth_addr: Address = payload
-        .account_eth_addr
-        .parse()
-        .map_err(|e| ApiError::Validation(format!("Failed to parse account_eth_addr: {}", e)))?;
+    trace!(LOG, "Inactive guardian"; "is_activated" => is_activated.unwrap());
+    let account_eth_addr: Address = payload.account_eth_addr.parse().unwrap();
     let account_eth_addr = format!("0x{:x}", &account_eth_addr);
     trace!(LOG, "Inactive guardian"; "account_eth_addr" => &account_eth_addr);
-
-    // Update the credentials of the inactive guardian
     DB.update_credentials_of_inactive_guardian(false, &account_eth_addr)
-        .await?;
+        .await
+        .expect("Failed to update credentials");
 
-    Ok("Guardian inactivated".to_string())
+    Response::builder()
+        .status(StatusCode::OK)
+        .body(Body::from("Guardian inactivated"))
+        .unwrap()
 }
 
-/// Parses an error message from contract call data.
-///
-/// # Arguments
-///
-/// * `error_data` - The error data as a `String`.
-///
-/// # Returns
-///
-/// A `String` containing the parsed error message or a default error message.
 fn parse_error_message(error_data: String) -> String {
     // Attempt to extract and decode the error message
     if let Some(hex_error) = error_data.split(" ").last() {
@@ -512,31 +620,14 @@ fn parse_error_message(error_data: String) -> String {
     format!("Failed to parse contract error: {}", error_data)
 }
 
-/// Receives and processes an email.
-///
-/// # Arguments
-///
-/// * `email` - The raw email as a `String`.
-///
-/// # Returns
-///
-/// A `Result` containing `()` or an `ApiError`.
-pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
-    let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
-    let from_addr = parsed_email.get_from_addr()?;
-    let original_subject = parsed_email.get_subject_all()?;
+pub async fn receive_email_api_fn(email: String) -> Result<()> {
+    let parsed_email = ParsedEmail::new_from_raw_email(&email).await.unwrap();
+    let from_addr = parsed_email.get_from_addr().unwrap();
     tokio::spawn(async move {
-        if !check_is_valid_request(&parsed_email).await.unwrap() {
-            trace!(LOG, "Got a non valid email request. Ignoring.");
-            return;
-        }
-
-        // Send acknowledgment email
         match handle_email_event(EmailAuthEvent::Ack {
             email_addr: from_addr.clone(),
-            command: parsed_email.get_command(false).unwrap_or_default(),
+            subject: parsed_email.get_subject_all().unwrap_or_default(),
             original_message_id: parsed_email.get_message_id().ok(),
-            original_subject,
         })
         .await
         {
@@ -547,8 +638,6 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
                 error!(LOG, "Error handling email event: {:?}", e);
             }
         }
-
-        // Process the email
         match handle_email(email.clone()).await {
             Ok(event) => match handle_email_event(event).await {
                 Ok(_) => {}
@@ -558,16 +647,9 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
             },
             Err(e) => {
                 error!(LOG, "Error handling email: {:?}", e);
-                let original_subject = parsed_email
-                    .get_subject_all()
-                    .unwrap_or("Unknown Error".to_string());
                 match handle_email_event(EmailAuthEvent::Error {
                     email_addr: from_addr,
                     error: e.to_string(),
-                    original_subject,
-                    original_message_id: parsed_email.get_message_id().ok(),
-                    email_request_context: *Box::new(None),
-                    command: None,
                 })
                 .await
                 {
@@ -580,127 +662,4 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
         }
     });
     Ok(())
-}
-
-/// Request status request structure.
-#[derive(Serialize, Deserialize)]
-pub struct RequestStatusRequest {
-    /// The unique identifier for the request.
-    pub request_id: u32,
-}
-
-/// Enum representing the possible statuses of a request.
-#[derive(Serialize, Deserialize)]
-pub enum RequestStatus {
-    /// The request does not exist.
-    NotExist = 0,
-    /// The request is pending processing.
-    Pending = 1,
-    /// The request has been processed.
-    Processed = 2,
-}
-
-/// Response structure for a request status query.
-#[derive(Serialize, Deserialize)]
-pub struct RequestStatusResponse {
-    /// The unique identifier for the request.
-    pub request_id: u32,
-    /// The current status of the request.
-    pub status: RequestStatus,
-    /// Indicates whether the request was successful.
-    pub is_success: bool,
-    /// The email nullifier, if available.
-    pub email_nullifier: Option<String>,
-    /// The account salt, if available.
-    pub account_salt: Option<String>,
-}
-
-/// Request structure for an acceptance request.
-#[derive(Serialize, Deserialize)]
-pub struct AcceptanceRequest {
-    /// The Ethereum address of the controller.
-    pub controller_eth_addr: String,
-    /// The email address of the guardian.
-    pub guardian_email_addr: String,
-    /// The unique account code.
-    pub account_code: String,
-    /// The index of the template to use.
-    pub template_idx: u64,
-    /// The command to execute.
-    pub command: String,
-}
-
-/// Response structure for an acceptance request.
-#[derive(Serialize, Deserialize)]
-pub struct AcceptanceResponse {
-    /// The unique identifier for the request.
-    pub request_id: u32,
-    /// The parameters extracted from the command.
-    pub command_params: Vec<TemplateValue>,
-}
-
-/// Request structure for a recovery request.
-#[derive(Serialize, Deserialize, Debug)]
-pub struct RecoveryRequest {
-    /// The Ethereum address of the controller.
-    pub controller_eth_addr: String,
-    /// The email address of the guardian.
-    pub guardian_email_addr: String,
-    /// The index of the template to use.
-    pub template_idx: u64,
-    /// The command to execute.
-    pub command: String,
-}
-
-/// Response structure for a recovery request.
-#[derive(Serialize, Deserialize)]
-pub struct RecoveryResponse {
-    /// The unique identifier for the request.
-    pub request_id: u32,
-    /// The parameters extracted from the command.
-    pub command_params: Vec<TemplateValue>,
-}
-
-/// Request structure for completing a recovery.
-#[derive(Serialize, Deserialize)]
-pub struct CompleteRecoveryRequest {
-    /// The Ethereum address of the account to recover.
-    pub account_eth_addr: String,
-    /// The Ethereum address of the controller.
-    pub controller_eth_addr: String,
-    /// The calldata to complete the recovery.
-    pub complete_calldata: String,
-}
-
-/// Request structure for retrieving an account salt.
-#[derive(Serialize, Deserialize)]
-pub struct GetAccountSaltRequest {
-    /// The unique account code.
-    pub account_code: String,
-    /// The email address associated with the account.
-    pub email_addr: String,
-}
-
-/// Structure representing a permitted wallet.
-#[derive(Deserialize)]
-struct PermittedWallet {
-    /// The name of the wallet.
-    wallet_name: String,
-    /// The Ethereum address of the controller.
-    controller_eth_addr: String,
-    /// The hash of the bytecode of the proxy contract.
-    hash_of_bytecode_of_proxy: String,
-    /// The address of the implementation contract.
-    impl_contract_address: String,
-    /// The slot location in storage.
-    slot_location: String,
-}
-
-/// Request structure for marking a guardian as inactive.
-#[derive(Serialize, Deserialize)]
-pub struct InactiveGuardianRequest {
-    /// The Ethereum address of the account.
-    pub account_eth_addr: String,
-    /// The Ethereum address of the controller.
-    pub controller_eth_addr: String,
 }

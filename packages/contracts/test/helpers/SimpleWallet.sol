@@ -4,12 +4,8 @@ pragma solidity ^0.8.12;
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import {RecoveryController} from "./RecoveryController.sol";
-import {IERC1271} from "@openzeppelin/contracts/interfaces/IERC1271.sol";
-import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract SimpleWallet is OwnableUpgradeable, IERC1271 {
-    using ECDSA for *;
-
+contract SimpleWallet is OwnableUpgradeable {
     enum GuardianStatus {
         NONE,
         REQUESTED,
@@ -52,25 +48,5 @@ contract SimpleWallet is OwnableUpgradeable, IERC1271 {
             "only owner or recovery controller"
         );
         _transferOwnership(newOwner);
-    }
-
-    function requestGuardian(address guardian) public {
-        require(msg.sender == owner(), "only owner");
-        RecoveryController(recoveryController).requestGuardian(guardian);
-    }
-
-    /**
-     * @notice Verifies that the signer is the owner of the signing contract.
-     */
-    function isValidSignature(
-        bytes32 _hash,
-        bytes calldata _signature
-    ) external view override returns (bytes4) {
-        // Validate signatures
-        if (_hash.recover(_signature) == owner()) {
-            return 0x1626ba7e;
-        } else {
-            return 0xffffffff;
-        }
     }
 }

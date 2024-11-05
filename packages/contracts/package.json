@@ -4,30 +4,25 @@
   "license": "MIT",
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
-    "test": "forge test --force --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
-    "test:script": "forge test --force --no-match-test \"testIntegration\" --skip '*ZKSync*' --match-path test/script/**/*.sol --threads 1",
-    "zkbuild": "forge build --skip test --zksync",
-    "zktest": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --system-mode=true --zksync --gas-limit 2000000000 --chain 300 --fork-url http://127.0.0.1:8011",
+    "zkbuild": "forge build --zksync",
+    "test": "forge test --no-match-test \"testIntegration\" --skip '*ZKSync*'",
+    "zktest": "forge test --no-match-test \"testIntegration\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
+    "build": "forge build --skip '*ZKSync*'",
+    "zkbuild": "forge build --zksync",
+    "test": "forge test --no-match-test \"testIntegration\" --skip '*ZKSync*'",
+    "zktest": "forge test --no-match-test \"testIntegration\" --system-mode=true --zksync --gas-limit 1000000000 --chain 300",
     "lint": "solhint 'src/**/*.sol'"
   },
   "dependencies": {
-    "@matterlabs/zksync-contracts": "^0.6.1",
     "@openzeppelin/contracts": "^5.0.0",
     "@openzeppelin/contracts-upgradeable": "^5.0.0",
-    "@zk-email/contracts": "^6.3.1",
-    "solady": "^0.0.123",
-    "solidity-stringutils": "github:LayerZero-Labs/solidity-stringutils"
+    "@zk-email/contracts": "^6.1.5",
+    "@matterlabs/zksync-contracts": "^0.6.1",
+    "solady": "^0.0.123"
   },
   "devDependencies": {
     "ds-test": "https://github.com/dapphub/ds-test",
     "forge-std": "https://github.com/foundry-rs/forge-std",
     "solhint": "^3.6.1"
-  },
-  "files": [
-    "/src",
-    "foundry.toml",
-    "package.json",
-    "README.md",
-    "remappings.txt"
-  ]
+  }
 }

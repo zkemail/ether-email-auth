@@ -1,5 +1,5 @@
 # Use the base image
-FROM bisht13/relayer-base
+FROM bisht13/ar-relayer-base:latest
 
 # Copy the project files
 COPY packages/relayer /relayer/packages/relayer
