@@ -368,7 +368,7 @@ source .env
 export RPC_URL=https://sepolia.era.zksync.dev
 export CHAIN_ID=300
 
-forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
+forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv --verifier zksync --verifier-url https://explorer.sepolia.era.zksync.dev/contract_verification --verify
 ```
 
 # Emergency Response
