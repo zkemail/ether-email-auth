@@ -1,5 +1,6 @@
-# Use the latest official Rust image as the base
-FROM rust:latest
+# Stage 1: Build Stage
+# Use the official Rust image to build the project
+FROM rust:latest AS builder
 
 # Use bash as the shell
 SHELL ["/bin/bash", "-c"]
@@ -15,55 +16,58 @@ RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | b
 # Set the working directory
 WORKDIR /relayer
 
-# Pre-configure Git to avoid common issues and increase clone verbosity
+# Configure Git to avoid common issues and increase clone verbosity
 RUN git config --global advice.detachedHead false \
     && git config --global core.compression 0 \
     && git config --global protocol.version 2 \
     && git config --global http.postBuffer 1048576000 \
     && git config --global fetch.verbose true
 
-# Copy project files
+# Copy the project files to the build stage
 COPY . .
 
-# Remove the packages/relayer directory
-RUN rm -rf packages/relayer
-
-# Install Yarn dependencies with retry mechanism
+# Install Yarn dependencies with a retry mechanism
 RUN . $HOME/.nvm/nvm.sh && nvm use default && yarn || \
     (sleep 5 && yarn) || \
     (sleep 10 && yarn)
 
-# Install Foundry
+# Install Foundry and add forge to PATH
 RUN curl -L https://foundry.paradigm.xyz | bash \
-    && source $HOME/.bashrc \
-    && foundryup
+    && . $HOME/.bashrc \
+    && foundryup \
+    && ln -s $HOME/.foundry/bin/forge /usr/local/bin/forge \
+    && forge --version
 
-# Verify Foundry installation
-RUN source $HOME/.bashrc && forge --version
-
-# Set the working directory for contracts
+# Build the contracts
 WORKDIR /relayer/packages/contracts
+RUN source $HOME/.nvm/nvm.sh && nvm use default && yarn && forge build
 
-# Install Yarn dependencies for contracts
-RUN source $HOME/.nvm/nvm.sh && nvm use default && yarn
-
-# Build the contracts using Foundry
-RUN source $HOME/.bashrc && forge build
-
-# Copy the project files
-COPY packages/relayer /relayer/packages/relayer
-
-# Set the working directory for the Rust project
+# Set the working directory for the Rust project and build it
 WORKDIR /relayer/packages/relayer
 
 # Copy the IC PEM file
 COPY packages/relayer/.ic.pem /relayer/.ic.pem
 
 # Build the Rust project with caching
-RUN cargo build
+RUN cargo build --release
 
-# Expose port
+# Stage 2: Final Stage with Minimal Image
+# Use a slim Debian image to keep the final image small
+FROM debian:bookworm-slim
+
+# Install necessary runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy the built binary from the builder stage
+COPY --from=builder /relayer/target/release/relayer /usr/local/bin/relayer
+
+# Copy the IC PEM file
+COPY --from=builder /relayer/.ic.pem /relayer/.ic.pem
+
+# Expose the required port
 EXPOSE 4500
 
-# Set the default command
-CMD ["cargo", "run"]
+# Set the default command to run the application
+CMD ["/usr/local/bin/relayer"]
