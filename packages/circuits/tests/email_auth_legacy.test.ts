@@ -411,13 +411,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.from_addr_idx = 1024;
+        circuitInputsRelevant.from_addr_idx = 1024;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -427,13 +435,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.domain_idx = 256;
+        circuitInputsRelevant.domain_idx = 256;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -443,13 +459,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.subject_idx = 1024;
+        circuitInputsRelevant.subject_idx = 1024;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -459,13 +483,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.timestamp_idx = 1024;
+        circuitInputsRelevant.timestamp_idx = 1024;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -475,13 +507,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.code_idx = 1024;
+        circuitInputsRelevant.code_idx = 1024;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -491,13 +531,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.code_idx = 1024 * 4;
+        circuitInputsRelevant.code_idx = 1024 * 4;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -507,13 +555,21 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_invalid_test1.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
-        circuitInputs.from_addr_idx = circuitInputs.subject_idx;
+        circuitInputsRelevant.from_addr_idx = circuitInputsRelevant.subject_idx;
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
@@ -523,12 +579,20 @@ describe("Email Auth Legacy", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_invalid_test2.eml");
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
-        const circuitInputs = await genEmailCircuitInput(emailFilePath, accountCode, {
+        const {
+            body_hash_idx,
+            precomputed_sha,
+            padded_body,
+            padded_body_len,
+            command_idx,
+            padded_cleaned_body,
+            ...circuitInputsRelevant
+        } = await genEmailCircuitInput(emailFilePath, accountCode, {
             maxHeaderLength: 1024,
             ignoreBodyHashCheck: true,
         });
         async function failFn() {
-            const witness = await circuit.calculateWitness(circuitInputs);
+            const witness = await circuit.calculateWitness(circuitInputsRelevant);
             await circuit.checkConstraints(witness);
         }
         await expect(failFn).rejects.toThrow();
