@@ -1,6 +1,6 @@
 [package]
 name = "relayer"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 
 [dependencies]
@@ -26,7 +26,11 @@ lettre = { version = "0.10.4", features = ["tokio1", "tokio1-native-tls"] }
 ethers = { version = "2.0.10", features = ["abigen"] }
 relayer-utils = { version = "0.4.2", git = "https://github.com/zkemail/relayer-utils.git" }
 futures = "0.3.28"
-sqlx = { version = "=0.7.3", features = ["postgres", "runtime-tokio", "tls-native-tls"] }
+sqlx = { version = "=0.7.3", features = [
+    "postgres",
+    "runtime-tokio",
+    "tls-native-tls",
+] }
 regex = "1.10.2"
 axum = "0.6.20"
 rand = "0.8.5"

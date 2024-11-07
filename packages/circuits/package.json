@@ -1,7 +1,7 @@
 {
   "name": "@zk-email/ether-email-auth-circom",
   "license": "MIT",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
     "build": "mkdir -p build && circom src/email_auth.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
     "build-legacy": "mkdir -p build && circom src/email_auth_legacy.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
@@ -11,9 +11,9 @@
     "test": "NODE_OPTIONS=--max_old_space_size=8192 jest"
   },
   "dependencies": {
-    "@zk-email/circuits": "=6.3.0",
+    "@zk-email/circuits": "=6.3.1",
     "@zk-email/relayer-utils": "=0.3.7",
-    "@zk-email/zk-regex-circom": "=2.3.0",
+    "@zk-email/zk-regex-circom": "=2.3.1",
     "commander": "^12.1.0",
     "snarkjs": "=0.7.5"
   },

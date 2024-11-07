@@ -1732,9 +1732,9 @@
     pretty-format "^29.0.0"
 
 "@types/node@*":
-  version "22.8.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.8.6.tgz#e8a0c0871623283d8b3ef7d7b9b1bfdfd3028e22"
-  integrity sha512-tosuJYKrIqjQIlVCM4PEGxOmyg3FCPa/fViuJChnGeEIhjA46oy8FMVoF9su1/v8PNs2a8Q0iFNyOx0uOF91nw==
+  version "22.9.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.9.0.tgz#b7f16e5c3384788542c72dc3d561a7ceae2c0365"
+  integrity sha512-vuyHg81vvWA1Z1ELfvLko2c8f34gyA0zaic0+Rllc5lbCnbSyuvb2Oxpm6TAUAC/2xZN3QGqxBNggD1nNR2AfQ==
   dependencies:
     undici-types "~6.19.8"
 
@@ -1755,10 +1755,10 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@=6.3.0":
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.3.0.tgz#9e1be249fe0b04471d75c7f38be3782d9cfc8183"
-  integrity sha512-6ksOxRTNaZmuIesoWUsZpaN1p5+VK9QucOUpAry9Y5NWZtHJ0GKzIvDzI0DYfPCy+BicT8PnrNpIoJRnXS+22Q==
+"@zk-email/circuits@=6.3.1":
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.3.1.tgz#259a07955d5ca1cd44b8bd3d09ae63c5cc3e8e11"
+  integrity sha512-R/N4Fo2xRgUcZTz+6oCREGkZpJAEdQ6+z1jcQbYffmYvYCSAKlhOZCaNAUzUfGK6Glc2cHaj8hSv9g0CGvHF3w==
   dependencies:
     "@zk-email/zk-regex-circom" "^2.3.0"
     circomlib "^2.0.5"
@@ -1781,10 +1781,10 @@
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@=2.3.0", "@zk-email/zk-regex-circom@^2.3.0":
-  version "2.3.0"
-  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.0.tgz#9db949c53737bfddbae3ea1db0737783987a0ed5"
-  integrity sha512-puEcLa5og+vwf2gx2zULJ2A3R8mu89hw87Kq0O0g5+8ojL1hKGMDKY9+oIwOhg6uCJesq9/9TETXcR4JW2/Zog==
+"@zk-email/zk-regex-circom@=2.3.1", "@zk-email/zk-regex-circom@^2.3.0":
+  version "2.3.1"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.1.tgz#032cdf12b5f587f828d6e872a235c0120d463bc8"
+  integrity sha512-FJNi4QL07teQPuXV4EZqosPpA4riOSeFX2xD+cd4CCuf5b1RmqGqXoBz7yxT0QXuwNqdgooY6v6/xhH1o4X7vg==
   dependencies:
     commander "^11.0.0"
     snarkjs "^0.7.5"
@@ -2188,9 +2188,9 @@ camelcase@^6.0.0, camelcase@^6.2.0:
   integrity sha512-Gmy6FhYlCY7uOElZUSbxo2UCDH8owEk996gkbrpsgGtrJLM3J7jGxl9Ic7Qwwj4ivOE5AWZWRMecDdF7hqGjFA==
 
 caniuse-lite@^1.0.30001669:
-  version "1.0.30001676"
-  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001676.tgz#fe133d41fe74af8f7cc93b8a714c3e86a86e6f04"
-  integrity sha512-Qz6zwGCiPghQXGJvgQAem79esjitvJ+CxSbSQkW9H/UX5hg8XM88d4lp2W+MEQ81j+Hip58Il+jGVdazk1z9cw==
+  version "1.0.30001678"
+  resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001678.tgz#b930b04cd0b295136405634aa32ad540d7eeb71e"
+  integrity sha512-RR+4U/05gNtps58PEBDZcPWTgEO2MBeoPZ96aQcjmfkBWRIDfN451fW2qyDA9/+HohLLIL5GqiMwA+IB1pWarw==
 
 cargo-cp-artifact@^0.1:
   version "0.1.9"
@@ -2422,9 +2422,9 @@ cross-spawn@^6.0.0:
     which "^1.2.9"
 
 cross-spawn@^7.0.3:
-  version "7.0.3"
-  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.3.tgz#f73a85b9d5d41d045551c177e2882d4ac85728a6"
-  integrity sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==
+  version "7.0.4"
+  resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-7.0.4.tgz#36d9cb36c32ae7a0df935f0191f79959962a2165"
+  integrity sha512-9KdyVPPtLHjPAD7tcuzSFs64UfHlLJt7U6qP4/bFVLyjLceyizj6s6jO6YBaV5d0G7g/9KnY/dOpLR4Rcg8YDg==
   dependencies:
     path-key "^3.1.0"
     shebang-command "^2.0.0"
@@ -2529,9 +2529,9 @@ ejs@^3.1.10, ejs@^3.1.6:
     jake "^10.8.5"
 
 electron-to-chromium@^1.5.41:
-  version "1.5.50"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.50.tgz#d9ba818da7b2b5ef1f3dd32bce7046feb7e93234"
-  integrity sha512-eMVObiUQ2LdgeO1F/ySTXsvqvxb6ZH2zPGaMYsWzRDdOddUa77tdmI0ltg+L16UpbWdhPmuF3wIQYyQq65WfZw==
+  version "1.5.52"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.52.tgz#2bed832c95a56a195504f918150e548474687da8"
+  integrity sha512-xtoijJTZ+qeucLBDNztDOuQBE1ksqjvNjvqFoST3nGC7fSpqJ+X6BdTBaY5BHG+IhWWmpc6b/KfpeuEDupEPOQ==
 
 elliptic@6.5.4:
   version "6.5.4"
@@ -2843,7 +2843,7 @@ for-each@^0.3.3:
 
 "forge-std@https://github.com/foundry-rs/forge-std":
   version "1.9.4"
-  resolved "https://github.com/foundry-rs/forge-std#1eea5bae12ae557d589f9f0f0edae2faa47cb262"
+  resolved "https://github.com/foundry-rs/forge-std#da591f56d8884c5824c0c1b3103fbcfd81123c4c"
 
 fs-minipass@^2.0.0:
   version "2.1.0"
