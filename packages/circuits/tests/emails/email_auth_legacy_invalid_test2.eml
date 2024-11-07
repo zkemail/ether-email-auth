@@ -1,81 +1,81 @@
 Delivered-To: suegamisora@gmail.com
-Received: by 2002:a05:7010:3d82:b0:415:a8ba:b98c with SMTP id x2csp4273073mdp;
-        Thu, 7 Nov 2024 05:08:12 -0800 (PST)
-X-Received: by 2002:a05:6a00:2e90:b0:71e:6f32:df07 with SMTP id d2e1a72fcca58-7240cdd17f3mr975522b3a.1.1730984892636;
-        Thu, 07 Nov 2024 05:08:12 -0800 (PST)
-ARC-Seal: i=1; a=rsa-sha256; t=1730984892; cv=none;
+Received: by 2002:a05:7010:3d82:b0:415:a8ba:b98c with SMTP id x2csp4367087mdp;
+        Thu, 7 Nov 2024 07:24:09 -0800 (PST)
+X-Received: by 2002:a05:6a20:d48e:b0:1d9:26b7:6ca with SMTP id adf61e73a8af0-1dba556fbfemr33523438637.45.1730993049479;
+        Thu, 07 Nov 2024 07:24:09 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1730993049; cv=none;
         d=google.com; s=arc-20240605;
-        b=gZzQRDFySahi8pRwTINoItdz3hMtBc13cr1lIUpA98KY+NJXvbhWJWtiVXz89/WGY4
-         KJG4V9R3mscqrdXGcI61g29Jh+wcQwo+jA12RJakgb40Cpkw9/BNqmtbOHfB+MmXSPsn
-         bxAzMsk68A3o7FRkeNaxbAKJPE67uVkhp8PO5O1UX8L9lZq6X7BHhVLb8gHtwKTPxhaO
-         L4n0F6XNW/J5FwB7sSdQjjEWB9OARj8Wnjz/FQjYmpv5lQNA8+JtBWhuhdFTTmp4q7iy
-         W5+6g6RFgJMvq0FbbLJ9ZJwdN0G8xGMffc0JlKbj2wfzY5/TlQ1yaMGCjIN5Sf4sy11q
-         LHdw==
+        b=G4M6BuMIjpZymOsPs9KEOHXtitnIvVM5xvyArclVku+GxELmmqSRToeAH+d1BKep1S
+         WNjZIGLV5kLLSQirjaHh6W9v1TGRnHg/L2OSL7/YvlHGWlPCEKO3or27M2u+uPR+ywi7
+         dGOycA413sjc7a4q4trGvoW7J9/BMx3K0kSw7e5BKvyhwxP7vpS6bVKeLWWc/fDk7fu5
+         R5ogH/VcidnqJh035nF6lk8XQIV75el+vUk8AwCLpqdlKOzCco04GoOC3nV6Fva6UStK
+         gMAclOLpSbNDlwuUyHV8kpDF4CRaIlvRPZeF7VdFTJjf2L5WDrKSJFAxv0lOK/ty1RtC
+         x+fQ==
 ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
         h=subject:to:from:date:message-id:dkim-signature;
         bh=1iODMfYbGB0YsW+qkb/ylPSIB70wXGEkVgYLXH26p6U=;
         fh=r9ZW45D/4i7BIl/4UeFGrkYKwbplztqhOVKfbV+WD3I=;
-        b=lJ5rM+4NTZ85kCFIbCkclj8sMIL3UgXbkdlGmegghxVShNjWKpUCDan7wIPXTnw32O
-         WXL9+IX8bkdvhPTi5x30m/50DogEFPS+SHywe5l6JYDjziBeNlU4eGdbUVDbMW+1zsaa
-         fOaSgybRtVVxMUwCqJ5a3t3t8JBGAWRPt02fqODvmVloB8aKc8h7cnbUUhZfDIozmBd/
-         SWh1lj4fAnNpSk7i75yaib5IeKBE+IDDUhtv/XaRnMO2ZJ2B9h8gQqVEqCcRP3o3dGDg
-         GIZU868HDaRPYeQiu8vi72fpcpqckONtSh/f4Ii3ZDhB4oZTBJFBm/vo8N8/ZbPC6WcY
-         W1pQ==;
+        b=ROimLjOKMGq6ZlImMisGG/UCObdk1ZLKLZ+JOt1RFHRl+3dR8LnwLaALUB/nbyJTge
+         7+WvpknnWY4TZmiMbrsu3oqep1mzK+PVxfIl/EM1Sblymj/l1uQkBapRXpBOHL1LwBkW
+         dZml1O3hLgApvsNFUZqfFY1ggpL26B12NcQeeOB5X9Y+nXfNgLIMJcqE5cXL0xIEYdHU
+         i3BFExymLyV1zJFJTf+KUHhU+P7+bcgv9PjbOOQtkjSsqBC5rpDkwXr2Kh9aAYrx8X9v
+         qkR8wq1tDUXRKrH//mwkr5Plmx/Q91b6c9+hrd1kS8Hy8QCQWUV8lGUqP93AcC24Hs3d
+         LqVg==;
         dara=google.com
 ARC-Authentication-Results: i=1; mx.google.com;
-       dkim=pass header.i=@sendeth.org header.s=google header.b=fVQqaPmy;
+       dkim=pass header.i=@sendeth.org header.s=google header.b=BnQgMxrY;
        spf=pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) smtp.mailfrom=arbitrum@sendeth.org;
        dara=pass header.i=@gmail.com
 Return-Path: <arbitrum@sendeth.org>
 Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
-        by mx.google.com with SMTPS id d2e1a72fcca58-72407a3caeesor1354340b3a.9.2024.11.07.05.08.12
+        by mx.google.com with SMTPS id 41be03b00d2f7-7f41f6c89desor1440448a12.7.2024.11.07.07.24.09
         for <suegamisora@gmail.com>
         (Google Transport Security);
-        Thu, 07 Nov 2024 05:08:12 -0800 (PST)
+        Thu, 07 Nov 2024 07:24:09 -0800 (PST)
 Received-SPF: pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
 Authentication-Results: mx.google.com;
-       dkim=pass header.i=@sendeth.org header.s=google header.b=fVQqaPmy;
+       dkim=pass header.i=@sendeth.org header.s=google header.b=BnQgMxrY;
        spf=pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) smtp.mailfrom=arbitrum@sendeth.org;
        dara=pass header.i=@gmail.com
 DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=sendeth.org; s=google; t=1730984891; x=1731589691; dara=google.com;
+        d=sendeth.org; s=google; t=1730993048; x=1731597848; dara=google.com;
         h=subject:to:from:date:message-id:from:to:cc:subject:date:message-id
          :reply-to;
         bh=1iODMfYbGB0YsW+qkb/ylPSIB70wXGEkVgYLXH26p6U=;
-        b=fVQqaPmy4tB3oVWosYUY4sX3CxLJ66RU2mP9cCQE0BWmoCT7eAhlXVkXV+PtWpUY7t
-         PPgAc+HZfHAOt9Yeiy1IFFC2cWQgGnyHsWn92UQdJ1MqtEi9pC/qbqEz/6KI4e6Ie5D+
-         DsjmoD0rCi0YYpkiKyzVpb9vdA3APqYFqTWnPEzRt1hP4AaoTB1qRhUMEYPlQLAC017m
-         B/WElUBTNWrvW4/nAVdW4uCMECEAo1S8PA6Br9Q+A4FBKbBSxHSIlu3mGmYUElF9qUnK
-         46oTxUGveEFMuGGIKz2sXFbf16EzW8BOW43HgOz+ILoFopiY0VMV+EdsORTFi1jF4Tin
-         Wmew==
+        b=BnQgMxrYFjhXdSLY1UW/GCEEsSaQVly8cG1RzmIdEbFVR0Xo3D2HLwhH7xKtivQIX7
+         v1IxKvqcjy2R+Fi4J9APJ/C+1I+XQGHapXsRIvmM8A5rKlC8KaJBNHpfOdpPVkZksDDu
+         I4c62ea6aBp6/jxl+bpcU2GLtXD0U9dZyEJ++oTzFvRXdRDFOFFlVITMxA3LcA+sTt5E
+         x6KXkp0M9dlM5jux8xTLmh9FlzyXqaPHusE+gC3U6IWHvrL8C4c4t14H2Jn4ML+GYD7c
+         L+WAy8fyQ8h41T3eb0LhPIpx2X6iO4QX2jA5oD9szjs2YDVTOVNfA/qEwqj8QZJG0yrB
+         k/xQ==
 X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
-        d=1e100.net; s=20230601; t=1730984891; x=1731589691;
+        d=1e100.net; s=20230601; t=1730993048; x=1731597848;
         h=subject:to:from:date:message-id:x-gm-message-state:from:to:cc
          :subject:date:message-id:reply-to;
         bh=1iODMfYbGB0YsW+qkb/ylPSIB70wXGEkVgYLXH26p6U=;
-        b=K7Vq5TplnahoPZu/wdqheJSQUk+OtEdFgLGiU2Y09pCyWuGhNH+PQ6W4+GYkw6kk+X
-         bVtnt6w2SHziotUR6c0ELk81AE4N1lKIQU4BWs+vDi/Qfk2/1M9QYqsopuzAb17/JwP3
-         xtvY0e1Yvz+iBSXq2uaWRwiSCEasBB4HjmOfOG1rYTjYzPBzWrD30IOoIF8j88Sis4Lx
-         jX+2oXm5q0JmlQUPX9MQRSfcD3Hs50W2+1FUNrvo2zl17vSkbGH2BGoMuXJ8bOoDQ/g3
-         ZbI1D8VbLgY/QSsfzq+dzhTnHBgz2VGOO8tkjeO3tmW988FoqvNs6EG8Om8ixA6fjOnD
-         PgMA==
-X-Gm-Message-State: AOJu0YxGiDGd1UFVXPg/UihK7iUgqzRZQckkGp3cLTNz1q0GJo2fALPa
-	dkz8k4pDK+UHMNMRLk17n7ONzi/9/3Vl0Y1QRT+zFBmhwDTeaB80BWKGB/p3L1YurE3hMBysEBu
-	KPPo=
-X-Google-Smtp-Source: AGHT+IEou0wv4MrgbprTRgoF2winkWPNKKWAVaHEaKC1OOKUZESwEWRhXg++H59fSKFzfQlkySEDnA==
-X-Received: by 2002:a05:6a00:851:b0:71e:7a56:3eaf with SMTP id d2e1a72fcca58-7240cfa9fcfmr1017370b3a.24.1730984891401;
-        Thu, 07 Nov 2024 05:08:11 -0800 (PST)
+        b=eWf9O03zl3KVLdvu+LT0gE6p0gnyF8fnnwrqDtkMONMKrvlB7rtqjm8jT8f+j/zRsn
+         uFk3aug61267fHx2DL9S23+M7/10e9gKg/OqQPpZ1Jg08WHLPVJM2ZiLgfm97H0BkDob
+         Y4oPE1uAqZ39YLjVb59pIngDCDT/HtNNvwYLsP2EL7dg3HtZkZwvtWBNeOnURz4JIXIO
+         SCbFikrBp7amDnIQgAsrzj29IxbEjELjSqDPJMCL0Z/YP8cce4wv30G0gonzGnTeCKbQ
+         B5tWPsZAB2SA1Mz0VBqDUqFnCeutPdjhivwDQV+hSvjTuLV/FYdVOBUKuimE4u3nTLaS
+         eySQ==
+X-Gm-Message-State: AOJu0YzCrmnQ5viXzqko3yqXyy7kKS4Seo6726/gt84FsA57DmiNJBTV
+	PKac+in9u1UonduzAcLPFORKTs+KbkUyj8Y/2tr95r6fnT3WWpt0sFWHldVDzRpDWhCtVpYz1bp
+	0AoU=
+X-Google-Smtp-Source: AGHT+IHPaqlQqFnui5AbLZNK3LehziImIJ8OL60ANqX6H9glPC6YBk0l5WsvDWTO0v84GG+QebrfBg==
+X-Received: by 2002:a17:90b:2d8c:b0:2e2:d9f5:9cf7 with SMTP id 98e67ed59e1d1-2e94c51b3ddmr33149122a91.26.1730993048049;
+        Thu, 07 Nov 2024 07:24:08 -0800 (PST)
 Return-Path: <arbitrum@sendeth.org>
-Received: from mail-255.txt ([49.49.12.10])
-        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-72407a50493sm1440053b3a.172.2024.11.07.05.08.09
+Received: from mail-255.txt ([2405:9800:b910:8852:184e:86b7:e9d6:deb8])
+        by smtp.gmail.com with ESMTPSA id 98e67ed59e1d1-2e99a541ca2sm3978808a91.19.2024.11.07.07.24.06
         for <suegamisora@gmail.com>
         (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
-        Thu, 07 Nov 2024 05:08:10 -0800 (PST)
-Message-ID: <672cbbba.050a0220.27147a.3892@mx.google.com>
-Date: Thu, 07 Nov 2024 05:08:10 -0800 (PST)
+        Thu, 07 Nov 2024 07:24:07 -0800 (PST)
+Message-ID: <672cdb97.170a0220.4add.7179@mx.google.com>
+Date: Thu, 07 Nov 2024 07:24:07 -0800 (PST)
 from: arbitrum@sendeth.org
 To: suegamisora@gmail.com
-Subject: [Reply Needed] This ï¿½s a test
+Subject: [Reply Needed] Thisÿ s a test
   
 
 ZK email?
