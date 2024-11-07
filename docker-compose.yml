@@ -7,7 +7,7 @@ services:
       dockerfile: SMTP.Dockerfile
     container_name: relayer-smtp
     ports:
-      - "3000:3000"
+      - "8080:8080"
     env_file:
       - .env
 
@@ -16,8 +16,6 @@ services:
       context: .
       dockerfile: IMAP.Dockerfile
     container_name: relayer-imap
-    ports:
-      - "3001:3001"
     env_file:
       - .env
 

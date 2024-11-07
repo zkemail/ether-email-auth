@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /usr/src/relayer-smtp
 
 # Clone the repository
-RUN git clone https://github.com/zkemail/relayer-smtp.git .
+RUN git clone https://github.com/zkfriendly/relayer-smtp.git .
 
 # Build the application
 RUN cargo build --release
@@ -24,6 +24,7 @@ FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y \
     pkg-config \
     libssl-dev \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the built binary from the builder stage
