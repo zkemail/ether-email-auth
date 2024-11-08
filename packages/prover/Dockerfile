@@ -69,7 +69,7 @@ RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_aut
 # RUN chmod +x ./email_auth
 WORKDIR /root
 RUN ls params
-RUN ls params/email_auth_cpp
+# RUN ls params/email_auth_cpp
 RUN chmod +x circom_proofgen.sh
 RUN mkdir build
 
