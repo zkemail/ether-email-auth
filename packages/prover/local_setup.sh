@@ -7,8 +7,7 @@ npm install -g snarkjs@latest
 pip install -r requirements.txt
 mkdir build && cd build
 # gdown "https://drive.google.com/uc?id=1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH"
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth.zkey --output ./email_auth.zkey
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth --output ./email_auth
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.1/email_auth.zkey --output ./email_auth.zkey
 mkdir ./email_auth_cpp
 cd ./email_auth_cpp
 curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth --output ./email_auth
