@@ -1755,18 +1755,18 @@
   dependencies:
     "@types/yargs-parser" "*"
 
-"@zk-email/circuits@=6.3.1":
-  version "6.3.1"
-  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.3.1.tgz#259a07955d5ca1cd44b8bd3d09ae63c5cc3e8e11"
-  integrity sha512-R/N4Fo2xRgUcZTz+6oCREGkZpJAEdQ6+z1jcQbYffmYvYCSAKlhOZCaNAUzUfGK6Glc2cHaj8hSv9g0CGvHF3w==
+"@zk-email/circuits@=6.3.2":
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/@zk-email/circuits/-/circuits-6.3.2.tgz#4c2773055a3a3148be6cd7ee77698b7a8d593542"
+  integrity sha512-CJwVFUKUi6x0Hn/GSfn0XjI2WpMbNTon2UyMtzTALu1FS5kQOYES5byV7Jho8q4IuejDQ8ye70fN4R5EbIw77Q==
   dependencies:
-    "@zk-email/zk-regex-circom" "^2.3.0"
+    "@zk-email/zk-regex-circom" "^2.3.1"
     circomlib "^2.0.5"
 
-"@zk-email/contracts@^6.3.1":
-  version "6.3.1"
-  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.1.tgz#bb8c29181819974f766e0669c7bb7e012be32fff"
-  integrity sha512-SiSSaHvn6BrT0vFFPA48r7jdoZi+2ZmRfU4QEQamtMqBlzVbs3ZmgTzgR4SFWz2/1SP+IIzDs9pfkkqf+6Wqcw==
+"@zk-email/contracts@^6.3.2":
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.2.tgz#0da78b1bc05878939c68457f7edd85081163368f"
+  integrity sha512-+JW0aZMlcrT66lsLqpyxHoGrOT3cMsfBnRinJ8wgXJit4rbZSRYKqVi42dGMyJVvpiJ8O9VQ5hbeYn/fpQKUxw==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
     "@openzeppelin/contracts-upgradeable" "^5.0.0"
@@ -1781,7 +1781,7 @@
     cargo-cp-artifact "^0.1"
     node-pre-gyp-github "https://github.com/ultamatt/node-pre-gyp-github.git"
 
-"@zk-email/zk-regex-circom@=2.3.1", "@zk-email/zk-regex-circom@^2.3.0":
+"@zk-email/zk-regex-circom@=2.3.1", "@zk-email/zk-regex-circom@^2.3.1":
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.1.tgz#032cdf12b5f587f828d6e872a235c0120d463bc8"
   integrity sha512-FJNi4QL07teQPuXV4EZqosPpA4riOSeFX2xD+cd4CCuf5b1RmqGqXoBz7yxT0QXuwNqdgooY6v6/xhH1o4X7vg==
@@ -3958,9 +3958,9 @@ node-int64@^0.4.0:
   resolved "https://registry.yarnpkg.com/node-int64/-/node-int64-0.4.0.tgz#87a9065cdb355d3182d8f94ce11188b825c68a3b"
   integrity sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw==
 
-"node-pre-gyp-github@git+https://github.com/ultamatt/node-pre-gyp-github.git":
+"node-pre-gyp-github@https://github.com/ultamatt/node-pre-gyp-github.git":
   version "1.4.3"
-  resolved "git+https://github.com/ultamatt/node-pre-gyp-github.git#e4961827f77751489bc8d4760a0479f3f985f34f"
+  resolved "https://github.com/ultamatt/node-pre-gyp-github.git#e4961827f77751489bc8d4760a0479f3f985f34f"
   dependencies:
     "@octokit/rest" "^15.9.5"
     commander "^2.17.0"
