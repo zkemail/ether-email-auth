@@ -20,13 +20,13 @@ services:
       - "host.docker.internal:host-gateway"
 
   relayer:
-    image: bisht13/ar-relayer-base-4:latest
+    image: wshino/relayer:latest
     container_name: relayer
     ports:
       - "4500:4500"
     env_file:
       - .env
     entrypoint: >
-      /bin/sh -c "echo \"$IC_PEM_CONTENT\" | base64 -d > .ic.pem && exec cargo run"
+      /bin/sh -c "echo \"$IC_PEM_CONTENT\" | base64 -d > /.ic.pem && exec /usr/local/bin/relayer"
     extra_hosts:
-      - "host.docker.internal:host-gateway" 
+      - "host.docker.internal:host-gateway"  
