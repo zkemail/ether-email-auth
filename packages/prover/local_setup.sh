@@ -7,24 +7,24 @@ npm install -g snarkjs@latest
 pip install -r requirements.txt
 mkdir build && cd build
 # gdown "https://drive.google.com/uc?id=1XDPFIL5YK8JzLGoTjmHLXO9zMDjSQcJH"
-curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.1/email_auth.zkey --output ./email_auth.zkey
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth.zkey --output ./email_auth.zkey
 mkdir ./email_auth_cpp
 cd ./email_auth_cpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth --output ./email_auth
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/Makefile --output ./Makefile
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/calcwit.cpp --output ./calcwit.cpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/calcwit.hpp --output ./calcwit.hpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/calcwit.o --output ./calcwit.o
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/circom.hpp --output ./circom.hpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/email_auth.cpp --output ./email_auth.cpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/email_auth.dat --output ./email_auth.dat
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/fr.asm --output ./fr.asm
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/fr.cpp --output ./fr.cpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/fr.hpp --output ./fr.hpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/fr.o --output ./fr.o
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/fr_asm.o --output ./fr_asm.o
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/main.cpp --output ./main.cpp
-curl https://storage.googleapis.com/circom-ether-email-auth/v2.0.1-preview/email_auth_cpp/main.o --output ./main.o
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth --output ./email_auth
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/Makefile --output ./Makefile
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.cpp --output ./calcwit.cpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.hpp --output ./calcwit.hpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.o --output ./calcwit.o
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/circom.hpp --output ./circom.hpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/email_auth.cpp --output ./email_auth.cpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/email_auth.dat --output ./email_auth.dat
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.asm --output ./fr.asm
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.cpp --output ./fr.cpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.hpp --output ./fr.hpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.o --output ./fr.o
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr_asm.o --output ./fr_asm.o
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/main.cpp --output ./main.cpp
+curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/main.o --output ./main.o
 chmod +x ./email_auth
 cd ../../
 # unzip params.zip
