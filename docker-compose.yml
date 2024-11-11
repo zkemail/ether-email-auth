@@ -5,7 +5,7 @@ services:
     image: wshino/relayer-smtp:latest
     container_name: relayer-smtp
     ports:
-      - "8080:8080"
+      - "3000:3000"
     env_file:
       - .env
     extra_hosts:
@@ -29,4 +29,4 @@ services:
     entrypoint: >
       /bin/sh -c "echo \"$IC_PEM_CONTENT\" | base64 -d > /.ic.pem && exec /usr/local/bin/relayer"
     extra_hosts:
-      - "host.docker.internal:host-gateway"  
+      - "host.docker.internal:host-gateway"
