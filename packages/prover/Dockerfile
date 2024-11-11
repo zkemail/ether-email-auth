@@ -47,7 +47,7 @@ RUN ls /root
 RUN mkdir params
 WORKDIR /root/params
 
-RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth.zkey --output ./email_auth.zkey
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_prod1.zkey --output ./email_auth.zkey
 # RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth.wasm --output ./email_auth.wasm
 RUN mkdir ./email_auth_cpp
 WORKDIR /root/params/email_auth_cpp
