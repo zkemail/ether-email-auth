@@ -74,6 +74,14 @@ contract Verifier is OwnableUpgradeable, UUPSUpgradeable, IVerifier {
         return groth16Verifier.verifyProof(pA, pB, pC, pubSignals);
     }
 
+    function updateGroth16Verifier(address _groth16Verifier) public onlyOwner {
+        require(
+            _groth16Verifier != address(0),
+            "New groth16Verifier address is invalid"
+        );
+        groth16Verifier = IGroth16Verifier(_groth16Verifier);
+    }
+
     function _packBytes2Fields(
         bytes memory _bytes,
         uint256 _paddedSize

@@ -83,6 +83,7 @@ contract BaseDeployScript is Script {
         address verifierProxyAddress;
         Verifier verifierImpl = new Verifier();
         Groth16Verifier groth16Verifier = new Groth16Verifier();
+        console.log("Groth16Verifier deployed at: %s", address(groth16Verifier));
         verifierProxyAddress = address(
             new ERC1967Proxy(
                 address(verifierImpl),
