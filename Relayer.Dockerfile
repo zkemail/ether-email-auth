@@ -5,6 +5,12 @@ FROM rust:latest AS builder
 # Use bash as the shell
 SHELL ["/bin/bash", "-c"]
 
+# Install build-essential and other dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install NVM, Node.js, and Yarn
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash \
     && . $HOME/.nvm/nvm.sh \
@@ -45,9 +51,6 @@ RUN source $HOME/.nvm/nvm.sh && nvm use default && yarn && forge build
 # Set the working directory for the Rust project and build it
 WORKDIR /relayer/packages/relayer
 
-# Copy the IC PEM file
-COPY packages/relayer/.ic.pem /relayer/.ic.pem
-
 # Build the Rust project with caching
 RUN cargo build --release
 
@@ -57,14 +60,19 @@ FROM debian:bookworm-slim
 
 # Install necessary runtime dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
     libssl-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy the built binary from the builder stage
 COPY --from=builder /relayer/target/release/relayer /usr/local/bin/relayer
 
-# Copy the IC PEM file
-COPY --from=builder /relayer/.ic.pem /relayer/.ic.pem
+# Copy eml_templates directory from builder stage to root directory
+COPY --from=builder /relayer/packages/relayer/eml_templates /eml_templates
+
+# Copy regex_json directory from builder stage to root directory
+COPY --from=builder /relayer/packages/relayer/src/regex_json /regex_json
 
 # Expose the required port
 EXPOSE 4500
