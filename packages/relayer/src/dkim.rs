@@ -18,7 +18,6 @@ use ic_agent::agent::*;
 use ic_agent::identity::*;
 use ic_utils::canister::*;
 use ic_utils::interfaces::WalletCanister;
-
 use serde::Deserialize;
 
 pub const SIGN_CHARGED_CYCLE: u128 = 39_246_898_590;
@@ -236,7 +235,6 @@ pub async fn check_and_update_dkim(
     // Set DKIM public key hash
     let tx_hash = chain_client
         .set_dkim_public_key_hash(
-            selector,
             domain,
             TryInto::<[u8; 32]>::try_into(public_key_hash).unwrap(),
             signature,

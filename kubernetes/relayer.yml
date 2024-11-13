@@ -10,6 +10,7 @@ data:
   ICPEM:
   config.json: |-
 
+  ERROR_EMAIL_ADDR:
 ---
 apiVersion: v1
 kind: Secret

@@ -58,7 +58,15 @@ It requires a function `isDKIMPublicKeyHashValid(string domainName, bytes32 publ
 One of its implementations is [`ECDSAOwnedDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ECDSAOwnedDKIMRegistry.sol).
 It stores the Ethereum address `signer` who can update the registry.
 
-We also provide another implementation called [`ForwardDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/src/utils/ForwardDKIMRegistry.sol). It stores an address of any internal DKIM registry and forwards its outputs. We can use it to upgrade a proxy of the ECDSAOwnedDKIMRegistry registry to a new DKIM registry with a different storage slots design by 1) upgrading its implementation into ForwardDKIMRegistry and 2) calling `resetStorageForUpgradeFromECDSAOwnedDKIMRegistry` function with an address of the internal DKIM registry.
+We also provide another implementation called [`UserOverrideableDKIMRegistry`](https://github.com/zkemail/ether-email-auth/blob/main/packages/contracts/node_modules/@zk-email/contracts/UserOverrideableDKIMRegistry.sol). 
+
+Key features of `UserOverrideableDKIMRegistry` include:
+1. User-specific public key setting
+2. Time-delayed activation of main authorizer's approvals
+3. Dual revocation mechanism (user or main authorizer)
+4. Reactivation of revoked keys (by users only)
+
+This implementation provides a balance between centralized management and user autonomy in the DKIM registry system.
 
 ### `Verifier` Contract
 It has the responsibility to verify a ZK proof for the [`email_auth_with_body_parsing_with_qp_encoding.circom` circuit](https://github.com/zkemail/ether-email-auth/blob/main/packages/circuits/src/email_auth_with_body_parsing_with_qp_encoding.circom).
@@ -208,16 +216,9 @@ It also provides the following entry functions with their default implementation
     5. Assert that `EmailAuth(guardian).authEmail(emailAuthMsg)` returns no error.
     6. Call `processRecovery(guardian, templateIdx, emailAuthMsg.commandParams, emailAuthMsg.proof.emailNullifier)`.
 
-# For zkSync
+# For ZKsync
 
-You should use foundry-zksync, the installation process is following URL.
-https://github.com/matter-labs/foundry-zksync
-
-Current version foundry-zksync is forge 0.0.2 (6e1c282 2024-07-01T00:26:02.947919000Z)
-
-Now foundry-zksync supports solc 0.8.26, but it won't be automatically downloaded by foundry-zksync.
-First you should compile our contracts with foundry, and then install foundry-zksync.
-
+## Set up and build
 ```
 # Install foundry
 foundryup
@@ -225,25 +226,12 @@ foundryup
 cd packages/contracts
 yarn build
 
-# Check if you have already had 0.8.26
-ls -l /Users/{USER_NAME}/Library/Application\ Support/svm/0.8.26
+# Install foundry-zksync, please follow this URL
+https://foundry-book.zksync.io/getting-started/installation
 
-# Install foundry-zksync
-cd YOUR_FOUNDRY_ZKSYNC_DIR
-chmod +x ./install-foundry-zksync
-./install-foundry-zksync
-
-# Install zksolc-bin 1.5.0 manually
-# Download https://github.com/matter-labs/zksolc-bin/releases/tag/v1.5.0
-chmod a+x {BINARY_NAME}
-mv {BINARY_NAME} ~/.zksync/.
+# Install era-test-node
+https://github.com/matter-labs/era-test-node
 ```
-
-In addition, there are problems with foundry-zksync. Currently, they can't resolve contracts in monorepo's node_modules.
-
-https://github.com/matter-labs/foundry-zksync/issues/411
-
-To fix this, you should copy `node_modules` in the project root dir to `packages/contracts/node_modules`. And then you should replace `libs = ["../../node_modules", "lib"]` with `libs = ["node_modules", "lib"]` in `foundry.toml`. At the end, you should replace `../../node_modules` with `node_modules` in `remappings.txt`.
 
 Next, you should uncomment the following lines in `foundry.toml`.
 
@@ -257,6 +245,12 @@ Partial comment-out files can be found the following. Please uncomment them.
 - src/utils/ZKSyncCreate2Factory.sol
 - test/helpers/DeploymentHelper.sol
 
+Run the era-test-node forking zksync sepolia
+
+```
+era_test_node fork https://sepolia.era.zksync.dev
+```
+
 At the first forge build, you need to detect the missing libraries.
 
 ```
@@ -268,229 +262,115 @@ You can deploy them by the following command for example.
 
 ```
 $ forge build --zksync --zk-detect-missing-libraries
-Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
+Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils, src/libraries/StringUtils.sol:StringUtils
 ```
 
-Run the following command in order to deploy each missing library:
+Run the following command in order to deploy each missing libraries:
 
 ```
-forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
-forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
+export PRIVATE_KEY={YOUR_PRIVATE_KEY}
+export RPC_URL=http://127.0.0.1:8011
+export CHAIN_ID=260
+
+forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
+forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_ADDRESS_YOU_DEPLOYED}
+forge create src/libraries/StringUtils.sol:StringUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
 ```
 
-After that, you can see the following line in foundry.toml.
-Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
+After that, you can see the following lines in the foundry.toml. Please replace `{PROJECT_DIR}` and `{DEPLOYED_ADDRESS}`.
+Also, this lines are needed only for foundry-zksync, if you use normal foundry commands, please comment out. 
+
+
+```
+libraries = [
+    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
+    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"
+    "{PROJECT_DIR}/packages/contracts/src/libraries/StringUtils.sol:StringUtils:{DEPLOYED_ADDRESS}"
+]
+```
+
+About Create2, `L2ContractHelper.computeCreate2Address` should be used.
+`type(ERC1967Proxy).creationCode` doesn't work correctly in ZKsync.
+We need to use the bytecode hash intead of `type(ERC1967Proxy).creationCode`.
+Perhaps that is a different value in each compiler version and library addresses.
+
+Run the following commands, you'll get the bytecode hash.
+
+```
+forge test --match-test "testComputeCreate2Address" --no-match-contract ".*Script.*" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --fork-url http://127.0.0.1:8011
+```
+
+And then, you should replace `{YOUR_BYTECODE_HASH}` in the .env
+
+```
+PROXY_BYTECODE_HASH={YOUR_BYTECODE_HASH}
+```
+
+## Unit tests
+
+Run the following commands
+
+```
+source .env
+yarn zktest
+```
+
+Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed. If you encountered the contract size error, please consider the contract design.
+
+## Integration tests
+
+```
+source .env
+forge test --match-contract "IntegrationZKSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
+```
+
+## Deployment (For zksync sepolia)
+
+As you saw before, you need to deploy missing libraries.
+You can deploy them by the following commands for example.
+
+```
+export PRIVATE_KEY={YOUR_PRIVATE_KEY}
+export RPC_URL=https://sepolia.era.zksync.dev
+export CHAIN_ID=300
+
+forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
+forge create src/libraries/CommandUtils.sol:CommandUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_ADDRESS_YOU_DEPLOYED}
+forge create src/libraries/StringUtils.sol:StringUtils --private-key $PRIVATE_KEY --rpc-url $RPC_URL --chain $CHAIN_ID --zksync
+```
+
+And then you need to replace `{PROJECT_DIR}` and `{DEPLOYED_ADDRESS}` in the foundy.toml.
 
 ```
 libraries = [
     "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
     "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"]
+    "{PROJECT_DIR}/packages/contracts/src/libraries/StringUtils.sol:StringUtils:{DEPLOYED_ADDRESS}"
 ```
 
-Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
-
-About Create2, `L2ContractHelper.computeCreate2Address` should be used.
-And `type(ERC1967Proxy).creationCode` doesn't work correctly in zkSync.
-We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
-Perhaps that is a different value in each compiler version.
-
-You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L111
-
-See, test/ComputeCreate2Address.t.sol
-
-# For zkSync testing
-
-Run `yarn zktest`.
-
-Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will fail. If you want to test on other EVM, please install foundry.
-
-Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
-Therefore, EmailAccountRecovery.t.sol has been split.
-
-Currently, some test cases are not working correctly because there is an issue about missing libraries.
-
-https://github.com/matter-labs/foundry-zksync/issues/382
-
-Failing test cases are here.
-
-DKIMRegistryUpgrade.t.sol
-
-- testAuthEmail()
-
-EmailAuth.t.sol
-
-- testAuthEmail()
-- testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
-- testExpectRevertAuthEmailInvalidEmailProof()
-- testExpectRevertAuthEmailInvalidCommand()
-- testExpectRevertAuthEmailInvalidTimestamp()
-
-EmailAuthWithUserOverrideableDkim.t.sol
-
-- testAuthEmail()
-
-# For integration testing
-
-To pass the integration testing, you should use era-test-node. 
-See the following URL and install it.
-https://github.com/matter-labs/era-test-node
-
-Run the era-test-node
+Run this command again, you'll get the bytecode hash.
 
 ```
-era_test_node fork https://sepolia.era.zksync.dev
+forge test --match-test "testComputeCreate2Address" --no-match-contract ".*Script.*" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --fork-url http://127.0.0.1:8011
 ```
 
-You remove .zksolc-libraries-cache directory, and run the following command.
+And then, you should replace `{YOUR_BYTECODE_HASH}` in the .env
 
 ```
-forge build --zksync --zk-detect-missing-libraries
+PROXY_BYTECODE_HASH={YOUR_BYTECODE_HASH}
 ```
 
-As you saw before, you need to deploy missing libraries.
-You can deploy them by the following command for example.
-
-```
-Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
-
-Run the following command in order to deploy each missing library:
-
-forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync
-forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
-```
-
-Set the libraries in foundry.toml using the above deployed address.
-
-Due to this change in the address of the missing libraries, the value of the proxyBytecodeHash must also be changed: change the value of the proxyBytecodeHash in E-mailAccountRecoveryZKSync.sol.
-
-And then, run the integration testing.
-
-```
-forge test --match-contract "IntegrationZKSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
-```
-
-# For zkSync deployment (For test net)
-
-You need to edit .env at first.
-Second, just run the following commands with `--zksync`
+Run the deploy script
 
 ```
 source .env
-forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
+
+export RPC_URL=https://sepolia.era.zksync.dev
+export CHAIN_ID=300
+
+forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv --verifier zksync --verifier-url https://explorer.sepolia.era.zksync.dev/contract_verification --verify
 ```
 
-As you saw before, you need to deploy missing libraries.
-You can deploy them by the following command for example.
+# Emergency Response
 
-```
-Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
-
-Run the following command in order to deploy each missing library:
-
-forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync
-forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url https://sepolia.era.zksync.dev --chain 300 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
-```
-
-After that, you can see the following line in foundry.toml.
-Also, this line is needed only for foundry-zksync, if you use foundry, please remove this line. Otherwise, the test will fail.
-
-```
-libraries = [
-    "{PROJECT_DIR}/packages/contracts/src/libraries/DecimalUtils.sol:DecimalUtils:{DEPLOYED_ADDRESS}", 
-    "{PROJECT_DIR}/packages/contracts/src/libraries/CommandUtils.sol:CommandUtils:{DEPLOYED_ADDRESS}"]
-```
-
-Incidentally, the above line already exists in `foundy.toml` with it commented out, if you uncomment it by replacing `{PROJECT_DIR}` with the appropriate path, it will also work.
-
-About Create2, `L2ContractHelper.computeCreate2Address` should be used.
-And `type(ERC1967Proxy).creationCode` doesn't work correctly in zkSync.
-We need to hardcode the `type(ERC1967Proxy).creationCode` to bytecodeHash.
-Perhaps that is a different value in each compiler version.
-
-You should replace the following line to the correct hash.
-packages/contracts/src/EmailAccountRecovery.sol:L111
-
-See, test/ComputeCreate2Address.t.sol
-
-# For zkSync testing
-
-Run `yarn zktest`.
-
-Current foundry-zksync overrides the foundry behavior. If you installed foundry-zksync, some EVM code will be different and some test cases will fail. If you want to test on other EVM, please install foundry.
-
-Even if the contract size is fine for EVM, it may exceed the bytecode size limit for zksync, and the test may not be executed.
-Therefore, EmailAccountRecovery.t.sol has been split.
-
-Currently, some test cases are not working correctly because there is an issue about missing libraries.
-
-https://github.com/matter-labs/foundry-zksync/issues/382
-
-Failing test cases are here.
-
-DKIMRegistryUpgrade.t.sol
-
-- testAuthEmail()
-
-EmailAuth.t.sol
-
-- testAuthEmail()
-- testExpectRevertAuthEmailEmailNullifierAlreadyUsed() 
-- testExpectRevertAuthEmailInvalidEmailProof()
-- testExpectRevertAuthEmailInvalidCommand()
-- testExpectRevertAuthEmailInvalidTimestamp()
-
-EmailAuthWithUserOverrideableDkim.t.sol
-
-- testAuthEmail()
-
-# For integration testing
-
-To pass the integration testing, you should use era-test-node. 
-See the following URL and install it.
-https://github.com/matter-labs/era-test-node
-
-Run the era-test-node
-
-```
-era_test_node fork https://sepolia.era.zksync.dev
-```
-
-You remove .zksolc-libraries-cache directory, and run the following command.
-
-```
-forge build --zksync --zk-detect-missing-libraries
-```
-
-As you saw before, you need to deploy missing libraries.
-You can deploy them by the following command for example.
-
-```
-Missing libraries detected: src/libraries/CommandUtils.sol:CommandUtils, src/libraries/DecimalUtils.sol:DecimalUtils
-
-Run the following command in order to deploy each missing library:
-
-forge create src/libraries/DecimalUtils.sol:DecimalUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync
-forge create src/libraries/CommandUtils.sol:CommandUtils --private-key {YOUR_PRIVATE_KEY} --rpc-url http://127.0.0.1:8011 --chain 260 --zksync --libraries src/libraries/DecimalUtils.sol:DecimalUtils:{DECIMAL_UTILS_DEPLOYED_ADDRESS}
-```
-
-Set the libraries in foundry.toml using the above deployed address.
-
-Due to this change in the address of the missing libraries, the value of the proxyBytecodeHash must also be changed: change the value of the proxyBytecodeHash in E-mailAccountRecoveryZKSync.sol.
-
-And then, run the integration testing.
-
-```
-forge test --match-contract "IntegrationZKSyncTest" --system-mode=true --zksync --gas-limit 1000000000 --chain 300 -vvv --ffi
-```
-
-# For zkSync deployment (For test net)
-
-You need to edit .env at first.
-Second just run the following commands with `--zksync`
-
-```
-source .env
-forge script script/DeployRecoveryControllerZKSync.s.sol:Deploy --zksync --rpc-url $RPC_URL --broadcast --slow --via-ir --system-mode true -vvvv 
-```
-
+For information on how upgrade contracts for handling emergency situations, please refer to our [Upgrading Contracts](../../docs/upgrade.md).

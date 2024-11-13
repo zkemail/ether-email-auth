@@ -1,0 +1,83 @@
+Delivered-To: suegamisora@gmail.com
+Received: by 2002:a05:7010:3d82:b0:415:a8ba:b98c with SMTP id x2csp4313778mdp;
+        Thu, 7 Nov 2024 06:09:22 -0800 (PST)
+X-Received: by 2002:a05:6a00:10d2:b0:71e:75c0:2545 with SMTP id d2e1a72fcca58-72410de77bcmr145504b3a.25.1730988562680;
+        Thu, 07 Nov 2024 06:09:22 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1730988562; cv=none;
+        d=google.com; s=arc-20240605;
+        b=HYnzZej2YYzdfSSaTqDqcDtxD1Uv3vLqwPUrAKs0pnXxTQe3POFZbjkKlHSYG+ZBab
+         dCsr+75JgUYVDrgsxygPgp5uKKLAy7hptF59GtSVrFzAI+3TuSiNCsmQPoULgv6kmAIj
+         /S8FFW8zST5bENsuVNk9beJc6fdj5kEFVaiXMfYLFZZdroEA61zYSTDSwqc+ekJAZ1lB
+         w7uEO9ousP7qNMru/R0eSIR9K9aZNQ5b7dPWueXU9kG3E1KlI0eFCHSdnOcgDUfKdDWu
+         OCBjOgFupNGSEGAlSZUC6ev/2HysG1yzOwGRjkDAzpyp30hn3c1MTwZBmB/BTIeGgP/3
+         vTEA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=subject:to:from:date:message-id:dkim-signature;
+        bh=gyZBr4VmST7qKKhuARvqwaAWl+mnts2N8uCWlw0il+E=;
+        fh=r9ZW45D/4i7BIl/4UeFGrkYKwbplztqhOVKfbV+WD3I=;
+        b=i7bHvTPrC29gK5izeK07cn5OMzL0or/lEpSrCciXBXVMEr2qTGgVpmUu2zwuSWqCDK
+         YSt2TiTqDmNA80zU7mNGLngxSYyDFSzFYuOoHZRI9IWmNriF2aB7nWnWkTmEQGujXGlQ
+         bt++KmI6EFFdmM2Y8tRK4G0XgE1iY4+1l/GHBy3K46Dxsjx01drospmsSzQnmaSYvHxY
+         5cqrDfrXeoQthvQJlKBR79p46Ufi/n0EqOOkWw7NhfkXI4kO6CZXz0cvreR8Up4hHu4X
+         Am5Gqcmk5cEZRExREqFRrX41n2kmInucEbw+g/Zh7jy/0IR9mY74abYLhwbP3Y+V0K83
+         puRw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@sendeth.org header.s=google header.b="f/3oP6sK";
+       spf=pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) smtp.mailfrom=arbitrum@sendeth.org;
+       dara=pass header.i=@gmail.com
+Return-Path: <arbitrum@sendeth.org>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id d2e1a72fcca58-72407a3804asor1429183b3a.9.2024.11.07.06.09.22
+        for <suegamisora@gmail.com>
+        (Google Transport Security);
+        Thu, 07 Nov 2024 06:09:22 -0800 (PST)
+Received-SPF: pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@sendeth.org header.s=google header.b="f/3oP6sK";
+       spf=pass (google.com: domain of arbitrum@sendeth.org designates 209.85.220.41 as permitted sender) smtp.mailfrom=arbitrum@sendeth.org;
+       dara=pass header.i=@gmail.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=sendeth.org; s=google; t=1730988562; x=1731593362; dara=google.com;
+        h=subject:to:from:date:message-id:from:to:cc:subject:date:message-id
+         :reply-to;
+        bh=gyZBr4VmST7qKKhuARvqwaAWl+mnts2N8uCWlw0il+E=;
+        b=f/3oP6sKJ6ycwz1JlbM129LdPUPSeYzuWg3mHV5uldMu+4Pn9enpGrPs3uT4mVkm32
+         puX1aXJv4vf6SxTrwcgz8UuVTx4ffubryaW/xq9g8ZJkRzYQt7OgEOH5m8aBrTpPAg2y
+         yN06EGOmLaSIB/w5lPoFHL0gwwvq4EABOlJPr0eBP05Wm+V6XcNOXp22vM0S0i0amPHO
+         JCnAAaBLdd75rz3iVQdrUmbrIZwgZkNfbfje8PW1kd7ONGLYWZ9VDT5HOD7t+LuJdcFI
+         nViFvL4iBnoc5MM+71oSv6MGIAyHrMSKxBcOfikPcj50IsXeyaGyqKBxs72oZy284bGL
+         3idA==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1730988562; x=1731593362;
+        h=subject:to:from:date:message-id:x-gm-message-state:from:to:cc
+         :subject:date:message-id:reply-to;
+        bh=gyZBr4VmST7qKKhuARvqwaAWl+mnts2N8uCWlw0il+E=;
+        b=tQu5puctfE20TlEwsuKAgUthWvk/VGl6dkMo7joFcvLqERnrnhFl00Mpp1EmA3i24y
+         hTuOirlxz0R9ziutaUHDHILpGs9taju9/a1fOjTGhQ3CO915kizpdiD8ZHyn5mZWK7Tf
+         eZo/JBqXK9gdcih+9pFrwLHCHm8W1QBtuRMhWx9Cx6GttX70zL68TJzU6jT954RXPktM
+         H8PZihQllHD3DC8oqR6DH7UuIDIOHIiB27JwTvMZ0Sfq1ZK4ZwJDucry78tTpWRfHejT
+         NHqI75LVd3gGbPQbofKiHmr3kn20tz2tGvTXxPZVW0axNSSKQz0liZAoP1aA+H1VR5df
+         X7wA==
+X-Gm-Message-State: AOJu0YzacwxGUUQ5UNKkxYXaqNAycJhpWxATYpnbKUhvirE59WMMPwI7
+	4ieY1WcS1o53sX9pfoPiss05yXqszV4EJ9mBYanxxwH59br5caHsEzNtG80QnUNvdivty57kpjB
+	VnwI=
+X-Google-Smtp-Source: AGHT+IHpFqEWKnyxfHdWyTlHeT1I8PlAwb31VBtY3a/DX20ksAUdgD3+fA3Qu6CWnI+clF6ILBa9Fw==
+X-Received: by 2002:aa7:8896:0:b0:71e:7636:3323 with SMTP id d2e1a72fcca58-72410cf20c7mr177273b3a.7.1730988561721;
+        Thu, 07 Nov 2024 06:09:21 -0800 (PST)
+Return-Path: <arbitrum@sendeth.org>
+Received: from mail-255-body.txt ([49.49.12.10])
+        by smtp.gmail.com with ESMTPSA id d2e1a72fcca58-724079aa83fsm1556447b3a.98.2024.11.07.06.09.20
+        for <suegamisora@gmail.com>
+        (version=TLS1_3 cipher=TLS_CHACHA20_POLY1305_SHA256 bits=256/256);
+        Thu, 07 Nov 2024 06:09:21 -0800 (PST)
+Message-ID: <672cca11.050a0220.1603fd.651b@mx.google.com>
+Date: Thu, 07 Nov 2024 06:09:21 -0800 (PST)
+from: arbitrum@sendeth.org
+To: suegamisora@gmail.com
+Subject: [Reply Needed] This is a test
+  
+
+<div id=3D"zkemail">Set the new signer of 0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720</div>
+ZK emailÿ?
+

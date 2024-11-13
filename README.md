@@ -67,6 +67,9 @@ This allows our on-chain verifier to authenticate the email sender and authorize
 
 For detailed setup instructions, see [here](./packages/circuits/README.md).
 
+### Infrastructure Package
+For detailed instructions on how to manage infrastructure metrics and alerts in Google Cloud Platform (GCP), please refer to the [Infrastructure Management Scripts](./infrastructure/README.md) documentation.
+
 ### `contracts` Package
 It has Solidity contracts that help smart contracts based on our SDK verify the email-auth message. Among them, there are three significant contracts: verifier, DKIM registry, and email-auth contracts.
 
@@ -167,3 +170,12 @@ We show some important points to implement the email-based account recovery for 
 For detailed implementation, see [docs/getting-started.md](./docs/getting-started.md).
 
 Regarding the contract addresses already deployed on Base Sepolia, see [here](./docs/deployed-contracts.md).
+
+## Support and Contact
+
+We prioritize the security and user experience of ZK Email. If you encounter any issues or have questions, please contact us at:
+
+- **Support Email**: [team@zk.email](mailto:team@zk.email)
+- **Telegram groups**: [t.me/zkemail](https://t.me/zkemail)
+
+Our team will respond quickly to help resolve any problems.

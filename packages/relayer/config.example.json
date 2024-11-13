@@ -2,15 +2,16 @@
   "port": 8000,
   "databaseUrl": "postgres://test@localhost:5432/relayer",
   "smtpUrl": "http://localhost:3000",
-  "proverUrl": "https://zkemail--email-auth-prover-v1-4-0-flask-app.modal.run",
+  "proverUrl": "https://zkemail--email-auth-prover-v1-5-4-flask-app.modal.run",
   "alchemyApiKey": "",
   "path": {
     "pem": "./.ic.pem",
     "emailTemplates": "./email_templates"
   },
   "icp": {
-    "canisterId": "q7eci-dyaaa-aaaak-qdbia-cai",
-    "icReplicaUrl": "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=q7eci-dyaaa-aaaak-qdbia-cai"
+    "dkim_canisterId": "fxmww-qiaaa-aaaaj-azu7a-cai",
+    "wallet_canisterId": "",
+    "icReplicaUrl": "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=fxmww-qiaaa-aaaaj-azu7a-cai"
   },
   "chains": {
     "baseSepolia": {

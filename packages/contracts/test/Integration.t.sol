@@ -10,11 +10,12 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../src/EmailAuth.sol";
 import "../src/utils/Verifier.sol";
 import "../src/utils/Groth16Verifier.sol";
-import "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import "./helpers/SimpleWallet.sol";
 import "./helpers/RecoveryController.sol";
 import "forge-std/console.sol";
 import "../src/utils/ZKSyncCreate2Factory.sol";
+import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 
 contract IntegrationTest is Test {
     using Strings for *;
@@ -22,7 +23,7 @@ contract IntegrationTest is Test {
 
     EmailAuth emailAuth;
     Verifier verifier;
-    ECDSAOwnedDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkim;
 
     RecoveryController recoveryController;
     SimpleWallet simpleWallet;
@@ -37,42 +38,49 @@ contract IntegrationTest is Test {
     string domainName = "gmail.com";
     bytes32 publicKeyHash =
         0x0ea9c777dc7110e5a9e89b13f0cfc540e3845ba120b2b6dc24024d61488d4788;
-    uint256 startTimestamp = 1723443691; // September 11, 2024, 17:34:51 UTC
+    // uint256 startTimestamp = 1729512214;
+    uint256 recoveryTimelock = 5 days;
+    uint256 setTimeDelay = 3 days;
 
     function setUp() public {
         vm.createSelectFork("https://mainnet.base.org");
 
-        vm.warp(startTimestamp);
+        // vm.warp(startTimestamp);
 
         vm.startPrank(deployer);
         address signer = deployer;
 
         // Create DKIM registry
+        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
         {
-            ECDSAOwnedDKIMRegistry ecdsaDkimImpl = new ECDSAOwnedDKIMRegistry();
-            ERC1967Proxy ecdsaDkimProxy = new ERC1967Proxy(
-                address(ecdsaDkimImpl),
-                abi.encodeCall(ecdsaDkimImpl.initialize, (msg.sender, signer))
+            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+                address(overrideableDkimImpl),
+                abi.encodeCall(
+                    overrideableDkimImpl.initialize,
+                    (msg.sender, signer, setTimeDelay)
+                )
             );
-            dkim = ECDSAOwnedDKIMRegistry(address(ecdsaDkimProxy));
+            dkim = UserOverrideableDKIMRegistry(address(overrideableDkimProxy));
         }
-        string memory signedMsg = dkim.computeSignedMsg(
-            dkim.SET_PREFIX(),
-            selector,
-            domainName,
-            publicKeyHash
-        );
-        bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
-            bytes(signedMsg)
-        );
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        dkim.setDKIMPublicKeyHash(
-            selector,
-            domainName,
-            publicKeyHash,
-            signature
-        );
+        {
+            string memory signedMsg = dkim.computeSignedMsg(
+                dkim.SET_PREFIX(),
+                domainName,
+                publicKeyHash
+            );
+            bytes32 digest = MessageHashUtils.toEthSignedMessageHash(
+                bytes(signedMsg)
+            );
+            (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, digest);
+            bytes memory signature = abi.encodePacked(r, s, v);
+            dkim.setDKIMPublicKeyHash(
+                domainName,
+                publicKeyHash,
+                signer,
+                signature
+            );
+            vm.warp(block.timestamp + setTimeDelay + 1);
+        }
 
         // Create Verifier
         {
@@ -130,7 +138,9 @@ contract IntegrationTest is Test {
         //     "emailAuthImplementation",
         //     simpleWallet.emailAuthImplementation()
         // );
-
+        vm.stopPrank();
+        vm.startPrank(address(simpleWallet));
+        recoveryController.configureTimelockPeriod(recoveryTimelock);
         vm.stopPrank();
     }
 
@@ -146,7 +156,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E
+            0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -168,7 +178,7 @@ contract IntegrationTest is Test {
         string memory publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         string[] memory pubSignals = abi.decode(
@@ -181,7 +191,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E";
+            .maskedCommand = "Accept guardian request for 0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -189,7 +199,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
@@ -250,7 +260,7 @@ contract IntegrationTest is Test {
         publicInputFile = vm.readFile(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_public.json"
+                "/test/build_integration/email_auth_public.json"
             )
         );
         pubSignals = abi.decode(vm.parseJson(publicInputFile), (string[]));
@@ -259,11 +269,8 @@ contract IntegrationTest is Test {
         emailProof.domainName = "gmail.com";
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
-
-        // 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720 is account 9
         emailProof
-            .maskedCommand = "Set the new signer of 0xf22ECf2028fe74129dB8e8946b56bef0cD8Ecd5E to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
-
+            .maskedCommand = "Set the new signer of 0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
@@ -274,7 +281,7 @@ contract IntegrationTest is Test {
         emailProof.proof = proofToBytes(
             string.concat(
                 vm.projectRoot(),
-                "/test/build_integration/email_auth_with_body_parsing_with_qp_encoding_proof.json"
+                "/test/build_integration/email_auth_proof.json"
             )
         );
 
@@ -323,8 +330,7 @@ contract IntegrationTest is Test {
         );
 
         // Call completeRecovery
-        // Warp at 3 days + 10 seconds later
-        vm.warp(startTimestamp + (3 * 24 * 60 * 60) + 10);
+        vm.warp(block.timestamp + recoveryTimelock + 1);
         recoveryController.completeRecovery(
             address(simpleWallet),
             new bytes(0)

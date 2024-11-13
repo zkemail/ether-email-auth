@@ -47,24 +47,26 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@zk-email/contracts@^6.1.5":
-  version "6.1.6"
-  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.1.6.tgz#9ffe129bdd74b0373fbd94d650bbf7548e4dd927"
-  integrity sha512-oAsAAnsEybupFbKW1svXt/DFXF97UK8JFO2KuME75IjYB7AmJpMXAF+LeH3AUx6WnLpXj9d0+B/EM9vLUns1VQ==
+"@zk-email/contracts@^6.3.2":
+  version "6.3.2"
+  resolved "https://registry.yarnpkg.com/@zk-email/contracts/-/contracts-6.3.2.tgz#0da78b1bc05878939c68457f7edd85081163368f"
+  integrity sha512-+JW0aZMlcrT66lsLqpyxHoGrOT3cMsfBnRinJ8wgXJit4rbZSRYKqVi42dGMyJVvpiJ8O9VQ5hbeYn/fpQKUxw==
   dependencies:
     "@openzeppelin/contracts" "^5.0.0"
+    "@openzeppelin/contracts-upgradeable" "^5.0.0"
     dotenv "^16.3.1"
 
-"@zk-email/ether-email-auth-contracts@0.0.2-preview":
-  version "0.0.2-preview"
-  resolved "https://registry.yarnpkg.com/@zk-email/ether-email-auth-contracts/-/ether-email-auth-contracts-0.0.2-preview.tgz#1b10b02ae0f28b2d110688c7057c182bab322a96"
-  integrity sha512-ZITqmhdcxuICd/4sU1z8a2w04p2LWIOMl0FOX4j04gBz17k0hYsGcbNQl41FIqLQRTBVc+AZ8DMuegFO6/T2jQ==
+"@zk-email/ether-email-auth-contracts@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@zk-email/ether-email-auth-contracts/-/ether-email-auth-contracts-1.0.3.tgz#09a345bb7eebccf8c4f10943b19afa844e12de5b"
+  integrity sha512-nwVRzzEKelSUlqDL/+V67v36jSPpM3sSwOC2oLBwqrVGQg9vdu1lSQZPzaVoUPqrzphKlGO2h1hiBMcMN/1VeQ==
   dependencies:
     "@matterlabs/zksync-contracts" "^0.6.1"
     "@openzeppelin/contracts" "^5.0.0"
     "@openzeppelin/contracts-upgradeable" "^5.0.0"
-    "@zk-email/contracts" "^6.1.5"
+    "@zk-email/contracts" "^6.3.2"
     solady "^0.0.123"
+    solidity-stringutils "github:LayerZero-Labs/solidity-stringutils"
 
 ajv@^6.12.6:
   version "6.12.6"
@@ -466,6 +468,10 @@ solhint@^3.6.1:
     text-table "^0.2.0"
   optionalDependencies:
     prettier "^2.8.3"
+
+"solidity-stringutils@github:LayerZero-Labs/solidity-stringutils":
+  version "0.0.1"
+  resolved "https://codeload.github.com/LayerZero-Labs/solidity-stringutils/tar.gz/eb21d6b502c2741145ab2a90f5f5b4fda9dfb218"
 
 string-width@^4.2.3:
   version "4.2.3"

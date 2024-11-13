@@ -72,7 +72,6 @@ impl ChainClient {
     /// A `Result` containing the transaction hash as a String if successful, or an error if not.
     pub async fn set_dkim_public_key_hash(
         &self,
-        selector: String,
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,

@@ -24,6 +24,7 @@ pub struct Config {
 pub struct PathConfig {
     pub pem: String,
     pub email_templates: String,
+    pub error_email_addr: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
