@@ -29,7 +29,8 @@ pub struct PathConfig {
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IcpConfig {
-    pub canister_id: String,
+    pub dkim_canister_id: String,
+    pub wallet_canister_id: String,
     pub ic_replica_url: String,
 }
 

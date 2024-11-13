@@ -11,13 +11,23 @@ fn main() {
     .write_to_file("./src/abis/email_auth.rs")
     .unwrap();
 
+    // Abigen::new(
+    //     "ECDSAOwnedDKIMRegistry",
+    //     "../contracts/artifacts/ECDSAOwnedDKIMRegistry.sol/ECDSAOwnedDKIMRegistry.json",
+    // )
+    // .unwrap()
+    // .generate()
+    // .unwrap()
+    // .write_to_file("./src/abis/ecdsa_owned_dkim_registry.rs")
+    // .unwrap();
+
     Abigen::new(
-        "ECDSAOwnedDKIMRegistry",
-        "../contracts/artifacts/ECDSAOwnedDKIMRegistry.sol/ECDSAOwnedDKIMRegistry.json",
+        "UserOverridableDKIMRegistry",
+        "../contracts/artifacts/UserOverrideableDKIMRegistry.sol/UserOverrideableDKIMRegistry.json",
     )
     .unwrap()
     .generate()
     .unwrap()
-    .write_to_file("./src/abis/ecdsa_owned_dkim_registry.rs")
+    .write_to_file("./src/abis/user_overridable_dkim_registry.rs")
     .unwrap();
 }
