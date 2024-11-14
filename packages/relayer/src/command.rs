@@ -1,8 +1,6 @@
 use anyhow::{anyhow, Result};
 use ethers::types::{Bytes, U256};
-use relayer_utils::{
-    extract_template_vals_from_command, u256_to_bytes32_little,
-};
+use relayer_utils::{extract_template_vals_from_command, u256_to_bytes32_little};
 
 use crate::{constants::COMMAND_FIELDS, model::RequestModel};
 
@@ -38,7 +36,10 @@ pub async fn get_encoded_command_params(email: &str, request: RequestModel) -> R
         .map(String::from)
         .collect();
 
-    let command_params = extract_template_vals_from_command(email, command_template)?;
+    // Remove \r\n from email
+    let email = email.replace("=\r\n", "");
+
+    let command_params = extract_template_vals_from_command(&email, command_template)?;
 
     let command_params_encoded = command_params
         .iter()
