@@ -37,8 +37,8 @@ RUN n 22
 RUN npm install -g yarn snarkjs
 
 
-RUN git clone https://github.com/zkemail/ether-email-auth.git
-WORKDIR /ether-email-auth/packages/prover
+RUN git clone https://github.com/zkemail/email-tx-builder.git
+WORKDIR /email-tx-builder/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
 # RUN cp ./email_auth_with_body_parsing_with_qp_encoding /root
