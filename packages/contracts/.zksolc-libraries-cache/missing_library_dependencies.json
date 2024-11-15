@@ -7,6 +7,11 @@
     ]
   },
   {
+    "contract_name": "StringUtils",
+    "contract_path": "src/libraries/StringUtils.sol",
+    "missing_libraries": []
+  },
+  {
     "contract_name": "DecimalUtils",
     "contract_path": "src/libraries/DecimalUtils.sol",
     "missing_libraries": []
