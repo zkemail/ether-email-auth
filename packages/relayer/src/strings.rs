@@ -13,6 +13,12 @@ pub const EMAIL_TEMPLATES_PATH_KEY: &str = "EMAIL_TEMPLATES_PATH";
 pub const REGEX_JSON_DIR_PATH_KEY: &str = "REGEX_JSON_DIR_PATH";
 pub const ERROR_EMAIL_ADDR_KEY: &str = "ERROR_EMAIL_ADDR";
 
+// DKIM ORACLE ARGS
+pub const DKIM_CANISTER_ID_KEY: &str = "DKIM_CANISTER_ID";
+pub const WALLET_CANISTER_ID_KEY: &str = "WALLET_CANISTER_ID";
+pub const PEM_PATH_KEY: &str = "PEM_PATH";
+pub const IC_REPLICA_URL_KEY: &str = "IC_REPLICA_URL";
+
 // Log strings
 pub const JSON_LOGGER_KEY: &str = "JSON_LOGGER";
 
@@ -31,9 +37,3 @@ pub const INT_REGEX: &str = r"-?\d+";
 pub const ETH_ADDR_REGEX: &str = r"0x[a-fA-F0-9]{40}";
 pub const DECIMALS_REGEX: &str = r"\d+\.\d+";
 pub const SHA_PRECOMPUTE_SELECTOR: &str = r#"(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?\"(=\r\n)?[^\"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^\"]*(=\r\n)?\"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>\/]+)(<(=\r\n)?\/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)"#;
-
-// DKIM ORACLE ARGS
-pub const DKIM_CANISTER_ID_KEY: &str = "DKIM_CANISTER_ID";
-pub const WALLET_CANISTER_ID_KEY: &str = "WALLET_CANISTER_ID";
-pub const PEM_PATH_KEY: &str = "PEM_PATH";
-pub const IC_REPLICA_URL_KEY: &str = "IC_REPLICA_URL";
