@@ -1,5 +1,5 @@
 {
-  "name": "@zk-email/ether-email-auth",
+  "name": "@zk-email/email-tx-builder",
   "private": true,
   "version": "1.0.0",
   "description": "Smart contracts to auth messages via emails",

@@ -348,19 +348,39 @@ impl ExpectsReply {
     }
 }
 
+/// Processes an incoming email and interacts with the blockchain to complete the request.
+///
+/// This asynchronous function parses the email, verifies DKIM, generates an email authentication message,
+/// and interacts with the blockchain to execute the transaction. It updates the request status and returns
+/// an `EmailEvent` indicating the completion of the process.
+///
+/// # Arguments
+///
+/// * `email` - The raw email content as a `String`.
+/// * `request` - The `RequestModel` containing details of the request associated with the email.
+/// * `relayer_state` - The current state of the relayer, containing configuration and state information.
+///
+/// # Returns
+///
+/// A `Result` containing:
+/// - `Ok`: An `EmailEvent::Completion` with details of the completed transaction.
+/// - `Err`: An error if any step in the process fails.
 pub async fn handle_email(
     email: String,
     request: RequestModel,
     relayer_state: RelayerState,
 ) -> Result<EmailEvent> {
+    // Parse the email from the raw content
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
 
+    // Set up the chain client using the request's chain configuration
     let chain_client = ChainClient::setup(
         request.clone().email_tx_auth.chain,
         relayer_state.clone().config.chains,
     )
     .await?;
 
+    // Check and update DKIM using the parsed email and chain client
     check_and_update_dkim(
         &parsed_email,
         request.email_tx_auth.dkim_contract_address,
@@ -369,19 +389,26 @@ pub async fn handle_email(
     )
     .await?;
 
+    // Generate the email authentication message
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
+    // Log the action of interacting with the blockchain
     info!(LOG, "Hitting chain");
+
+    // Call the blockchain with the email authentication message
     let tx_hash = chain_client
         .call(request.clone(), email_auth_msg, relayer_state.clone())
         .await?;
 
+    // Update the request status to finished in the database
     update_request(&relayer_state.db, request.id, RequestStatus::Finished).await?;
 
+    // Retrieve the explorer URL for the chain
     let explorer_url = relayer_state.config.chains[&request.email_tx_auth.chain.to_string()]
         .clone()
         .explorer_url;
 
+    // Return a completion event with transaction details
     Ok(EmailEvent::Completion {
         email_addr: parsed_email.get_from_addr()?,
         request_id: request.id.clone(),

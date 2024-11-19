@@ -15,14 +15,18 @@ use slog::error;
 use statics::SHARED_MUTEX;
 use tokio::time::sleep;
 
+// Number of confirmations required for a transaction to be considered confirmed
 const CONFIRMATIONS: usize = 1;
 
+// Type alias for a SignerMiddleware that combines a provider and a local wallet
 type SignerM = SignerMiddleware<Provider<Http>, LocalWallet>;
 
+// Custom struct to hold a vector of tokens
 struct CustomTokenVec {
     tokens: Vec<Token>,
 }
 
+// Implement the Tokenize trait for CustomTokenVec to convert it into a vector of tokens
 impl Tokenize for CustomTokenVec {
     fn into_tokens(self) -> Vec<Token> {
         self.tokens
@@ -32,6 +36,7 @@ impl Tokenize for CustomTokenVec {
 /// Represents a client for interacting with the blockchain.
 #[derive(Debug, Clone)]
 pub struct ChainClient {
+    // The client is an Arc (atomic reference counted) pointer to a SignerMiddleware
     pub client: Arc<SignerM>,
 }
 
@@ -256,6 +261,15 @@ impl ChainClient {
 }
 
 impl EmailAuthMsg {
+    /// Converts the `EmailAuthMsg` into a vector of tokens.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Token>` representing the `EmailAuthMsg` as tokens, which includes:
+    /// - `Token::Uint` for the `template_id`.
+    /// - `Token::Array` of `Token::Bytes` for each `command_param`.
+    /// - `Token::Uint` for the `skipped_command_prefix`.
+    /// - `Token::Tuple` for the `proof` converted to tokens.
     pub fn to_tokens(&self) -> Vec<Token> {
         vec![
             Token::Uint(self.template_id),
@@ -272,6 +286,19 @@ impl EmailAuthMsg {
 }
 
 impl EmailProof {
+    /// Converts the `EmailProof` into a vector of tokens.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Token>` representing the `EmailProof` as tokens, which includes:
+    /// - `Token::String` for the `domain_name`.
+    /// - `Token::FixedBytes` for the `public_key_hash`.
+    /// - `Token::Uint` for the `timestamp`.
+    /// - `Token::String` for the `masked_command`.
+    /// - `Token::FixedBytes` for the `email_nullifier`.
+    /// - `Token::FixedBytes` for the `account_salt`.
+    /// - `Token::Bool` for the `is_code_exist`.
+    /// - `Token::Bytes` for the `proof`.
     pub fn to_tokens(&self) -> Vec<Token> {
         vec![
             Token::String(self.domain_name.clone()),
@@ -286,6 +313,22 @@ impl EmailProof {
     }
 }
 
+/// Attempts to send a POST request to a given URL with a JSON body, retrying on failure.
+///
+/// This function will retry the request up to `max_attempts` times, with an exponential backoff
+/// and jitter between attempts.
+///
+/// # Arguments
+///
+/// * `http_client` - A reference to the `reqwest::Client` used to send the request.
+/// * `url` - The URL to which the POST request is sent.
+/// * `json_body` - The JSON body to include in the POST request.
+/// * `max_attempts` - The maximum number of retry attempts.
+/// * `max_backoff` - The maximum backoff time in milliseconds.
+///
+/// # Returns
+///
+/// A `Result` containing the `reqwest::Response` if successful, or an error if all attempts fail.
 async fn simulate_with_retry(
     http_client: &reqwest::Client,
     url: &str,
@@ -297,6 +340,7 @@ async fn simulate_with_retry(
 
     loop {
         attempts += 1;
+        // Send the POST request with the specified headers and JSON body
         let response = http_client
             .post(url)
             .header("accept", "application/json")
@@ -306,7 +350,9 @@ async fn simulate_with_retry(
             .await;
 
         match response {
+            // If the response is successful, return it
             Ok(resp) if resp.status().is_success() => return Ok(resp),
+            // If the response is not successful and attempts are remaining, retry
             Ok(_) | Err(_) if attempts < max_attempts => {
                 // Calculate exponential backoff with jitter using spawn_blocking
                 let backoff = tokio::task::spawn_blocking(move || {
@@ -323,9 +369,11 @@ async fn simulate_with_retry(
                     attempts,
                     max_attempts
                 );
+                // Wait for the calculated backoff duration before retrying
                 sleep(Duration::from_millis(backoff)).await;
                 continue;
             }
+            // If all attempts fail, log the error and return an error
             Ok(resp) => {
                 // Log the final failed attempt
                 let error_text = resp

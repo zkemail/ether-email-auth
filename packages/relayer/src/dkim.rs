@@ -20,6 +20,7 @@ use ic_utils::canister::*;
 use ic_utils::interfaces::WalletCanister;
 use serde::Deserialize;
 
+///  Amount of cycles charged by the ICP canister
 pub const SIGN_CHARGED_CYCLE: u128 = 39_246_898_590;
 
 /// Represents a client for interacting with the DKIM Oracle.

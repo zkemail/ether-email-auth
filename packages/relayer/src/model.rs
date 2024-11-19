@@ -7,27 +7,38 @@ use uuid::Uuid;
 
 use crate::schema::EmailTxAuthSchema;
 
+/// Represents a request model with details about the request status and associated email transaction authentication.
 #[derive(Debug, FromRow, Deserialize, Serialize, Clone)]
 #[allow(non_snake_case)]
 pub struct RequestModel {
+    /// The unique identifier for the request.
     pub id: Uuid,
+    /// The current status of the request.
     pub status: String,
+    /// The timestamp when the request was last updated.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<NaiveDateTime>,
+    /// The email transaction authentication schema associated with the request.
     #[serde(rename = "emailTxAuth")]
     pub email_tx_auth: EmailTxAuthSchema,
 }
 
+/// Represents an expected reply model with details about the message and request.
 #[derive(Debug, FromRow, Deserialize, Serialize)]
 #[allow(non_snake_case)]
 pub struct ExpectedReplyModel {
+    /// The unique identifier for the message.
     pub message_id: String,
+    /// The optional request ID associated with the message.
     pub request_id: Option<String>,
+    /// Indicates whether a reply has been received.
     pub has_reply: Option<bool>,
+    /// The timestamp when the expected reply was created.
     #[serde(rename = "createdAt")]
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
+/// Enum representing the various statuses a request can have.
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "status_enum")]
 pub enum RequestStatus {
@@ -46,23 +57,36 @@ pub enum RequestStatus {
 }
 
 impl std::fmt::Display for RequestStatus {
+    /// Formats the `RequestStatus` as a string for display purposes.
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
 impl From<RequestStatus> for String {
+    /// Converts a `RequestStatus` into a `String`.
     fn from(status: RequestStatus) -> Self {
         status.to_string()
     }
 }
 
 impl From<sqlx::types::Json<EmailTxAuthSchema>> for EmailTxAuthSchema {
+    /// Converts a JSON-wrapped `EmailTxAuthSchema` into an `EmailTxAuthSchema`.
     fn from(json: sqlx::types::Json<EmailTxAuthSchema>) -> Self {
         json.0
     }
 }
 
+/// Creates a new request in the database and returns its unique identifier.
+///
+/// # Arguments
+///
+/// * `pool` - A reference to the PostgreSQL connection pool.
+/// * `email_tx_auth` - A reference to the `EmailTxAuthSchema` to be inserted.
+///
+/// # Returns
+///
+/// A `Result` containing the `Uuid` of the newly created request.
 pub async fn create_request(pool: &PgPool, email_tx_auth: &EmailTxAuthSchema) -> Result<Uuid> {
     // Assuming the database column is of type JSONB and can directly accept the struct
     let query_result = sqlx::query!(
@@ -75,6 +99,17 @@ pub async fn create_request(pool: &PgPool, email_tx_auth: &EmailTxAuthSchema) ->
     Ok(query_result.id)
 }
 
+/// Updates the status of an existing request in the database.
+///
+/// # Arguments
+///
+/// * `pool` - A reference to the PostgreSQL connection pool.
+/// * `request_id` - The unique identifier of the request to update.
+/// * `status` - The new status to set for the request.
+///
+/// # Returns
+///
+/// A `Result` indicating success or failure.
 pub async fn update_request(pool: &PgPool, request_id: Uuid, status: RequestStatus) -> Result<()> {
     sqlx::query!(
         "UPDATE requests SET status = $1 WHERE id = $2",
@@ -88,6 +123,16 @@ pub async fn update_request(pool: &PgPool, request_id: Uuid, status: RequestStat
     Ok(())
 }
 
+/// Retrieves a request from the database by its unique identifier.
+///
+/// # Arguments
+///
+/// * `pool` - A reference to the PostgreSQL connection pool.
+/// * `request_id` - The unique identifier of the request to retrieve.
+///
+/// # Returns
+///
+/// A `Result` containing the `RequestModel` if found, or an error if not.
 pub async fn get_request(pool: &PgPool, request_id: Uuid) -> Result<RequestModel, sqlx::Error> {
     let query_result = sqlx::query_as!(
         RequestModel,
@@ -109,6 +154,17 @@ pub async fn get_request(pool: &PgPool, request_id: Uuid) -> Result<RequestModel
     query_result.ok_or_else(|| sqlx::Error::RowNotFound)
 }
 
+/// Inserts a new expected reply into the database.
+///
+/// # Arguments
+///
+/// * `pool` - A reference to the PostgreSQL connection pool.
+/// * `message_id` - The unique identifier of the message.
+/// * `request_id` - An optional request ID associated with the message.
+///
+/// # Returns
+///
+/// A `Result` indicating success or failure.
 pub async fn insert_expected_reply(
     pool: &PgPool,
     message_id: &str,
