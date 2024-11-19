@@ -35,24 +35,6 @@ contract EmailAccountRecoveryZKSyncTest_requestGuardian is StructHelper {
         );
     }
 
-    // function testRequestGuardianNotOwner() public {
-    //     setUp();
-
-    //     require(
-    //         recoveryControllerZKSync.guardians(guardian) ==
-    //             recoveryControllerZKSync.GuardianStatus.NONE
-    //     );
-
-    //     vm.startPrank(receiver);
-    //     recoveryControllerZKSync.requestGuardian(guardian);
-    //     vm.stopPrank();
-
-    //     require(
-    //         recoveryControllerZKSync.guardians(guardian) ==
-    //             recoveryControllerZKSync.GuardianStatus.NONE
-    //     );
-    // }
-
     function testExpectRevertRequestGuardianInvalidGuardian() public {
         skipIfNotZkSync();
 

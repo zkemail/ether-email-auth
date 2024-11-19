@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 import "./DecimalUtils.sol";
+import "./StringUtils.sol";
 
 library CommandUtils {
     bytes16 private constant LOWER_HEX_DIGITS = "0123456789abcdef";

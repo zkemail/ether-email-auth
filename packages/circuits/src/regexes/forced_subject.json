@@ -1,0 +1,8 @@
+{
+    "parts": [
+        {
+            "is_public": false,
+            "regex_def": "(\r\n|^)subject:((re: )|(RE: )|(Re: )|(fwd: )|(FWD: )|(Fwd: ))*\\[Reply Needed\\][^\r\n]*\r\n"
+        }
+    ]
+}

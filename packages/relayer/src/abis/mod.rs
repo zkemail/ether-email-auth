@@ -2,10 +2,9 @@
 
 
 #[cfg_attr(rustfmt, rustfmt::skip)]
-pub mod ecdsa_owned_dkim_registry;
-
-#[cfg_attr(rustfmt, rustfmt::skip)]
 pub mod email_auth;
+#[cfg_attr(rustfmt, rustfmt::skip)]
+pub mod user_overridable_dkim_registry;
 
-pub use ecdsa_owned_dkim_registry::ECDSAOwnedDKIMRegistry;
 pub use email_auth::*;
+pub use user_overridable_dkim_registry::UserOverridableDKIMRegistry;

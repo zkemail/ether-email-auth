@@ -36,20 +36,40 @@ RUN npm install -g n
 RUN n 22
 RUN npm install -g yarn snarkjs
 
+
 RUN git clone https://github.com/zkemail/ether-email-auth.git
 WORKDIR /ether-email-auth/packages/prover
 RUN pip install -r requirements.txt
 RUN cp ./circom_proofgen.sh /root
-RUN cp ./email_auth_with_body_parsing_with_qp_encoding /root
+# RUN cp ./email_auth_with_body_parsing_with_qp_encoding /root
 WORKDIR /root
 RUN ls /root
 RUN mkdir params
 WORKDIR /root/params
-RUN gdown "https://drive.google.com/uc?id=1l3mNqFYv-YZc2efFlphFUkoaCnGCxFtE"
-RUN unzip params.zip
-RUN mv params/* /root/params
+
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_prod1.zkey --output ./email_auth.zkey
+# RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth.wasm --output ./email_auth.wasm
+RUN mkdir ./email_auth_cpp
+WORKDIR /root/params/email_auth_cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/email_auth --output ./email_auth
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/Makefile --output ./Makefile
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.cpp --output ./calcwit.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.hpp --output ./calcwit.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/calcwit.o --output ./calcwit.o
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/circom.hpp --output ./circom.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/email_auth.cpp --output ./email_auth.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/email_auth.dat --output ./email_auth.dat
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.asm --output ./fr.asm
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.cpp --output ./fr.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.hpp --output ./fr.hpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr.o --output ./fr.o
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/fr_asm.o --output ./fr_asm.o
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/main.cpp --output ./main.cpp
+RUN curl https://storage.googleapis.com/circom-ether-email-auth/v1.0.2/email_auth_cpp/main.o --output ./main.o
+RUN chmod +x ./email_auth
 WORKDIR /root
 RUN ls params
+RUN ls params/email_auth_cpp
 RUN chmod +x circom_proofgen.sh
 RUN mkdir build
 

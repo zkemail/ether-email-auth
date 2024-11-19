@@ -2,7 +2,7 @@ use std::{collections::HashMap, time::Duration};
 
 use crate::*;
 use abi::{Abi, Token, Tokenize};
-use abis::{ECDSAOwnedDKIMRegistry, EmailAuthMsg, EmailProof};
+use abis::{EmailAuthMsg, EmailProof, UserOverridableDKIMRegistry};
 use anyhow::anyhow;
 use config::ChainConfig;
 use ethers::prelude::*;
@@ -72,18 +72,19 @@ impl ChainClient {
     /// A `Result` containing the transaction hash as a String if successful, or an error if not.
     pub async fn set_dkim_public_key_hash(
         &self,
-        selector: String,
         domain_name: String,
         public_key_hash: [u8; 32],
         signature: Bytes,
-        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
+        dkim: UserOverridableDKIMRegistry<SignerM>,
     ) -> Result<String> {
         // Mutex is used to prevent nonce conflicts.
         let mut mutex = SHARED_MUTEX.lock().await;
         *mutex += 1;
 
         // Call the contract method
-        let call = dkim.set_dkim_public_key_hash(selector, domain_name, public_key_hash, signature);
+        let main_authorizer = dkim.main_authorizer().call().await?;
+        let call =
+            dkim.set_dkim_public_key_hash(domain_name, public_key_hash, main_authorizer, signature);
         let tx = call.send().await?;
 
         // Wait for the transaction to be confirmed
@@ -113,14 +114,15 @@ impl ChainClient {
         &self,
         domain_name: ::std::string::String,
         public_key_hash: [u8; 32],
-        dkim: ECDSAOwnedDKIMRegistry<SignerM>,
+        dkim: UserOverridableDKIMRegistry<SignerM>,
     ) -> Result<bool> {
         // Call the contract method to check if the hash is valid
-        let is_valid = dkim
-            .is_dkim_public_key_hash_valid(domain_name, public_key_hash)
+        let main_authorizer = dkim.main_authorizer().call().await?;
+        let is_set = dkim
+            .dkim_public_key_hashes(domain_name, public_key_hash, main_authorizer)
             .call()
             .await?;
-        Ok(is_valid)
+        Ok(is_set)
     }
 
     pub async fn call(

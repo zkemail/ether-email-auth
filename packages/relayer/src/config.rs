@@ -24,12 +24,14 @@ pub struct Config {
 pub struct PathConfig {
     pub pem: String,
     pub email_templates: String,
+    pub error_email_addr: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct IcpConfig {
-    pub canister_id: String,
+    pub dkim_canister_id: String,
+    pub wallet_canister_id: String,
     pub ic_replica_url: String,
 }
 

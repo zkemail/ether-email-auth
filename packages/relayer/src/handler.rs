@@ -65,7 +65,7 @@ pub async fn submit_handler(
             email_address: body.email_address.clone(),
             command,
             account_code,
-            subject: body.subject.clone(),
+            subject: format!("[Reply Needed] {}", body.subject.clone()),
             body: body.body.clone(),
         },
         (*relayer_state).clone(),

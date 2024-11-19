@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@zk-email/ether-email-auth-contracts/src/utils/Verifier.sol";
 import "@zk-email/ether-email-auth-contracts/src/utils/Groth16Verifier.sol";
 import "@zk-email/ether-email-auth-contracts/src/utils/ECDSAOwnedDKIMRegistry.sol";
+import "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 import "@zk-email/ether-email-auth-contracts/src/EmailAuth.sol";
 import "../src/EmitEmailCommand.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -14,8 +15,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 contract Deploy is Script {
     using ECDSA for *;
 
-    ECDSAOwnedDKIMRegistry dkimImpl;
-    ECDSAOwnedDKIMRegistry dkim;
+    UserOverrideableDKIMRegistry dkimImpl;
+    UserOverrideableDKIMRegistry dkim;
     Verifier verifierImpl;
     Verifier verifier;
     EmailAuth emailAuthImpl;
@@ -32,27 +33,29 @@ contract Deploy is Script {
             console.log("SIGNER env var not set");
             return;
         }
+        uint256 timeDelay = vm.envOr("DKIM_DELAY", uint256(0));
+        console.log("DKIM_DELAY: %s", timeDelay);
 
         vm.startBroadcast(deployerPrivateKey);
         address initialOwner = vm.addr(deployerPrivateKey);
         console.log("Initial owner: %s", vm.toString(initialOwner));
-        // Deploy ECDSA DKIM registry
+        // Deploy Useroverridable DKIM registry
         {
-            dkimImpl = new ECDSAOwnedDKIMRegistry();
-            console.log(
-                "ECDSAOwnedDKIMRegistry implementation deployed at: %s",
-                address(dkimImpl)
+            dkimImpl = new UserOverrideableDKIMRegistry();
+            address dkimProxyAddress = address(
+                new ERC1967Proxy(
+                    address(dkimImpl),
+                    abi.encodeCall(
+                        UserOverrideableDKIMRegistry.initialize,
+                        (initialOwner, signer, timeDelay)
+                    )
+                )
             );
-            ERC1967Proxy dkimProxy = new ERC1967Proxy(
-                address(dkimImpl),
-                abi.encodeCall(dkimImpl.initialize, (initialOwner, signer))
-            );
-            dkim = ECDSAOwnedDKIMRegistry(address(dkimProxy));
+            dkim = UserOverrideableDKIMRegistry(dkimProxyAddress);
             console.log(
-                "ECDSAOwnedDKIMRegistry deployed at: %s",
+                "UserOverrideableDKIMRegistry deployed at: %s",
                 address(dkim)
             );
-            vm.setEnv("ECDSA_DKIM", vm.toString(address(dkim)));
         }
 
         // Deploy Verifier
@@ -72,7 +75,7 @@ contract Deploy is Script {
             );
             verifier = Verifier(address(verifierProxy));
             console.log("Verifier deployed at: %s", address(verifier));
-            vm.setEnv("VERIFIER", vm.toString(address(verifier)));
+            // vm.setEnv("VERIFIER", vm.toString(address(verifier)));
         }
 
         // Deploy EmailAuth Implementation
@@ -82,7 +85,7 @@ contract Deploy is Script {
                 "EmailAuth implementation deployed at: %s",
                 address(emailAuthImpl)
             );
-            vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
+            // vm.setEnv("EMAIL_AUTH_IMPL", vm.toString(address(emailAuthImpl)));
         }
 
         // Deploy EmitEmailCommand

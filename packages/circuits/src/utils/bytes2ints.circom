@@ -10,6 +10,7 @@ function compute_ints_size(bytes_size) {
     return computeIntChunkLength(bytes_size);
 }
 
+// @dev The caller of this template must ensure that each byte fit in 8-bit.
 template Bytes2Ints(bytes_size) {
     var num_chunk = compute_ints_size(bytes_size);
     signal input bytes[bytes_size];
