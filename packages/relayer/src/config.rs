@@ -23,6 +23,10 @@ pub struct RelayerConfig {
     pub email_account_recovery_version_id: u8,
     pub email_templates: String,
     pub error_email_addr: String,
+    pub dkim_canister_id: String,
+    pub wallet_canister_id: String,
+    pub pem_path: String,
+    pub ic_replica_url: String,
 }
 
 impl RelayerConfig {
@@ -56,6 +60,10 @@ impl RelayerConfig {
                 .unwrap(),
             email_templates: env::var(EMAIL_TEMPLATES_PATH_KEY).unwrap(),
             error_email_addr: env::var(ERROR_EMAIL_ADDR_KEY).unwrap(),
+            dkim_canister_id: env::var(DKIM_CANISTER_ID_KEY).unwrap(),
+            wallet_canister_id: env::var(WALLET_CANISTER_ID_KEY).unwrap(),
+            pem_path: env::var(PEM_PATH_KEY).unwrap(),
+            ic_replica_url: env::var(IC_REPLICA_URL_KEY).unwrap(),
         }
     }
 }
@@ -68,53 +76,6 @@ impl Default for RelayerConfig {
     /// # Returns
     ///
     /// A default instance of RelayerConfig.
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-/// Configuration struct for the DKIM Oracle.
-///
-/// This struct holds various configuration parameters needed for the DKIM Oracle.
-#[derive(Clone)]
-pub struct DKIMOracleConfig {
-    pub dkim_canister_id: String,
-    pub wallet_canister_id: String,
-    pub pem_path: String,
-    pub ic_replica_url: String,
-}
-
-impl DKIMOracleConfig {
-    /// Creates a new instance of DKIMOracleConfig.
-    ///
-    /// This function loads environment variables using dotenv and populates
-    /// the DKIMOracleConfig struct with the values.
-    ///
-    /// # Returns
-    ///
-    /// A new instance of DKIMOracleConfig.
-    pub fn new() -> Self {
-        // Load environment variables from .env file
-        dotenv().ok();
-
-        // Construct and return the DKIMOracleConfig instance
-        Self {
-            dkim_canister_id: env::var(DKIM_CANISTER_ID_KEY).unwrap(),
-            wallet_canister_id: env::var(WALLET_CANISTER_ID_KEY).unwrap(),
-            pem_path: env::var(PEM_PATH_KEY).unwrap(),
-            ic_replica_url: env::var(IC_REPLICA_URL_KEY).unwrap(),
-        }
-    }
-}
-
-impl Default for DKIMOracleConfig {
-    /// Provides a default instance of DKIMOracleConfig.
-    ///
-    /// This implementation simply calls the `new()` method to create a default instance.
-    ///
-    /// # Returns
-    ///
-    /// A default instance of DKIMOracleConfig.
     fn default() -> Self {
         Self::new()
     }

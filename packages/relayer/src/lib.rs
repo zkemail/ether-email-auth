@@ -100,39 +100,36 @@ lazy_static! {
 ///
 /// # Arguments
 ///
-/// * `relayer_config` - The configuration for the relayer.
-/// * `dkim_config` - The configuration for the DKIM Oracle.
+/// * `config` - The configuration for the relayer.
 ///
 /// # Returns
 ///
 /// A `Result` indicating success or failure.
-pub async fn run(relayer_config: RelayerConfig, dkim_config: DKIMOracleConfig) -> Result<()> {
+pub async fn run(config: RelayerConfig) -> Result<()> {
     info!(LOG, "Starting relayer");
 
     // Initialize realyer configuration
-    REGEX_JSON_DIR_PATH.set(relayer_config.regex_json_dir_path).unwrap();
-    WEB_SERVER_ADDRESS.set(relayer_config.web_server_address).unwrap();
-    PROVER_ADDRESS.set(relayer_config.prover_address).unwrap();
-    PRIVATE_KEY.set(relayer_config.private_key).unwrap();
-    DATABASE_PATH.set(relayer_config.db_path).unwrap();
-    CHAIN_ID.set(relayer_config.chain_id).unwrap();
-    CHAIN_RPC_PROVIDER.set(relayer_config.chain_rpc_provider).unwrap();
-    CHAIN_RPC_EXPLORER.set(relayer_config.chain_rpc_explorer).unwrap();
+    REGEX_JSON_DIR_PATH.set(config.regex_json_dir_path).unwrap();
+    WEB_SERVER_ADDRESS.set(config.web_server_address).unwrap();
+    PROVER_ADDRESS.set(config.prover_address).unwrap();
+    PRIVATE_KEY.set(config.private_key).unwrap();
+    DATABASE_PATH.set(config.db_path).unwrap();
+    CHAIN_ID.set(config.chain_id).unwrap();
+    CHAIN_RPC_PROVIDER.set(config.chain_rpc_provider).unwrap();
+    CHAIN_RPC_EXPLORER.set(config.chain_rpc_explorer).unwrap();
     EMAIL_ACCOUNT_RECOVERY_VERSION_ID
-        .set(relayer_config.email_account_recovery_version_id)
+        .set(config.email_account_recovery_version_id)
         .unwrap();
-    EMAIL_TEMPLATES.set(relayer_config.email_templates).unwrap();
+    EMAIL_TEMPLATES.set(config.email_templates).unwrap();
     RELAYER_EMAIL_ADDRESS
-        .set(relayer_config.relayer_email_addr)
+        .set(config.relayer_email_addr)
         .unwrap();
-    SMTP_SERVER.set(relayer_config.smtp_server).unwrap();
-    ERROR_EMAIL_ADDR.set(relayer_config.error_email_addr).unwrap();
-
-    // Initialize DKIM Oracle configuration
-    DKIM_CANISTER_ID.set(dkim_config.dkim_canister_id).unwrap();
-    WALLET_CANISTER_ID.set(dkim_config.wallet_canister_id).unwrap();
-    PEM_PATH.set(dkim_config.pem_path).unwrap();
-    IC_REPLICA_URL.set(dkim_config.ic_replica_url).unwrap();
+    SMTP_SERVER.set(config.smtp_server).unwrap();
+    ERROR_EMAIL_ADDR.set(config.error_email_addr).unwrap();
+    DKIM_CANISTER_ID.set(config.dkim_canister_id).unwrap();
+    WALLET_CANISTER_ID.set(config.wallet_canister_id).unwrap();
+    PEM_PATH.set(config.pem_path).unwrap();
+    IC_REPLICA_URL.set(config.ic_replica_url).unwrap();
 
     // Spawn the API server task
     let api_server_task = tokio::task::spawn(async move {
