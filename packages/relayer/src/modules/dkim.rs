@@ -224,10 +224,10 @@ pub async fn check_and_update_dkim(
 
     // Generate IC agent and create oracle client
     let ic_agent =
-        DkimOracleClient::gen_agent(&PEM_PATH.get().unwrap(), &IC_REPLICA_URL.get().unwrap())?;
+        DkimOracleClient::gen_agent(PEM_PATH.get().unwrap(), IC_REPLICA_URL.get().unwrap())?;
     let oracle_client = DkimOracleClient::new(
-        &DKIM_CANISTER_ID.get().unwrap(),
-        &WALLET_CANISTER_ID.get().unwrap(),
+        DKIM_CANISTER_ID.get().unwrap(),
+        WALLET_CANISTER_ID.get().unwrap(),
         &ic_agent,
     )
     .await?;
