@@ -7,9 +7,6 @@ import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
 
-import {SimpleWallet} from "../test/helpers/SimpleWallet.sol";
-import {RecoveryController} from "../test/helpers/RecoveryController.sol";
-import {RecoveryControllerZKSync} from "../test/helpers/RecoveryControllerZKSync.sol";
 import {ZKSyncCreate2Factory} from "../src/utils/ZKSyncCreate2Factory.sol";
 import {Verifier} from "../src/utils/Verifier.sol";
 import {Groth16Verifier} from "../src/utils/Groth16Verifier.sol";
@@ -108,90 +105,11 @@ contract BaseDeployScript is Script {
         return emailAuthImplAddress;
     }
 
-    /// @notice Deploys a RecoveryController contract with specified owner, verifier, DKIM registry and EmailAuth implementation
-    function deployRecoveryController(
-        address owner,
-        address verifier,
-        address dkim,
-        address emailAuthImpl
-    ) public returns (address) {
-        address recoveryControllerProxyAddress;
-        RecoveryController recoveryControllerImpl = new RecoveryController();
-        recoveryControllerProxyAddress = address(
-            new ERC1967Proxy(
-                address(recoveryControllerImpl),
-                abi.encodeCall(
-                    RecoveryController.initialize,
-                    (owner, verifier, dkim, emailAuthImpl)
-                )
-            )
-        );
-        console.log(
-            "RecoveryController deployed at: %s",
-            recoveryControllerProxyAddress
-        );
-        return recoveryControllerProxyAddress;
-    }
-
-    /// @notice Deploys a ZK Sync specific RecoveryController with additional factory and proxy bytecode parameters
-    function deployRecoveryControllerZKSync(
-        address owner,
-        address verifier,
-        address dkim,
-        address emailAuthImpl,
-        address factoryImpl,
-        bytes32 proxyBytecodeHash
-    ) public returns (address) {
-        address recoveryControllerProxyAddress;
-        RecoveryControllerZKSync recoveryControllerZKSyncImpl = new RecoveryControllerZKSync();
-        recoveryControllerProxyAddress = address(
-            new ERC1967Proxy(
-                address(recoveryControllerZKSyncImpl),
-                abi.encodeCall(
-                    recoveryControllerZKSyncImpl.initialize,
-                    (
-                        owner,
-                        verifier,
-                        dkim,
-                        emailAuthImpl,
-                        factoryImpl,
-                        proxyBytecodeHash
-                    )
-                )
-            )
-        );
-        console.log(
-            "RecoveryControllerZKSync deployed at: %s",
-            recoveryControllerProxyAddress
-        );
-        return recoveryControllerProxyAddress;
-    }
-
     /// @notice Deploys a ZK Sync Create2 factory contract
     function deployZKSyncCreate2Factory() public returns (address) {
         address factoryImplAddress;
         factoryImplAddress = address(new ZKSyncCreate2Factory());
         console.log("ZKSyncCreate2Factory deployed at: %s", factoryImplAddress);
         return factoryImplAddress;
-    }
-
-    /// @notice Deploys a SimpleWallet contract with a specified owner and recovery controller
-    function deploySimpleWallet(
-        address owner,
-        address recoveryController
-    ) public returns (address) {
-        address simpleWalletProxyAddress;
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
-        simpleWalletProxyAddress = address(
-            new ERC1967Proxy(
-                address(simpleWalletImpl),
-                abi.encodeCall(
-                    simpleWalletImpl.initialize,
-                    (owner, address(recoveryController))
-                )
-            )
-        );
-        console.log("SimpleWallet deployed at: %s", simpleWalletProxyAddress);
-        return simpleWalletProxyAddress;
     }
 }
