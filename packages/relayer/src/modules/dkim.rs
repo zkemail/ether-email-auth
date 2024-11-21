@@ -198,9 +198,9 @@ pub async fn check_and_update_dkim(
         return Ok(());
     }
 
+    let regex_json_dir_path = REGEX_JSON_DIR_PATH.get().unwrap();
     // Get selector
-    let selector_def_path =
-        PathBuf::from(env::var(REGEX_JSON_DIR_PATH_KEY).unwrap()).join("selector_def.json");
+    let selector_def_path = PathBuf::from(regex_json_dir_path).join("selector_def.json");
     let selector_def_contents = fs::read_to_string(&selector_def_path)
         .map_err(|e| anyhow!("Failed to read file {}: {}", selector_def_path.display(), e))?;
     let selector_decomposed_def: DecomposedRegexConfig =
@@ -223,13 +223,11 @@ pub async fn check_and_update_dkim(
     info!(LOG, "selector {}", selector);
 
     // Generate IC agent and create oracle client
-    let ic_agent = DkimOracleClient::gen_agent(
-        &env::var(PEM_PATH_KEY).unwrap(),
-        &env::var(IC_REPLICA_URL_KEY).unwrap(),
-    )?;
+    let ic_agent =
+        DkimOracleClient::gen_agent(&PEM_PATH.get().unwrap(), &IC_REPLICA_URL.get().unwrap())?;
     let oracle_client = DkimOracleClient::new(
-        &env::var(DKIM_CANISTER_ID_KEY).unwrap(),
-        &env::var(WALLET_CANISTER_ID_KEY).unwrap(),
+        &DKIM_CANISTER_ID.get().unwrap(),
+        &WALLET_CANISTER_ID.get().unwrap(),
         &ic_agent,
     )
     .await?;

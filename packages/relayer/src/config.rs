@@ -23,6 +23,10 @@ pub struct RelayerConfig {
     pub email_account_recovery_version_id: u8,
     pub email_templates: String,
     pub error_email_addr: String,
+    pub dkim_canister_id: String,
+    pub wallet_canister_id: String,
+    pub pem_path: String,
+    pub ic_replica_url: String,
 }
 
 impl RelayerConfig {
@@ -56,6 +60,10 @@ impl RelayerConfig {
                 .unwrap(),
             email_templates: env::var(EMAIL_TEMPLATES_PATH_KEY).unwrap(),
             error_email_addr: env::var(ERROR_EMAIL_ADDR_KEY).unwrap(),
+            dkim_canister_id: env::var(DKIM_CANISTER_ID_KEY).unwrap(),
+            wallet_canister_id: env::var(WALLET_CANISTER_ID_KEY).unwrap(),
+            pem_path: env::var(PEM_PATH_KEY).unwrap(),
+            ic_replica_url: env::var(IC_REPLICA_URL_KEY).unwrap(),
         }
     }
 }

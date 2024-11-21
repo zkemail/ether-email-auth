@@ -14,10 +14,8 @@ pub async fn run_server() -> Result<()> {
     // Initialize the global DB ref before starting the server
     DB_CELL
         .get_or_init(|| async {
-            dotenv::dotenv().ok();
-            let db = Database::open(&std::env::var("DATABASE_URL").unwrap())
-                .await
-                .unwrap();
+            let db_path = DATABASE_PATH.get().unwrap();
+            let db = Database::open(db_path).await.unwrap();
             Arc::new(db)
         })
         .await;
