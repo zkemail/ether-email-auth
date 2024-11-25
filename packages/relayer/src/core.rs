@@ -450,7 +450,7 @@ async fn get_encoded_command_params(
     }?;
 
     let command_params = extract_template_vals_from_command(&params.email_body, command_template)
-        .map_err(|e| EmailError::Body(format!("Invalid commad: {}", e)))?;
+        .map_err(|e| EmailError::Body(format!("Invalid commad: {}. If you receive this error message even though you replied directly to the email we sent, we recommend using the Gmail website on your PC or the Gmail app on your mobile device.", e)))?;
 
     let command_params_encoded = command_params
         .iter()
