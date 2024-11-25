@@ -1,0 +1,40 @@
+# Docker Compose configuration for local development environment
+# This setup provides a playground environment for developing and testing the relayer
+# It includes:
+# - A PostgreSQL database for storing relayer data
+# - The relayer service built from local source code
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: relayer
+      POSTGRES_PASSWORD: relayer_password
+      POSTGRES_DB: relayer
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U relayer" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  relayer:
+    build:
+      context: .
+      dockerfile: Full.Dockerfile
+    environment:
+      DATABASE_URL: postgres://relayer:relayer_password@db:5432/relayer
+    ports:
+      - "4500:4500"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./.env:/relayer/.env:ro
+
+volumes:
+  postgres_data:
