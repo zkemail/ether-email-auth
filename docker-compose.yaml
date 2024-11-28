@@ -36,7 +36,6 @@ services:
       - JSON_LOGGER=${SMPT_JSON_LOGGER}
     ports:
       - "${SMTP_PORT}:${SMTP_INTERNAL_SERVER_PORT}"
-    command: []
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:${SMTP_INTERNAL_SERVER_PORT}/api/ping" ]
       interval: 1m30s
@@ -49,27 +48,15 @@ services:
       context: .
       dockerfile: IMAP.Dockerfile
     environment:
-      - RELAYER_ENDPOINT=http://host.docker.internal:4500/signAndSend
+      - RELAYER_ENDPOINT=http://host.docker.internal:8000/api/receiveEmail
       - IMAP_LOGIN_ID=${IMAP_LOGIN_ID}
       - IMAP_LOGIN_PASSWORD=${IMAP_LOGIN_PASSWORD}
       - IMAP_DOMAIN_NAME=${IMAP_DOMAIN_NAME}
       - IMAP_PORT=${IMAP_PORT}
       - AUTH_TYPE=${IMAP_AUTH_TYPE}
       - JSON_LOGGER=${IMAP_JSON_LOGGER}
-    command: []
-    # relayer:
-    #   build:
-    #     context: .
-    #     dockerfile: Full.Dockerfile
-    #   environment:
-    #     DATABASE_URL: postgres://relayer:relayer_password@db:5432/relayer
-    #   ports:
-    #     - "4500:8000"
-    #   depends_on:
-    #     db:
-    #       condition: service_healthy
-    #   volumes:
-    #     - ./.env:/relayer/.env:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
 volumes:
   postgres_data:
