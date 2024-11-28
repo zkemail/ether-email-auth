@@ -11,10 +11,11 @@ use tokio::fs::read_to_string;
 use uuid::Uuid;
 
 use crate::{
-    abis::EmailAuthMsg,
+    abis::{EmailAuthMsg, EmailProof},
     chain::ChainClient,
     command::get_encoded_command_params,
     dkim::check_and_update_dkim,
+    model::EmailAuthMsgModel,
     model::{insert_expected_reply, update_request, RequestModel, RequestStatus},
     prove::generate_email_proof,
     RelayerState,
@@ -355,26 +356,31 @@ pub async fn handle_email(
 ) -> Result<EmailEvent> {
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
 
+    info!(LOG, "Parsed email: {:?}", parsed_email);
+
     let chain_client = ChainClient::setup(
         request.clone().email_tx_auth.chain,
         relayer_state.clone().config.chains,
     )
     .await?;
 
-    check_and_update_dkim(
-        &parsed_email,
-        request.email_tx_auth.dkim_contract_address,
-        chain_client.clone(),
-        relayer_state.clone(),
-    )
-    .await?;
+    // check_and_update_dkim(
+    //     &parsed_email,
+    //     request.email_tx_auth.dkim_contract_address,
+    //     chain_client.clone(),
+    //     relayer_state.clone(),
+    // )
+    // .await?;
 
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
-    info!(LOG, "Hitting chain");
-    let tx_hash = chain_client
-        .call(request.clone(), email_auth_msg, relayer_state.clone())
-        .await?;
+    info!(LOG, "Email auth msg generated");
+
+    let email_auth_msg_schema =
+        EmailAuthMsgModel::from_email_auth_msg(email_auth_msg, request.id.to_string());
+    email_auth_msg_schema.save(&relayer_state.db).await?;
+
+    info!(LOG, "Email auth msg saved");
 
     update_request(&relayer_state.db, request.id, RequestStatus::Finished).await?;
 
@@ -388,7 +394,7 @@ pub async fn handle_email(
         original_subject: parsed_email.get_subject_all()?,
         original_message_id: parsed_email.get_message_id().ok(),
         explorer_url,
-        tx_hash,
+        tx_hash: TxHash::default(),
     })
 }
 
