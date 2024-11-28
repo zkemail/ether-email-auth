@@ -374,11 +374,9 @@ pub async fn handle_email(
 
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
-    info!(LOG, "Email auth msg generated");
-
-    let email_auth_msg_schema =
-        EmailAuthMsgModel::from_email_auth_msg(email_auth_msg, request.id.to_string());
-    email_auth_msg_schema.save(&relayer_state.db).await?;
+    EmailAuthMsgModel::from_email_auth_msg(email_auth_msg, request.id.to_string())
+        .save(&relayer_state.db)
+        .await?;
 
     info!(LOG, "Email auth msg saved");
 

@@ -1,0 +1,100 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, template_id, request_id, command_params, skipped_command_prefix, \n            domain_name, public_key_hash, timestamp, masked_command, email_nullifier, \n            account_salt, is_code_exist, proof, \n            created_at as \"created_at: DateTime<Utc>\"\n            FROM email_auth_messages WHERE request_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "template_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "request_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "command_params",
+        "type_info": "TextArray"
+      },
+      {
+        "ordinal": 4,
+        "name": "skipped_command_prefix",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "domain_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "public_key_hash",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 7,
+        "name": "timestamp",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "masked_command",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "email_nullifier",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 10,
+        "name": "account_salt",
+        "type_info": "Bytea"
+      },
+      {
+        "ordinal": 11,
+        "name": "is_code_exist",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 12,
+        "name": "proof",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 13,
+        "name": "created_at: DateTime<Utc>",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "bd6d29f7a3eb1caa2b48d4e8c27eb055fe749dee39f9371385d566d1c55eacfd"
+}

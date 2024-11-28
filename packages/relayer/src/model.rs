@@ -33,7 +33,7 @@ pub struct ExpectedReplyModel {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 pub struct EmailAuthMsgModel {
     pub id: Uuid,
     pub template_id: String,
@@ -86,6 +86,21 @@ impl EmailAuthMsgModel {
             .map_err(|e| Error::msg(format!("Failed to save email auth msg: {}", e)));
 
         Ok(())
+    }
+
+    pub async fn find_by_request_id(pool: &PgPool, request_id: Uuid) -> Result<Self> {
+        let email_auth_msg = sqlx::query_as!(
+            EmailAuthMsgModel,
+            r#"SELECT id, template_id, request_id, command_params, skipped_command_prefix, 
+            domain_name, public_key_hash, timestamp, masked_command, email_nullifier, 
+            account_salt, is_code_exist, proof, 
+            created_at as "created_at: DateTime<Utc>"
+            FROM email_auth_messages WHERE request_id = $1"#,
+            request_id.to_string()
+        )
+        .fetch_one(pool)
+        .await?;
+        Ok(email_auth_msg)
     }
 }
 

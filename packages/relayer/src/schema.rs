@@ -1,13 +1,9 @@
-use chrono::{DateTime, Utc};
 use ethers::{
     abi::{Function, Token},
     types::{Address, U256},
 };
 use relayer_utils::AccountCode;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
-
-use crate::abis::EmailAuthMsg;
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]

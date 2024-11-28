@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::{
     command::parse_command_template,
     mail::{handle_email, handle_email_event, EmailEvent},
-    model::{create_request, get_request, update_request, RequestStatus},
+    model::{create_request, get_request, update_request, EmailAuthMsgModel, RequestStatus},
     schema::EmailTxAuthSchema,
     RelayerState,
 };
@@ -258,10 +258,33 @@ pub async fn get_status_handler(
             )
         })?;
 
-    let response = json!({
-        "message": "request status",
-        "request": request,
-    });
+    // fetch the proof if it exists
+    let email_auth_msg = EmailAuthMsgModel::find_by_request_id(&relayer_state.db, request_id)
+        .await
+        .map_err(|e| {
+            (
+                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+                axum::Json(json!({"error": e.to_string()})),
+            )
+        });
+
+    let response;
+
+    match email_auth_msg {
+        Ok(email_auth_msg) => {
+            response = json!({
+                "message": "request status",
+                "request": request,
+                "email_auth_msg": email_auth_msg,
+            });
+        }
+        Err(_) => {
+            response = json!({
+                "message": "request status",
+                "request": request,
+            });
+        }
+    }
 
     Ok((StatusCode::OK, Json(response)))
 }
