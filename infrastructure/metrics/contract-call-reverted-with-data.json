@@ -1,6 +1,6 @@
 {
   "createTime": "2024-10-30T08:54:25.988017294Z",
-  "description": "The error of relayer calling contract in ar-base-sepolia",
+  "description": "This metric captures messages when a contract call reverts with data in ar-base-sepolia. It can occur during a normal revert, or due to issues such as a non-existent contract address or function.",
   "filter": "resource.type=\"k8s_container\"\nresource.labels.container_name=\"relayer-container\"\nresource.labels.namespace_name=\"ar-base-sepolia\"\n\"Contract call reverted with data\"\n",
   "metricDescriptor": {
     "description": "The error of relayer calling contract in ar-base-sepolia",

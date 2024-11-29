@@ -10,5 +10,6 @@
   },
   "name": "error-from-prover",
   "resourceName": "projects/zkairdrop/metrics/error-from-prover",
-  "updateTime": "2024-10-30T09:37:19.291096099Z"
+  "updateTime": "2024-10-30T09:37:19.291096099Z",
+  "description": "This metric detects errors returned by the prover. It may occur due to hitting the prover's rate limit or when the input posted by the relayer is different."
 }

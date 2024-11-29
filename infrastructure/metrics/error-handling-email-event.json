@@ -10,5 +10,6 @@
   },
   "name": "error-handling-email-event",
   "resourceName": "projects/zkairdrop/metrics/error-handling-email-event",
-  "updateTime": "2024-10-30T09:19:28.911872031Z"
+  "updateTime": "2024-10-30T09:19:28.911872031Z",
+  "description": "This metric detects errors that occur when sending emails. It helps identify issues in the email sending process within the relayer container in the ar-base-sepolia namespace."
 }
