@@ -275,7 +275,7 @@ pub async fn get_status_handler(
             response = json!({
                 "message": "request status",
                 "request": request,
-                "email_auth_msg": email_auth_msg,
+                "response": email_auth_msg,
             });
         }
         Err(_) => {

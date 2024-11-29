@@ -34,6 +34,7 @@ pub struct ExpectedReplyModel {
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct EmailAuthMsgModel {
     pub id: Uuid,
     pub template_id: String,
