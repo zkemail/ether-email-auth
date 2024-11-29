@@ -15,7 +15,6 @@ use crate::{
     chain::ChainClient,
     command::get_encoded_command_params,
     dkim::check_and_update_dkim,
-    model::EmailAuthMsgModel,
     model::{insert_expected_reply, update_request, RequestModel, RequestStatus},
     prove::generate_email_proof,
     RelayerState,
@@ -374,9 +373,7 @@ pub async fn handle_email(
 
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
 
-    EmailAuthMsgModel::from_email_auth_msg(email_auth_msg, request.id.to_string())
-        .save(&relayer_state.db)
-        .await?;
+    email_auth_msg.save(&relayer_state.db, request.id).await?;
 
     info!(LOG, "Email auth msg saved");
 

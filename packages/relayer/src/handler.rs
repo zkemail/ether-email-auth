@@ -15,7 +15,7 @@ use uuid::Uuid;
 use crate::{
     command::parse_command_template,
     mail::{handle_email, handle_email_event, EmailEvent},
-    model::{create_request, get_request, update_request, EmailAuthMsgModel, RequestStatus},
+    model::{create_request, get_request, update_request, RequestStatus},
     schema::EmailTxAuthSchema,
     RelayerState,
 };
@@ -258,33 +258,23 @@ pub async fn get_status_handler(
             )
         })?;
 
-    // fetch the proof if it exists
-    let email_auth_msg = EmailAuthMsgModel::find_by_request_id(&relayer_state.db, request_id)
-        .await
-        .map_err(|e| {
-            (
-                reqwest::StatusCode::INTERNAL_SERVER_ERROR,
-                axum::Json(json!({"error": e.to_string()})),
-            )
-        });
-
-    let response;
-
-    match email_auth_msg {
-        Ok(email_auth_msg) => {
-            response = json!({
-                "message": "request status",
-                "request": request,
-                "response": email_auth_msg,
-            });
-        }
-        Err(_) => {
-            response = json!({
-                "message": "request status",
-                "request": request,
-            });
-        }
-    }
+    let email_auth_msg = sqlx::query!(
+        "SELECT response FROM email_auth_messages WHERE request_id = $1",
+        request_id.to_string()
+    )
+    .fetch_optional(&relayer_state.db)
+    .await
+    .map_err(|e| {
+        (
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            axum::Json(json!({"error": e.to_string()})),
+        )
+    })?;
+    let response = json!({
+        "message": "request status",
+        "request": request,
+        "response": email_auth_msg.map(|msg| msg.response),
+    });
 
     Ok((StatusCode::OK, Json(response)))
 }
