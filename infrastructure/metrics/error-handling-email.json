@@ -10,5 +10,6 @@
   },
   "name": "error-handling-email",
   "resourceName": "projects/zkairdrop/metrics/error-handling-email",
-  "updateTime": "2024-10-30T09:14:37.273651500Z"
+  "updateTime": "2024-10-30T09:14:37.273651500Z",
+  "description": "This metric detects errors that occur when the relayer encounters contract call errors or zkregx errors. It helps identify issues in the email handling process within the relayer container in the ar-base-sepolia namespace."
 }
