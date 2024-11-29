@@ -82,7 +82,7 @@ pub async fn submit_handler(
     let response = json!({
         "status": "success",
         "message": "email sent",
-        "request_id": uuid
+        "id": uuid
     });
 
     return Ok((StatusCode::OK, Json(response)));
