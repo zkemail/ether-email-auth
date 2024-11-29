@@ -20,7 +20,7 @@ pub struct RequestModel {
     pub status: String,
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<NaiveDateTime>,
-    #[serde(rename = "emailTxAuth")]
+    #[serde(rename = "body")]
     pub email_tx_auth: EmailTxAuthSchema,
 }
 
