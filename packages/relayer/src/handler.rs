@@ -16,9 +16,11 @@ use crate::{
     command::parse_command_template,
     mail::{handle_email, handle_email_event, EmailEvent},
     model::{create_request, get_request, update_request, RequestStatus},
-    schema::EmailTxAuthSchema,
+    schema::{AccountSaltSchema, EmailTxAuthSchema},
     RelayerState,
 };
+
+use relayer_utils::calculate_account_salt;
 
 pub async fn health_checker_handler() -> impl IntoResponse {
     const MESSAGE: &str = "Hello from ZK Email!";
@@ -274,6 +276,23 @@ pub async fn get_status_handler(
         "message": "request status",
         "request": request,
         "response": email_auth_msg.map(|msg| msg.response),
+    });
+
+    Ok((StatusCode::OK, Json(response)))
+}
+
+pub async fn account_salt_handler(
+    State(relayer_state): State<Arc<RelayerState>>,
+    Json(body): Json<AccountSaltSchema>,
+) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
+    // use relayer_utils::get_account_salt
+    let account_salt =
+        relayer_utils::calculate_account_salt(&body.email_address, &body.account_code);
+
+    let response = json!({
+        "email_address": body.email_address,
+        "account_code": body.account_code,
+        "account_salt": account_salt,
     });
 
     Ok((StatusCode::OK, Json(response)))

@@ -16,3 +16,10 @@ pub struct EmailTxAuthSchema {
     pub body: String,
     pub chain: String,
 }
+
+#[derive(Deserialize, Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct AccountSaltSchema {
+    pub account_code: String,
+    pub email_address: String,
+}
