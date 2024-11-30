@@ -290,9 +290,9 @@ pub async fn account_salt_handler(
         relayer_utils::calculate_account_salt(&body.email_address, &body.account_code);
 
     let response = json!({
-        "email_address": body.email_address,
-        "account_code": body.account_code,
-        "account_salt": account_salt,
+        "emailAddress": body.email_address,
+        "accountCode": body.account_code,
+        "accountSalt": account_salt,
     });
 
     Ok((StatusCode::OK, Json(response)))
