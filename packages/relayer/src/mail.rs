@@ -373,7 +373,8 @@ pub async fn handle_email(
     // Parse the email from the raw content
     let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
 
-    // Set up the chain client using the request's chain configuration
+    info!(LOG, "Parsed email: {:?}", parsed_email);
+
     let chain_client = ChainClient::setup(
         request.clone().email_tx_auth.chain,
         relayer_state.clone().config.chains,
@@ -391,14 +392,10 @@ pub async fn handle_email(
 
     // Generate the email authentication message
     let email_auth_msg = get_email_auth_msg(&email, request.clone(), relayer_state.clone()).await?;
+    info!(LOG, "Email auth msg: {:?}", email_auth_msg);
+    email_auth_msg.save(&relayer_state.db, request.id).await?;
 
-    // Log the action of interacting with the blockchain
-    info!(LOG, "Hitting chain");
-
-    // Call the blockchain with the email authentication message
-    let tx_hash = chain_client
-        .call(request.clone(), email_auth_msg, relayer_state.clone())
-        .await?;
+    info!(LOG, "Email auth msg saved");
 
     // Update the request status to finished in the database
     update_request(&relayer_state.db, request.id, RequestStatus::Finished).await?;
@@ -415,7 +412,7 @@ pub async fn handle_email(
         original_subject: parsed_email.get_subject_all()?,
         original_message_id: parsed_email.get_message_id().ok(),
         explorer_url,
-        tx_hash,
+        tx_hash: TxHash::default(),
     })
 }
 

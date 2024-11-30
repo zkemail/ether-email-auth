@@ -1,10 +1,12 @@
 use anyhow::{Error, Ok, Result};
 use chrono::NaiveDateTime;
+use ethers::utils::hex;
 use serde::{Deserialize, Serialize};
 use sqlx::types::Json;
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
+use crate::abis::{EmailAuthMsg, EmailProof};
 use crate::schema::EmailTxAuthSchema;
 
 /// Represents a request model with details about the request status and associated email transaction authentication.
@@ -18,8 +20,7 @@ pub struct RequestModel {
     /// The timestamp when the request was last updated.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<NaiveDateTime>,
-    /// The email transaction authentication schema associated with the request.
-    #[serde(rename = "emailTxAuth")]
+    #[serde(rename = "body")]
     pub email_tx_auth: EmailTxAuthSchema,
 }
 
@@ -38,7 +39,67 @@ pub struct ExpectedReplyModel {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-/// Enum representing the various statuses a request can have.
+impl EmailAuthMsg {
+    pub async fn save(&self, pool: &PgPool, request_id: Uuid) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO email_auth_messages (request_id, response) VALUES ($1, $2)",
+            request_id.to_string(),
+            serde_json::to_value(self)?
+        )
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+}
+
+impl Serialize for EmailAuthMsg {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("EmailAuthMsg", 4)?;
+        state.serialize_field("templateId", &self.template_id)?;
+        state.serialize_field("commandParams", &self.command_params)?;
+        state.serialize_field(
+            "skippedCommandPrefix",
+            &self.skipped_command_prefix.as_u128(),
+        )?;
+        state.serialize_field("proof", &self.proof)?;
+        state.end()
+    }
+}
+
+impl Serialize for EmailProof {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("EmailProof", 8)?;
+        state.serialize_field("domainName", &self.domain_name)?;
+        state.serialize_field(
+            "publicKeyHash",
+            &format!("0x{}", hex::encode(&self.public_key_hash)),
+        )?;
+        state.serialize_field("timestamp", &self.timestamp.as_u64())?;
+        state.serialize_field("maskedCommand", &self.masked_command)?;
+        state.serialize_field(
+            "emailNullifier",
+            &format!("0x{}", hex::encode(&self.email_nullifier)),
+        )?;
+        state.serialize_field(
+            "accountSalt",
+            &format!("0x{}", hex::encode(&self.account_salt)),
+        )?;
+        state.serialize_field("isCodeExist", &self.is_code_exist)?;
+        state.serialize_field("proof", &format!("0x{}", hex::encode(&self.proof)))?;
+        state.end()
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "status_enum")]
 pub enum RequestStatus {

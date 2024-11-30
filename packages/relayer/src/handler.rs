@@ -117,7 +117,7 @@ pub async fn submit_handler(
     let response = json!({
         "status": "success",
         "message": "email sent",
-        "request_id": uuid
+        "id": uuid
     });
 
     // Return the success response
@@ -331,10 +331,22 @@ pub async fn get_status_handler(
             )
         })?;
 
-    // Create a JSON response with the request status
+    let email_auth_msg = sqlx::query!(
+        "SELECT response FROM email_auth_messages WHERE request_id = $1",
+        request_id.to_string()
+    )
+    .fetch_optional(&relayer_state.db)
+    .await
+    .map_err(|e| {
+        (
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            axum::Json(json!({"error": e.to_string()})),
+        )
+    })?;
     let response = json!({
         "message": "request status",
         "request": request,
+        "response": email_auth_msg.map(|msg| msg.response),
     });
 
     // Return the success response
