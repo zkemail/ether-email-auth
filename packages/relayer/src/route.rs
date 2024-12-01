@@ -6,7 +6,10 @@ use axum::{
 };
 
 use crate::{
-    handler::{get_status_handler, health_checker_handler, receive_email_handler, submit_handler},
+    handler::{
+        account_salt_handler, get_status_handler, health_checker_handler, receive_email_handler,
+        submit_handler,
+    },
     RelayerState,
 };
 
@@ -28,6 +31,8 @@ pub fn create_router(relayer_state: Arc<RelayerState>) -> Router {
         .route("/api/healthz", get(health_checker_handler))
         // Route for submitting email transaction authentication requests
         .route("/api/submit", post(submit_handler))
+        // Route for computing the account salt
+        .route("/api/accountSalt", post(account_salt_handler))
         // Route for receiving emails
         .route("/api/receiveEmail", post(receive_email_handler))
         // Route for retrieving the status of a specific request

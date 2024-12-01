@@ -17,7 +17,7 @@ use crate::{
     constants::REQUEST_ID_REGEX,
     mail::{handle_email, handle_email_event, EmailEvent},
     model::{create_request, get_request, update_request, RequestStatus},
-    schema::EmailTxAuthSchema,
+    schema::{AccountSaltSchema, EmailTxAuthSchema},
     RelayerState,
 };
 
@@ -350,5 +350,22 @@ pub async fn get_status_handler(
     });
 
     // Return the success response
+    Ok((StatusCode::OK, Json(response)))
+}
+
+pub async fn account_salt_handler(
+    State(_): State<Arc<RelayerState>>,
+    Json(body): Json<AccountSaltSchema>,
+) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
+    // use relayer_utils::get_account_salt
+    let account_salt =
+        relayer_utils::calculate_account_salt(&body.email_address, &body.account_code);
+
+    let response = json!({
+        "emailAddress": body.email_address,
+        "accountCode": body.account_code,
+        "accountSalt": account_salt,
+    });
+
     Ok((StatusCode::OK, Json(response)))
 }
