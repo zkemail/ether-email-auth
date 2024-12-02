@@ -82,17 +82,17 @@ impl Serialize for EmailProof {
         state.serialize_field("domainName", &self.domain_name)?;
         state.serialize_field(
             "publicKeyHash",
-            &format!("0x{}", hex::encode(&self.public_key_hash)),
+            &format!("0x{}", hex::encode(self.public_key_hash)),
         )?;
         state.serialize_field("timestamp", &self.timestamp.as_u64())?;
         state.serialize_field("maskedCommand", &self.masked_command)?;
         state.serialize_field(
             "emailNullifier",
-            &format!("0x{}", hex::encode(&self.email_nullifier)),
+            &format!("0x{}", hex::encode(self.email_nullifier)),
         )?;
         state.serialize_field(
             "accountSalt",
-            &format!("0x{}", hex::encode(&self.account_salt)),
+            &format!("0x{}", hex::encode(self.account_salt)),
         )?;
         state.serialize_field("isCodeExist", &self.is_code_exist)?;
         state.serialize_field("proof", &format!("0x{}", hex::encode(&self.proof)))?;
