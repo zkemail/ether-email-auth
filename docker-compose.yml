@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  relayer-smtp:
+    image: wshino/relayer-smtp:latest
+    container_name: relayer-smtp
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  relayer-imap:
+    image: wshino/relayer-imap:latest
+    container_name: relayer-imap
+    env_file:
+      - .env
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  relayer:
+    image: wshino/relayer:latest
+    container_name: relayer
+    ports:
+      - "4500:4500"
+    env_file:
+      - .env
+    entrypoint: >
+      /bin/sh -c "echo \"$IC_PEM_CONTENT\" | base64 -d > /.ic.pem && exec /usr/local/bin/relayer"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
