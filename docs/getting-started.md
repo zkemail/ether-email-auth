@@ -1,6 +1,6 @@
 # Getting Started 
 
-The following steps are for developers to implement account recovery using ether-email-auth.
+The following steps are for developers to implement account recovery using email-tx-builder.
 
 ## Prerequisites
 
@@ -13,7 +13,7 @@ curl -L https://foundry.paradigm.xyz | bash
 ## Clone the repository
 
 ```sh
-git clone https://github.com/zkemail/ether-email-auth.git
+git clone https://github.com/zkemail/email-tx-builder.git
 ```
 
 ## Set up

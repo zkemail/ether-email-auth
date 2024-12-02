@@ -3,9 +3,9 @@ This is a Relayer server implementation in Rust for email-based account recovery
 ## How to Run the Relayer
 You can run the relayer either on your local environments or cloud instances (we are using GCP).
 ### Local
-1. Clone the repo, https://github.com/zkemail/ether-email-auth.
+1. Clone the repo, https://github.com/zkemail/email-tx-builder.
 2. Install dependencies.
-    1. `cd ether-email-auth` and run `yarn`.
+    1. `cd email-tx-builder` and run `yarn`.
 3. If you have not deployed common contracts, build contract artifacts and deploy required contracts.
     1. `cd packages/contracts` and run `forge build`.
     2. Set the env file in `packages/contracts/.env`, an example env file is as follows,
