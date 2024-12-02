@@ -38,11 +38,11 @@ pub async fn generate_email_proof(
     update_request(&relayer_state.db, request.id, RequestStatus::Proving).await?;
 
     // Parse the email from the raw content
-    let parsed_email = ParsedEmail::new_from_raw_email(&email).await?;
+    let parsed_email = ParsedEmail::new_from_raw_email(email).await?;
 
     // Generate the circuit input for the email proof
     let circuit_input = generate_email_circuit_input(
-        &email,
+        email,
         &request.email_tx_auth.account_code,
         Some(EmailCircuitParams {
             max_header_length: Some(1024),
@@ -75,7 +75,7 @@ pub async fn generate_email_proof(
     let email_proof = EmailProof {
         proof,
         domain_name: parsed_email.get_email_domain()?,
-        public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 0]),
+        public_key_hash: u256_to_bytes32(&public_signals[DOMAIN_FIELDS]),
         timestamp: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 2]).into(),
         masked_command,
         email_nullifier: u256_to_bytes32(&public_signals[DOMAIN_FIELDS + 1]),

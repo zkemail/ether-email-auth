@@ -86,7 +86,7 @@ pub async fn submit_handler(
 
     // Determine the account code if it exists in the email
     let account_code = if body.code_exists_in_email {
-        let hex_code = field_to_hex(&body.account_code.clone().0);
+        let hex_code = field_to_hex(&body.account_code.0);
         Some(hex_code.trim_start_matches("0x").to_string())
     } else {
         None
@@ -121,7 +121,7 @@ pub async fn submit_handler(
     });
 
     // Return the success response
-    return Ok((StatusCode::OK, Json(response)));
+    Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handles the reception of an email and processes it accordingly.

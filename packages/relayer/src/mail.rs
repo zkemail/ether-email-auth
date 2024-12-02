@@ -408,7 +408,7 @@ pub async fn handle_email(
     // Return a completion event with transaction details
     Ok(EmailEvent::Completion {
         email_addr: parsed_email.get_from_addr()?,
-        request_id: request.id.clone(),
+        request_id: request.id,
         original_subject: parsed_email.get_subject_all()?,
         original_message_id: parsed_email.get_message_id().ok(),
         explorer_url,
@@ -435,7 +435,7 @@ async fn get_email_auth_msg(
     let email_proof = generate_email_proof(email, request.clone(), relayer_state).await?;
     info!(LOG, "Email proof generated");
     let email_auth_msg = EmailAuthMsg {
-        template_id: request.email_tx_auth.template_id.into(),
+        template_id: request.email_tx_auth.template_id,
         command_params: command_params_encoded,
         skipped_command_prefix: U256::zero(),
         proof: email_proof,
