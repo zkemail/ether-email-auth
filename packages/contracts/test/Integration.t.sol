@@ -43,7 +43,7 @@ contract IntegrationTest is Test {
     uint256 setTimeDelay = 3 days;
 
     function setUp() public {
-        vm.createSelectFork("https://mainnet.base.org");
+        vm.createSelectFork("https://mainnet.base.org", 22739283);
 
         // vm.warp(startTimestamp);
 
@@ -51,9 +51,11 @@ contract IntegrationTest is Test {
         address signer = deployer;
 
         // Create DKIM registry
-        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry();
+        UserOverrideableDKIMRegistry overrideableDkimImpl = new UserOverrideableDKIMRegistry{
+                salt: 0
+            }();
         {
-            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy(
+            ERC1967Proxy overrideableDkimProxy = new ERC1967Proxy{salt: 0}(
                 address(overrideableDkimImpl),
                 abi.encodeCall(
                     overrideableDkimImpl.initialize,
@@ -84,9 +86,9 @@ contract IntegrationTest is Test {
 
         // Create Verifier
         {
-            Verifier verifierImpl = new Verifier();
-            Groth16Verifier groth16Verifier = new Groth16Verifier();
-            ERC1967Proxy verifierProxy = new ERC1967Proxy(
+            Verifier verifierImpl = new Verifier{salt: 0}();
+            Groth16Verifier groth16Verifier = new Groth16Verifier{salt: 0}();
+            ERC1967Proxy verifierProxy = new ERC1967Proxy{salt: 0}(
                 address(verifierImpl),
                 abi.encodeCall(
                     verifierImpl.initialize,
@@ -97,18 +99,15 @@ contract IntegrationTest is Test {
         }
 
         // Create EmailAuth
-        EmailAuth emailAuthImpl = new EmailAuth();
+        EmailAuth emailAuthImpl = new EmailAuth{salt: 0}();
         console.log("emailAuthImpl");
         console.logAddress(address(emailAuthImpl));
 
-        // Create zkSync Factory
-        ZKSyncCreate2Factory factoryImpl = new ZKSyncCreate2Factory();
-        console.log("factoryImpl");
-        console.logAddress(address(factoryImpl));
-
         // Create RecoveryController as EmailAccountRecovery implementation
-        RecoveryController recoveryControllerImpl = new RecoveryController();
-        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
+        RecoveryController recoveryControllerImpl = new RecoveryController{
+            salt: 0
+        }();
+        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy{salt: 0}(
             address(recoveryControllerImpl),
             abi.encodeCall(
                 recoveryControllerImpl.initialize,
@@ -125,8 +124,8 @@ contract IntegrationTest is Test {
         );
 
         // Create SimpleWallet as EmailAccountRecovery implementation
-        SimpleWallet simpleWalletImpl = new SimpleWallet();
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
+        SimpleWallet simpleWalletImpl = new SimpleWallet{salt: 0}();
+        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy{salt: 0}(
             address(simpleWalletImpl),
             abi.encodeCall(
                 simpleWalletImpl.initialize,
@@ -156,7 +155,7 @@ contract IntegrationTest is Test {
         console.log("SimpleWallet is at ", address(simpleWallet));
         assertEq(
             address(simpleWallet),
-            0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1
+            0x4eF610d2c80b65446c33113C77a3E848719CE74a
         );
         address simpleWalletOwner = simpleWallet.owner();
 
@@ -191,7 +190,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Accept guardian request for 0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1";
+            .maskedCommand = "Accept guardian request for 0x4eF610d2c80b65446c33113C77a3E848719CE74a";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         accountSalt = emailProof.accountSalt;
@@ -270,7 +269,7 @@ contract IntegrationTest is Test {
         emailProof.publicKeyHash = bytes32(vm.parseUint(pubSignals[9]));
         emailProof.timestamp = vm.parseUint(pubSignals[11]);
         emailProof
-            .maskedCommand = "Set the new signer of 0xa3A6f0FDd72Ae9936C44cE36151CB4DB3E9949d1 to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+            .maskedCommand = "Set the new signer of 0x4eF610d2c80b65446c33113C77a3E848719CE74a to 0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
         emailProof.emailNullifier = bytes32(vm.parseUint(pubSignals[10]));
         emailProof.accountSalt = bytes32(vm.parseUint(pubSignals[32]));
         require(
