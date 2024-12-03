@@ -55,6 +55,9 @@ packages/subgraph/build
 # Subgraphs
 packages/subgraph/build
 
+# Kubernetes
+secrets.yml
+
 # Mac
 .DS_Store
 
