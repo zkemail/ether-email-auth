@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use axum::{
     extract::State,
     http::{request, StatusCode},
@@ -13,6 +14,7 @@ use slog::{error, info, trace};
 use uuid::Uuid;
 
 use crate::{
+    abis::EmailAuthMsg,
     command::parse_command_template,
     constants::REQUEST_ID_REGEX,
     mail::{handle_email, handle_email_event, EmailEvent},
@@ -20,6 +22,86 @@ use crate::{
     schema::{AccountSaltSchema, EmailTxAuthSchema},
     RelayerState,
 };
+use serde::Serialize;
+
+use crate::abis::EmailProof;
+use sqlx::PgPool;
+
+/// Represents an email authentication message with associated proof and parameters.
+/// This implementation provides database persistence capabilities.
+impl EmailAuthMsg {
+    /// Saves the email authentication message to the database.
+    ///
+    /// # Arguments
+    /// * `pool` - PostgreSQL connection pool
+    /// * `request_id` - Unique identifier for the request
+    ///
+    /// # Returns
+    /// * `Result<()>` - Success or error during database operation
+    pub async fn save(&self, pool: &PgPool, request_id: Uuid) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO email_auth_messages (request_id, response) VALUES ($1, $2)",
+            request_id.to_string(),
+            serde_json::to_value(self)?
+        )
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+}
+
+/// Custom serialization implementation for EmailAuthMsg.
+/// Ensures consistent JSON output format for the authentication message.
+impl Serialize for EmailAuthMsg {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("EmailAuthMsg", 4)?;
+        state.serialize_field("templateId", &self.template_id)?;
+        state.serialize_field("commandParams", &self.command_params)?;
+        state.serialize_field(
+            "skippedCommandPrefix",
+            &self.skipped_command_prefix.as_u128(),
+        )?;
+        state.serialize_field("proof", &self.proof)?;
+        state.end()
+    }
+}
+
+/// Custom serialization implementation for EmailProof.
+/// Formats fields with proper hexadecimal encoding and '0x' prefixes.
+impl Serialize for EmailProof {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        // Helper function to format hex values consistently
+        fn format_hex(bytes: &[u8]) -> String {
+            format!("0x{}", ethers::utils::hex::encode(bytes))
+        }
+
+        let mut state = serializer.serialize_struct("EmailProof", 8)?;
+
+        // Basic fields
+        state.serialize_field("domainName", &self.domain_name)?;
+        state.serialize_field("publicKeyHash", &format_hex(&self.public_key_hash))?;
+        state.serialize_field("timestamp", &self.timestamp.as_u64())?;
+        state.serialize_field("maskedCommand", &self.masked_command)?;
+
+        // Proof fields
+        state.serialize_field("emailNullifier", &format_hex(&self.email_nullifier))?;
+        state.serialize_field("accountSalt", &format_hex(&self.account_salt))?;
+        state.serialize_field("isCodeExist", &self.is_code_exist)?;
+        state.serialize_field("proof", &format_hex(&self.proof))?;
+
+        state.end()
+    }
+}
 
 /// Checks the health of the service and returns a JSON response.
 ///
