@@ -67,6 +67,9 @@ book
 # Editor settings
 .idea
 
+# Kubernetes
+secrets.yml
+
 # For zksync
 zkout
 .cache
