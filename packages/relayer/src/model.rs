@@ -18,8 +18,7 @@ pub struct RequestModel {
     /// The timestamp when the request was last updated.
     #[serde(rename = "updatedAt")]
     pub updated_at: Option<NaiveDateTime>,
-    /// The email transaction authentication schema associated with the request.
-    #[serde(rename = "emailTxAuth")]
+    #[serde(rename = "body")]
     pub email_tx_auth: EmailTxAuthSchema,
 }
 
@@ -38,7 +37,6 @@ pub struct ExpectedReplyModel {
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 
-/// Enum representing the various statuses a request can have.
 #[derive(Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(type_name = "status_enum")]
 pub enum RequestStatus {

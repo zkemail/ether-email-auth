@@ -16,8 +16,8 @@ pub struct Config {
     pub smtp_url: String,
     /// The URL for the prover service.
     pub prover_url: String,
-    /// The API key for Alchemy services.
-    pub alchemy_api_key: String,
+    // /// The API key for Alchemy services.
+    // pub alchemy_api_key: String,
     /// Configuration for file paths.
     pub path: PathConfig,
     /// Configuration for ICP (Internet Computer Protocol).
@@ -59,8 +59,8 @@ pub struct ChainConfig {
     pub explorer_url: String,
     /// The chain ID for the blockchain.
     pub chain_id: u32,
-    /// The name used for Alchemy services.
-    pub alchemy_name: String,
+    // /// The name used for Alchemy services.
+    // pub alchemy_name: String,
 }
 
 // Function to load the configuration from a JSON file

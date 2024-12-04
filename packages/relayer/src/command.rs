@@ -8,6 +8,7 @@ pub fn parse_command_template(template: &str, params: Vec<String>) -> String {
     let mut parsed_string = template.to_string();
     let mut param_iter = params.iter();
 
+    #[allow(clippy::while_let_on_iterator)]
     while let Some(value) = param_iter.next() {
         if let Some(start) = parsed_string.find('{') {
             if let Some(end) = parsed_string[start..].find('}') {

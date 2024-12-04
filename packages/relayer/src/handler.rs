@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Result;
 use axum::{
     extract::State,
     http::{request, StatusCode},
@@ -13,13 +14,94 @@ use slog::{error, info, trace};
 use uuid::Uuid;
 
 use crate::{
+    abis::EmailAuthMsg,
     command::parse_command_template,
     constants::REQUEST_ID_REGEX,
     mail::{handle_email, handle_email_event, EmailEvent},
     model::{create_request, get_request, update_request, RequestStatus},
-    schema::EmailTxAuthSchema,
+    schema::{AccountSaltSchema, EmailTxAuthSchema},
     RelayerState,
 };
+use serde::Serialize;
+
+use crate::abis::EmailProof;
+use sqlx::PgPool;
+
+/// Represents an email authentication message with associated proof and parameters.
+/// This implementation provides database persistence capabilities.
+impl EmailAuthMsg {
+    /// Saves the email authentication message to the database.
+    ///
+    /// # Arguments
+    /// * `pool` - PostgreSQL connection pool
+    /// * `request_id` - Unique identifier for the request
+    ///
+    /// # Returns
+    /// * `Result<()>` - Success or error during database operation
+    pub async fn save(&self, pool: &PgPool, request_id: Uuid) -> Result<()> {
+        sqlx::query!(
+            "INSERT INTO email_auth_messages (request_id, response) VALUES ($1, $2)",
+            request_id.to_string(),
+            serde_json::to_value(self)?
+        )
+        .execute(pool)
+        .await?;
+        Ok(())
+    }
+}
+
+/// Custom serialization implementation for EmailAuthMsg.
+/// Ensures consistent JSON output format for the authentication message.
+impl Serialize for EmailAuthMsg {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("EmailAuthMsg", 4)?;
+        state.serialize_field("templateId", &self.template_id)?;
+        state.serialize_field("commandParams", &self.command_params)?;
+        state.serialize_field(
+            "skippedCommandPrefix",
+            &self.skipped_command_prefix.as_u128(),
+        )?;
+        state.serialize_field("proof", &self.proof)?;
+        state.end()
+    }
+}
+
+/// Custom serialization implementation for EmailProof.
+/// Formats fields with proper hexadecimal encoding and '0x' prefixes.
+impl Serialize for EmailProof {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        use serde::ser::SerializeStruct;
+
+        // Helper function to format hex values consistently
+        fn format_hex(bytes: &[u8]) -> String {
+            format!("0x{}", ethers::utils::hex::encode(bytes))
+        }
+
+        let mut state = serializer.serialize_struct("EmailProof", 8)?;
+
+        // Basic fields
+        state.serialize_field("domainName", &self.domain_name)?;
+        state.serialize_field("publicKeyHash", &format_hex(&self.public_key_hash))?;
+        state.serialize_field("timestamp", &self.timestamp.as_u64())?;
+        state.serialize_field("maskedCommand", &self.masked_command)?;
+
+        // Proof fields
+        state.serialize_field("emailNullifier", &format_hex(&self.email_nullifier))?;
+        state.serialize_field("accountSalt", &format_hex(&self.account_salt))?;
+        state.serialize_field("isCodeExist", &self.is_code_exist)?;
+        state.serialize_field("proof", &format_hex(&self.proof))?;
+
+        state.end()
+    }
+}
 
 /// Checks the health of the service and returns a JSON response.
 ///
@@ -86,7 +168,7 @@ pub async fn submit_handler(
 
     // Determine the account code if it exists in the email
     let account_code = if body.code_exists_in_email {
-        let hex_code = field_to_hex(&body.account_code.clone().0);
+        let hex_code = field_to_hex(&body.account_code.0);
         Some(hex_code.trim_start_matches("0x").to_string())
     } else {
         None
@@ -117,11 +199,11 @@ pub async fn submit_handler(
     let response = json!({
         "status": "success",
         "message": "email sent",
-        "request_id": uuid
+        "id": uuid
     });
 
     // Return the success response
-    return Ok((StatusCode::OK, Json(response)));
+    Ok((StatusCode::OK, Json(response)))
 }
 
 /// Handles the reception of an email and processes it accordingly.
@@ -331,12 +413,41 @@ pub async fn get_status_handler(
             )
         })?;
 
-    // Create a JSON response with the request status
+    let email_auth_msg = sqlx::query!(
+        "SELECT response FROM email_auth_messages WHERE request_id = $1",
+        request_id.to_string()
+    )
+    .fetch_optional(&relayer_state.db)
+    .await
+    .map_err(|e| {
+        (
+            reqwest::StatusCode::INTERNAL_SERVER_ERROR,
+            axum::Json(json!({"error": e.to_string()})),
+        )
+    })?;
     let response = json!({
         "message": "request status",
         "request": request,
+        "response": email_auth_msg.map(|msg| msg.response),
     });
 
     // Return the success response
+    Ok((StatusCode::OK, Json(response)))
+}
+
+pub async fn account_salt_handler(
+    State(_): State<Arc<RelayerState>>,
+    Json(body): Json<AccountSaltSchema>,
+) -> Result<impl IntoResponse, (StatusCode, Json<Value>)> {
+    // use relayer_utils::get_account_salt
+    let account_salt =
+        relayer_utils::calculate_account_salt(&body.email_address, &body.account_code);
+
+    let response = json!({
+        "emailAddress": body.email_address,
+        "accountCode": body.account_code,
+        "accountSalt": account_salt,
+    });
+
     Ok((StatusCode::OK, Json(response)))
 }
