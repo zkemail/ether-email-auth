@@ -17,19 +17,16 @@
     "baseSepolia": {
       "privateKey": "",
       "rpcUrl": "https://sepolia.base.org",
-      "explorerUrl": "https://sepolia.basescan.org",
       "chainId": 84532
     },
     "sepolia": {
       "privateKey": "",
       "rpcUrl": "https://rpc.sepolia.org",
-      "explorerUrl": "https://sepolia.etherscan.io",
       "chainId": 11155111
     },
     "anvil": {
       "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
       "rpcUrl": "node:8545",
-      "explorerUrl": "http://scanner:3001/tx/",
       "chainId": 1337
     }
   },

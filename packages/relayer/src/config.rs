@@ -55,8 +55,6 @@ pub struct ChainConfig {
     pub private_key: String,
     /// The RPC (Remote Procedure Call) URL for the blockchain.
     pub rpc_url: String,
-    /// The URL for the blockchain explorer.
-    pub explorer_url: String,
     /// The chain ID for the blockchain.
     pub chain_id: u32,
     // /// The name used for Alchemy services.
