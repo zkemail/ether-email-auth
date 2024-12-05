@@ -1130,6 +1130,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "email-tx-builder-relayer"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "bigdecimal 0.3.1",
+ "candid",
+ "chrono",
+ "ethers",
+ "handlebars",
+ "ic-agent",
+ "ic-utils",
+ "lazy_static",
+ "regex",
+ "relayer-utils",
+ "reqwest 0.12.9",
+ "serde",
+ "serde_json",
+ "slog",
+ "sqlx",
+ "tokio",
+ "tower-http",
+ "uuid 1.11.0",
+]
+
+[[package]]
 name = "ena"
 version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3892,32 +3918,6 @@ name = "regex-syntax"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b15c43186be67a4fd63bee50d0303afffcef381492ebe2c5d87f324e1b8815c"
-
-[[package]]
-name = "relayer"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "bigdecimal 0.3.1",
- "candid",
- "chrono",
- "ethers",
- "handlebars",
- "ic-agent",
- "ic-utils",
- "lazy_static",
- "regex",
- "relayer-utils",
- "reqwest 0.12.9",
- "serde",
- "serde_json",
- "slog",
- "sqlx",
- "tokio",
- "tower-http",
- "uuid 1.11.0",
-]
 
 [[package]]
 name = "relayer-utils"

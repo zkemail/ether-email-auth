@@ -1,5 +1,5 @@
 [package]
-name = "relayer"
+name = "email-tx-builder-relayer"
 version = "0.1.0"
 edition = "2021"
 
