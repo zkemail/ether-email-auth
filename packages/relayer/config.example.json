@@ -1,0 +1,34 @@
+{
+  "port": 8000,
+  "databaseUrl": "postgres://relayer:relayer_password@db:5432/relayer",
+  "smtpUrl": "http://smtp_server_1:3000",
+  "proverUrl": "https://zkemail--email-auth-prover-v1-5-4-flask-app.modal.run",
+  "alchemyApiKey": "",
+  "path": {
+    "pem": "./.ic.pem",
+    "emailTemplates": "./email_templates"
+  },
+  "icp": {
+    "dkim_canisterId": "fxmww-qiaaa-aaaaj-azu7a-cai",
+    "wallet_canisterId": "",
+    "icReplicaUrl": "https://a4gq6-oaaaa-aaaab-qaa4q-cai.raw.icp0.io/?id=fxmww-qiaaa-aaaaj-azu7a-cai"
+  },
+  "chains": {
+    "baseSepolia": {
+      "privateKey": "",
+      "rpcUrl": "https://sepolia.base.org",
+      "chainId": 84532
+    },
+    "sepolia": {
+      "privateKey": "",
+      "rpcUrl": "https://rpc.sepolia.org",
+      "chainId": 11155111
+    },
+    "anvil": {
+      "privateKey": "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
+      "rpcUrl": "node:8545",
+      "chainId": 1337
+    }
+  },
+  "jsonLogger": false
+}

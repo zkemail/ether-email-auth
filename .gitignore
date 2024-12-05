@@ -31,36 +31,15 @@ packages/contracts/test/build_integration/*.txt
 packages/contracts/test/test-proofs
 packages/contracts/deployments
 
-# NFT Relayer
-packages/nft_relayer/sendgrid.env
-target
-packages/nft_relayer/db/*
-packages/nft_relayer/*.db
-packages/nft_relayer/received_eml/*.eml
-packages/nft_relayer/received_eml/*.json
-packages/nft_relayer/proofs
-packages/nft_relayer/logs
-sql_database.db
-.sqlx
-.ic.pem
-config.json
-
 # Relayer
-packages/relayer/sendgrid.env
 target
-packages/relayer/db/*
-packages/relayer/*.db
-packages/relayer/received_eml/*.eml
-packages/relayer/received_eml/*.json
-packages/relayer/proofs
 packages/relayer/logs
-sql_database.db
-.sqlx
+packages/relayer/config.json
 .ic.pem
 
 # ABIs
 packages/relayer/src/abis/*
-!packages/realyer/src/abis/mod.rs
+!packages/relayer/src/abis/mod.rs
 
 # Prover
 packages/prover/build/*
@@ -76,6 +55,9 @@ packages/subgraph/build
 # Subgraphs
 packages/subgraph/build
 
+# Kubernetes
+secrets.yml
+
 # Mac
 .DS_Store
 
@@ -88,6 +70,16 @@ book
 # Editor settings
 .idea
 
+# Kubernetes
+secrets.yml
+
 # For zksync
 zkout
 .cache
+
+# Example
+example/contracts/artifacts
+example/contracts/cache
+example/contracts/node_modules
+example/scripts/dist
+example/contracts/broadcast

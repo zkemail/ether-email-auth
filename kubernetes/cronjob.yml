@@ -2,12 +2,12 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: cronjob-service-account
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
   name: deployment-restart-role
 rules:
   - apiGroups: ["apps", "extensions"]
@@ -18,11 +18,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: deployment-restart-rolebinding
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
 subjects:
   - kind: ServiceAccount
     name: cronjob-service-account
-    namespace: ar-base-sepolia
+    namespace: email-tx-auth
 roleRef:
   kind: Role
   name: deployment-restart-role
@@ -32,7 +32,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: restart-deployment
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
 spec:
   schedule: "0 * * * *"
   jobTemplate:
@@ -47,5 +47,5 @@ spec:
                 - /bin/sh
                 - -c
                 - |
-                  kubectl rollout restart deployment relayer-email-auth --namespace ar-base-sepolia
+                  kubectl rollout restart deployment relayer-imap --namespace email-tx-auth
           restartPolicy: OnFailure

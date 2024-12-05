@@ -10,15 +10,8 @@ import {Verifier, EmailProof} from "../../src/utils/Verifier.sol";
 import {Groth16Verifier} from "../../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {UserOverrideableDKIMRegistry} from "@zk-email/contracts/UserOverrideableDKIMRegistry.sol";
-import {SimpleWallet} from "./SimpleWallet.sol";
-import {RecoveryController, EmailAccountRecovery} from "./RecoveryController.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-
-// // FOR_ZKSYNC:START
-// import {ZKSyncCreate2Factory} from "../../src/utils/ZKSyncCreate2Factory.sol";
-// import {RecoveryControllerZKSync, EmailAccountRecoveryZKSync} from "./RecoveryControllerZKSync.sol";
-// // FOR_ZKSYNC:END
 
 contract DeploymentHelper is Test {
     using ECDSA for *;
@@ -27,13 +20,6 @@ contract DeploymentHelper is Test {
     Verifier verifier;
     ECDSAOwnedDKIMRegistry dkim;
     UserOverrideableDKIMRegistry overrideableDkimImpl;
-    RecoveryController recoveryController;
-    SimpleWallet simpleWalletImpl;
-    SimpleWallet simpleWallet;
-
-    // // FOR_ZKSYNC:START
-    // RecoveryControllerZKSync recoveryControllerZKSync;
-    // // FOR_ZKSYNC:END
 
     address deployer = vm.addr(1);
     address receiver = vm.addr(2);
@@ -137,75 +123,6 @@ contract DeploymentHelper is Test {
         templateId = uint256(keccak256(abi.encodePacked("TEST", templateIdx)));
         commandTemplate = ["Send", "{decimals}", "ETH", "to", "{ethAddr}"];
         newCommandTemplate = ["Send", "{decimals}", "USDC", "to", "{ethAddr}"];
-
-        // Create RecoveryController as EmailAccountRecovery implementation
-        RecoveryController recoveryControllerImpl = new RecoveryController();
-        ERC1967Proxy recoveryControllerProxy = new ERC1967Proxy(
-            address(recoveryControllerImpl),
-            abi.encodeCall(
-                recoveryControllerImpl.initialize,
-                (
-                    signer,
-                    address(verifier),
-                    address(dkim),
-                    address(emailAuthImpl)
-                )
-            )
-        );
-        recoveryController = RecoveryController(
-            payable(address(recoveryControllerProxy))
-        );
-
-        // Create SimpleWallet
-        simpleWalletImpl = new SimpleWallet();
-        address recoveryControllerAddress = address(recoveryController);
-
-        // // FOR_ZKSYNC:START
-        // // Create zkSync Factory implementation
-        // if (isZkSync()) {
-        //     ZKSyncCreate2Factory factoryImpl = new ZKSyncCreate2Factory();
-        //     // Create RecoveryControllerZKSync as EmailAccountRecovery implementation
-        //     RecoveryControllerZKSync recoveryControllerZKSyncImpl = new RecoveryControllerZKSync();
-        //     ERC1967Proxy recoveryControllerZKSyncProxy = new ERC1967Proxy(
-        //         address(recoveryControllerZKSyncImpl),
-        //         abi.encodeCall(
-        //             recoveryControllerZKSyncImpl.initialize,
-        //             (
-        //                 signer,
-        //                 address(verifier),
-        //                 address(dkim),
-        //                 address(emailAuthImpl),
-        //                 address(factoryImpl),
-        //                 proxyBytecodeHash
-        //             )
-        //         )
-        //     );
-        //     recoveryControllerZKSync = RecoveryControllerZKSync(
-        //         payable(address(recoveryControllerZKSyncProxy))
-        //     );
-        //     recoveryControllerAddress = address(recoveryControllerZKSync);
-        // }
-        // // FOR_ZKSYNC:END
-
-        ERC1967Proxy simpleWalletProxy = new ERC1967Proxy(
-            address(simpleWalletImpl),
-            abi.encodeCall(
-                simpleWalletImpl.initialize,
-                (signer, recoveryControllerAddress)
-            )
-        );
-        simpleWallet = SimpleWallet(payable(address(simpleWalletProxy)));
-        vm.deal(address(simpleWallet), 1 ether);
-
-        // Set guardian address
-        guardian = EmailAccountRecovery(address(recoveryController))
-            .computeEmailAuthAddress(address(simpleWallet), accountSalt);
-        // // FOR_ZKSYNC:START
-        // if (isZkSync()) {
-        //     guardian = EmailAccountRecoveryZKSync(address(recoveryControllerZKSync))
-        //         .computeEmailAuthAddress(address(simpleWallet), accountSalt);
-        // }
-        // // FOR_ZKSYNC:END
 
         vm.stopPrank();
     }

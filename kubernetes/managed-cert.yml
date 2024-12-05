@@ -1,8 +1,8 @@
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
-  name: managed-cert-email-auth
-  namespace: ar-base-sepolia
+  name: managed-cert-email-tx-auth
+  namespace: email-tx-auth
 spec:
   domains:
-    - auth.prove.email
+    - relayer.zk.email
