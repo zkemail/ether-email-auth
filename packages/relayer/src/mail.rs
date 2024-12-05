@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use ethers::types::{TxHash, U256};
+use ethers::types::U256;
 use handlebars::Handlebars;
 use relayer_utils::{ParsedEmail, LOG};
 use serde::{Deserialize, Serialize};
