@@ -2,20 +2,20 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: managed-cert-ingress-email-auth
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
   annotations:
-    kubernetes.io/ingress.global-static-ip-name: k8s-email-auth-ip
-    networking.gke.io/managed-certificates: managed-cert-email-auth
+    kubernetes.io/ingress.global-static-ip-name: generic-relayer
+    networking.gke.io/managed-certificates: managed-cert-email-tx-auth
     ingressClassName: "gce"
 spec:
   rules:
-    - host: auth.prove.email
+    - host: relayer.zk.email
       http:
         paths:
           - pathType: Prefix
             path: /
             backend:
               service:
-                name: relayer-svc-email-auth
+                name: relayer-svc-email-tx-auth
                 port:
                   number: 443

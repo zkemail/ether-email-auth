@@ -28,13 +28,4 @@ fn main() {
     .unwrap()
     .write_to_file("./src/abis/user_overridable_dkim_registry.rs")
     .unwrap();
-    Abigen::new(
-        "EmailAccountRecovery",
-        "../contracts/artifacts/EmailAccountRecovery.sol/EmailAccountRecovery.json",
-    )
-    .unwrap()
-    .generate()
-    .unwrap()
-    .write_to_file("./src/abis/email_account_recovery.rs")
-    .unwrap();
 }

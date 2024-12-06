@@ -1,84 +1,12 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: relayer-config-email-auth
-  namespace: ar-base-sepolia
-  labels:
-    app: relayer
-data:
-  EMAIL_ACCOUNT_RECOVERY_VERSION_ID: ""
-  CHAIN_RPC_PROVIDER: ""
-  CHAIN_RPC_EXPLORER: ""
-  CHAIN_ID: ""
-  WEB_SERVER_ADDRESS: ""
-  REGEX_JSON_DIR_PATH: ""
-  EMAIL_TEMPLATES_PATH: ""
-  CANISTER_ID: ""
-  IC_REPLICA_URL: ""
-  JSON_LOGGER: ""
-  PEM_PATH: ""
-  SMTP_SERVER: ""
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: relayer-secret-email-auth
-  namespace: ar-base-sepolia
-  labels:
-    app: relayer
-type: Opaque
-data:
-  PRIVATE_KEY:
-  DATABASE_URL:
-  PROVER_ADDRESS:
-  ICPEM:
-  ERROR_EMAIL_ADDR:
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: relayer-smtp-secret
-  namespace: ar-base-sepolia
-  labels:
-    app: relayer
-type: Opaque
-data:
-  SMTP_LOGIN_ID:
-  SMTP_LOGIN_PASSWORD:
-  SMTP_DOMAIN_NAME:
-  SERVER_HOST:
-  SERVER_PORT:
-  JSON_LOGGER:
-
----
-apiVersion: v1
-kind: Secret
-metadata:
-  name: relayer-imap-secret
-  namespace: ar-base-sepolia
-  labels:
-    app: relayer
-type: Opaque
-data:
-  RELAYER_ENDPOINT:
-  IMAP_LOGIN_ID:
-  IMAP_LOGIN_PASSWORD:
-  IMAP_PORT:
-  IMAP_DOMAIN_NAME:
-  SERVER_HOST:
-  AUTH_TYPE:
-  JSON_LOGGER:
-
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: relayer-email-auth
-  namespace: ar-base-sepolia
+  name: relayer-email-tx-auth
+  namespace: email-tx-auth
   labels:
     app: relayer
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: relayer
@@ -89,23 +17,25 @@ spec:
     spec:
       containers:
         - name: relayer-container
-          image: bisht13/ar-relayer-base-3:latest
+          image: bisht13/generic-relayer-7:latest
           ports:
             - containerPort: 4500
-          envFrom:
-            - configMapRef:
-                name: relayer-config-email-auth
-            - secretRef:
-                name: relayer-secret-email-auth
+          resources:
+            requests:
+              cpu: 2
+              memory: 4Gi
+            limits:
+              cpu: 4
+              memory: 8Gi
           livenessProbe:
             httpGet:
-              path: /api/echo
+              path: /api/healthz
               port: 4500
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /api/echo
+              path: /api/healthz
               port: 4500
             initialDelaySeconds: 60
             periodSeconds: 30
@@ -113,22 +43,19 @@ spec:
             - name: pem-volume
               mountPath: "/relayer/packages/relayer/.ic.pem"
               subPath: ".ic.pem"
-        - name: smtp-container
-          image: bisht13/relayer-smtp:latest
-          ports:
-            - containerPort: 8080
-          envFrom:
-            - secretRef:
-                name: relayer-smtp-secret
-        - name: imap-container
-          image: bisht13/relayer-imap-new:latest
-          envFrom:
-            - secretRef:
-                name: relayer-imap-secret
+            - name: secret-volume
+              mountPath: "/relayer/packages/relayer/config.json"
+              subPath: "config.json"
       volumes:
+        - name: secret-volume
+          secret:
+            secretName: relayer-secret-email-tx-auth
+            items:
+              - key: config.json
+                path: config.json
         - name: pem-volume
           secret:
-            secretName: relayer-secret-email-auth
+            secretName: relayer-secret-email-tx-auth
             items:
               - key: ICPEM
                 path: ".ic.pem"
@@ -137,11 +64,39 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: relayer-imap
-  namespace: ar-base-sepolia
+  name: relayer-smtp
+  namespace: email-tx-auth
   labels:
-    app: relayer
+    app: relayer-smtp
 spec:
+  replicas: 1 # Fixed replica count
+  selector:
+    matchLabels:
+      app: relayer-smtp
+  template:
+    metadata:
+      labels:
+        app: relayer-smtp
+    spec:
+      containers:
+        - name: smtp-container
+          image: bisht13/relayer-smtp:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: relayer-smtp-secret
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: relayer-imap
+  namespace: email-tx-auth
+  labels:
+    app: relayer-imap
+spec:
+  replicas: 1 # Fixed replica count
   selector:
     matchLabels:
       app: relayer-imap
@@ -161,8 +116,8 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: relayer-svc-email-auth
-  namespace: ar-base-sepolia
+  name: relayer-svc-email-tx-auth
+  namespace: email-tx-auth
 spec:
   selector:
     app: relayer
@@ -177,12 +132,33 @@ apiVersion: v1
 kind: Service
 metadata:
   name: relayer-smtp-svc
-  namespace: ar-base-sepolia
+  namespace: email-tx-auth
 spec:
   selector:
-    app: relayer
+    app: relayer-smtp
   ports:
     - protocol: TCP
       port: 443
       targetPort: 8080
   type: ClusterIP
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: relayer-email-tx-auth-hpa
+  namespace: email-tx-auth
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: relayer-email-tx-auth
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50
