@@ -203,6 +203,17 @@ describe("Forced Subject Regex", () => {
         expect(BigInt(1)).toEqual(witness[1]);
     });
 
+    it("forced subject valid case with another prefix", async () => {
+        const codeStr = "from: a@gmail.com\r\nsubject:Ynt: [Reply Needed] Command X\r\nto:b@gmail.com";
+        const paddedStr = relayerUtils.padString(codeStr, 256);
+        const circuitInputs = {
+            msg: paddedStr,
+        };
+        const witness = await circuit.calculateWitness(circuitInputs);
+        await circuit.checkConstraints(witness);
+        expect(BigInt(1)).toEqual(witness[1]);
+    });
+
     it("forced subject invalid case", async () => {
         const codeStr = "from: a@gmail.com\r\nsubject:Re: [Reply Unneeded] Command X\r\nto:b@gmail.com";
         const paddedStr = relayerUtils.padString(codeStr, 256);
