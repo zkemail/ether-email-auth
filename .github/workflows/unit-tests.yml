@@ -21,13 +21,11 @@ jobs:
           override: true
           components: rustfmt, clippy
 
-      - name: Add custom bin to PATH
-        run: |
-          echo "$HOME/bin" >> $GITHUB_ENV
-          echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV        
-
       - name: Download circom v2.1.9 (Linux)
-        run: wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O $HOME/bin/circom && chmod +x $HOME/bin/circom
+        run: |
+          wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O $HOME/bin/circom
+          chmod +x $HOME/bin/circom
+          echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
 
       - name: Print circom version
         run: circom --version
