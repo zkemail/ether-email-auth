@@ -20,7 +20,10 @@ jobs:
           toolchain: stable
           override: true
           components: rustfmt, clippy
-
+  
+      - name: Create bin directory
+        run: mkdir -p $HOME/bin
+        
       - name: Download circom v2.1.9 (Linux)
         run: |
           wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O $HOME/bin/circom
