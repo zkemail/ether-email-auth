@@ -41,7 +41,7 @@ jobs:
 
       - name: Run tests
         working-directory: packages/circuits
-        run: yarn test --runInBand --no-cache
+        run: yarn test --maxWorkers=75% --no-cache
 
   contracts:
     name: contracts
