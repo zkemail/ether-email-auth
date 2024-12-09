@@ -5,7 +5,7 @@ on: [push]
 jobs:
   circuits:
     name: circuits
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -39,7 +39,7 @@ jobs:
 
   contracts:
     name: contracts
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -65,7 +65,7 @@ jobs:
 
   relayer:
     name: relayer
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
