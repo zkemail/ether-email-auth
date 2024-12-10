@@ -291,7 +291,7 @@ libraries = [
 
 About Create2, `L2ContractHelper.computeCreate2Address` should be used.
 `type(ERC1967Proxy).creationCode` doesn't work correctly in ZKsync.
-We need to use the bytecode hash intead of `type(ERC1967Proxy).creationCode`.
+We need to use the bytecode hash instead of `type(ERC1967Proxy).creationCode`.
 Perhaps that is a different value in each compiler version and library addresses.
 
 Run the following commands, you'll get the bytecode hash.
