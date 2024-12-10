@@ -62,7 +62,7 @@ The `email_auth.circom` makes constraints and computes the public output as foll
 14. Let `account_salt` be `PoseidonHash(from_addr|0..0, account_code, 0)`.
 15. Let `masked_subject` be a string that removes the invitation code with the prefix `code_str` and one email address from `subject`, if they appear in `subject`.
 
-Note that the email address in the subject is assumbed not to overlap with the invitation code.
+Note that the email address in the subject is assumed not to overlap with the invitation code.
 
 
 #### `email_auth_with_body_parsing_with_qp_encoding.circom`
