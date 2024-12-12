@@ -124,7 +124,7 @@ jobs:
 
   stop-spot-vm:
     name: Stop Spot VM
-    needs: [circuits, contracts]
+    needs: [circuits, contracts, relayer]
     runs-on: ubuntu-latest
     steps:
       - name: Authenticate with GCP
@@ -138,4 +138,4 @@ jobs:
           version: '>= 363.0.0'
 
       - name: Stop Spot VM
-        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c        
+        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c
