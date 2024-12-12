@@ -3,7 +3,6 @@ name: Build and Format
 on: [push]
 
 jobs:
-jobs:
   start-spot-vm:
     name: Start Spot VM
     runs-on: ubuntu-latest
