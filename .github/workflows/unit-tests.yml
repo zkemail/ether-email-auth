@@ -3,28 +3,28 @@ name: Unit Tests
 on: [push]
 
 jobs:
-  # start-spot-vm:
-  #   name: Start Spot VM
-  #   runs-on: ubuntu-latest
+  start-spot-vm:
+    name: Start Spot VM
+    runs-on: ubuntu-latest
 
-  #   steps:
-  #     - name: Authenticate with GCP
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-  #     - name: 'Set up Cloud SDK'
-  #       uses: 'google-github-actions/setup-gcloud@v2'
-  #       with:
-  #         version: '>= 363.0.0'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
 
-  #     - name: Start Spot VM
-  #       run: gcloud compute instances start email-tx-builder-runner-spot --zone=us-central1-c
+      - name: Start Spot VM
+        run: gcloud compute instances start email-tx-builder-runner-spot --zone=us-central1-c
 
-  #     - name: Wait for Spot VM to initialize
-  #       run: |
-  #         echo "Waiting for Spot VM to initialize..."
-  #         sleep 60
+      - name: Wait for Spot VM to initialize
+        run: |
+          echo "Waiting for Spot VM to initialize..."
+          sleep 60
 
   circuits:
     name: circuits
@@ -122,20 +122,20 @@ jobs:
         working-directory: packages/relayer
         run: cargo test
 
-  # stop-spot-vm:
-  #   name: Stop Spot VM
-  #   needs: [circuits, contracts]
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Authenticate with GCP
-  #       uses: google-github-actions/auth@v2
-  #       with:
-  #         credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+  stop-spot-vm:
+    name: Stop Spot VM
+    needs: [circuits, contracts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
-  #     - name: 'Set up Cloud SDK'
-  #       uses: 'google-github-actions/setup-gcloud@v2'
-  #       with:
-  #         version: '>= 363.0.0'
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
 
-  #     - name: Stop Spot VM
-  #       run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c        
+      - name: Stop Spot VM
+        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c        
