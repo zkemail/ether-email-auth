@@ -72,20 +72,20 @@ jobs:
       - name: Run clippy
         run: cargo clippy -- -D warnings
 
-        stop-spot-vm:
-          name: Stop Spot VM
-          needs: [circuits, contracts, relayer]
-          runs-on: ubuntu-latest
-          steps:
-            - name: Authenticate with GCP
-              uses: google-github-actions/auth@v2
-              with:
-                credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-      
-            - name: 'Set up Cloud SDK'
-              uses: 'google-github-actions/setup-gcloud@v2'
-              with:
-                version: '>= 363.0.0'
-      
-            - name: Stop Spot VM
-              run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c
+  stop-spot-vm:
+    name: Stop Spot VM
+    needs: [build-and-format]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Stop Spot VM
+        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c
