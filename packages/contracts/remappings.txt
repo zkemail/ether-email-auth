@@ -9,3 +9,4 @@ solady/=../../node_modules/solady/src/
 accountabstraction/=../../node_modules/accountabstraction/
 solidity-stringutils/=../../node_modules/solidity-stringutils/
 openzeppelin-foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/
+safe-singleton-deployer/=lib/safe-singleton-deployer-sol/src/
