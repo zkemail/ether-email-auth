@@ -1,7 +1,9 @@
 const circom_tester = require("circom_tester");
 const wasm_tester = circom_tester.wasm;
 import * as path from "path";
-const relayerUtils = require("@zk-email/relayer-utils");
+// const relayerUtils = require("@zk-email/relayer-utils");
+import * as relayerUtils from "@zk-email/relayer-utils";
+import { init } from "./wasm_init";
 
 // const grumpkin = require("circom-grumpkin");
 jest.setTimeout(120000);
@@ -20,6 +22,7 @@ describe("Forced Subject Regex", () => {
             ),
             option
         );
+        await init();
     });
 
     it("forced subject valid case", async () => {

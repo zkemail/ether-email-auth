@@ -1,6 +1,6 @@
 import fs from "fs";
 import { promisify } from "util";
-const relayerUtils = require("@zk-email/relayer-utils");
+import * as relayerUtils from "@zk-email/relayer-utils";
 
 export async function genEmailCircuitInput(
     emailFilePath: string,
@@ -30,10 +30,15 @@ export async function genEmailCircuitInput(
     padded_cleaned_body: string[];
 }> {
     const emailRaw = await promisify(fs.readFile)(emailFilePath, "utf8");
-    const jsonStr = await relayerUtils.genEmailCircuitInput(
+    const jsonStr = await relayerUtils.generateEmailCircuitInput(
         emailRaw,
         accountCode,
-        options
+        {
+            ignore_body_hash_check: options?.ignoreBodyHashCheck,
+            max_header_length: options?.maxHeaderLength,
+            max_body_length: options?.maxBodyLength,
+            sha_precompute_selector: options?.shaPrecomputeSelector,
+        }
     );
     return JSON.parse(jsonStr);
 }
