@@ -1,10 +1,12 @@
 const circom_tester = require("circom_tester");
 const wasm_tester = circom_tester.wasm;
 import * as path from "path";
-const relayerUtils = require("@zk-email/relayer-utils");
+// const relayerUtils = require("@zk-email/relayer-utils");
+import * as relayerUtils from "@zk-email/relayer-utils";
 import { genEmailCircuitInput } from "../helpers/email_auth";
 import { genRecipientInputLegacy } from "../helpers/recipient";
 import { readFileSync } from "fs";
+import { init } from "./wasm_init";
 
 jest.setTimeout(1440000);
 describe("Email Auth Legacy with Recipient", () => {
@@ -17,6 +19,7 @@ describe("Email Auth Legacy with Recipient", () => {
             path.join(__dirname, "./circuits/email_auth_with_recipient.circom"),
             option
         );
+        await init();
     });
 
     it("Verify a sent email whose subject has an email address", async () => {
@@ -26,8 +29,7 @@ describe("Email Auth Legacy with Recipient", () => {
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
-        console.log(parsedEmail.canonicalizedHeader);
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
         const {
             body_hash_idx,
             precomputed_sha,
@@ -49,17 +51,17 @@ describe("Email Auth Legacy with Recipient", () => {
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -70,14 +72,14 @@ describe("Email Auth Legacy with Recipient", () => {
         const maskedSubject = "Send 0.1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
         const maskedSubjectFields =
-            relayerUtils.bytes2Fields(paddedMaskedSubject);
+            await relayerUtils.bytesToFields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
             expect(BigInt(maskedSubjectFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "suegamisora@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
@@ -92,7 +94,7 @@ describe("Email Auth Legacy with Recipient", () => {
             ]
         );
         const recipientEmailAddr = "alice@gmail.com";
-        const emailAddrCommit = relayerUtils.emailAddrCommitWithSignature(
+        const emailAddrCommit = await relayerUtils.emailAddrCommitWithSignature(
             recipientEmailAddr,
             parsedEmail.signature
         );
@@ -110,8 +112,7 @@ describe("Email Auth Legacy with Recipient", () => {
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
-        console.log(parsedEmail.canonicalizedHeader);
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
         const {
             body_hash_idx,
             precomputed_sha,
@@ -133,17 +134,17 @@ describe("Email Auth Legacy with Recipient", () => {
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -154,14 +155,14 @@ describe("Email Auth Legacy with Recipient", () => {
         const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
         const maskedSubjectFields =
-            relayerUtils.bytes2Fields(paddedMaskedSubject);
+            await relayerUtils.bytesToFields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
             expect(BigInt(maskedSubjectFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "suegamisora@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
@@ -176,7 +177,7 @@ describe("Email Auth Legacy with Recipient", () => {
             ]
         );
         const recipientEmailAddr = "bob@example.com";
-        const emailAddrCommit = relayerUtils.emailAddrCommitWithSignature(
+        const emailAddrCommit = await relayerUtils.emailAddrCommitWithSignature(
             recipientEmailAddr,
             parsedEmail.signature
         );
@@ -194,8 +195,7 @@ describe("Email Auth Legacy with Recipient", () => {
         );
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
-        console.log(parsedEmail.canonicalizedHeader);
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
         const {
             body_hash_idx,
             precomputed_sha,
@@ -217,17 +217,17 @@ describe("Email Auth Legacy with Recipient", () => {
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -238,14 +238,14 @@ describe("Email Auth Legacy with Recipient", () => {
         const maskedSubject = "Send 1 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
         const maskedSubjectFields =
-            relayerUtils.bytes2Fields(paddedMaskedSubject);
+            await relayerUtils.bytesToFields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
             expect(BigInt(maskedSubjectFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "suegamisora@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
@@ -260,7 +260,7 @@ describe("Email Auth Legacy with Recipient", () => {
             ]
         );
         const recipientEmailAddr = "bob@example.com";
-        const emailAddrCommit = relayerUtils.emailAddrCommitWithSignature(
+        const emailAddrCommit = await relayerUtils.emailAddrCommitWithSignature(
             recipientEmailAddr,
             parsedEmail.signature
         );
@@ -275,7 +275,6 @@ describe("Email Auth Legacy with Recipient", () => {
         const emailFilePath = path.join(__dirname, "./emails/email_auth_legacy_test5.eml");
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
-        console.log(parsedEmail.canonicalizedHeader);
         const accountCode =
             "0x01eb9b204cc24c3baee11accc37d253a9c53e92b1a2cc07763475c135d575b76";
         const {
@@ -299,17 +298,17 @@ describe("Email Auth Legacy with Recipient", () => {
         await circuit.checkConstraints(witness);
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -319,14 +318,14 @@ describe("Email Auth Legacy with Recipient", () => {
         expect(timestamp).toEqual(witness[1 + domainFields.length + 2]);
         const maskedSubject = "Send 0.12 ETH to ";
         const paddedMaskedSubject = relayerUtils.padString(maskedSubject, 605);
-        const maskedSubjectFields = relayerUtils.bytes2Fields(paddedMaskedSubject);
+        const maskedSubjectFields = await relayerUtils.bytesToFields(paddedMaskedSubject);
         for (let idx = 0; idx < maskedSubjectFields.length; ++idx) {
             expect(BigInt(maskedSubjectFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "suegamisora@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length]
         );
@@ -337,7 +336,7 @@ describe("Email Auth Legacy with Recipient", () => {
             witness[1 + domainFields.length + 3 + maskedSubjectFields.length + 2]
         );
         const recipientEmailAddr = "alice@gmail.com";
-        const emailAddrCommit = relayerUtils.emailAddrCommitWithSignature(
+        const emailAddrCommit = await relayerUtils.emailAddrCommitWithSignature(
             recipientEmailAddr,
             parsedEmail.signature
         );
@@ -372,6 +371,6 @@ describe("Email Auth Legacy with Recipient", () => {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 });

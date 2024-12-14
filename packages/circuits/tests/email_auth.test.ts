@@ -1,16 +1,18 @@
 const circom_tester = require("circom_tester");
 const wasm_tester = circom_tester.wasm;
 import * as path from "path";
-const relayerUtils = require("@zk-email/relayer-utils");
+import * as relayerUtils from "@zk-email/relayer-utils";
 import { genEmailCircuitInput } from "../helpers/email_auth";
 import { readFileSync } from "fs";
-import { genRecipientInput } from "../helpers/recipient";
+import { init } from "./wasm_init";
 
 const option = {
     include: path.join(__dirname, "../../../node_modules"),
     output: path.join(__dirname, "../build"),
     recompile: true,
 };
+
+const shaPrecomputeSelector = '<div id=3D\"[^"]*zkemail[^"]*\"[^>]*>[^<>/]+</div>';
 
 jest.setTimeout(1440000);
 describe("Email Auth", () => {
@@ -23,6 +25,7 @@ describe("Email Auth", () => {
             ),
             option
         );
+        await init();
     });
 
     it("Verify a sent email whose body has an email address", async () => {
@@ -33,34 +36,33 @@ describe("Email Auth", () => {
 
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
-        console.log(parsedEmail);
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
 
         const circuitInputs =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -72,8 +74,8 @@ describe("Email Auth", () => {
 
         const maskedCommand = "Send 0.1 ETH to ";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
-        const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+        const maskedCommandFields = await
+            relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
@@ -81,7 +83,7 @@ describe("Email Auth", () => {
         }
 
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -101,32 +103,32 @@ describe("Email Auth", () => {
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
 
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
         const circuitInputs =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -139,7 +141,7 @@ describe("Email Auth", () => {
         const maskedCommand = "Swap 1 ETH to DAI";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
@@ -147,7 +149,7 @@ describe("Email Auth", () => {
         }
 
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -167,33 +169,33 @@ describe("Email Auth", () => {
         const emailRaw = readFileSync(emailFilePath, "utf8");
         const parsedEmail = await relayerUtils.parseEmail(emailRaw);
 
-        const accountCode = await relayerUtils.genAccountCode();
+        const accountCode = await relayerUtils.generateAccountCode();
 
         const circuitInputs =
             await genEmailCircuitInput(emailFilePath, accountCode, {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -206,7 +208,7 @@ describe("Email Auth", () => {
         const maskedCommand = "Send 1 ETH to ";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
@@ -214,7 +216,7 @@ describe("Email Auth", () => {
         }
 
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -241,26 +243,26 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -273,7 +275,7 @@ describe("Email Auth", () => {
         const maskedCommand = "Send 1 ETH to ";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
@@ -281,7 +283,7 @@ describe("Email Auth", () => {
         }
 
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -309,26 +311,26 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -342,14 +344,14 @@ describe("Email Auth", () => {
             "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -377,26 +379,26 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -410,14 +412,14 @@ describe("Email Auth", () => {
             "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -445,26 +447,26 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         const witness = await circuit.calculateWitness(circuitInputs);
         await circuit.checkConstraints(witness);
 
         const domainName = "gmail.com";
         const paddedDomain = relayerUtils.padString(domainName, 255);
-        const domainFields = relayerUtils.bytes2Fields(paddedDomain);
+        const domainFields = await relayerUtils.bytesToFields(paddedDomain);
         for (let idx = 0; idx < domainFields.length; ++idx) {
             expect(BigInt(domainFields[idx])).toEqual(witness[1 + idx]);
         }
 
-        const expectedPubKeyHash = relayerUtils.publicKeyHash(
-            parsedEmail.publicKey
+        const expectedPubKeyHash = await relayerUtils.publicKeyHash(
+            parsedEmail.public_key
         );
         expect(BigInt(expectedPubKeyHash)).toEqual(
             witness[1 + domainFields.length]
         );
 
-        const expectedEmailNullifier = relayerUtils.emailNullifier(
+        const expectedEmailNullifier = await relayerUtils.emailNullifier(
             parsedEmail.signature
         );
         expect(BigInt(expectedEmailNullifier)).toEqual(
@@ -478,14 +480,14 @@ describe("Email Auth", () => {
             "Accept guardian request for 0x04884491560f38342C56E26BDD0fEAbb68E2d2FC";
         const paddedMaskedCommand = relayerUtils.padString(maskedCommand, 605);
         const maskedCommandFields =
-            relayerUtils.bytes2Fields(paddedMaskedCommand);
+            await relayerUtils.bytesToFields(paddedMaskedCommand);
         for (let idx = 0; idx < maskedCommandFields.length; ++idx) {
             expect(BigInt(maskedCommandFields[idx])).toEqual(
                 witness[1 + domainFields.length + 3 + idx]
             );
         }
         const fromAddr = "emaiwallet.alice@gmail.com";
-        const accountSalt = relayerUtils.accountSalt(fromAddr, accountCode);
+        const accountSalt = await relayerUtils.generateAccountSalt(fromAddr, accountCode);
         expect(BigInt(accountSalt)).toEqual(
             witness[1 + domainFields.length + 3 + maskedCommandFields.length]
         );
@@ -511,14 +513,14 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         circuitInputs.from_addr_idx = 640;
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 
     it("Verify a sent email with a too large domain_idx", async () => {
@@ -535,14 +537,14 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         circuitInputs.domain_idx = 256;
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 
     it("Verify a sent email with a too large timestamp_idx", async () => {
@@ -559,14 +561,14 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         circuitInputs.timestamp_idx = 640;
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 
     it("Verify a sent email with a too large code_idx", async () => {
@@ -583,14 +585,14 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         circuitInputs.code_idx = 768;
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 
     it("Verify a sent email without the forced subject", async () => {
@@ -607,13 +609,13 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 
     it("Verify a sent email with a non-utf8 character", async () => {
@@ -630,12 +632,12 @@ describe("Email Auth", () => {
                 maxHeaderLength: 640,
                 maxBodyLength: 768,
                 ignoreBodyHashCheck: false,
-                shaPrecomputeSelector: '(<(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)? (=\r\n)?i(=\r\n)?d(=\r\n)?=3D(=\r\n)?"(=\r\n)?[^"]*(=\r\n)?z(=\r\n)?k(=\r\n)?e(=\r\n)?m(=\r\n)?a(=\r\n)?i(=\r\n)?l(=\r\n)?[^"]*(=\r\n)?"(=\r\n)?[^>]*(=\r\n)?>(=\r\n)?)(=\r\n)?([^<>/]+)(<(=\r\n)?/(=\r\n)?d(=\r\n)?i(=\r\n)?v(=\r\n)?>(=\r\n)?)',
+                shaPrecomputeSelector,
             });
         async function failFn() {
             const witness = await circuit.calculateWitness(circuitInputs);
             await circuit.checkConstraints(witness);
         }
-        await expect(failFn).rejects.toThrow();
+        await expect(failFn()).rejects.toThrow();
     });
 });

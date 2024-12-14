@@ -1,0 +1,288 @@
+Delivered-To: recovery@clave.team
+Received: by 2002:a05:7022:429:b0:92:8c8d:508f with SMTP id 41csp915797dlf;
+        Tue, 10 Dec 2024 04:33:45 -0800 (PST)
+X-Received: by 2002:a05:6214:1c4a:b0:6cb:ef8d:b10 with SMTP id 6a1803df08f44-6d8e71c752cmr302541266d6.39.1733834024726;
+        Tue, 10 Dec 2024 04:33:44 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1733834024; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Bz3npx+Xiz8PCxABZM/pE2RC2j1lcM5rpsbG8t8mxfMJHWTLwNA7tmPeXejeBuxvpZ
+         newhjPva1/4cdNVX6lT+a3GqbyFZc9miLvBI2PwBFN7KT6I7p2ic7ox5WfLMBdqryRbE
+         bWH6vHNx+AgJyeULduGi+lQQ8xVR3Vkf7hlwIJoa5FLTA0Dzf7lCTdhrEoqXeEQ8/BYg
+         nKFDRSYpw+0WFVrlXiZHCe3wbzt5SESNo974JS6rQq+P6h3KoQj8FqVAqEFpmuhpPcCx
+         JcboaIJPQ1280psDQB8p9ho6k6fIXGW98LqHO7ihnwom5rFDK7wFciS2EupLAKiX6zc4
+         KD9Q==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :dkim-signature;
+        bh=BQa0fDYj4SQFznJ08GQQ5VfyHxSqDpQ61GYUErKxhJQ=;
+        fh=nYPCYrstWhfZgSWNhux6i7gDLgD1V03P71DEyaIEAt0=;
+        b=LCHAKPZo4Eye/9XO7afcaDQ1HjsEz908xMIM8DzTTb+KlHDnT8mUl3VhD+54J/HwnZ
+         +8hJutT52fPUifC/jVNs/wAtZMldq69ubuaP34HvECMhsQZZopvC9yFkgQasxY961oHy
+         ApV5af4221ffNDjRWL1acS2dAfFJUjaDqPj+FS4SlaDIa5PPtLYRNPQPHnpTTaJjdibs
+         tebQ7eSX0R1NuH/4agQT6kXHxrVG66ySl1ZlDD77p6EdxfzlGVp9XCC45U/nUoEi7Y+e
+         wZiqQTDdgMP4t8xh+gRtQ2v4eL1Xv82yph1pgTCr+Gk6xNdTwr62PzN4u1AYAW5DBIbB
+         1yqw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=erugaHZQ;
+       spf=pass (google.com: domain of clavertest1@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=clavertest1@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@clave.team
+Return-Path: <clavertest1@gmail.com>
+Received: from mail-sor-f41.google.com (mail-sor-f41.google.com. [209.85.220.41])
+        by mx.google.com with SMTPS id 6a1803df08f44-6d9167d5888sor16559636d6.9.2024.12.10.04.33.44
+        for <recovery@clave.team>
+        (Google Transport Security);
+        Tue, 10 Dec 2024 04:33:44 -0800 (PST)
+Received-SPF: pass (google.com: domain of clavertest1@gmail.com designates 209.85.220.41 as permitted sender) client-ip=209.85.220.41;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@gmail.com header.s=20230601 header.b=erugaHZQ;
+       spf=pass (google.com: domain of clavertest1@gmail.com designates 209.85.220.41 as permitted sender) smtp.mailfrom=clavertest1@gmail.com;
+       dmarc=pass (p=NONE sp=QUARANTINE dis=NONE) header.from=gmail.com;
+       dara=pass header.i=@clave.team
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=gmail.com; s=20230601; t=1733834024; x=1734438824; darn=clave.team;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :from:to:cc:subject:date:message-id:reply-to;
+        bh=BQa0fDYj4SQFznJ08GQQ5VfyHxSqDpQ61GYUErKxhJQ=;
+        b=erugaHZQtC2jx2bQfsrYLvZJ/rehO4ruXS56vserg4WyO3HQWGYivbsTf0n/Y3tTrT
+         JVr6bhUsQtOQMdJ4kUaGMVzDcEv/xE0WcEnjqYPXGKuM23QM4s0wefyxCLPGP0VgTOoP
+         xv/QHzHJ76V49JUzypoVFjjDkN0RS5GbkmDWrSOK7ke9oe/y0CYlrC0KyxvjpnyAUoYO
+         dWPR0Xo3RgytJspN1yYeupcj7ldaBknxi9AqA7A0HT8Q0n8eq1L7E7XhkfSdm5wB5t9M
+         89ROi/VtIkMKEE+Ll65xD80+2dRyRkGM7tpEMX1zHcU4ayzToI4Yg4KjEgK0xf6A5Xyt
+         mpnw==
+X-Google-DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed;
+        d=1e100.net; s=20230601; t=1733834024; x=1734438824;
+        h=to:subject:message-id:date:from:in-reply-to:references:mime-version
+         :x-gm-message-state:from:to:cc:subject:date:message-id:reply-to;
+        bh=BQa0fDYj4SQFznJ08GQQ5VfyHxSqDpQ61GYUErKxhJQ=;
+        b=oTDIimlphRMxAkiulZWKQgrmgcaJ6Vc1zDQvRhzCJcp/e/fOXr1IM1hS4lkoOpJVJ9
+         bYHjUxjWau5yOvRz0mM4rC3ycWcsBC3uztogBA55dfN/cuwG5Kp1l66xozI9ygyxT55X
+         A10i9QRojCzVVF7fJhWP+zlyqVkC8TEIRYQ1gdJykW/TmBnkabax2kLpsRdU4cUjITk0
+         wPpOA0OLbwMwJEi3tgzRVhW4NHpI/kpbyIXTteAWEeRTwaPj9gbjxpG4uSAprrHqw/O8
+         X1rUNg0V2v3ZLv9VikXgB0UTE/bH7oF7rojsvfoK4rSGS7fjqjWM1JIFlOO0L+09MjZV
+         2iaw==
+X-Gm-Message-State: AOJu0Yzoso72PGhb1JRExNPrErsRXrz1Vm0eCKNejbJkiv9RRxxMdTCj
+	7EPukAAW23At2Z/veY3Wyv/wrzkPdFVTLElG0PS+zhvzJXvY0A4+7pfp+5pN2RwgUB9do0vEpzs
+	C5u9pDFTnyvpoFExFOjolLlJbvNyFwQ==
+X-Gm-Gg: ASbGncuONi5k+oVN1sAM3uTBtYghs6AAsFIl/bzqUo8gN/7DhDytS7nBwFW7D62Sonj
+	Cm3qbbQAayyD5U+GJZqv9PUw/z5cvBnbcnx99FZh6rtsqip9C/V+4Xy3vXEliLhWxOQC+
+X-Google-Smtp-Source: AGHT+IFWvcdRI7oJ3IdUcziL5CF5LaSh1d5oY87aWHs61Ta0iBZEMmYFtNtuu5oZc1QOhX9Zl+3+AlZ3m8xB871fGcs=
+X-Received: by 2002:ad4:5ce3:0:b0:6d8:ae2c:503a with SMTP id
+ 6a1803df08f44-6d8e71eebc7mr305367536d6.48.1733834024130; Tue, 10 Dec 2024
+ 04:33:44 -0800 (PST)
+MIME-Version: 1.0
+References: <bae89327-cc70-4bf8-9e2f-efacc50a53e8@mail.gmail.com>
+In-Reply-To: <bae89327-cc70-4bf8-9e2f-efacc50a53e8@mail.gmail.com>
+From: Clav Er <clavertest1@gmail.com>
+Date: Tue, 10 Dec 2024 13:33:33 +0100
+Message-ID: <CAE5hYcP9pihG54+a0Cqc+LDts1U4pkZmLgQCPme1ycs=kqPK4w@mail.gmail.com>
+Subject: Re: [Reply Needed] Recovery: Acceptance Request
+To: recovery@clave.team
+Content-Type: multipart/alternative; boundary="0000000000001b9e890628e9b106"
+
+--0000000000001b9e890628e9b106
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Confirm.
+
+On Tue, Dec 10, 2024 at 1:33=E2=80=AFPM <recovery@clave.team> wrote:
+
+> Acceptance Request
+>
+> [image: Logo of Clave]
+>
+> Clave
+>
+> Hi, clavertest1@gmail.com!
+>
+> You have received an guardian request from the wallet address
+> *0xac09b60d0bd4370545f1f56db21cd33606c1f201*. Reply "*Confirm*" to this
+> email to accept the request.
+>
+> Your request ID is #4041864629.
+> ------------------------------
+>
+> Stay Secure,
+>
+> Clave Team
+>
+> Connect with us:
+> <https://twitter.com/getclave> <https://www.linkedin.com/company/getclave=
+>
+> <https://getclave.io/> <https://blog.getclave.io/>
+>
+> Accept guardian request for 0xAc09b60d0BD4370545F1f56dB21cd33606c1F201
+> Code 276695464b95b7401535c10a28f804e9c158732fb9e5d974325b498e05cafe7e
+>
+
+--0000000000001b9e890628e9b106
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Confirm.=C2=A0</div><br><div class=3D"gmail_quote gmail_qu=
+ote_container"><div dir=3D"ltr" class=3D"gmail_attr">On Tue, Dec 10, 2024 a=
+t 1:33=E2=80=AFPM &lt;recovery@clave.team&gt; wrote:<br></div><blockquote c=
+lass=3D"gmail_quote" style=3D"margin:0px 0px 0px 0.8ex;border-left:1px soli=
+d rgb(204,204,204);padding-left:1ex"><div class=3D"msg1975694213585704083">=
+<u></u>
+
+ =20
+   =20
+   =20
+   =20
+   =20
+ =20
+  <div style=3D"background-color:rgb(255,255,255);font-size:14px;line-heigh=
+t:1.4;margin:0px;padding:0px">
+    <span style=3D"color:transparent;display:none;height:0px;max-height:0px=
+;max-width:0px;opacity:0;overflow:hidden;width:0px">Acceptance Request</spa=
+n>
+    <table role=3D"presentation" border=3D"0" cellpadding=3D"0" cellspacing=
+=3D"0" style=3D"border-collapse:separate;width:100%;background-color:rgb(25=
+5,255,255)">
+      <tbody><tr>
+        <td style=3D"font-size:14px;vertical-align:top">=C2=A0</td>
+        <td style=3D"font-size:14px;display:block;max-width:580px;padding:1=
+0px;width:580px;margin:0px auto">
+          <div style=3D"box-sizing:border-box;display:block;margin:0px auto=
+;max-width:580px;padding:20px;background-color:rgb(244,244,244);border-radi=
+us:16px">
+           =20
+            <table cellpadding=3D"0" cellspacing=3D"0" border=3D"0">
+              <tbody><tr>
+                <td>
+                  <img alt=3D"Logo of Clave" src=3D"https://raw.githubuserc=
+ontent.com/aalimsahin/image_base/master/clave/onlylogo.png" style=3D"width:=
+ 38px; height: 38px;">
+                </td>
+                <td>
+                  <p style=3D"font-size:32px;margin-left:3px;font-weight:40=
+0">
+                    Clave
+                  </p>
+                </td>
+              </tr>
+            </tbody></table>
+           =20
+            <table role=3D"presentation" style=3D"border-collapse:separate;=
+width:100%;background-color:rgb(244,244,244);border-radius:3px">
+             =20
+              <tbody><tr>
+                <td style=3D"font-size:14px;vertical-align:top;box-sizing:b=
+order-box">
+                  <table role=3D"presentation" border=3D"0" cellpadding=3D"=
+0" cellspacing=3D"0" style=3D"border-collapse:separate;width:100%">
+                    <tbody><tr>
+                      <td style=3D"font-size:14px;vertical-align:top">
+                        <p style=3D"font-size:14px;font-weight:normal;margi=
+n:0px 0px 15px">
+                          Hi, <a href=3D"mailto:clavertest1@gmail.com" targ=
+et=3D"_blank">clavertest1@gmail.com</a>!
+                        </p>
+                        <p style=3D"font-size:14px;font-weight:normal;margi=
+n:0px">
+                          You have received an guardian request from the wa=
+llet
+                          address <strong>0xac09b60d0bd4370545f1f56db21cd33=
+606c1f201</strong>. Reply
+                          &quot;<strong>Confirm</strong>&quot; to this emai=
+l to accept the
+                          request.
+                          <br><br>
+                          Your request ID is #4041864629.
+                        </p>
+                      </td>
+                    </tr>
+                  </tbody></table>
+                </td>
+              </tr>
+             =20
+            </tbody></table>
+           =20
+           =20
+            <hr style=3D"width:100%;border-right:none rgb(185,185,185);bord=
+er-bottom:none rgb(185,185,185);border-left:none rgb(185,185,185);border-to=
+p:1px solid rgb(185,185,185);margin:16px 0px">
+            <p style=3D"font-size:16px;line-height:24px;margin-top:16px;col=
+or:rgba(0,0,0,0.64);font-weight:500;margin-bottom:0px">
+              Stay Secure,
+            </p>
+            <p style=3D"font-size:20px;line-height:24px;color:rgb(0,0,0);fo=
+nt-weight:500;margin-top:0px">
+              Clave Team
+            </p>
+            <div style=3D"border-radius:8px;padding-left:15px;display:block=
+" class=3D"m_1975694213585704083black_bg">
+              <table width=3D"100%" border=3D"0" cellspacing=3D"0" cellpadd=
+ing=3D"0">
+                <tbody><tr>
+                  <td style=3D"vertical-align:bottom">
+                    <p style=3D"font-size:24px;line-height:20px;margin:16px=
+ 0px;color:rgb(255,255,255);font-weight:500" class=3D"m_1975694213585704083=
+black_bg">
+                      Connect with us:
+                    </p>
+                    <table border=3D"0" cellspacing=3D"0" class=3D"m_197569=
+4213585704083black_bg" cellpadding=3D"0" style=3D"height:30px;margin-bottom=
+:16px">
+                      <tbody><tr style=3D"height:30px">
+                        <td style=3D"padding-right:5px;height:30px">
+                          <a href=3D"https://twitter.com/getclave" style=3D=
+"color:rgb(6,125,247);text-decoration:none;margin-right:5px" class=3D"m_197=
+5694213585704083black_bg" target=3D"_blank"><img src=3D"https://raw.githubu=
+sercontent.com/aalimsahin/image_base/master/clave/twitter.png" style=3D"dis=
+play: block; outline: none; border: none; text-decoration: none; width: 30p=
+x; height: 30px;" class=3D"m_1975694213585704083black_bg"></a>
+                        </td>
+                        <td style=3D"padding-right:5px;height:30px">
+                          <a href=3D"https://www.linkedin.com/company/getcl=
+ave" style=3D"color:rgb(6,125,247);text-decoration:none;margin-right:5px" c=
+lass=3D"m_1975694213585704083black_bg" target=3D"_blank"><img src=3D"https:=
+//raw.githubusercontent.com/aalimsahin/image_base/master/clave/linkedin.png=
+" width=3D"30" height=3D"30" style=3D"display: block; outline: none; border=
+: none; text-decoration: none;" class=3D"m_1975694213585704083black_bg"></a=
+>
+                        </td>
+                        <td style=3D"padding-right:5px;height:30px">
+                          <a href=3D"https://getclave.io/" style=3D"color:r=
+gb(6,125,247);text-decoration:none;margin-right:5px" class=3D"m_19756942135=
+85704083black_bg" target=3D"_blank"><img src=3D"https://raw.githubuserconte=
+nt.com/aalimsahin/image_base/master/clave/web.png" width=3D"30" height=3D"3=
+0" style=3D"display: block; outline: none; border: none; text-decoration: n=
+one;" class=3D"m_1975694213585704083black_bg"></a>
+                        </td>
+                        <td style=3D"padding-right:5px;height:30px">
+                          <a href=3D"https://blog.getclave.io/" style=3D"co=
+lor:rgb(6,125,247);text-decoration:none;margin-right:5px" class=3D"m_197569=
+4213585704083black_bg" target=3D"_blank"><img src=3D"https://raw.githubuser=
+content.com/aalimsahin/image_base/master/clave/reactout.png" width=3D"30" h=
+eight=3D"30" style=3D"display: block; outline: none; border: none; text-dec=
+oration: none;" class=3D"m_1975694213585704083black_bg"></a>
+                        </td>
+                      </tr>
+                    </tbody></table>
+                  </td>
+                  <td align=3D"right">
+                    <img src=3D"https://raw.githubusercontent.com/aalimsahi=
+n/image_base/master/clave/cardLogo.png" style=3D"max-height: 150px; display=
+: block;">
+                  </td>
+                </tr>
+              </tbody></table>
+            </div>
+           =20
+          </div>
+        </td>
+        <td style=3D"font-size:14px;vertical-align:top">=C2=A0</td>
+      </tr>
+    </tbody></table>
+    <div style=3D"display:none"><div id=3D"m_1975694213585704083zkemail">Ac=
+cept guardian request for 0xAc09b60d0BD4370545F1f56dB21cd33606c1F201 Code 2=
+76695464b95b7401535c10a28f804e9c158732fb9e5d974325b498e05cafe7e</div></div>
+  </div>
+
+</div></blockquote></div>
+
+--0000000000001b9e890628e9b106--
