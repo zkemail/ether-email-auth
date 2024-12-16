@@ -3,8 +3,31 @@ name: Build and Format
 on: [push]
 
 jobs:
-  build-and-format:
+  start-spot-vm:
+    name: Start Spot VM
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Start Spot VM
+        run: gcloud compute instances start email-tx-builder-runner-spot --zone=us-central1-c
+
+      - name: Wait for Spot VM to initialize
+        run: |
+          echo "Waiting for Spot VM to initialize..."
+          sleep 60
+
+  build-and-format:
+    runs-on: self-hosted
 
     steps:
       - uses: actions/checkout@v3
@@ -48,3 +71,21 @@ jobs:
 
       - name: Run clippy
         run: cargo clippy -- -D warnings
+
+  stop-spot-vm:
+    name: Stop Spot VM
+    needs: [build-and-format]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Stop Spot VM
+        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c
