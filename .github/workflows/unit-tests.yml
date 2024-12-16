@@ -60,7 +60,7 @@ jobs:
         run: npm install -g yarn
 
       - name: Install bun
-        uses: oven-sh/setup-bun@v1
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
@@ -130,7 +130,7 @@ jobs:
       - name: Run tests
         working-directory: packages/relayer
         run: cargo test
-        
+
   stop-spot-vm:
     name: Stop Spot VM
     needs: [circuits, contracts, relayer]
