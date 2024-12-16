@@ -3,9 +3,32 @@ name: Unit Tests
 on: [push]
 
 jobs:
+  start-spot-vm:
+    name: Start Spot VM
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Start Spot VM
+        run: gcloud compute instances start email-tx-builder-runner-spot --zone=us-central1-c
+
+      - name: Wait for Spot VM to initialize
+        run: |
+          echo "Waiting for Spot VM to initialize..."
+          sleep 60
+          
   circuits:
     name: circuits
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -21,8 +44,14 @@ jobs:
           override: true
           components: rustfmt, clippy
 
+      - name: Create bin directory
+        run: mkdir -p $HOME/bin
+
       - name: Download circom v2.1.9 (Linux)
-        run: wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O /usr/local/bin/circom && chmod +x /usr/local/bin/circom
+        run: |
+          wget https://github.com/iden3/circom/releases/download/v2.1.9/circom-linux-amd64 -O $HOME/bin/circom
+          chmod +x $HOME/bin/circom
+          echo "PATH=$HOME/bin:$PATH" >> $GITHUB_ENV
 
       - name: Print circom version
         run: circom --version
@@ -40,11 +69,11 @@ jobs:
 
       - name: Run tests
         working-directory: packages/circuits
-        run: yarn test --runInBand --no-cache
+        run: yarn test --maxWorkers=75% --no-cache
 
   contracts:
     name: contracts
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -74,7 +103,7 @@ jobs:
 
   relayer:
     name: relayer
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 
@@ -101,3 +130,21 @@ jobs:
       - name: Run tests
         working-directory: packages/relayer
         run: cargo test
+        
+  stop-spot-vm:
+    name: Stop Spot VM
+    needs: [circuits, contracts, relayer]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+        with:
+          version: '>= 363.0.0'
+
+      - name: Stop Spot VM
+        run: gcloud compute instances stop email-tx-builder-runner-spot --zone=us-central1-c
