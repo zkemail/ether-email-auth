@@ -32,6 +32,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install unzip
+        run: apt install unzip
+
       - name: Install bun
         uses: oven-sh/setup-bun@v2
         with:
