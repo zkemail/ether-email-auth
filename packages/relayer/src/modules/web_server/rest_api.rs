@@ -124,8 +124,13 @@ pub async fn handle_acceptance_request(
     //     return Err(ApiError::Validation("Not permitted bytecode".to_string()));
     // }
 
+    let mut account_code = payload.account_code.clone();
+    if account_code.starts_with("0x") {
+        account_code = account_code[2..].to_string();
+    }
+
     // Check if the account code is already used
-    if let Ok(Some(creds)) = DB.get_credentials(&payload.account_code).await {
+    if let Ok(Some(creds)) = DB.get_credentials(&account_code).await {
         return Err(ApiError::Validation(
             "Account code already used".to_string(),
         ));
@@ -137,7 +142,7 @@ pub async fn handle_acceptance_request(
         request_id = rand::thread_rng().gen::<u32>();
     }
 
-    let account_salt = calculate_account_salt(&payload.guardian_email_addr, &payload.account_code);
+    let account_salt = calculate_account_salt(&payload.guardian_email_addr, &account_code);
 
     DB.insert_request(&Request {
         request_id,
@@ -171,7 +176,7 @@ pub async fn handle_acceptance_request(
     {
         // Update credentials and send acceptance request email
         DB.update_credentials_of_wallet_and_email(&Credentials {
-            account_code: payload.account_code.clone(),
+            account_code: account_code.clone(),
             account_eth_addr: account_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
             is_set: false,
@@ -183,13 +188,13 @@ pub async fn handle_acceptance_request(
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
             command: payload.command.clone(),
-            account_code: payload.account_code.clone(),
+            account_code: account_code.clone(),
         })
         .await?;
     } else {
         // Insert new credentials and send acceptance request email
         DB.insert_credentials(&Credentials {
-            account_code: payload.account_code.clone(),
+            account_code: account_code.clone(),
             account_eth_addr: account_eth_addr.clone(),
             guardian_email_addr: payload.guardian_email_addr.clone(),
             is_set: false,
@@ -201,7 +206,7 @@ pub async fn handle_acceptance_request(
             guardian_email_addr: payload.guardian_email_addr.clone(),
             request_id,
             command: payload.command.clone(),
-            account_code: payload.account_code.clone(),
+            account_code: account_code.clone(),
         })
         .await?;
     }
@@ -302,7 +307,6 @@ pub async fn handle_recovery_request(
     let account = DB
         .get_credentials_from_wallet_and_email(&account_eth_addr, &payload.guardian_email_addr)
         .await?;
-
     let account_salt = if let Some(account_details) = account {
         calculate_account_salt(&payload.guardian_email_addr, &account_details.account_code)
     } else {
