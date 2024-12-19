@@ -1,0 +1,187 @@
+Delivered-To: arbitrum@sendeth.org
+Received: by 2002:a05:7301:9a91:b0:150:7837:3792 with SMTP id og17csp2122071dyc;
+        Sun, 8 Dec 2024 23:43:45 -0800 (PST)
+X-Google-Smtp-Source: AGHT+IECYfKpqMvKW1+Z9Vm01ZTNYHYDN7x+g1iKhFPzc3vrFQMor2EU6Uc0QR2qUo5Tab7xLSqC
+X-Received: by 2002:a17:90b:38a:b0:2ee:463d:8e8d with SMTP id 98e67ed59e1d1-2ef41c71cd2mr10254656a91.14.1733730224648;
+        Sun, 08 Dec 2024 23:43:44 -0800 (PST)
+ARC-Seal: i=1; a=rsa-sha256; t=1733730224; cv=none;
+        d=google.com; s=arc-20240605;
+        b=Q+2FlZMzBU+X8iAggvjzMrIzkfQEYOfD/CP2siT0Vyu9RKsDgp5+IN8d3lYynruB2/
+         LzK0W/E58uqTBb0T472yFYcH6+QwhzaR+SQMxVUsJpX4thdOlKmziu54ziP18L5LTBuY
+         8uueUSGKA5VslrT3tFYRU7lkXkvTJAy/ZHRpG3DWTSCrgDy2bMDvg9EaxGgIaWSqnboP
+         4xeT7TW69lY+bw1PAPkzTfsvzbwSyE+eR1YX+IkiHaFBXb927Kz1+BMnlCo1ovlnThBS
+         67Kw9IOHyi6bFRJW0la7sapYSSYhupzMtI1N3NxWxQO3MVREacRXGGb21rWlY4p6qaXk
+         OlLA==
+ARC-Message-Signature: i=1; a=rsa-sha256; c=relaxed/relaxed; d=google.com; s=arc-20240605;
+        h=references:in-reply-to:mime-version:message-id:date:subject:from:to
+         :dkim-signature;
+        bh=ok1sZqWcNorB1hUrcEZ8bpWOro4GHrYvhkYAc5NFIpI=;
+        fh=NiFfXpGsf4NiPgQyu56KYLs/TS2Vqsd4I8WrbqKeOhg=;
+        b=cutz/ycY5qst163sG55M+ROKmZo9yMTlcI+ay15A9FGnJI2IgwBen1TA8lQeNHI7Pe
+         D8xsbTo9KVVr1mcIrWueqSoEeOQhOowkfNWVPb8dZY/DxI9KVzjC3GW9TZhTlJGBK+RU
+         zXpB1IGota789HJrTmdWzS7VMrgb8Y3Y4QeeyI59nyJx4e7JMx7cTrAiE8apgUAiqPZ2
+         iCWP0cKD+pUZkkMZifGPLDft+W8PX4vFZIgCwjxRKCN7hYO+WpL/2Fcs+t9PbzFtzh0O
+         A4u1VTjKsbulHulYpqhVpNE6JymqwIzZBMFqO0ifbXkDq+bz1hOX7U4dilbU1R9i+yIg
+         KKTw==;
+        dara=google.com
+ARC-Authentication-Results: i=1; mx.google.com;
+       dkim=pass header.i=@icloud.com header.s=1a1hai header.b=hGsg5cRU;
+       spf=pass (google.com: domain of suegamisora@icloud.com designates 17.58.23.181 as permitted sender) smtp.mailfrom=suegamisora@icloud.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=icloud.com
+Return-Path: <suegamisora@icloud.com>
+Received: from mr85p00im-ztdg06011201.me.com (mr85p00im-ztdg06011201.me.com. [17.58.23.181])
+        by mx.google.com with ESMTPS id 98e67ed59e1d1-2ef27085fbdsi13082749a91.84.2024.12.08.23.43.44
+        for <arbitrum@sendeth.org>
+        (version=TLS1_3 cipher=TLS_AES_256_GCM_SHA384 bits=256/256);
+        Sun, 08 Dec 2024 23:43:44 -0800 (PST)
+Received-SPF: pass (google.com: domain of suegamisora@icloud.com designates 17.58.23.181 as permitted sender) client-ip=17.58.23.181;
+Authentication-Results: mx.google.com;
+       dkim=pass header.i=@icloud.com header.s=1a1hai header.b=hGsg5cRU;
+       spf=pass (google.com: domain of suegamisora@icloud.com designates 17.58.23.181 as permitted sender) smtp.mailfrom=suegamisora@icloud.com;
+       dmarc=pass (p=QUARANTINE sp=QUARANTINE dis=NONE) header.from=icloud.com
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=icloud.com;
+	s=1a1hai; t=1733730223;
+	bh=ok1sZqWcNorB1hUrcEZ8bpWOro4GHrYvhkYAc5NFIpI=;
+	h=To:From:Subject:Date:Message-id:Content-Type:MIME-Version:
+	 x-icloud-hme;
+	b=hGsg5cRUfNBlh+7TymMjW/UYucthWdWb+zzswiTt1P8CC0vSV2fcw4vC6VeufdlgT
+	 gGkEJMydr596K1yC71WCc6sbUpq5qEipeIf084QhRWf3PhJ57+Gh2K2ga8VGMP61mJ
+	 muhmn1t40SjjMYtnCvuEoFoDTWo2i7Zgist/UQoA8yjZoZGQ8Vv0rXO1vjAOQmBSuN
+	 61aQyqdgag+4bxqvh6+SToGKPmpgbVgjjQgCD5uWbdST/WgxmBgHPBNpJyfB2xVl+w
+	 CfV0ypj7RjXwcJuB2qhYXXKdtPGrJoon5ydRB5pNBalbpw4ckZH0iikep7nLqLzH+4
+	 eNreEo8N02cRA==
+Received: from mr85p00im-ztdg06011201.me.com (mr85p00im-ztdg06011201.me.com [17.58.23.181])
+	by mr85p00im-ztdg06011201.me.com (Postfix) with ESMTPS id 28B07960297
+	for <arbitrum@sendeth.org>; Mon,  9 Dec 2024 07:43:41 +0000 (UTC)
+Received: from p00-mailws2-5b95964b8d-lv8dl (mr38p00im.dlb-asmtpoutvip.me.com [10.112.84.233])
+	by mr85p00im-ztdg06011201.me.com (Postfix) with ESMTPSA id 2A841960241
+	for <arbitrum@sendeth.org>; Mon,  9 Dec 2024 07:43:41 +0000 (UTC)
+To: arbitrum@sendeth.org
+From: =?utf-8?B?5pyr56We5aWP5a6Z?= <suegamisora@icloud.com>
+Subject: Re: [Reply Needed] Recovery: Acceptance Request
+Date: Mon, 9 Dec 2024 07:43:41 +0000 (UTC)
+X-Mailer: iCloud MailClientcurrent MailServer2429B28.6954931b110c
+Message-id: <1e32b6dc-218f-4076-a7b1-c7d64983496c@me.com>
+Content-Type: multipart/alternative; boundary=Apple-Webmail-42--b896184a-a8b2-41f4-ae46-b14da7197c22
+MIME-Version: 1.0
+In-Reply-To: <a750d0cd-c6ab-4d2e-af1f-787b7656e235@mail.gmail.com>
+References: <a750d0cd-c6ab-4d2e-af1f-787b7656e235@mail.gmail.com>
+X-Proofpoint-ORIG-GUID: kKigxBX8JuT1FwIGMcIwhZcDYJLmDFuC
+X-Proofpoint-GUID: kKigxBX8JuT1FwIGMcIwhZcDYJLmDFuC
+X-Proofpoint-Virus-Version: vendor=baseguard
+ engine=ICAP:2.0.272,Aquarius:18.0.1057,Hydra:6.0.680,FMLib:17.12.68.34
+ definitions=2024-12-09_04,2024-12-09_01,2024-11-22_01
+X-Proofpoint-Spam-Details: rule=notspam policy=default score=0 mlxlogscore=999 bulkscore=0
+ phishscore=0 clxscore=1011 malwarescore=0 mlxscore=0 spamscore=0
+ suspectscore=0 adultscore=0 classifier=spam adjust=0 reason=mlx
+ scancount=1 engine=8.19.0-2308100000 definitions=main-2412090059
+
+
+--Apple-Webmail-42--b896184a-a8b2-41f4-ae46-b14da7197c22
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+    charset=utf-8;
+    format=flowed
+
+2024=E5=B9=B412=E6=9C=889=E6=97=A5 16:43=E3=80=81arbitrum@sendeth.org=E3=81=
+=8B=E3=82=89=E3=81=AE=E3=83=A1=E3=83=BC=E3=83=AB=EF=BC=9A Hi, suegamisora@=
+icloud.com ! You have received an guardian request from the wallet address=
+ 0xccbef71b57c85e7f12700b7d831267d893904fbe . Reply " Confirm " to this em=
+ail to accept the request. Your request ID is #1855412348. If you did not =
+initiate this request, please contact us immediately. Cheers, The ZK Email=
+ Team Powered by ZK Email Accept guardian request for 0xcCBef71b57C85E7F12=
+700B7D831267D893904fbE Code 1162ebff40918afe5305e68396f0283eb675901d0387f9=
+7d21928d423aaa0b20
+--Apple-Webmail-42--b896184a-a8b2-41f4-ae46-b14da7197c22
+Content-Type: multipart/related;
+    type="text/html";
+    boundary=Apple-Webmail-86--b896184a-a8b2-41f4-ae46-b14da7197c22
+
+
+--Apple-Webmail-86--b896184a-a8b2-41f4-ae46-b14da7197c22
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/html;
+    charset=utf-8;
+
+<html><body><div><div><br></div><div><br></div><blockquote type=3D"cite"><div>2024=E5=B9=
+=B412=E6=9C=889=E6=97=A5 16:43=E3=80=81arbitrum@sendeth.org=E3=81=8B=E3=82=
+=89=E3=81=AE=E3=83=A1=E3=83=BC=E3=83=AB=EF=BC=9A<br></div><div><br></div><=
+div><br></div><div style=3D"margin: 0;=0A      padding: 0;=0A      font-si=
+ze: 16px;=0A      font-family: 'Fustat', sans-serif;"><table align=3D"cent=
+er" width=3D"100%" style=3D"max-width: 480px;=0A        margin: 0 auto;=0A=
+        padding: 0;"><tbody><tr><td align=3D"center" style=3D"padding: 0">=
+<br><table width=3D"100%" style=3D"background-image: url(&quot;https://sto=
+rage.googleapis.com/email-templates-artifacts/Header.png?ignoreCache=3D1&q=
+uot;);=0A              background-size: cover;=0A              background-=
+position: center;=0A              height: 4.5rem;=0A              border-r=
+adius: 8px 8px 0 0;"></table><table width=3D"100%" style=3D"background-col=
+or: white;=0A              padding: 2rem 1rem;=0A              border: 1px=
+ solid #dddddd;"><tbody><tr><td style=3D"padding: 0; font-size: 16px; colo=
+r: #000">Hi, <b><a href=3D"mailto:suegamisora@icloud.com">suegamisora@iclo=
+ud.com</a>!</b><br></td></tr><tr><td style=3D"padding-top: 15px; font-fami=
+ly: 'Fustat', sans-serif;"><div>You have received an guardian request from=
+ the wallet address <b>0xccbef71b57c85e7f12700b7d831267d893904fbe</b>. Rep=
+ly "<b>Confirm</b>" to this email to accept the request.=0A               =
+ Your request ID is #1855412348. <br></div><div><br></div><div> If you did=
+ not initiate this request, please contact us immediately.<br></div></td><=
+/tr><tr><td style=3D"padding-top: 20px"><p style=3D"margin: 0"></p><div>Ch=
+eers,<br></div><div><b>The ZK Email Team</b><br></div><p></p></td></tr></t=
+body></table><table width=3D"100%" style=3D"background-image: url(&quot;ht=
+tps://storage.googleapis.com/email-templates-artifacts/Footer.png?ignoreCa=
+che=3D1&quot;);=0A              background-size: cover;=0A              he=
+ight: 4.5rem;=0A              border-radius: 0 0 8px 8px;"><tbody><tr><td =
+align=3D"center" style=3D"padding: 5px"><p style=3D"color: #D4D4D4; font-w=
+eight: 500; font-size: 14px; margin: 0; margin-bottom: 4px;">Powered by <a=
+ href=3D"#" style=3D"color: white; font-size: 14px; text-decoration: under=
+line;">ZK Email</a><br></p><table><tbody><tr><td><a href=3D"https://github=
+.com/zkemail" rel=3D"noopener noreferrer" class=3D"social-links-logo" styl=
+e=3D"border-radius: 50%;=0A                            background: #161819=
+;=0A                            border: 1px solid #3B3B3B;=0A             =
+               backdrop-filter: blur(8px);=0A                            m=
+argin-left: 4px;=0A                            margin-right: 4px;=0A      =
+                      height: 24px;=0A                            width: 2=
+4px;=0A                            text-align: center;=0A                 =
+           line-height: 24px;=0A                            display: block=
+"><img src=3D"https://storage.googleapis.com/email-templates-artifacts/Git=
+hubLogo.png?ignoreCache=3D1" alt=3D"GitHub Logo" style=3D"height: 12px; wi=
+dth: 12px;"></a><br></td><td><a href=3D"https://twitter.com/zkemail" rel=3D=
+"noopener noreferrer" class=3D"social-links-logo" style=3D"border-radius: =
+50%;=0A                            background: #161819;=0A                =
+            border: 1px solid #3B3B3B;=0A                            backd=
+rop-filter: blur(8px);=0A                            margin-left: 4px;=0A =
+                           margin-right: 4px;=0A                          =
+  height: 24px;=0A                            width: 24px;=0A             =
+               text-align: center;=0A                            line-heig=
+ht: 24px;=0A                            display: block"><img src=3D"https:=
+//storage.googleapis.com/email-templates-artifacts/XLogo.png?ignoreCache=3D=
+1" alt=3D"Twitter Logo" style=3D"height: 12px; width: 12px;"></a><br></td>=
+<td><a href=3D"https://t.me/zkemail/1" rel=3D"noopener noreferrer" class=3D=
+"social-links-logo" style=3D"border-radius: 50%;=0A                       =
+     background: #161819;=0A                            border: 1px solid =
+#3B3B3B;=0A                            backdrop-filter: blur(8px);=0A     =
+                       margin-left: 4px;=0A                            mar=
+gin-right: 4px;=0A                            height: 24px;=0A            =
+                width: 24px;=0A                            text-align: cen=
+ter;=0A                            line-height: 24px;=0A                  =
+          display: block"><img src=3D"https://storage.googleapis.com/email=
+-templates-artifacts/TelegramLogo.png?ignoreCache=3D1" alt=3D"Telegram Log=
+o" style=3D"height: 12px; width: 12px;"></a><br></td><td><a href=3D"https:=
+//discord.gg/XgAUbX3F4T" rel=3D"noopener noreferrer" class=3D"social-links=
+-logo" style=3D"border-radius: 50%;=0A                            backgrou=
+nd: #161819;=0A                            border: 1px solid #3B3B3B;=0A  =
+                          backdrop-filter: blur(8px);=0A                  =
+          margin-left: 4px;=0A                            margin-right: 4p=
+x;=0A                            height: 24px;=0A                         =
+   width: 24px;=0A                            text-align: center;=0A      =
+                      line-height: 24px;=0A                            dis=
+play: block"><img src=3D"https://storage.googleapis.com/email-templates-ar=
+tifacts/DiscordLogo.png?ignoreCache=3D1" alt=3D"Discord Logo" style=3D"hei=
+ght: 12px; width: 12px;"></a><br></td></tr></tbody></table></td></tr></tbo=
+dy></table></td></tr></tbody></table><div style=3D"display: none;"><div id=
+=3D"zkemail">Accept guardian request for 0xcCBef71b57C85E7F12700B7D831267D=
+893904fbE Code 1162ebff40918afe5305e68396f0283eb675901d0387f97d21928d423aa=
+a0b20<br></div></div></div></blockquote></div></body></html>
+--Apple-Webmail-86--b896184a-a8b2-41f4-ae46-b14da7197c22--
+
+--Apple-Webmail-42--b896184a-a8b2-41f4-ae46-b14da7197c22--
+

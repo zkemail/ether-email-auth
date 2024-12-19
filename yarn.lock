@@ -1729,7 +1729,15 @@
   resolved "https://registry.yarnpkg.com/@zk-email/relayer-utils/-/relayer-utils-0.4.59.tgz#a57b540fa3cf603b3d9d89624d9994e44453bb91"
   integrity sha512-pSKCH/wYuI54Ci5L13md8LNQbwrulQ+HWUyjoiKFH3VtI/NebR98n2JOBvnVHmvpnXfi/l/uimoHnHFD+MOX6A==
 
-"@zk-email/zk-regex-circom@=2.3.1", "@zk-email/zk-regex-circom@^2.3.1":
+"@zk-email/zk-regex-circom@=2.3.2":
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.2.tgz#d3ad819ea0de3ce7612aa9ecde0497c3fac514fc"
+  integrity sha512-GXp4Z/93iF54hfJwlWl52HFiqpmLCeSHFc4HlYpxj5EWHQK6ibFQMLUWTJsdA3eh/erjO4UX+HlEIJ/gHhLg9g==
+  dependencies:
+    commander "^11.0.0"
+    snarkjs "^0.7.5"
+
+"@zk-email/zk-regex-circom@^2.3.1":
   version "2.3.1"
   resolved "https://registry.yarnpkg.com/@zk-email/zk-regex-circom/-/zk-regex-circom-2.3.1.tgz#032cdf12b5f587f828d6e872a235c0120d463bc8"
   integrity sha512-FJNi4QL07teQPuXV4EZqosPpA4riOSeFX2xD+cd4CCuf5b1RmqGqXoBz7yxT0QXuwNqdgooY6v6/xhH1o4X7vg==
