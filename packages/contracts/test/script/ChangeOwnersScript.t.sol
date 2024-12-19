@@ -30,21 +30,21 @@ contract ChangeOwnersScriptTest is StructHelper {
 
         Deploy deploy = new Deploy();
         deploy.run();
-        vm.setEnv("DKIM", "0x1445eb74cea4Be2FDc961646cc5e7F6b6eD96718");
-        vm.setEnv("VERIFIER", "0xFa093e866780eE4A3546b5BC4Ffb38b186269C52");
+        vm.setEnv("DKIM", "0xedF4bB8f2d504dDCe967A72cb738F8F3E2e44374");
+        vm.setEnv("VERIFIER", "0x38323919eFb82A1f1a04D863BbBe12925cb93f2D");
         vm.setEnv(
             "EMAIL_AUTH_IMPL",
-            "0x647e0FcF727a6DCec40c179a2E44Bde108b341d6"
+            "0x4393aB187b8B509d153681383a8aB26593BfA8d6"
         );
         vm.setEnv(
             "RECOVERY_CONTROLLER",
-            "0x7bE0655b25E90e971Ca54f717250Bf6021bcA353"
+            "0x064c9B191E626618b787e77630995bDcEbAD69F6"
         );
         deploy.deployECDSAOwnedDKIMRegistry(
             vm.envAddress("INITIAL_OWNER"),
             vm.envAddress("DKIM_SIGNER")
         );
-        vm.setEnv("ECDSA_DKIM", "0x916B5308713E70bd53c1f9aF7F0d228B62736af9");
+        vm.setEnv("ECDSA_DKIM", "0x6600f69ba900BFD830bE1a8985ED59A80694A06f");
         ChangeOwners changeOwners = new ChangeOwners();
         changeOwners.run();
         address verifier = vm.envAddress("VERIFIER");
