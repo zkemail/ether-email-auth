@@ -28,25 +28,25 @@ contract RenounceOwnersScriptTest is StructHelper {
         skipIfZkSync();
         Deploy deploy = new Deploy();
         deploy.run();
-        vm.setEnv("DKIM", "0x71C95911E9a5D330f4D621842EC243EE1343292e");
-        vm.setEnv("VERIFIER", "0xbCF26943C0197d2eE0E5D05c716Be60cc2761508");
+        vm.setEnv("DKIM", "0x1445eb74cea4Be2FDc961646cc5e7F6b6eD96718");
+        vm.setEnv("VERIFIER", "0xFa093e866780eE4A3546b5BC4Ffb38b186269C52");
         vm.setEnv(
             "EMAIL_AUTH_IMPL",
-            "0x59F2f1fCfE2474fD5F0b9BA1E73ca90b143Eb8d0"
+            "0x647e0FcF727a6DCec40c179a2E44Bde108b341d6"
         );
         vm.setEnv(
             "RECOVERY_CONTROLLER",
-            "0x1275D096B9DBf2347bD2a131Fb6BDaB0B4882487"
+            "0x7bE0655b25E90e971Ca54f717250Bf6021bcA353"
         );
         vm.setEnv(
             "SIMPLE_WALLET",
-            "0x0b48aF34f4c854F5ae1A3D587da471FeA45bAD52"
+            "0xd314baEA5ccD35E1335e865793d589fb42525ea7"
         );
         deploy.deployECDSAOwnedDKIMRegistry(
             vm.addr(vm.envUint("PRIVATE_KEY")),
             vm.envAddress("DKIM_SIGNER")
         );
-        vm.setEnv("ECDSA_DKIM", "0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3");
+        vm.setEnv("ECDSA_DKIM", "0x916B5308713E70bd53c1f9aF7F0d228B62736af9");
         RenounceOwners renounceOwners = new RenounceOwners();
         renounceOwners.run();
         address verifier = vm.envAddress("VERIFIER");

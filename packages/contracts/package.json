@@ -5,7 +5,7 @@
   "scripts": {
     "build": "forge build --skip '*ZKSync*'",
     "test": "forge test --force --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --skip '*ZKSync*'",
-    "test:script": "forge test --force --no-match-test \"testIntegration\" --skip '*ZKSync*' --match-path test/script/**/*.sol --threads 1",
+    "test:script": "forge test --force --no-match-test \"testIntegration\" --skip '*ZKSync*' --match-path test/script/**/*.sol --threads 1 --fork-url https://sepolia.base.org",
     "zkbuild": "forge build --skip test --zksync",
     "zktest": "forge test --no-match-test \"testIntegration\" --no-match-contract \".*Script.*\" --system-mode=true --zksync --gas-limit 2000000000 --chain 300 --fork-url http://127.0.0.1:8011",
     "lint": "solhint 'src/**/*.sol'"
