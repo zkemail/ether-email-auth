@@ -175,7 +175,7 @@ Regarding the contract addresses already deployed on Base Sepolia, see [here](./
 
 We prioritize the security and user experience of ZK Email. If you encounter any issues or have questions, please contact us at:
 
-- **Support Email**: [team@zk.email](mailto:team@zk.email)
+- **Support Email**: [support@zk.email](mailto:support@zk.email)
 - **Telegram groups**: [t.me/zkemail](https://t.me/zkemail)
 
 Our team will respond quickly to help resolve any problems.
