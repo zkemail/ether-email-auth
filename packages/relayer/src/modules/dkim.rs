@@ -17,7 +17,7 @@ use ic_utils::canister::*;
 use ic_utils::interfaces::WalletCanister;
 use serde::Deserialize;
 
-pub const SIGN_CHARGED_CYCLE: u128 = 39_246_898_590;
+pub const SIGN_CHARGED_CYCLE: u128 = 85_414_812_012;
 
 /// Represents a client for interacting with the DKIM Oracle.
 #[derive(Debug, Clone)]
