@@ -177,6 +177,7 @@ pub async fn check_and_update_dkim(
         .get_email_auth_addr_from_wallet(controller_eth_addr, wallet_addr, account_salt)
         .await?;
     let email_auth_addr = format!("0x{:x}", email_auth_addr);
+    info!(LOG, "email_auth_addr {:?}", email_auth_addr);
 
     // Get DKIM from controller or email auth
     let mut dkim = CLIENT.get_dkim_from_controller(controller_eth_addr).await?;

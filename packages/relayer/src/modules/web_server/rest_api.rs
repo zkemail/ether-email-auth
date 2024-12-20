@@ -21,6 +21,7 @@ use std::str;
 pub async fn request_status_api(
     Json(payload): Json<RequestStatusRequest>,
 ) -> Result<Json<RequestStatusResponse>, ApiError> {
+    trace!(LOG, "Request status API input: {:?}", payload);
     let row = DB.get_request(payload.request_id).await?;
 
     // Determine the status based on the retrieved row
@@ -33,6 +34,7 @@ pub async fn request_status_api(
     } else {
         RequestStatus::NotExist
     };
+    trace!(LOG, "Request status API status: {:?}", status);
 
     Ok(Json(RequestStatusResponse {
         request_id: payload.request_id,
@@ -57,13 +59,24 @@ pub async fn request_status_api(
 pub async fn handle_acceptance_request(
     Json(payload): Json<AcceptanceRequest>,
 ) -> Result<Json<AcceptanceResponse>, ApiError> {
+    trace!(LOG, "Acceptance request API input: {:?}", payload);
     let command_template = CLIENT
         .get_acceptance_command_templates(&payload.controller_eth_addr, payload.template_idx)
         .await?;
+    trace!(
+        LOG,
+        "Acceptance request API command template: {:?}",
+        command_template
+    );
 
     // Extract and validate command parameters
     let command_params = extract_template_vals_from_command(&payload.command, command_template)
         .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
+    trace!(
+        LOG,
+        "Acceptance request API command params: {:?}",
+        command_params
+    );
 
     // Recover the account address
     let account_eth_addr = CLIENT
@@ -73,11 +86,20 @@ pub async fn handle_acceptance_request(
             payload.template_idx,
         )
         .await?;
+    trace!(
+        LOG,
+        "Acceptance request API account eth addr: {:?}",
+        account_eth_addr
+    );
 
     let account_eth_addr = format!("0x{:x}", account_eth_addr);
 
     // Check if the wallet is deployed
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await? {
+        error!(
+            LOG,
+            "Acceptance request API account {} not deployed", account_eth_addr
+        );
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     }
 
@@ -131,6 +153,10 @@ pub async fn handle_acceptance_request(
 
     // Check if the account code is already used
     if let Ok(Some(creds)) = DB.get_credentials(&account_code).await {
+        error!(
+            LOG,
+            "Acceptance request API account code {} already used", account_code
+        );
         return Err(ApiError::Validation(
             "Account code already used".to_string(),
         ));
@@ -141,8 +167,10 @@ pub async fn handle_acceptance_request(
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
+    trace!(LOG, "Acceptance request API request ID: {:?}", request_id);
 
     let account_salt = calculate_account_salt(&payload.guardian_email_addr, &account_code);
+    trace!(LOG, "Acceptance request API account salt: {}", account_salt);
 
     DB.insert_request(&Request {
         request_id,
@@ -163,6 +191,12 @@ pub async fn handle_acceptance_request(
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
+        error!(
+            LOG,
+            "Acceptance request API guardian {} already set for {}",
+            payload.guardian_email_addr,
+            account_eth_addr
+        );
         handle_email_event(EmailAuthEvent::GuardianAlreadyExists {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -174,6 +208,12 @@ pub async fn handle_acceptance_request(
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
+        error!(
+            LOG,
+            "Acceptance request API account {} and email {} already registered",
+            account_eth_addr,
+            payload.guardian_email_addr
+        );
         // Update credentials and send acceptance request email
         DB.update_credentials_of_wallet_and_email(&Credentials {
             account_code: account_code.clone(),
@@ -192,6 +232,12 @@ pub async fn handle_acceptance_request(
         })
         .await?;
     } else {
+        trace!(
+            LOG,
+            "Acceptance request API account {} and email {} are registered",
+            account_eth_addr,
+            payload.guardian_email_addr
+        );
         // Insert new credentials and send acceptance request email
         DB.insert_credentials(&Credentials {
             account_code: account_code.clone(),
@@ -229,14 +275,25 @@ pub async fn handle_acceptance_request(
 pub async fn handle_recovery_request(
     Json(payload): Json<RecoveryRequest>,
 ) -> Result<Json<RecoveryResponse>, ApiError> {
+    trace!(LOG, "Recovery request API input: {:?}", payload);
     // Fetch the command template
     let command_template = CLIENT
         .get_recovery_command_templates(&payload.controller_eth_addr, payload.template_idx)
         .await?;
+    trace!(
+        LOG,
+        "Recovery request API command template: {:?}",
+        command_template
+    );
 
     // Extract and validate command parameters
     let command_params = extract_template_vals_from_command(&payload.command, command_template)
         .map_err(|_| ApiError::Validation("Invalid command".to_string()))?;
+    trace!(
+        LOG,
+        "Recovery request API command params: {:?}",
+        command_params
+    );
 
     // Recover the account address
     let account_eth_addr = CLIENT
@@ -248,9 +305,18 @@ pub async fn handle_recovery_request(
         .await?;
 
     let account_eth_addr = format!("0x{:x}", account_eth_addr);
+    trace!(
+        LOG,
+        "Recovery request API account eth addr: {:?}",
+        account_eth_addr
+    );
 
     // Check if the wallet is deployed
     if !CLIENT.is_wallet_deployed(&account_eth_addr).await? {
+        error!(
+            LOG,
+            "Recovery request API account {} not deployed", account_eth_addr
+        );
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     }
 
@@ -302,14 +368,26 @@ pub async fn handle_recovery_request(
     while let Ok(Some(request)) = DB.get_request(request_id).await {
         request_id = rand::thread_rng().gen::<u32>();
     }
+    trace!(LOG, "Recovery request API request ID: {:?}", request_id);
 
     // Fetch account details and calculate account salt
     let account = DB
         .get_credentials_from_wallet_and_email(&account_eth_addr, &payload.guardian_email_addr)
         .await?;
     let account_salt = if let Some(account_details) = account {
+        trace!(
+            LOG,
+            "Recovery request API account details: {:?}",
+            account_details
+        );
         calculate_account_salt(&payload.guardian_email_addr, &account_details.account_code)
     } else {
+        error!(
+            LOG,
+            "Recovery request API account {} and email {} not registered",
+            account_eth_addr,
+            payload.guardian_email_addr
+        );
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     };
 
@@ -318,6 +396,12 @@ pub async fn handle_recovery_request(
         .is_wallet_and_email_registered(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
+        error!(
+            LOG,
+            "Recovery request API account {} and email {} not registered",
+            account_eth_addr,
+            payload.guardian_email_addr
+        );
         DB.insert_request(&Request {
             request_id,
             account_eth_addr: account_eth_addr.clone(),
@@ -366,6 +450,12 @@ pub async fn handle_recovery_request(
         .is_guardian_set(&account_eth_addr, &payload.guardian_email_addr)
         .await?
     {
+        trace!(
+            LOG,
+            "Recovery request API for account {} and guardian {}",
+            account_eth_addr,
+            payload.guardian_email_addr,
+        );
         handle_email_event(EmailAuthEvent::RecoveryRequest {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -376,6 +466,12 @@ pub async fn handle_recovery_request(
         // TODO: Add custom error for handle_email_event
         .expect("Failed to send Recovery event");
     } else {
+        error!(
+            LOG,
+            "Recovery request API guardian {} not set for {}",
+            payload.guardian_email_addr,
+            account_eth_addr
+        );
         handle_email_event(EmailAuthEvent::GuardianNotSet {
             account_eth_addr,
             guardian_email_addr: payload.guardian_email_addr.clone(),
@@ -403,8 +499,13 @@ pub async fn handle_recovery_request(
 pub async fn handle_complete_recovery_request(
     Json(payload): Json<CompleteRecoveryRequest>,
 ) -> Result<String, ApiError> {
+    trace!(LOG, "Complete recovery request API input: {:?}", payload);
     // Check if the wallet is deployed
     if !CLIENT.is_wallet_deployed(&payload.account_eth_addr).await? {
+        error!(
+            LOG,
+            "Complete recovery request API account {} not deployed", payload.account_eth_addr
+        );
         return Err(ApiError::Validation("Wallet not deployed".to_string()));
     }
 
@@ -417,8 +518,22 @@ pub async fn handle_complete_recovery_request(
         )
         .await
     {
-        Ok(true) => Ok("Recovery completed".to_string()),
-        Ok(false) => Err(ApiError::Validation("Recovery failed".to_string())),
+        Ok(true) => {
+            trace!(
+                LOG,
+                "Complete recovery request API recovery completed for account {}",
+                payload.account_eth_addr
+            );
+            Ok("Recovery completed".to_string())
+        }
+        Ok(false) => {
+            error!(
+                LOG,
+                "Complete recovery request API recovery failed for account {}",
+                payload.account_eth_addr
+            );
+            Err(ApiError::Validation("Recovery failed".to_string()))
+        }
         Err(e) => {
             // Parse the error message if it follows the known format
             let error_message = if e
@@ -434,6 +549,10 @@ pub async fn handle_complete_recovery_request(
                 .chars()
                 .filter(|c| c.is_ascii())
                 .collect::<String>();
+            error!(
+                LOG,
+                "Complete recovery request API error: {}", error_message,
+            );
             Err(ApiError::Internal(error_message))
         }
     }
@@ -451,7 +570,9 @@ pub async fn handle_complete_recovery_request(
 pub async fn get_account_salt(
     Json(payload): Json<GetAccountSaltRequest>,
 ) -> Result<String, ApiError> {
+    trace!(LOG, "Get account salt API input: {:?}", payload);
     let account_salt = calculate_account_salt(&payload.email_addr, &payload.account_code);
+    trace!(LOG, "Get account salt API account salt: {}", account_salt);
     Ok(account_salt)
 }
 
@@ -467,12 +588,22 @@ pub async fn get_account_salt(
 pub async fn inactive_guardian(
     Json(payload): Json<InactiveGuardianRequest>,
 ) -> Result<String, ApiError> {
+    trace!(LOG, "Inactive guardian API input: {:?}", payload);
     // Check if the wallet is activated
     let is_activated = CLIENT
         .get_is_activated(&payload.controller_eth_addr, &payload.account_eth_addr)
         .await?;
+    trace!(
+        LOG,
+        "Inactive guardian API is activated: {:?}",
+        is_activated
+    );
 
     if is_activated {
+        error!(
+            LOG,
+            "Inactive guardian API wallet {} is activated", payload.account_eth_addr
+        );
         return Ok("Wallet is activated".to_string());
     }
 
@@ -561,10 +692,13 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
                 }
             },
             Err(e) => {
-                error!(LOG, "Error handling email: {:?}", e);
                 let original_subject = parsed_email
                     .get_subject_all()
                     .unwrap_or("Unknown Error".to_string());
+                error!(
+                    LOG,
+                    "Error handling email for the original subject {}: {:?}", original_subject, e
+                );
                 match handle_email_event(EmailAuthEvent::Error {
                     email_addr: from_addr,
                     error: e.to_string(),
@@ -587,14 +721,14 @@ pub async fn receive_email_api_fn(email: String) -> Result<(), ApiError> {
 }
 
 /// Request status request structure.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RequestStatusRequest {
     /// The unique identifier for the request.
     pub request_id: u32,
 }
 
 /// Enum representing the possible statuses of a request.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub enum RequestStatus {
     /// The request does not exist.
     NotExist = 0,
@@ -620,7 +754,7 @@ pub struct RequestStatusResponse {
 }
 
 /// Request structure for an acceptance request.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AcceptanceRequest {
     /// The Ethereum address of the controller.
     pub controller_eth_addr: String,
@@ -635,7 +769,7 @@ pub struct AcceptanceRequest {
 }
 
 /// Response structure for an acceptance request.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct AcceptanceResponse {
     /// The unique identifier for the request.
     pub request_id: u32,
@@ -657,7 +791,7 @@ pub struct RecoveryRequest {
 }
 
 /// Response structure for a recovery request.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct RecoveryResponse {
     /// The unique identifier for the request.
     pub request_id: u32,
@@ -666,7 +800,7 @@ pub struct RecoveryResponse {
 }
 
 /// Request structure for completing a recovery.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct CompleteRecoveryRequest {
     /// The Ethereum address of the account to recover.
     pub account_eth_addr: String,
@@ -677,7 +811,7 @@ pub struct CompleteRecoveryRequest {
 }
 
 /// Request structure for retrieving an account salt.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct GetAccountSaltRequest {
     /// The unique account code.
     pub account_code: String,
@@ -701,7 +835,7 @@ struct PermittedWallet {
 }
 
 /// Request structure for marking a guardian as inactive.
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct InactiveGuardianRequest {
     /// The Ethereum address of the account.
     pub account_eth_addr: String,
