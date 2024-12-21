@@ -1,4 +1,4 @@
 [workspace]
-members = ["packages/relayer"]
+members = ["packages/relayer", "e2e"]
 exclude = ["node_modules/*", "packages/relayer/src/abis"]
 resolver = "2"
