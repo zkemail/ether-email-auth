@@ -12,8 +12,10 @@ fs_permissions = [
     { access = "read", path = "./zkout/ERC1967Proxy.sol/ERC1967Proxy.json" },
     { access = "read", path = "./artifacts" },
 ]
-
+bytecode_hash = "none"
 solc = "0.8.26"
+foundry_version = "0.2.0"
+foundry_commit = "a592f7a"
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 

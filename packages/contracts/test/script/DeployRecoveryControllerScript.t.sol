@@ -27,41 +27,49 @@ contract DeployRecoveryControllerScriptTest is StructHelper {
 
         Deploy deploy = new Deploy();
         deploy.run();
-        vm.setEnv("DKIM", "0x71C95911E9a5D330f4D621842EC243EE1343292e");
-        vm.setEnv("VERIFIER", "0xbCF26943C0197d2eE0E5D05c716Be60cc2761508");
+        vm.setEnv("DKIM", "0xedF4bB8f2d504dDCe967A72cb738F8F3E2e44374");
+        vm.setEnv("VERIFIER", "0x38323919eFb82A1f1a04D863BbBe12925cb93f2D");
         vm.setEnv(
             "EMAIL_AUTH_IMPL",
-            "0x59F2f1fCfE2474fD5F0b9BA1E73ca90b143Eb8d0"
+            "0x4393aB187b8B509d153681383a8aB26593BfA8d6"
         );
         vm.setEnv(
             "RECOVERY_CONTROLLER",
-            "0x1275D096B9DBf2347bD2a131Fb6BDaB0B4882487"
+            "0x064c9B191E626618b787e77630995bDcEbAD69F6"
         );
         vm.setEnv(
             "SIMPLE_WALLET",
-            "0x0b48aF34f4c854F5ae1A3D587da471FeA45bAD52"
+            "0x300f752d60986Dd7b7b41795e46b3326D8127dCb"
         );
         deploy.deployECDSAOwnedDKIMRegistry(
             vm.addr(vm.envUint("PRIVATE_KEY")),
             vm.envAddress("DKIM_SIGNER")
         );
-        vm.setEnv("ECDSA_DKIM", "0x037eDa3aDB1198021A9b2e88C22B464fD38db3f3");
+        vm.setEnv("ECDSA_DKIM", "0x6600f69ba900BFD830bE1a8985ED59A80694A06f");
         require(
-            vm.envAddress("ECDSA_DKIM") != address(0),
-            "ECDSA_DKIM is not set"
-        );
-        require(vm.envAddress("VERIFIER") != address(0), "VERIFIER is not set");
-        require(
-            vm.envAddress("EMAIL_AUTH_IMPL") != address(0),
-            "EMAIL_AUTH_IMPL is not set"
+            vm.envAddress("ECDSA_DKIM") ==
+                0x6600f69ba900BFD830bE1a8985ED59A80694A06f,
+            "ECDSA_DKIM address mismatch"
         );
         require(
-            vm.envAddress("RECOVERY_CONTROLLER") != address(0),
-            "RECOVERY_CONTROLLER is not set"
+            vm.envAddress("VERIFIER") ==
+                0x38323919eFb82A1f1a04D863BbBe12925cb93f2D,
+            "VERIFIER address mismatch"
         );
         require(
-            vm.envAddress("SIMPLE_WALLET") != address(0),
-            "SIMPLE_WALLET is not set"
+            vm.envAddress("EMAIL_AUTH_IMPL") ==
+                0x4393aB187b8B509d153681383a8aB26593BfA8d6,
+            "EMAIL_AUTH_IMPL address mismatch"
+        );
+        require(
+            vm.envAddress("RECOVERY_CONTROLLER") ==
+                0x064c9B191E626618b787e77630995bDcEbAD69F6,
+            "RECOVERY_CONTROLLER address mismatch"
+        );
+        require(
+            vm.envAddress("SIMPLE_WALLET") ==
+                0x300f752d60986Dd7b7b41795e46b3326D8127dCb,
+            "SIMPLE_WALLET address mismatch"
         );
     }
 }
