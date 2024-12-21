@@ -15,12 +15,16 @@ import {Verifier} from "../src/utils/Verifier.sol";
 import {Groth16Verifier} from "../src/utils/Groth16Verifier.sol";
 import {ECDSAOwnedDKIMRegistry} from "../src/utils/ECDSAOwnedDKIMRegistry.sol";
 import {EmailAuth} from "../src/EmailAuth.sol";
+import {DecimalUtils} from "../src/libraries/DecimalUtils.sol";
+import {CommandUtils} from "../src/libraries/CommandUtils.sol";
+import {StringUtils} from "../src/libraries/StringUtils.sol";
 
 import {SafeSingletonDeployer} from "safe-singleton-deployer/SafeSingletonDeployer.sol";
 
 contract BaseDeployScript is Script {
     address initialOwner;
     uint256 deployerPrivateKey;
+    bytes32 createSalt;
 
     /// @notice Sets up deployment configuration based on whether using Defender or private key
     function run() public virtual {
@@ -34,6 +38,8 @@ contract BaseDeployScript is Script {
         if (initialOwner == address(0)) {
             initialOwner = vm.addr(deployerPrivateKey);
         }
+
+        createSalt = bytes32(uint256(vm.envOr("CREATE_SALT", uint256(3))));
     }
 
     /// @notice Deploys a UserOverrideableDKIMRegistry contract with a specified owner, dkim signer and time delay
@@ -46,7 +52,7 @@ contract BaseDeployScript is Script {
         address dkimImpl = SafeSingletonDeployer.deploy(
             type(UserOverrideableDKIMRegistry).creationCode,
             "",
-            keccak256("DKIM_REGISTRY_IMPL")
+            createSalt
         );
 
         console.log(
@@ -63,7 +69,7 @@ contract BaseDeployScript is Script {
         address dkimProxyAddress = SafeSingletonDeployer.deploy(
             type(ERC1967Proxy).creationCode,
             abi.encode(dkimImpl, initData),
-            keccak256("DKIM_REGISTRY_PROXY")
+            createSalt
         );
 
         console.log(
@@ -82,7 +88,7 @@ contract BaseDeployScript is Script {
         address ecdsaDkimImpl = SafeSingletonDeployer.deploy(
             type(ECDSAOwnedDKIMRegistry).creationCode,
             "",
-            keccak256("ECDSA_DKIM_IMPL")
+            createSalt
         );
 
         console.log(
@@ -99,7 +105,7 @@ contract BaseDeployScript is Script {
         address ecdsaDkimProxyAddress = SafeSingletonDeployer.deploy(
             type(ERC1967Proxy).creationCode,
             abi.encode(ecdsaDkimImpl, initData),
-            keccak256("ECDSA_DKIM_PROXY")
+            createSalt
         );
 
         console.log(
@@ -115,7 +121,7 @@ contract BaseDeployScript is Script {
         address verifierImpl = SafeSingletonDeployer.deploy(
             type(Verifier).creationCode,
             "",
-            keccak256("VERIFIER_IMPL")
+            createSalt
         );
 
         console.log("Verifier implementation deployed at: %s", verifierImpl);
@@ -123,7 +129,7 @@ contract BaseDeployScript is Script {
         address groth16Verifier = SafeSingletonDeployer.deploy(
             type(Groth16Verifier).creationCode,
             "",
-            keccak256("GROTH16_VERIFIER")
+            createSalt
         );
 
         console.log("Groth16Verifier deployed at: %s", groth16Verifier);
@@ -137,19 +143,62 @@ contract BaseDeployScript is Script {
         address verifierProxyAddress = SafeSingletonDeployer.deploy(
             type(ERC1967Proxy).creationCode,
             abi.encode(verifierImpl, initData),
-            keccak256("VERIFIER_PROXY")
+            createSalt
         );
 
         console.log("Verifier deployed at: %s", verifierProxyAddress);
         return verifierProxyAddress;
     }
 
-    /// @notice Deploys an EmailAuth implementation contract
+    /// @notice Deploys an EmailAuth implementation contract with required libraries
     function deployEmailAuthImplementation() public returns (address) {
-        address emailAuthImplAddress = SafeSingletonDeployer.deploy(
-            type(EmailAuth).creationCode,
+        // Deploy libraries first
+        address decimalUtilsAddr = SafeSingletonDeployer.deploy(
+            type(DecimalUtils).creationCode,
             "",
-            keccak256("EMAIL_AUTH_IMPL")
+            createSalt
+        );
+        console.log("DecimalUtils deployed at: %s", decimalUtilsAddr);
+
+        // Link CommandUtils with DecimalUtils
+        bytes memory commandUtilsBytecode = type(CommandUtils).creationCode;
+        commandUtilsBytecode = _linkBytecode(
+            commandUtilsBytecode,
+            "DecimalUtils",
+            decimalUtilsAddr
+        );
+
+        address commandUtilsAddr = SafeSingletonDeployer.deploy(
+            commandUtilsBytecode,
+            "",
+            createSalt
+        );
+        console.log("CommandUtils deployed at: %s", commandUtilsAddr);
+
+        address stringUtilsAddr = SafeSingletonDeployer.deploy(
+            type(StringUtils).creationCode,
+            "",
+            createSalt
+        );
+        console.log("StringUtils deployed at: %s", stringUtilsAddr);
+
+        // Link EmailAuth with both libraries
+        bytes memory emailAuthBytecode = type(EmailAuth).creationCode;
+        emailAuthBytecode = _linkBytecode(
+            emailAuthBytecode,
+            "CommandUtils",
+            commandUtilsAddr
+        );
+        emailAuthBytecode = _linkBytecode(
+            emailAuthBytecode,
+            "StringUtils",
+            stringUtilsAddr
+        );
+
+        address emailAuthImplAddress = SafeSingletonDeployer.deploy(
+            emailAuthBytecode,
+            "",
+            createSalt
         );
 
         console.log(
@@ -157,6 +206,42 @@ contract BaseDeployScript is Script {
             emailAuthImplAddress
         );
         return emailAuthImplAddress;
+    }
+
+    /// @dev Helper function to link library addresses in bytecode
+    function _linkBytecode(
+        bytes memory bytecode,
+        string memory libraryName,
+        address libraryAddress
+    ) internal pure returns (bytes memory) {
+        bytes32 placeholder = keccak256(abi.encodePacked(libraryName));
+        placeholder =
+            placeholder &
+            0x00000000000000000000000000000000ffffffffffffffffffffffffffffffff;
+        bytes32 libAddress = bytes32(uint256(uint160(libraryAddress)));
+
+        bytes memory linkedBytecode = bytecode;
+        assembly {
+            let pos := 0
+            for {
+
+            } lt(pos, mload(linkedBytecode)) {
+
+            } {
+                pos := add(pos, 1)
+                let word := mload(add(add(linkedBytecode, 0x20), pos))
+                if eq(and(word, placeholder), placeholder) {
+                    mstore(
+                        add(add(linkedBytecode, 0x20), pos),
+                        or(
+                            and(word, not(placeholder)),
+                            and(libAddress, placeholder)
+                        )
+                    )
+                }
+            }
+        }
+        return linkedBytecode;
     }
 
     /// @notice Deploys a RecoveryController contract with specified owner, verifier, DKIM registry and EmailAuth implementation
@@ -170,7 +255,7 @@ contract BaseDeployScript is Script {
         address recoveryControllerImpl = SafeSingletonDeployer.deploy(
             type(RecoveryController).creationCode,
             "",
-            keccak256("RECOVERY_CONTROLLER_IMPL")
+            createSalt
         );
 
         console.log(
@@ -187,7 +272,7 @@ contract BaseDeployScript is Script {
         address recoveryControllerProxyAddress = SafeSingletonDeployer.deploy(
             type(ERC1967Proxy).creationCode,
             abi.encode(recoveryControllerImpl, initData),
-            keccak256("RECOVERY_CONTROLLER_PROXY")
+            createSalt
         );
 
         console.log(
@@ -248,7 +333,7 @@ contract BaseDeployScript is Script {
         address simpleWalletImpl = SafeSingletonDeployer.deploy(
             type(SimpleWallet).creationCode,
             "",
-            keccak256("SIMPLE_WALLET_IMPL")
+            createSalt
         );
 
         console.log(
@@ -265,7 +350,7 @@ contract BaseDeployScript is Script {
         address simpleWalletProxyAddress = SafeSingletonDeployer.deploy(
             type(ERC1967Proxy).creationCode,
             abi.encode(simpleWalletImpl, initData),
-            keccak256("SIMPLE_WALLET_PROXY")
+            createSalt
         );
 
         console.log("SimpleWallet deployed at: %s", simpleWalletProxyAddress);
