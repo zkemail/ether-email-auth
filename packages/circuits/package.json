@@ -1,7 +1,7 @@
 {
   "name": "@zk-email/ether-email-auth-circom",
   "license": "MIT",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "scripts": {
     "build": "mkdir -p build && circom src/email_auth.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
     "build-legacy": "mkdir -p build && circom src/email_auth_legacy.circom --r1cs --wasm --sym --c -l ../../node_modules -o ./build",
